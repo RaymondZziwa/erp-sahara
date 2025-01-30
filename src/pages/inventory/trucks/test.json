@@ -1,0 +1,178 @@
+{
+  "success": true,
+  "data": [
+    {
+      "item_id": 1,
+      "total_quantity": "44",
+      "item": {
+        "id": 1,
+        "item_category_id": 1,
+        "organisation_id": 1,
+        "unit_of_measure_id": 1,
+        "currency_id": 1,
+        "brand_id": null,
+        "name": "Aligator Pepper",
+        "chart_of_account_id": 1,
+        "item_type": "physical",
+        "cost_price": "59000.00",
+        "selling_price": "60000.00",
+        "vat": "0.00",
+        "reference": "AB",
+        "barcode": null,
+        "stock_alert_level": "1",
+        "sku_unit": "Unit 1",
+        "has_expiry": 1,
+        "shell_life": "0",
+        "description": "Alligator Pepper",
+        "item_category": {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Powder",
+          "parent_id": null,
+          "description": "Powder form of spices"
+        },
+        "currency": {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Uganda Shillings",
+          "code": "UGX",
+          "is_base_currency": 1,
+          "deleted_at": null,
+          "created_at": "2024-12-19T16:18:56.000000Z",
+          "updated_at": "2024-12-19T16:18:56.000000Z"
+        }
+      },
+      "supplier": null
+    },
+    {
+      "item_id": 2,
+      "total_quantity": "40",
+      "item": {
+        "id": 2,
+        "item_category_id": 1,
+        "organisation_id": 1,
+        "unit_of_measure_id": 1,
+        "currency_id": 1,
+        "brand_id": null,
+        "name": "Basil",
+        "chart_of_account_id": 1,
+        "item_type": "physical",
+        "cost_price": "54000.00",
+        "selling_price": "55000.00",
+        "vat": "0.00",
+        "reference": "AB",
+        "barcode": null,
+        "stock_alert_level": "5",
+        "sku_unit": "Unit 1",
+        "has_expiry": 1,
+        "shell_life": "2",
+        "description": "Just an item",
+        "item_category": {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Powder",
+          "parent_id": null,
+          "description": "Powder form of spices"
+        },
+        "currency": {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Uganda Shillings",
+          "code": "UGX",
+          "is_base_currency": 1,
+          "deleted_at": null,
+          "created_at": "2024-12-19T16:18:56.000000Z",
+          "updated_at": "2024-12-19T16:18:56.000000Z"
+        }
+      },
+      "supplier": null
+    },
+    {
+      "item_id": 13,
+      "total_quantity": "1000",
+      "item": {
+        "id": 13,
+        "item_category_id": 1,
+        "organisation_id": 1,
+        "unit_of_measure_id": 1,
+        "currency_id": 1,
+        "brand_id": null,
+        "name": "Coconut Powder",
+        "chart_of_account_id": 2,
+        "item_type": "physical",
+        "cost_price": "1.00",
+        "selling_price": "20000.00",
+        "vat": "0.00",
+        "reference": "GH",
+        "barcode": "skja",
+        "stock_alert_level": "100",
+        "sku_unit": "1234",
+        "has_expiry": 0,
+        "shell_life": null,
+        "description": "Coconut",
+        "item_category": {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Powder",
+          "parent_id": null,
+          "description": "Powder form of spices"
+        },
+        "currency": {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Uganda Shillings",
+          "code": "UGX",
+          "is_base_currency": 1,
+          "deleted_at": null,
+          "created_at": "2024-12-19T16:18:56.000000Z",
+          "updated_at": "2024-12-19T16:18:56.000000Z"
+        }
+      },
+      "supplier": null
+    },
+    {
+      "item_id": 16,
+      "total_quantity": "50",
+      "item": {
+        "id": 16,
+        "item_category_id": 7,
+        "organisation_id": 1,
+        "unit_of_measure_id": 1,
+        "currency_id": 1,
+        "brand_id": null,
+        "name": "Dry Ginger",
+        "chart_of_account_id": 2,
+        "item_type": "physical",
+        "cost_price": "22000.00",
+        "selling_price": "25000.00",
+        "vat": "1.00",
+        "reference": "GH",
+        "barcode": "skja",
+        "stock_alert_level": "100",
+        "sku_unit": null,
+        "has_expiry": 0,
+        "shell_life": null,
+        "description": "Dry ginger",
+        "item_category": {
+          "id": 7,
+          "organisation_id": 1,
+          "name": "Other",
+          "parent_id": null,
+          "description": "Other form of the item"
+        },
+        "currency": {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Uganda Shillings",
+          "code": "UGX",
+          "is_base_currency": 1,
+          "deleted_at": null,
+          "created_at": "2024-12-19T16:18:56.000000Z",
+          "updated_at": "2024-12-19T16:18:56.000000Z"
+        }
+      },
+      "supplier": null
+    }
+  ],
+  "message": "Successfully retrieved all records"
+}

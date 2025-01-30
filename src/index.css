@@ -1,0 +1,49 @@
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities; */
+
+@layer tailwind-base, primereact, tailwind-utilities;
+
+/* IMPORTANT: In "styled" mode you must add the PrimeReact Theme here. Do NOT include in "unstyled" mode */
+@import "primereact/resources/themes/lara-light-blue/theme.css"
+  layer(primereact);
+
+@layer tailwind-base {
+  @tailwind base;
+}
+
+@layer tailwind-utilities {
+  @tailwind components;
+  @tailwind utilities;
+}
+.ag-theme-quartz {
+  --ag-foreground-color: black;
+  --ag-background-color: #fff;
+  /* --ag-header-foreground-color: rgb(204, 245, 172); */
+  /* --ag-header-background-color: rgb(153, 167, 211); */
+  --ag-odd-row-background-color: rgb(0, 0, 0, 0.03);
+  --ag-header-column-resize-handle-color: rgb(126, 46, 132);
+
+  --ag-font-size: 16px;
+  --ag-font-family: manrope;
+}
+* {
+  font-family: manrope;
+}
+/* For Firefox */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0; /* Light gray */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00ac9a; /* Teal */
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #008c8c; /* Darker teal */
+}

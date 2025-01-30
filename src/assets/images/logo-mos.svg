@@ -1,0 +1,19 @@
+<svg id="Group_207" data-name="Group 207" xmlns="http://www.w3.org/2000/svg" width="114.85" height="89.073" viewBox="0 0 114.85 89.073">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #e8b11b;
+      }
+
+      .cls-2 {
+        fill: #23b8e7;
+      }
+    </style>
+  </defs>
+  <g id="Group_206" data-name="Group 206">
+    <circle id="Ellipse_7" data-name="Ellipse 7" class="cls-1" cx="10.276" cy="10.276" r="10.276" transform="translate(31.567 0)"/>
+    <circle id="Ellipse_8" data-name="Ellipse 8" class="cls-2" cx="7.707" cy="7.707" r="7.707" transform="translate(81.661 28.258)"/>
+    <path id="Path_209" data-name="Path 209" class="cls-1" d="M-1853.567-2153.05c-.705.341,38.116-7.847,66.861,60.227.63.165,7.108-32.751-3.577-82.55-.115-.857-2.289,19.9-12.952,18.31C-1803.254-2157.042-1832.812-2166.418-1853.567-2153.05Z" transform="translate(1853.576 2181.309)"/>
+    <path id="Path_210" data-name="Path 210" class="cls-2" d="M-1797.147-2162.391c.155-.108-2.614,49.387,2.164,66.452.139.221,19.65-10.514,40.393-34.727.037-.084-22.272-1.376-32.554-7.931C-1791.926-2141.661-1795.837-2151.967-1797.147-2162.391Z" transform="translate(1869.441 2185.009)"/>
+  </g>
+</svg>

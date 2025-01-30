@@ -1,0 +1,86 @@
+export const SALES_ENDPOINTS = {
+  QUOTES: {
+    GET_ALL: "/erp/sales/quotations",
+    GET_BY_ID: (id: string) => `/erp/sales/quotations/${id}`,
+    ADD: "/erp/sales/quotations/create",
+    UPDATE: (id: string) => `/erp/sales/quotations/${id}/update`,
+    DELETE: (id: string) => `/erp/sales/quotations/${id}/delete`,
+  },
+  LEADS: {
+    GET_ALL: "/erp/sales/leads",
+    GET_BY_ID: (id: string) => `/erp/sales/leads/${id}`,
+    ADD: "/erp/sales/leads/create",
+    UPDATE: (id: string) => `/erp/sales/leads/${id}/update`,
+    DELETE: (id: string) => `/erp/sales/leads/${id}/delete`,
+  },
+  CUSTOMER_ORDERS: {
+    GET_ALL: "/erp/sales/customer_orders",
+    GET_BY_ID: (id: string) => `/erp/sales/customer_orders/${id}`,
+    ADD: "/erp/sales/customer_orders/create",
+    UPDATE: (id: string) => `/erp/sales/customer_orders/${id}/update`,
+    DELETE: (id: string) => `/erp/sales/customer_orders/${id}/delete`,
+  },
+  DISTRIBUTION_ORDERS: {
+    GET_ALL: "/erp/sales/distribution_orders",
+    GET_BY_ID: (id: string) => `/erp/sales/distribution_orders/${id}`,
+    ADD: "/erp/sales/distribution_orders/create",
+    UPDATE: (id: string) => `/erp/sales/distribution_orders/${id}/update`,
+    DELETE: (id: string) => `/erp/sales/distribution_orders/${id}/delete`,
+  },
+  BRANDS: {
+    GET_ALL: "/erp/sales/brands",
+    GET_BY_ID: (id: string) => `/erp/sales/brands/${id}`,
+    ADD: "/erp/sales/brands/create",
+    UPDATE: (id: string) => `/erp/sales/brands/${id}/update`,
+    DELETE: (id: string) => `/erp/sales/brands/${id}/delete`,
+  },
+  CURRENCIES: {
+    GET_ALL: "/erp/currencies",
+    GET_BY_ID: (id: string) => `/erp/currencies/${id}`,
+    ADD: "/erp/currencies/add",
+    UPDATE: (id: string) => `/erp/currencies/${id}`,
+    DELETE: (id: string) => `/erp/currencies/${id}`,
+  },
+  ITEM_CATEGORIES: {
+    GET_ALL: "/erp/sales/item_categories",
+    ADD: "/erp/sales/item_categories/create",
+    UPDATE: (id: string) => `/erp/sales/item_categories/${id}/update`,
+    DELETE: (id: string) => `/erp/sales/item_categories/${id}/delete`,
+  },
+  ITEMS: {
+    GET_ALL: "/erp/sales/items",
+    ADD: "/erp/sales/items/create",
+    UPDATE: (id: string) => `/erp/sales/items/${id}/update`,
+    DELETE: (id: string) => `/erp/sales/items/${id}/delete`,
+  },
+
+  SUPPLIERS: {
+    GET_ALL: "/erp/people/suppliers",
+    GET_BY_ID: (id: string) => `/erp/people/suppliers/${id}`,
+    ADD: "/erp/people/suppliers/create",
+    UPDATE: (id: string) => `/erp/people/suppliers/${id}/update`,
+    DELETE: (id: string) => `/erp/people/suppliers/${id}`,
+  },
+
+  CUSTOMERS: {
+    GET_ALL: "/erp/people/customers",
+    GET_BY_ID: (id: string) => `/erp/people/customers/${id}`,
+    ADD: "/erp/people/customers/create",
+    UPDATE: (id: string) => `/erp/people/customers/${id}/update`,
+    DELETE: (id: string) => `/erp/people/customers/${id}`,
+  },
+  TRUCKS: {
+    GET_ALL: "/erp/people/trucks",
+    GET_BY_ID: (id: string) => `/erp/people/trucks/${id}`,
+    ADD: "/erp/people/trucks/create",
+    UPDATE: (id: string) => `/erp/people/trucks/${id}/update`,
+    DELETE: (id: string) => `/erp/people/trucks/${id}`,
+  },
+  DRIVERS: {
+    GET_ALL: "/erp/people/drivers",
+    GET_BY_ID: (id: string) => `/erp/people/drivers/${id}`,
+    ADD: "/erp/people/drivers/create",
+    UPDATE: (id: string) => `/erp/people/drivers/${id}/update`,
+    DELETE: (id: string) => `/erp/people/drivers/${id}`,
+  },
+};
