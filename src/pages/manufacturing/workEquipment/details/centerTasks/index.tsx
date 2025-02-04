@@ -16,6 +16,7 @@ const CenterTasks = ({ centerId }: { centerId: string }) => {
   const { data: data, refresh } = useCenterTasks({
     centerId,
   });
+
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{

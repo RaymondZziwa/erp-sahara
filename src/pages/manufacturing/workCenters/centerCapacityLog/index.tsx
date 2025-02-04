@@ -16,6 +16,7 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
   const { data: data, refresh } = useCenterCapacityLogs({
     centerId,
   });
+
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
@@ -122,6 +123,7 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
           apiPath={MANUFACTURING_ENDPOINTS.CENTER_CAPACITY_LOG.DELETE(
+            centerId,
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>

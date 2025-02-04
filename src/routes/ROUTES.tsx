@@ -13,7 +13,7 @@ import INVENTORY_ROUTES from "./INVENTORY";
 import { Route } from "./routeTypes";
 import REPORTS_ROUTES from "./REPORTS";
 // import CASHREQUISITION_ROUTES from "./CASH_REQUISITIONS";
-//import MANUFACTURING_ROUTES from "./MANUFACTURING";
+import MANUFACTURING_ROUTES from "./MANUFACTURING";
 // import ASSETS from "./ASSETS";
 // import INVESTMENT_FINANCING from "./INVESTMENT_FINANCING";
 
@@ -55,12 +55,12 @@ const ROUTES: Route[] = [
   //   path: "/sales",
   //   sidebarItems: SALES_ROUTES,
   // },
-  // {
-  //   name: "Manufacturing",
-  //   icon: <Icon icon="mdi:cash-register" fontSize={24} />,
-  //   path: "/manufacturing",
-  //   sidebarItems: MANUFACTURING_ROUTES,
-  // },
+  {
+    name: "Manufacturing",
+    icon: <Icon icon="mdi:cash-register" fontSize={24} />,
+    path: "/manufacturing",
+    sidebarItems: MANUFACTURING_ROUTES,
+  },
   {
     name: "Reports",
     icon: <Icon icon="mdi:book-outline" fontSize={24} />, // More specific to project management
@@ -73,7 +73,6 @@ const ROUTES: Route[] = [
   //   path: "/budgets",
   //   sidebarItems: BUDGETS_ROUTES,
   // },
-  
 
   // {
   //   name: "MOSS App",
@@ -82,7 +81,6 @@ const ROUTES: Route[] = [
   //   sidebarItems: MOSS_APP_ROUTES,
   //   hidden: true,
   // },
-  
 
   // {
   //   name: "Human Resource",

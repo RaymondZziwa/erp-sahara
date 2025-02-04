@@ -10,6 +10,7 @@ import ProductionLines from "../pages/manufacturing/productionLines";
 import EquipmentAssignments from "../pages/manufacturing/equipmentAsssignments";
 import ProductionPlans from "../pages/manufacturing/productionPlans";
 import ProductionPlanDetails from "../pages/manufacturing/productionPlans/details";
+import OrderDetails from "../pages/manufacturing/workCenterOrders/details";
 
 // Dynamic imports
 const SettingsPage = lazy(() => import("../pages/settings"));
@@ -139,6 +140,17 @@ const MANUFACTURING_ROUTES = [
         element: (
           <Suspense fallback={<Loading />}>
             <EqupmentDetails />
+          </Suspense>
+        ),
+        hidden: true,
+      },
+      {
+        name: "Order Details",
+        icon: <Icon icon="mdi:finance" fontSize={20} />,
+        path: "/workorders/:id",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <OrderDetails />
           </Suspense>
         ),
         hidden: true,

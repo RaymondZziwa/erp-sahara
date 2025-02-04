@@ -18,9 +18,11 @@ const ProductionMaterialPlans = ({
   if (!productionPlanId) {
     return <div>No Id</div>;
   }
+
   const { data: data, refresh } = useProductionPlanMaterials({
     productionPlanId,
   });
+
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{

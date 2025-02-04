@@ -123,6 +123,7 @@ const CenterDownTimeLogs = ({ centerId }: { centerId: string }) => {
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
           apiPath={MANUFACTURING_ENDPOINTS.CENTER_DOWNTIME_LOG.DELETE(
+            centerId,
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>

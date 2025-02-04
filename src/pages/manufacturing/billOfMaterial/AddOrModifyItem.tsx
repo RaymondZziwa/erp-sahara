@@ -54,7 +54,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         })),
       });
     } else {
-      console.log(item);
+      // console.log(item);
 
       setFormState({ bom_items: [] }); // Reset to an empty BOM item array for new items
     }
@@ -108,6 +108,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }
 
     const data: Partial<BillOfMaterial> = { ...formState };
+    console.log("ff", data);
+
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? MANUFACTURING_ENDPOINTS.BILL_OF_MATERIAL.UPDATE(item.id.toString())
