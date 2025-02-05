@@ -128,7 +128,8 @@ const CenterTasks = ({ centerId }: { centerId: string }) => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={MANUFACTURING_ENDPOINTS.EQUIPMENT_MAINTANANCE_LOG.DELETE(
+          apiPath={MANUFACTURING_ENDPOINTS.CENTER_TASKS.DELETE(
+            centerId,
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>
