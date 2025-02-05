@@ -42,6 +42,8 @@ import { MANUFACTURING_REDUCERS } from "./reducers/manufacturingReducers";
 
 //roles
 import  RoleReducer from './slices/roles/roleSlice'
+//permissions
+import  PermissionReducer from './slices/permissions/permissionSlice'
 //users
 import UsersReducer from './slices/user/usersSlice'
 //approval levels
@@ -52,6 +54,7 @@ const store = configureStore({
     levels: ApprovalLevelsReducer,
     usersList: UsersReducer,
     roles: RoleReducer,
+    permissions: PermissionReducer,
     userAuth: userAuthReducer,
     items: itemsReducer,
     categories: categoriesReducer,
