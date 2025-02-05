@@ -11,6 +11,7 @@ import useAuth from "../useAuth.ts";
 
 const useRoles = () => {
   const dispatch = useAppDispatch();
+  
 
   const { token, isFetchingLocalToken } = useAuth();
 
@@ -21,7 +22,7 @@ const useRoles = () => {
     }
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
-      const response = await fetch('https://merp.efinanci.co.tz/api/roles', {
+      const response = await fetch('https://tfc-api.efinanci.co.tz/api/roles', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
