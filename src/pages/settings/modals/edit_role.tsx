@@ -1,21 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { RootState } from "../../../redux/store";
 import { baseURL } from "../../../utils/api";
 
-interface AddRoleModalProps {
+interface EditRoleModalProps {
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
   refreshRoles: () => void;
-  selectedRole?: any; // Optional, only if needed for additional functionality
+  selectedRole: { id: number; name: string } | null;
 }
 
-const AddRoleModal: React.FC<AddRoleModalProps> = ({
+const EditRoleModal: React.FC<EditRoleModalProps> = ({
   isOpen,
   setIsOpen,
   refreshRoles,
-  selectedRole, // currently unused, but available for future use
+  selectedRole,
 }) => {
   const token = useSelector(
     (state: RootState) => state.userAuth.token.access_token
@@ -26,13 +26,25 @@ const AddRoleModal: React.FC<AddRoleModalProps> = ({
     name: "",
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // When selectedRole changes, update the formData to prefill the input.
+  useEffect(() => {
+    if (selectedRole) {
+      setFormData({ name: selectedRole.name });
+    }
+  }, [selectedRole]);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddRole = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleUpdateRole = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
     e.preventDefault();
+
     if (!formData.name) {
       toast.error("Role name is required!");
       return;
@@ -40,38 +52,40 @@ const AddRoleModal: React.FC<AddRoleModalProps> = ({
 
     try {
       setIsSubmitting(true);
-      const response = await fetch(`${baseURL}/roles/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
+      // Replace the endpoint below with the appropriate one for your API.
+      const response = await fetch(
+        `${baseURL}/roles/${selectedRole?.id}/update`,
+        {
+          method: "PUT", // Adjust the method if needed (PUT or PATCH might also be common)
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
+        }
+      );
 
       const data = await response.json();
       if (data.success) {
+        toast.success(data.message);
         refreshRoles();
-        toast.success("Role added successfully!");
-        setFormData({ name: "" });
         setIsOpen(false);
-        setIsSubmitting(false);
       } else {
-        toast.error(data.message || "Failed to add role");
-        setIsSubmitting(false);
+        toast.error(data.message || "Failed to update role");
       }
+      setIsSubmitting(false);
     } catch (error) {
-      toast.error("An error occurred while adding the role.");
+      toast.error("An error occurred while updating the role.");
       setIsSubmitting(false);
     }
   };
 
-  if (!isOpen) return null; // Render nothing if modal is not open
+  if (!isOpen || !selectedRole) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-auto z-50">
       <div className="bg-white p-6 rounded mt-12 shadow-md w-[500px]">
-        <h2 className="text-xl font-bold mb-4">Create Role</h2>
+        <h2 className="text-xl font-bold mb-4">Edit Role</h2>
         <form>
           <div>
             <label className="block text-gray-700 mb-1">Role Name</label>
@@ -95,7 +109,7 @@ const AddRoleModal: React.FC<AddRoleModalProps> = ({
           </button>
           <button
             type="submit"
-            onClick={handleAddRole}
+            onClick={handleUpdateRole}
             disabled={isSubmitting}
             className={`px-4 py-2 rounded ${
               isSubmitting
@@ -103,7 +117,7 @@ const AddRoleModal: React.FC<AddRoleModalProps> = ({
                 : "bg-blue-500 text-white hover:bg-blue-600"
             }`}
           >
-            {isSubmitting ? "Creating..." : "Create Role"}
+            {isSubmitting ? "Updating..." : "Update Role"}
           </button>
         </div>
       </div>
@@ -111,4 +125,4 @@ const AddRoleModal: React.FC<AddRoleModalProps> = ({
   );
 };
 
-export default AddRoleModal;
+export default EditRoleModal;
