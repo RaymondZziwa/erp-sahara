@@ -1,41 +1,41 @@
 import { Icon } from "@iconify/react";
 
-// import PROCUREMENT_ROUTES from "./PROCUREMENT";
+//import PROCUREMENT_ROUTES from "./PROCUREMENT";
 import SETTINGS_ROUTES from "./SETTINGS";
-// import DASHBOARD_ROUTES from "./DASHBOARD";
+import DASHBOARD_ROUTES from "./DASHBOARD";
 import INVENTORY_ROUTES from "./INVENTORY";
-// import MOSS_APP_ROUTES from "./MOSSAPP";
-// import SALES_ROUTES from "./SALES";
-// import ACCOUNTS_ROUTES from "./ACCOUNTS";
+//import MOSS_APP_ROUTES from "./MOSSAPP";
+//import SALES_ROUTES from "./SALES";
+import ACCOUNTS_ROUTES from "./ACCOUNTS";
 // import HUMAN_RESOURCE_ROUTES from "./HUMAN_RESOURCE";
 // import BUDGETS_ROUTES from "./BUDGETS";
 // import PROJECTS_ROUTES from "./PROJECTS";
 import { Route } from "./routeTypes";
 import REPORTS_ROUTES from "./REPORTS";
 // import CASHREQUISITION_ROUTES from "./CASH_REQUISITIONS";
-//import MANUFACTURING_ROUTES from "./MANUFACTURING";
+// import MANUFACTURING_ROUTES from "./MANUFACTURING";
 // import ASSETS from "./ASSETS";
 // import INVESTMENT_FINANCING from "./INVESTMENT_FINANCING";
 
 const ROUTES: Route[] = [
-  // {
-  //   name: "Dashboard",
-  //   icon: <Icon icon="mdi:view-dashboard-outline" fontSize={24} />,
-  //   path: "/",
-  //   sidebarItems: DASHBOARD_ROUTES,
-  // },
+  {
+    name: "Dashboard",
+    icon: <Icon icon="mdi:view-dashboard-outline" fontSize={24} />,
+    path: "/",
+    sidebarItems: DASHBOARD_ROUTES,
+  },
   {
     name: "Inventory",
     icon: <Icon icon="mdi:warehouse" fontSize={24} />,
     path: "/inventory",
     sidebarItems: INVENTORY_ROUTES,
   },
-  // {
-  //   name: "Accounts",
-  //   icon: <Icon icon="mdi:finance" fontSize={24} />,
-  //   path: "/accounts",
-  //   sidebarItems: ACCOUNTS_ROUTES,
-  // },
+  {
+    name: "Accounts",
+    icon: <Icon icon="mdi:finance" fontSize={24} />,
+    path: "/accounts",
+    sidebarItems: ACCOUNTS_ROUTES,
+  },
   // {
   //   name: "Expense Requisitions",
   //   icon: <Icon icon="mdi:book-outline" fontSize={24} />, // More specific to project management

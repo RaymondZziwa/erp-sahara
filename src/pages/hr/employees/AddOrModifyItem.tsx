@@ -45,7 +45,6 @@ interface NewEmployee {
 const GENDER_OPTIONS = [
   { label: "Male", value: "Male" },
   { label: "Female", value: "Female" },
-  { label: "Other", value: "Other" },
 ];
 
 const MARITAL_STATUS_OPTIONS = [

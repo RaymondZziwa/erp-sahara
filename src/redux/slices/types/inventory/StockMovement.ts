@@ -18,6 +18,6 @@ export interface StockMovement {
   movement_date: string;
   from_warehouse_id: string | null;
   to_warehouse_id: string | null;
-  movement_reason: string;
+  picked_by: string;
   remarks: string;
 }

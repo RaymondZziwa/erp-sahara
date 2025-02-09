@@ -16,7 +16,7 @@ const LowStockSummary = () => {
                     headers: {
                       "Content-Type": "application/json",
                       Accept: "application/json",
-                      Authorization: `Bearer ${token.access_token}`,
+                      "Authorization": `Bearer ${token.access_token}`,
                     },    
             }); 
             setData(response.data.data); // Update the state with the API data
@@ -27,20 +27,20 @@ const LowStockSummary = () => {
         fetchData();
     }, []);
     return (
-        <div className="p-4 mt-4 rounded-md shadow">
-          <h2 className="text-xl text-teal-500 font-bold mb-4">Low Stock Summary</h2>
+        <div className="p-4 rounded-md bg-white shadow overflow-auto">
+          <h2 className="text-xl font-bold mb-4">Low Stock Summary</h2>
           <table className="w-full border-collapse border border-gray-300">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border border-gray-300 p-2">Product Name</th>
+                <th className="border border-gray-300 p-2">Name</th>
                 <th className="border border-gray-300 p-2">Current Stock</th>
                 <th className="border border-gray-300 p-2">Reorder Level</th>
-                <th className="border border-gray-300 p-2">Warehouse</th>
-                <th className="border border-gray-300 p-2">Stock Status</th>
+                <th className="border border-gray-300 p-2">Store</th>
+                <th className="border border-gray-300 p-2">Status</th>
               </tr>
             </thead>
             <tbody>
-              {data.map((item) => (
+              {data && data.map((item) => (
                 <tr
                   key={item.id}
                   className={

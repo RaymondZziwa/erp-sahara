@@ -7,3 +7,13 @@ export interface Currency {
   created_at: string;
   updated_at: string;
 }
+
+
+export interface PaymentMethod {
+  id: number;
+  name: string;
+  chart_of_account_id: number;
+  description?: string
+  created_at: string;
+  updated_at: string;
+}

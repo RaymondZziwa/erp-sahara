@@ -15,8 +15,11 @@ import StockTakingReport from "../pages/reports/inventory/stock_taking_report";
 import ReorderReport from "../pages/reports/inventory/reorder_report";
 import OutOfStockReport from "../pages/reports/inventory/out_of_stock_report";
 import StockAgingReport from "../pages/reports/inventory/stock_aging_report";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 
 const AppRouter = () => {
+  const token = useSelector((state: RootState) => state.userAuth.token.access_token)
   return (
     <BrowserRouter>
       <ToastContainer />
@@ -32,13 +35,14 @@ const AppRouter = () => {
               ))
             );
           })}
-        <Route path="/" element={<Navigate to="/inventory" replace />} />
+        <Route path="/" element={<Navigate to={token ? "/inventory" : "/login"} replace />} />
         <Route path="/supplier-performance-report" element={<SupplierPerformanceReport />} />
         <Route path="/damaged-stock-report" element={<DamagedStockReport />} />
         <Route path="/out-of-stock-report" element={<OutOfStockReport />} />
         <Route path="/reorder-report" element={<ReorderReport />} />
         <Route path="/stock-aging-report" element={<StockAgingReport/>} />
         <Route path="/stock-taking-report" element={<StockTakingReport />} />
+        <Route path="/pos" element={<ReorderReport />} />
         </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />
