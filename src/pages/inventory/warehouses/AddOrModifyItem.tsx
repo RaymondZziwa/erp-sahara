@@ -112,7 +112,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               required
             />
           </div>
-          <div className="p-field">
+          {/* <div className="p-field">
             <label htmlFor="description">Latitude</label>
             <InputText
               id="latitude"
@@ -129,9 +129,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               value={formState.longtitude}
               onChange={handleInputChange}
             />
-          </div>
+          </div> */}
           <div className="p-field">
-            <label htmlFor="location">Location</label>
+            <label htmlFor="location">Address</label>
             <InputText
               id="location"
               name="location"

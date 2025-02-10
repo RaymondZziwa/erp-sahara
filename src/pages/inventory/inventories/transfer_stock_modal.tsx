@@ -11,7 +11,7 @@ import { Inventory } from "../../../redux/slices/types/inventory/Inventory";
 import { baseURL, createRequest } from "../../../utils/api";
 import axios from "axios";
 import useWarehouses from "../../../hooks/inventory/useWarehouses";
-
+import {toast} from 'react-toastify'
 interface AddOrModifyItemProps {
   visible: boolean;
   onClose: () => void;
@@ -66,7 +66,7 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
     {label: "Manufacturing", value: 'manufacturing'},
     {label: "Donations", value: 'donations'},
     {label: "Return", value: 'return'},
-    {label: "Purhcase", value: 'purchase'},
+    {label: "Purchase", value: 'purchase'},
   ]
 
   const destinations = [
@@ -154,8 +154,9 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
         }
       );
 
-      console.log(response)
-      
+      toast.success(response.data.message)
+      onSave()
+      onClose()
     } catch (error) {
       console.error("Error saving item", error);
     } finally {

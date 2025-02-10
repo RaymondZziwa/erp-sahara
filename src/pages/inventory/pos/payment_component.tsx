@@ -4,7 +4,7 @@ import Select from "react-select";
 import usePaymentMethods from "../../../hooks/procurement/usePaymentMethods";
 import { InputText } from "primereact/inputtext";
 
-const PaymentComponent = ({ clients, onSubmit, setPaymentMethod, setClientName }) => {
+const PaymentComponent = ({ clients, setPaymentMethod, setClientName }) => {
   const { data: methods = [] } = usePaymentMethods(); // Ensure methods is always an array
   const [isRegistered, setIsRegistered] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
@@ -33,20 +33,14 @@ const PaymentComponent = ({ clients, onSubmit, setPaymentMethod, setClientName }
     setClientName(e.target.value);
   };
 
-  const handleSubmit = () => {
-    onSubmit({
-      isRegistered,
-      client: isRegistered ? selectedClient?.value : clientName,
-    });
-  };
-
   return (
     <div className="p-4 bg-white shadow-md rounded-lg">
       <h3 className="text-lg font-semibold mb-3">Payment Details</h3>
 
       {/* Registered / Not Registered Selection */}
       <div className="flex items-center space-x-4">
-        <label className="flex items-center space-x-2">
+        Is client registered?
+        <label className="flex items-center ml-2 space-x-2">
           <input
             type="radio"
             name="isRegistered"
@@ -103,14 +97,6 @@ const PaymentComponent = ({ clients, onSubmit, setPaymentMethod, setClientName }
           onChange={(option) => setPaymentMethod(option.value)}
         />
       </div>
-
-      {/* Submit Button */}
-      <button 
-        onClick={handleSubmit}
-        className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-      >
-        Submit
-      </button>
     </div>
   );
 };

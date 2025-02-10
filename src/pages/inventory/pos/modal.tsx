@@ -21,7 +21,7 @@ interface Props {
 }
 
 interface CartItemType {
-  item_id: number;
+  id: number;
   name: string;
   selling_price: string;
   quantity: number;
@@ -31,7 +31,7 @@ interface CartItemType {
 const PosModal: React.FC<Props> = ({ query }) => {
   const { data } = useItems();
   const items = useSelector((state: RootState) => state.inventoryItems.data);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState(0);
   const [customer, setCustomer] = useState<string | number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<number | null>(null);
   const [searchedItems, setSearchedItems] = useState<CartItemType[]>([]);
@@ -46,6 +46,7 @@ const PosModal: React.FC<Props> = ({ query }) => {
     customer_id: typeof customer === "number" ? customer : 0,
     customer_name: typeof customer === "string" ? customer : "",
     warehouse_id: 1,
+    chart_of_account_id: 1,
     items: [],
     payment_method_id: paymentMethod,
     amount_paid: total,
@@ -53,7 +54,6 @@ const PosModal: React.FC<Props> = ({ query }) => {
     currency_id: 1,
   });
 
-  // Sync cart with formState.items
   useEffect(() => {
     setFormState((prev) => ({ ...prev, items: cart }));
   }, [cart]);
@@ -85,22 +85,38 @@ const PosModal: React.FC<Props> = ({ query }) => {
   };
 
   useEffect(() => {
-    if (query.trim() === "") {
-      setSearchedItems(items.slice(indexOfFirstItem, indexOfLastItem));
-    } else {
-      setSearchedItems(
-        items.filter((item) => item.name.toLowerCase().includes(query.toLowerCase()))
+    let filteredItems = items;
+  
+    // Apply category filter only if selectedCategory is NOT 0
+    if (selectedCategory !== 0) {
+      filteredItems = filteredItems.filter(
+        (item) => item.item_category_id === selectedCategory
       );
     }
-  }, [query, items, indexOfFirstItem, indexOfLastItem]);
+  
+    // Apply search filter
+    if (query.trim() !== "") {
+      filteredItems = filteredItems.filter((item) =>
+        item.name.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+  
+    // Ensure pagination stays within bounds
+    const totalFilteredItems = filteredItems.length;
+    const adjustedLastIndex = Math.min(indexOfLastItem, totalFilteredItems);
+    const adjustedFirstIndex = Math.min(indexOfFirstItem, adjustedLastIndex);
+  
+    setSearchedItems(filteredItems.slice(adjustedFirstIndex, adjustedLastIndex));
+  }, [query, items, selectedCategory, indexOfFirstItem, indexOfLastItem]);
+  
 
   // Add item to cart
   const addItemToCart = (item: CartItemType) => {
     setCart((prevCart) => {
-      const exists = prevCart.find((cartItem) => cartItem.item_id === item.id);
+      const exists = prevCart.find((cartItem) => cartItem.id === item.id);
       if (exists) {
         return prevCart.map((cartItem) =>
-          cartItem.item_id === item.id
+          cartItem.id === item.id
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem
         );
@@ -111,7 +127,7 @@ const PosModal: React.FC<Props> = ({ query }) => {
 
   // Remove item from cart
   const removeItemFromCart = (id: number) => {
-    setCart((prevCart) => prevCart.filter((item) => item.item_id !== id));
+    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   };
 
   // Update quantity
@@ -119,7 +135,7 @@ const PosModal: React.FC<Props> = ({ query }) => {
     if (quantity < 1) return;
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.item_id === id ? { ...item, quantity } : item
+        item.id === id ? { ...item, quantity } : item
       )
     );
   };
@@ -129,7 +145,7 @@ const PosModal: React.FC<Props> = ({ query }) => {
     if (discount < 0) return;
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.item_id === id ? { ...item, discount } : item
+        item.id === id ? { ...item, discount } : item
       )
     );
   };
@@ -170,10 +186,9 @@ const PosModal: React.FC<Props> = ({ query }) => {
     ...formState,
     items: formattedItems, // Ensure correct structure
   };
-  console.log("Submitting request:", requestData);
 
-  const endpoint = "/erp/inventories/pos-sale";
-  const response = await createRequest(endpoint, token, requestData, POST);
+  const endpoint = "/erp/inventories/pointsofsale";
+  const response = await createRequest(endpoint, token, requestData, 'POST');
 
   if (response.success) {
     toast.success("Sale saved successfully!");
@@ -189,15 +204,18 @@ const PosModal: React.FC<Props> = ({ query }) => {
         <div className="w-3/5 h-[650px]">
           <CategoryNav selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 p-4">
-            {searchedItems.map((item) => (
+            {searchedItems.length > 0 ? searchedItems.map((item) => (
               <PosItemCard
                 key={item.item_id}
-                image={item.image}
+                image={item.image ?? 'https://picsum.photos/150'}
                 name={item.name}
                 price={item.selling_price}
                 addItem={() => addItemToCart(item)}
               />
-            ))}
+            )):
+
+              <p className="text-center">Not items found</p>
+            }
           </div>
 
           {/* Pagination Controls */}
