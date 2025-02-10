@@ -14,7 +14,7 @@ import { Route } from "./routeTypes";
 import REPORTS_ROUTES from "./REPORTS";
 // import CASHREQUISITION_ROUTES from "./CASH_REQUISITIONS";
 import MANUFACTURING_ROUTES from "./MANUFACTURING";
-// import ASSETS from "./ASSETS";
+import ASSETS from "./ASSETS";
 // import INVESTMENT_FINANCING from "./INVESTMENT_FINANCING";
 
 const ROUTES: Route[] = [
@@ -88,12 +88,12 @@ const ROUTES: Route[] = [
   //   path: "/hr",
   //   sidebarItems: HUMAN_RESOURCE_ROUTES,
   // },
-  // {
-  //   name: "Assets",
-  //   icon: <Icon icon="solar:card-2-bold-duotone" fontSize={24} />, // More specific to project management
-  //   path: "/assets",
-  //   sidebarItems: ASSETS,
-  // },
+  {
+    name: "Assets",
+    icon: <Icon icon="solar:card-2-bold-duotone" fontSize={24} />, // More specific to project management
+    path: "/assets",
+    sidebarItems: ASSETS,
+  },
   // {
   //   name: "Investment Financing",
   //   icon: <Icon icon="solar:money-bag-bold" fontSize={24} />, // More specific to project management

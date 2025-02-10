@@ -11,6 +11,7 @@ import EquipmentAssignments from "../pages/manufacturing/equipmentAsssignments";
 import ProductionPlans from "../pages/manufacturing/productionPlans";
 import ProductionPlanDetails from "../pages/manufacturing/productionPlans/details";
 import OrderDetails from "../pages/manufacturing/workCenterOrders/details";
+import Overview from "../pages/manufacturing/Overview";
 
 // Dynamic imports
 const SettingsPage = lazy(() => import("../pages/settings"));
@@ -20,34 +21,17 @@ const Loading = () => <div>Loading...</div>;
 
 const MANUFACTURING_ROUTES = [
   {
-    name: "Dashboard",
+    name: "Manufacturing Management",
     icon: <Icon icon="mdi:view-dashboard-outline" fontSize={24} />,
     path: "",
     items: [
       {
-        name: "CPI Overview",
+        name: "Overview",
         icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
         path: "/",
         element: (
           <Suspense fallback={<Loading />}>
-            <SettingsPage />
-          </Suspense>
-        ),
-      },
-    ],
-  },
-  {
-    name: "MAnufacturing Management",
-    icon: <Icon icon="mdi:cash-multiple" fontSize={24} />,
-    path: "/workcenters",
-    items: [
-      {
-        name: "Work Centers",
-        icon: <Icon icon="mdi:calendar-clock" fontSize={20} />,
-        path: "/centers",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <WorkCenters />
+            <Overview />
           </Suspense>
         ),
       },
@@ -58,16 +42,6 @@ const MANUFACTURING_ROUTES = [
         element: (
           <Suspense fallback={<Loading />}>
             <WorkOrders />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Equipment",
-        icon: <Icon icon="mdi:finance" fontSize={20} />,
-        path: "/equipment",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <EquipmentComp />
           </Suspense>
         ),
       },
@@ -88,6 +62,34 @@ const MANUFACTURING_ROUTES = [
         element: (
           <Suspense fallback={<Loading />}>
             <BillOfMAterial />
+          </Suspense>
+        ),
+      },
+    ],
+  },
+  {
+    name: "Settings",
+    icon: <Icon icon="mdi:cash-multiple" fontSize={24} />,
+    path: "/workcenters",
+    items: [
+      {
+        name: "Work Centers",
+        icon: <Icon icon="mdi:calendar-clock" fontSize={20} />,
+        path: "/centers",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <WorkCenters />
+          </Suspense>
+        ),
+      },
+
+      {
+        name: "Equipment",
+        icon: <Icon icon="mdi:finance" fontSize={20} />,
+        path: "/equipment",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <EquipmentComp />
           </Suspense>
         ),
       },

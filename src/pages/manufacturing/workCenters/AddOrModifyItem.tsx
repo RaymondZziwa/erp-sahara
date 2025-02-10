@@ -158,16 +158,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             className="w-full"
           />
         </div>
-        <div className="p-field">
-          <label htmlFor="description">Description</label>
-          <InputTextarea
-            id="description"
-            name="description"
-            value={formState.description || ""}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
 
         <div className="p-field">
           <label htmlFor="capacity_per_day_uom">Capacity Per Day Units</label>
@@ -195,6 +185,16 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             id="capacity_per_day"
             name="capacity_per_day"
             value={formState.capacity_per_day?.toString() || ""}
+            onChange={handleInputChange}
+            className="w-full"
+          />
+        </div>
+        <div className="p-field">
+          <label htmlFor="description">Description</label>
+          <InputTextarea
+            id="description"
+            name="description"
+            value={formState.description || ""}
             onChange={handleInputChange}
             className="w-full"
           />

@@ -140,7 +140,7 @@ const CenterDownTimeLogs = ({ centerId }: { centerId: string }) => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Center DownTime Logs Table</h1>
+            <h1 className="text-xl font-bold">{`Center DownTime Logs Table`}</h1>
           </div>
           <div className="flex gap-2">
             <button
