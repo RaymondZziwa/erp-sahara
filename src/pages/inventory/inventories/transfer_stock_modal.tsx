@@ -8,9 +8,9 @@ import useAuth from "../../../hooks/useAuth";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import useItems from "../../../hooks/inventory/useItems";
 import { Inventory } from "../../../redux/slices/types/inventory/Inventory";
-import { createRequest } from "../../../utils/api";
+import { baseURL, createRequest } from "../../../utils/api";
+import axios from "axios";
 import useWarehouses from "../../../hooks/inventory/useWarehouses";
-import useSuppliers from "../../../hooks/inventory/useSuppliers";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -19,7 +19,7 @@ interface AddOrModifyItemProps {
   onSave: () => void;
 }
 
-const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
+const TransferStock: React.FC<AddOrModifyItemProps> = ({
   visible,
   onClose,
   item,
@@ -41,17 +41,37 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   interface NewInventory extends Partial<Inventory> {}
   const [formState, setFormState] = useState<NewInventory>(initialItem);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [stockOutForm, setStockOutForm] = useState({
+    item_id: 0,
+    quantity: 0,
+    type: "",
+    movement_date: "",
+    from_warehouse_id:0,
+    movement_reason:"",
+    picked_by:"",
+    remarks:""
+  })
+  const {data: warehousesd} = useWarehouses()
 
   const { token } = useAuth();
-  const { data: items } = useItems(); // Fetching items for dropdown
-  const { data: warehouses } = useWarehouses();
-  const { data: suppliers } = useSuppliers();
+  const { data: items } = useItems();
+
+  const warehouses = warehousesd?.map(warehouse => ({
+    label: warehouse.name, 
+    value: warehouse.id, 
+  })) || [];
+  
 
   const sources = [
     {label: "Manufacturing", value: 'manufacturing'},
     {label: "Donations", value: 'donations'},
     {label: "Return", value: 'return'},
-    {label: "Purchase", value: 'purchase'},
+    {label: "Purhcase", value: 'purchase'},
+  ]
+
+  const destinations = [
+    {label: "Consuming", value: 'consuming'},
+    {label: "Processing", value: 'processing'},
   ]
 
   useEffect(() => {
@@ -64,19 +84,19 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }
   }, [item]);
 
-  const handleInputChange = (
+  const handleStockOutInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormState((prevState) => ({
+    setStockOutForm((prevState) => ({
       ...prevState,
       [name]: value,
     }));
   };
 
-  const handleDropdownChange = (e: DropdownChangeEvent) => {
+  const handleStockOutDropdownChange = (e: DropdownChangeEvent) => {
     const { name } = e.target;
-    setFormState((prevState) => ({
+    setStockOutForm((prevState) => ({
       ...prevState,
       [name]: e.value,
     }));
@@ -98,8 +118,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       const method = item?.id ? "PUT" : "POST";
       const endpoint = item?.id
         ? INVENTORY_ENDPOINTS.INVENTORIES.UPDATE(item.id.toString())
-        : INVENTORY_ENDPOINTS.INVENTORIES.ADD;
-
+        : INVENTORY_ENDPOINTS.INVENTORIES.ADD
+        //INVENTORY_ENDPOINTS.INVENTORIES.STOCK_OUT
+    
       const data = item?.id ? { ...item, ...formState } : formState;
       await createRequest(
         endpoint,
@@ -119,6 +140,28 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       setIsSubmitting(false);
     }
   };
+  
+  const stockOut = async () => {
+    try {
+      const response = await axios.post(
+        `${baseURL}${INVENTORY_ENDPOINTS.INVENTORIES.STOCK_OUT}`,
+        { ...stockOutForm },
+        {
+          headers: {
+            Authorization: `Bearer ${token.access_token}`,
+            "Content-Type": "application/json", 
+          },
+        }
+      );
+
+      console.log(response)
+      
+    } catch (error) {
+      console.error("Error saving item", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   const footer = (
     <div className="flex justify-end space-x-2">
@@ -138,13 +181,14 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         size="small"
         loading={isSubmitting}
         disabled={isSubmitting}
+        onClick={stockOut}
       />
     </div>
   );
 
   return (
     <Dialog
-      header={item?.id ? "Edit Stock" : "Add Stock"}
+      header={item?.id ? "Edit Stock" : "Take Out Stock"}
       visible={visible}
       style={{ width: "800px" }}
       footer={footer}
@@ -153,8 +197,59 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       <form
         id="item-form"
         onSubmit={handleSave}
-        className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-2"
       >
+        <div className="p-field">
+          <label className="font-semibold" htmlFor="item_id">
+            Store
+          </label>
+          <Dropdown
+            required
+            name="from_warehouse_id"
+            value={stockOutForm.from_warehouse_id}
+            onChange={handleStockOutDropdownChange}
+            options={warehouses}
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Select warehouse"
+            filter
+            className="w-full md:w-14rem"
+          />
+        </div>
+        <div className="p-field">
+          <label className="font-semibold" htmlFor="item_id">
+            Type
+          </label>
+          <Dropdown
+            required
+            name="type"
+            value={stockOutForm.type}
+            onChange={handleStockOutDropdownChange}
+            options={sources}
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Select type"
+            filter
+            className="w-full md:w-14rem"
+          />
+        </div>
+        <div className="p-field">
+          <label className="font-semibold" htmlFor="item_id">
+            Reason
+          </label>
+          <Dropdown
+            required
+            name="movement_reason"
+            value={stockOutForm.movement_reason}
+            onChange={handleStockOutDropdownChange}
+            options={destinations}
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Select Reason"
+            filter
+            className="w-full md:w-14rem"
+          />
+        </div>
         <div className="p-field">
           <label className="font-semibold" htmlFor="item_id">
             Item
@@ -162,29 +257,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           <Dropdown
             required
             name="item_id"
-            value={formState.item_id}
-            onChange={handleDropdownChange}
+            value={stockOutForm.item_id}
+            onChange={handleStockOutDropdownChange}
             options={items}
             optionLabel="name"
             optionValue="id"
             placeholder="Select item"
-            filter
-            className="w-full md:w-14rem"
-          />
-        </div>
-        <div className="p-field">
-          <label className="font-semibold" htmlFor="item_id">
-            Source
-          </label>
-          <Dropdown
-            required
-            name="type"
-            value={formState.type}
-            onChange={handleDropdownChange}
-            options={sources}
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Select source"
             filter
             className="w-full md:w-14rem"
           />
@@ -197,76 +275,41 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             id="quantity"
             name="quantity"
             type="number"
-            value={formState.quantity?.toString() || ""}
-            onChange={handleInputChange}
+            value={stockOutForm.quantity?.toString() || ""}
+            onChange={handleStockOutInputChange}
             required
             className="w-full"
             min='1'
           />
         </div>
-
         <div className="p-field">
-          <label className="font-semibold" htmlFor="ref_id">
-            Reference (Optional)
+          <label className="font-semibold" htmlFor="received_date">
+            Movement Date
           </label>
           <InputText
-            id="ref_id"
-            name="ref_id"
-            value={formState.ref_id?.toString() || ""}
-            onChange={handleInputChange}
+            id="received_date"
+            name="movement_date"
+            type="date"
+            value={
+              stockOutForm.movement_date
+            }
+            onChange={handleStockOutInputChange}
             className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label className="font-semibold" htmlFor="warehouse_id">
-            Store
-          </label>
-          <Dropdown
-            required
-            name="warehouse_id"
-            value={formState.warehouse_id}
-            onChange={handleDropdownChange}
-            options={warehouses}
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Select item"
-            filter
-            className="w-full md:w-14rem"
-          />
-        </div>
-        <div className="p-field">
-          <label className="font-semibold" htmlFor="supplier_id">
-            Supplier (Optional)
-          </label>
-          <Dropdown
-            name="supplier_id"
-            value={formState.supplier_id}
-            onChange={handleDropdownChange}
-            options={[
-              { label: "Select Supplier", value: null }, 
-              ...suppliers.map((supplier) => ({
-                label: supplier.supplier_name,
-                value: supplier.id,
-              })),
-            ]}
-            placeholder="Select supplier"
-            filter
-            className="w-full md:w-14rem"
-            aria-describedby="supplier-help"
+            required   
           />
         </div>
         <div className="p-field">
           <label className="font-semibold" htmlFor="received_date">
-            Received Date
+            Picked By
           </label>
           <InputText
             id="received_date"
-            name="received_date"
-            type="date"
+            name="picked_by"
+            type="text"
             value={
-              formState.received_date || new Date().toISOString().slice(0, 9)
+              stockOutForm.picked_by
             }
-            onChange={handleInputChange}
+            onChange={handleStockOutInputChange}
             className="w-full"
             required   
           />
@@ -276,4 +319,4 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   );
 };
 
-export default AddOrModifyItem;
+export default TransferStock;

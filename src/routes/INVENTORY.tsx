@@ -4,12 +4,13 @@ import AddProduct from "../pages/inventory/items/add";
 import ItemAttributes from "../pages/inventory/itemAttributes";
 // import InventoryDashboard from "../pages/inventory/inventories/InventoryDashboard";
 import StockMovements from "../pages/inventory/stockMovements";
-//import InventoryDashboard from "../pages/inventory/inventories/InventoryDashboard";
-import Dashboard from "../pages/inventory/inventories/new_dasboard";
+import InventoryDashboard from "../pages/inventory/inventories/InventoryDashboard";
+//import Dashboard from "../pages/inventory/inventories/new_dasboard";
 import POS from "../pages/inventory/pos/pos";
+import StockOut from "../pages/inventory/inventories/stock_out";
 
 // Dynamic imports
-// const Dashboard = lazy(() => import("../pages/dashboard"));
+//const Dashboard = lazy(() => import("../pages/dashboard"));
 const UnitsOfMeasurement = lazy(
   () => import("../pages/procurement/settings/units")
 );
@@ -38,17 +39,7 @@ const INVENTORY_ROUTES = [
         path: "/",
         element: (
           <Suspense fallback={<Loading />}>
-            <Dashboard />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Add stock",
-        icon: <Icon icon="solar:archive-outline" fontSize={20} />,
-        path: "/record",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Inventories />
+            <InventoryDashboard />
           </Suspense>
         ),
       },
@@ -63,12 +54,32 @@ const INVENTORY_ROUTES = [
         ),
       },
       {
-        name: "Stock Movement",
+        name: "Stock Transfer",
         icon: <Icon icon="solar:archive-outline" fontSize={20} />,
         path: "/stock",
         element: (
           <Suspense fallback={<Loading />}>
             <StockMovements />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Stock In",
+        icon: <Icon icon="solar:archive-outline" fontSize={20} />,
+        path: "/record",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Inventories />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Stock Out",
+        icon: <Icon icon="solar:archive-outline" fontSize={20} />,
+        path: "/stock_out",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <StockOut />
           </Suspense>
         ),
       },

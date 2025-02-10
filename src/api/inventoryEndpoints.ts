@@ -3,6 +3,7 @@ export const INVENTORY_ENDPOINTS = {
     GET_ALL: "/erp/inventories",
     GET_BY_ID: (id: string) => `/erp/inventories/${id}`,
     ADD: "/erp/inventories/create",
+    STOCK_OUT: "/erp/inventories/sendtomilling",
     UPDATE: (id: string) => `/erp/inventories/${id}/update`,
     DELETE: (id: string) => `/erp/inventories/${id}/delete`,
   },

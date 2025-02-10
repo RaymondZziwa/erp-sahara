@@ -14,7 +14,7 @@ import { StockMovement } from "../../../redux/slices/types/inventory/StockMoveme
 interface AddOrModifyItemProps {
   visible: boolean;
   onClose: () => void;
-  item?: StockMovement; // Adjust type if a specific item structure is defined
+  item?: StockMovement;
   onSave: () => void;
 }
 
@@ -31,7 +31,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     movement_date: "",
     from_warehouse_id: null,
     to_warehouse_id: null,
-    movement_reason: "",
+    picked_by: "",
     remarks: "",
   });
 
@@ -54,7 +54,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         movement_date: "",
         from_warehouse_id: null,
         to_warehouse_id: null,
-        movement_reason: "",
         remarks: "",
       });
     }
@@ -101,7 +100,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
   return (
     <Dialog
-      header={item?.id ? "Edit Movement" : "Save Stock Movement"}
+      header={item?.id ? "Edit Movement" : "Stock Transfer"}
       visible={visible}
       style={{ width: "800px" }}
       footer={footer}
@@ -109,44 +108,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     >
       <form id="item-form" onSubmit={handleSave}>
         <div className="p-fluid">
-          <div className="flex flex-row justify-between gap-2 mb-2">
-          <div className="p-field w-1/2">
-            <label htmlFor="item_id">Item</label>
-            <Dropdown
-              id="item_id"
-              name="item_id"
-              filter
-              value={formState.item_id}
-              options={items.map((item: any) => ({
-                label: item.name,
-                value: item.id,
-              }))}
-              onChange={handleInputChange}
-              placeholder="Select an Item"
-              required
-            />
-          </div>
-          <div className="p-field w-1/2">
-            <label htmlFor="type">Type</label>
-            <Dropdown
-              filter
-              id="type"
-              name="type"
-              value={formState.type}
-              options={[
-                "sale",
-                "purchase",
-                "transfer",
-                "return",
-                "donations",
-              ].map((type) => ({ label: type, value: type }))}
-              onChange={handleInputChange}
-              placeholder="Select a source"
-              required
-            />
-          </div>
-          </div>
-          <div className="flex flex-row justify-between gap-2 mb-2">
+        <div className="flex flex-row justify-between gap-2 mb-2">
           <div className="p-field w-1/2">
             <label htmlFor="from_warehouse_id">From Store</label>
             <Dropdown
@@ -180,10 +142,44 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           </div>
           <div className="flex flex-row justify-between gap-2 mb-2">
           <div className="p-field w-1/2">
+            <label htmlFor="item_id">Item</label>
+            <Dropdown
+              id="item_id"
+              name="item_id"
+              filter
+              value={formState.item_id}
+              options={items.map((item: any) => ({
+                label: item.name,
+                value: item.id,
+              }))}
+              onChange={handleInputChange}
+              placeholder="Select an Item"
+              required
+            />
+          </div>
+          <div className="p-field w-1/2">
+            <label htmlFor="type">Type</label>
+            <Dropdown
+              filter
+              id="type"
+              name="type"
+              value={formState.type}
+              options={[
+                "transfer"
+              ].map((type) => ({ label: type, value: type }))}
+              onChange={handleInputChange}
+              placeholder="Select a source"
+              required
+            />
+          </div>
+          </div>
+          <div className="flex flex-row justify-between gap-2 mb-2">
+          <div className="p-field w-1/2">
             <label htmlFor="quantity">Quantity</label>
             <InputText
               id="quantity"
               name="quantity"
+              type='number'
               value={formState.quantity}
               onChange={handleInputChange}
               required
@@ -203,11 +199,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           </div>
           </div>
           <div className="p-field mb-2">
-            <label htmlFor="movement_reason">Reason</label>
+            <label htmlFor="picked_by">Taken By</label>
             <InputText
-              id="movement_reason"
-              name="movement_reason"
-              value={formState.movement_reason}
+              id="picked_by"
+              name="picked_by"
+              value={formState.picked_by}
               onChange={handleInputChange}
               required
             />

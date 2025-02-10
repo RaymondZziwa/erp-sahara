@@ -7,6 +7,7 @@ import GeneralLedgers from "../pages/accounts/generalLedgers";
 import Budgets from "../pages/budgets/budgets";
 import FiscalYears from "../pages/budgets/fiscalYears";
 import ChartOfAccountDetails from "../pages/accounts/subcategories/details";
+import PaymentMethods from "../pages/procurement/settings/payment_methods";
 
 // Dynamic imports
 const Accounts = lazy(() => import("../pages/accounts/categories"));
@@ -118,6 +119,16 @@ const ACCOUNTS_ROUTES = [
         element: (
           <Suspense fallback={<Loading />}>
             <Currencies />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Payment Methods",
+        icon: <Icon icon="tdesign:money" fontSize={20} />,
+        path: "/payment_methods",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <PaymentMethods />
           </Suspense>
         ),
       },
