@@ -30,7 +30,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     maintenance_date: null,
     maintenance_end_date: null,
 
-    available_capacity: "",
+    mantenance_every_after: 0,
     status: "in-progress", //'completed', 'pending', 'in-progress'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,14 +73,18 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     if (
       !formState.performed_by ||
       !formState.status ||
-      !formState.maintenance_date ||
-      !formState.maintenance_end_date
+      !formState.mantenance_every_after
     ) {
       setIsSubmitting(false);
       return; // Handle validation error here
     }
 
-    const data = { ...formState };
+    const data = {
+      ...formState,
+      mantenance_every_after: Number(formState.mantenance_every_after),
+    };
+    console.log(data, "sd");
+
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? MANUFACTURING_ENDPOINTS.EQUIPMENT_MAINTANANCE_LOG.UPDATE(
@@ -92,8 +96,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       token.access_token,
       {
         ...data,
-        maintenance_date: formatDate(formState.maintenance_date),
-        maintenance_end_date: formatDate(formState.maintenance_end_date),
       },
       onSave,
       method
@@ -182,12 +184,14 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="available_capacity">Maintenance every after</label>
+          <label htmlFor="mantenance_every_after">
+            Maintenance every after
+          </label>
           <InputText
-            id="available_capacity"
-            name="available_capacity"
+            id="mantenance_every_after"
+            name="mantenance_every_after"
             type="number"
-            value={formState.available_capacity?.toString() || ""}
+            value={formState.mantenance_every_after?.toString() || ""}
             onChange={handleInputChange}
             className="w-full"
           />

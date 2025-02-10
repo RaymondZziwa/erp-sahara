@@ -8,6 +8,7 @@ import { MANUFACTURING_ENDPOINTS } from "../../../../../api/manufacturingEndpoin
 import BreadCrump from "../../../../../components/layout/bread_crump";
 import useCenterTasks from "../../../../../hooks/manufacturing/workCenter/useCenterTasks";
 import { CenterTask } from "../../../../../redux/slices/types/manufacturing/CenterTask";
+import useEmployees from "../../../../../hooks/hr/useEmployees";
 
 const CenterTasks = ({ centerId }: { centerId: string }) => {
   if (!centerId) {
@@ -16,6 +17,8 @@ const CenterTasks = ({ centerId }: { centerId: string }) => {
   const { data: data, refresh } = useCenterTasks({
     centerId,
   });
+
+  console.log(data, "dt");
 
   const tableRef = useRef<any>(null);
 
@@ -50,18 +53,7 @@ const CenterTasks = ({ centerId }: { centerId: string }) => {
       sortable: true,
       filter: true,
     },
-    {
-      headerName: "Start  date",
-      field: "planned_start_time",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: " End date",
-      field: "planned_end_time",
-      sortable: true,
-      filter: true,
-    },
+
     {
       headerName: "Status",
       field: "status",

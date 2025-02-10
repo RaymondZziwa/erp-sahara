@@ -10,6 +10,7 @@ export interface MaintainanceLog {
   updated_at: string;
   equipment: Equipment;
   available_capacity?: string;
+  mantenance_every_after: number;
 }
 
 interface Equipment {

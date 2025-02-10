@@ -9,11 +9,11 @@ import Table from "../../../components/table";
 import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints";
 import useWorkCenterOrders from "../../../hooks/manufacturing/workCenter/useWorkCentersOrders";
 import { WorkOrder } from "../../../redux/slices/types/manufacturing/WorkOrder";
+import useEmployees from "../../../hooks/hr/useEmployees";
 
 const WorkOrders: React.FC = () => {
   const { data: categories, refresh } = useWorkCenterOrders();
   const tableRef = useRef<any>(null);
-  console.log(categories);
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: WorkOrder | undefined;
