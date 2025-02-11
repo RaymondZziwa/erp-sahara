@@ -78,7 +78,7 @@ export const MANUFACTURING_ENDPOINTS = {
     ADD: (equipmentId: string) =>
       `/erp/manfucaturing/machines/${equipmentId}/maintenancelogs/create`,
     UPDATE: (equpmentId: string, id: string) =>
-      `/erp/manfucaturing/machines/${equpmentId}/maintenancelogs${id}/update`,
+      `/erp/manfucaturing/machines/${equpmentId}/maintenancelogs/${id}/update`,
     DELETE: (equpmentId: string, id: string) =>
       `/erp/manfucaturing/machines/${equpmentId}/maintenancelogs/${id}/delete`,
   },
