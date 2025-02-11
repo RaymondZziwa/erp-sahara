@@ -69,14 +69,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     // @ts-expect-error
     const formatDate = (date: Date): Date => date.toISOString().slice(0, 10);
 
-    // Basic validation
     if (
       !formState.performed_by ||
       !formState.status ||
       !formState.mantenance_every_after
     ) {
       setIsSubmitting(false);
-      return; // Handle validation error here
+      return;
     }
 
     const data = {
@@ -88,6 +87,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? MANUFACTURING_ENDPOINTS.EQUIPMENT_MAINTANANCE_LOG.UPDATE(
+          equpmentId,
           item.id.toString()
         )
       : MANUFACTURING_ENDPOINTS.EQUIPMENT_MAINTANANCE_LOG.ADD(equpmentId);
@@ -179,6 +179,17 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             required
             onChange={(e) => handleSelectChange("status", e.value)}
             placeholder="Select a period"
+            className="w-full"
+          />
+        </div>
+        <div className="p-field">
+          <label htmlFor="description">Description</label>
+          <InputText
+            id="description"
+            name="description"
+            type="text"
+            value={formState.description?.toString() || ""}
+            onChange={handleInputChange}
             className="w-full"
           />
         </div>
