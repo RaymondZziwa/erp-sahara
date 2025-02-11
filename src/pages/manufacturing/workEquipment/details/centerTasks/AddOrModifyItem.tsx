@@ -188,7 +188,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         <div className="p-field">
           <label htmlFor="work_center_id">Assigned To</label>
           <Dropdown
-            // loading={employeeLoading}
+            loading={employeeLoading}
             id="employee_id"
             name="employee_id"
             value={formState.employee_id}
