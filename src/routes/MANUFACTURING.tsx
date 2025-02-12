@@ -1,6 +1,6 @@
 //@ts-nocheck
 import { Icon } from "@iconify/react";
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import WorkCenters from "../pages/manufacturing/workCenters";
 import WorkOrders from "../pages/manufacturing/workCenterOrders";
 import EquipmentComp from "../pages/manufacturing/workEquipment";

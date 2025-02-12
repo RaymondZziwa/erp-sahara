@@ -4,12 +4,13 @@ export interface MaintainanceLog {
   maintenance_date: Date | null;
   maintenance_end_date: Date | null;
   performed_by: number;
-  description: null;
+  description: string;
   status: string;
   created_at: string;
   updated_at: string;
   equipment: Equipment;
   available_capacity?: string;
+  mantenance_every_after: number;
 }
 
 interface Equipment {
