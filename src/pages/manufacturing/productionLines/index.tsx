@@ -111,7 +111,7 @@ const ProductionLines: React.FC = () => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={MANUFACTURING_ENDPOINTS.WORK_CENTERS.DELETE(
+          apiPath={MANUFACTURING_ENDPOINTS.PRODUCTION_LINES.DELETE(
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>

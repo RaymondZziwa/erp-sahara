@@ -1,9 +1,7 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { DataState } from "../types/DataState";
 
-import { StockMovement } from "../types/inventory/StockMovement";
-
-const initialState: DataState<StockMovement[]> = {
+const initialState: DataState<any[]> = {
   data: [],
   loading: false,
   error: null,
@@ -17,7 +15,7 @@ const stockMovementSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    fetchDataSuccess(state, action: PayloadAction<StockMovement[]>) {
+    fetchDataSuccess(state, action: PayloadAction<any[]>) {
       state.loading = false;
       state.data = action.payload;
       state.error = null;

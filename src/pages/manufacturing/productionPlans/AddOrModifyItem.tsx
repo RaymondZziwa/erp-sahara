@@ -92,10 +92,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       planned_end_date: formatDate(formState.planned_end_date),
       planned_start_date: formatDate(formState.planned_start_date),
     };
+
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
-      ? MANUFACTURING_ENDPOINTS.WORK_CENTER_ORDERS.UPDATE(item.id.toString())
-      : MANUFACTURING_ENDPOINTS.WORK_CENTER_ORDERS.ADD;
+      ? MANUFACTURING_ENDPOINTS.PRODUCTION_PLANS.UPDATE(item.id.toString())
+      : MANUFACTURING_ENDPOINTS.PRODUCTION_PLANS.ADD;
 
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);

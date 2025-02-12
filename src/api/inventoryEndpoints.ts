@@ -6,6 +6,7 @@ export const INVENTORY_ENDPOINTS = {
     STOCK_OUT: "/erp/inventories/sendtomilling",
     UPDATE: (id: string) => `/erp/inventories/${id}/update`,
     DELETE: (id: string) => `/erp/inventories/${id}/delete`,
+    STOCK_MVT: "/erp/inventories"
   },
   UOM: {
     GET_ALL: "/erp/inventories/uom",

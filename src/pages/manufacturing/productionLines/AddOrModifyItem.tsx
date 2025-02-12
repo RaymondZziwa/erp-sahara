@@ -8,7 +8,8 @@ import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints";
 import { ProductionLine } from "../../../redux/slices/types/manufacturing/ProductionLine";
 
 import useAuth from "../../../hooks/useAuth";
-import useWorkCenterOrders from "../../../hooks/manufacturing/workCenter/useWorkCentersOrders";
+// import useWorkCenterOrders from "../../../hooks/manufacturing/workCenter/useWorkCentersOrders";
+import useWorkCenters from "../../../hooks/manufacturing/workCenter/useWorkCenters";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -39,7 +40,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { token } = useAuth();
-  const { data: items, loading: itemsLoading } = useWorkCenterOrders();
+  const { data: items, loading: itemsLoading } = useWorkCenters();
 
   // Initialize the form state with the existing item, if available
   useEffect(() => {
@@ -89,6 +90,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       setIsSubmitting(false);
       return; // Handle validation error here
     }
+
+    console.log("Saving...", formState);
 
     const data: Partial<ProductionLineAdd> = { ...formState };
     const method = item?.id ? "PUT" : "POST";
@@ -198,7 +201,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             value={formState.work_center_id}
             options={items.map((item) => ({
               value: item.id,
-              label: item.order_number,
+              label: item.name,
             }))}
             required
             filter

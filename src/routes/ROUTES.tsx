@@ -2,7 +2,7 @@ import { Icon } from "@iconify/react";
 
 import PROCUREMENT_ROUTES from "./PROCUREMENT";
 import SETTINGS_ROUTES from "./SETTINGS";
-import DASHBOARD_ROUTES from "./DASHBOARD";
+// import DASHBOARD_ROUTES from "./DASHBOARD";
 import INVENTORY_ROUTES from "./INVENTORY";
 import MOSS_APP_ROUTES from "./MOSSAPP";
 import SALES_ROUTES from "./SALES";
@@ -14,15 +14,21 @@ import { Route } from "./routeTypes";
 import REPORTS_ROUTES from "./REPORTS";
 import CASHREQUISITION_ROUTES from "./CASH_REQUISITIONS";
 import MANUFACTURING_ROUTES from "./MANUFACTURING";
-import ASSETS from "./ASSETS";
+ import ASSETS from "./ASSETS";
 // import INVESTMENT_FINANCING from "./INVESTMENT_FINANCING";
 
 const ROUTES: Route[] = [
+  // {
+  //   name: "Dashboard",
+  //   icon: <Icon icon="mdi:view-dashboard-outline" fontSize={24} />,
+  //   path: "/",
+  //   sidebarItems: DASHBOARD_ROUTES,
+  // },
   {
-    name: "Dashboard",
-    icon: <Icon icon="mdi:view-dashboard-outline" fontSize={24} />,
-    path: "/",
-    sidebarItems: DASHBOARD_ROUTES,
+    name: "Reports",
+    icon: <Icon icon="mdi:book-outline" fontSize={24} />, // More specific to project management
+    path: "/reports",
+    sidebarItems: REPORTS_ROUTES,
   },
   {
     name: "Inventory",
@@ -60,12 +66,6 @@ const ROUTES: Route[] = [
     icon: <Icon icon="mdi:cash-register" fontSize={24} />,
     path: "/manufacturing",
     sidebarItems: MANUFACTURING_ROUTES,
-  },
-  {
-    name: "Reports",
-    icon: <Icon icon="mdi:book-outline" fontSize={24} />, // More specific to project management
-    path: "/reports",
-    sidebarItems: REPORTS_ROUTES,
   },
   {
     name: "Budgets",

@@ -54,7 +54,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         })),
       });
     } else {
-      console.log(item);
+      // console.log(item);
 
       setFormState({ bom_items: [] }); // Reset to an empty BOM item array for new items
     }
@@ -108,6 +108,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }
 
     const data: Partial<BillOfMaterial> = { ...formState };
+    console.log("ff", data);
+
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? MANUFACTURING_ENDPOINTS.BILL_OF_MATERIAL.UPDATE(item.id.toString())
@@ -222,7 +224,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               key={index}
               className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end"
             >
-              <div className="col-span-1">
+              <div className="col-span-2">
                 <label
                   htmlFor={`raw_material_id_${index}`}
                   className="text-lg font-medium"
@@ -245,7 +247,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                 />
               </div>
 
-              <div className="col-span-1">
+              <div className="col-span-2">
                 <label
                   htmlFor={`quantity_${index}`}
                   className="text-lg font-medium"
@@ -262,7 +264,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                 />
               </div>
 
-              <div className="col-span-1">
+              <div className="col-span-2">
                 <label
                   htmlFor={`unit_of_measurement_${index}`}
                   className="text-lg font-medium"
@@ -284,7 +286,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                 />
               </div>
 
-              <div className="col-span-1">
+              <div className="col-span-2">
                 <Button
                   icon="pi pi-trash"
                   onClick={() => removeBomItem(index)}

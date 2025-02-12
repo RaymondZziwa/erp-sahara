@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
@@ -65,11 +66,19 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       return; // Handle validation error here
     }
 
-    const data = { ...formState };
+    const data = {
+      work_order_id: Number(formState.work_order_id),
+      task_name: formState.task_name,
+      assigned_to: 10,
+      status: formState.status,
+    };
+    console.log(data, "data");
+
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? MANUFACTURING_ENDPOINTS.CENTER_TASKS.UPDATE(item.id.toString())
       : MANUFACTURING_ENDPOINTS.CENTER_TASKS.ADD(centerId);
+
     await createRequest(
       endpoint,
       token.access_token,

@@ -37,6 +37,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   onClose,
   item,
   onSave,
+  productionPlanId,
 }) => {
   const [formState, setFormState] = useState<
     Partial<ProductionPlanMaterialAdd>
@@ -116,7 +117,25 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           .toISOString()
           .slice(0, 10),
       })),
+      production_plan_id: Number(productionPlanId),
+      // quantity:Number(formState.materials[0].quantity),
     };
+
+    let isoString = formState.materials[0].material_required_date;
+
+    // Convert to MySQL-compatible format (YYYY-MM-DD HH:MM:SS)
+    let mysqlDate = isoString.replace("T", " ").replace("Z", "");
+    console.log(mysqlDate);
+
+    const updateData = {
+      production_plan_id: Number(productionPlanId),
+      item_id: formState.materials[0].item_id,
+      material_required_date: mysqlDate,
+      quantity: formState.materials[0].quantity,
+      material_cost: formState.materials[0].material_cost,
+    };
+    console.log(updateData);
+
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? MANUFACTURING_ENDPOINTS.PRODUCTION_PLAN_MATERIALS.UPDATE(
@@ -124,7 +143,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         )
       : MANUFACTURING_ENDPOINTS.PRODUCTION_PLAN_MATERIALS.ADD;
 
-    await createRequest(endpoint, token.access_token, data, onSave, method);
+    await createRequest(
+      endpoint,
+      token.access_token,
+      item?.id ? updateData : data,
+      onSave,
+      method
+    );
     setIsSubmitting(false);
     onSave();
     onClose();

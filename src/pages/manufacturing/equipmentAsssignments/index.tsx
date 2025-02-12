@@ -111,7 +111,7 @@ const EquipmentAssignments: React.FC = () => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={MANUFACTURING_ENDPOINTS.WORK_CENTERS.DELETE(
+          apiPath={MANUFACTURING_ENDPOINTS.EQUIPMENT_ASSIGNMENTS.DELETE(
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>

@@ -9,7 +9,7 @@ import useAuth from "../../../hooks/useAuth";
 import { WorkCenter } from "../../../redux/slices/types/manufacturing/WorkCenter";
 import { InputTextarea } from "primereact/inputtextarea";
 import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints";
-import useUnitsOfMeasurement from "../../../hooks/inventory/useUnitsOfMeasurement";
+// import useUnitsOfMeasurement from "../../../hooks/inventory/useUnitsOfMeasurement";
 import { Dropdown } from "primereact/dropdown";
 
 interface AddOrModifyItemProps {
@@ -32,10 +32,23 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     capacity_per_day_uom: "", //Unit of measure unit or hours
     capacity_per_day: 0,
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { token } = useAuth();
-  const { data: uom } = useUnitsOfMeasurement();
+  // const { data: uom } = useUnitsOfMeasurement();
+  const uom = [
+    {
+      id: 1,
+      name: "hours",
+    },
+    {
+      id: 2,
+      name: "units",
+    },
+  ];
+  // console.log("uom", uom);
+
   useEffect(() => {
     if (item) {
       setFormState({
@@ -66,11 +79,17 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       return; // Handle validation error here
     }
 
-    const data = { ...formState };
+    const data = {
+      ...formState,
+      capacity_per_day: Number(formState.capacity_per_day),
+    };
+    // console.log("submitted data", data);
+
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? MANUFACTURING_ENDPOINTS.WORK_CENTERS.UPDATE(item.id.toString())
       : MANUFACTURING_ENDPOINTS.WORK_CENTERS.ADD;
+
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();
@@ -139,19 +158,29 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             className="w-full"
           />
         </div>
+
         <div className="p-field">
-          <label htmlFor="description">Description</label>
-          <InputTextarea
-            id="description"
-            name="description"
-            value={formState.description || ""}
-            onChange={handleInputChange}
+          <label htmlFor="capacity_per_day_uom">Capacity Per Day Units</label>
+          <Dropdown
+            filter
+            id="capacity_per_day_uom"
+            name="capacity_per_day_uom"
+            value={formState.capacity_per_day_uom}
+            options={uom.map((center) => ({
+              value: center.name,
+              label: center.name,
+            }))}
+            required
+            onChange={(e) =>
+              handleSelectChange("capacity_per_day_uom", e.value)
+            }
+            placeholder="Select a unit"
             className="w-full"
           />
         </div>
 
         <div className="p-field">
-          <label htmlFor="capacity_per_day">Capital Per Day</label>
+          <label htmlFor="capacity_per_day">Capacity Per Day</label>
           <InputText
             id="capacity_per_day"
             name="capacity_per_day"
@@ -160,23 +189,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             className="w-full"
           />
         </div>
-
         <div className="p-field">
-          <label htmlFor="capacity_per_day_uom">Capital Per Day Units</label>
-          <Dropdown
-            filter
-            id="capacity_per_day_uom"
-            name="capacity_per_day_uom"
-            value={formState.capacity_per_day_uom}
-            options={uom.map((center) => ({
-              value: center.id,
-              label: center.name,
-            }))}
-            required
-            onChange={(e) =>
-              handleSelectChange("capacity_per_day_uom", e.value)
-            }
-            placeholder="Select a unit"
+          <label htmlFor="description">Description</label>
+          <InputTextarea
+            id="description"
+            name="description"
+            value={formState.description || ""}
+            onChange={handleInputChange}
             className="w-full"
           />
         </div>

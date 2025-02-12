@@ -1,26 +1,21 @@
-import { useRef, useState } from "react";
+//@ts-nocheck
+import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
 import AddOrModifyItem from "./AddOrModifyItem";
-import Table from "../../../../components/table";
-import ConfirmDeleteDialog from "../../../../components/dialog/ConfirmDeleteDialog";
-import { MANUFACTURING_ENDPOINTS } from "../../../../api/manufacturingEndpoints";
-import BreadCrump from "../../../../components/layout/bread_crump";
-import useCenterCapacityLogs from "../../../../hooks/manufacturing/workCenter/useCenterCapacityLogs";
-import { CapapcityLog } from "../../../../redux/slices/types/manufacturing/CapacityLog";
+import { Truck } from "../../../redux/slices/types/mossApp/Trucks";
+import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
+import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
+import BreadCrump from "../../../components/layout/bread_crump";
+import useTrucks from "../../../hooks/inventory/useTrucks";
 
-const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
-  if (!centerId) {
-    return <div>No Id</div>;
-  }
-  const { data: data, refresh } = useCenterCapacityLogs({
-    centerId,
-  });
 
+const AssetsCategories: React.FC = () => {
+  const { refresh } = useTrucks();
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
-    selectedItem: CapapcityLog | undefined;
+    selectedItem: Truck | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
@@ -30,7 +25,8 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
     }
   };
 
-  const columnDefinitions: ColDef<CapapcityLog>[] = [
+  //@ts-expect-error --ignore
+  const columnDefinitions: ColDef<Truck>[] = [
     {
       headerName: "ID",
       field: "id",
@@ -39,30 +35,32 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
       width: 100,
     },
     {
-      headerName: "Utlized Capacity",
-      field: "utilized_capacity",
+      headerName: "Plate",
+      field: "license_plate",
       sortable: true,
       filter: true,
     },
     {
-      headerName: "Center",
-      field: "work_center.name",
+      headerName: "Capacity",
+      field: "capacity",
       sortable: true,
       filter: true,
+      suppressSizeToFit: true,
     },
     {
-      headerName: "Log  date",
-      field: "log_date",
+      headerName: "Model",
+      field: "model",
       sortable: true,
       filter: true,
+      suppressSizeToFit: true,
     },
     {
-      headerName: " Desc",
-      field: "description",
+      headerName: "Status",
+      field: "status",
       sortable: true,
       filter: true,
+      suppressSizeToFit: true,
     },
-
     {
       headerName: "Created",
       field: "created_at",
@@ -74,7 +72,7 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
       field: "id",
       sortable: false,
       filter: false,
-      cellRenderer: (params: ICellRendererParams<CapapcityLog>) => (
+      cellRenderer: (params: ICellRendererParams<Truck>) => (
         <div className="flex items-center gap-2">
           <button
             className="bg-shade px-2 py-1 rounded text-white"
@@ -108,7 +106,6 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
   return (
     <div>
       <AddOrModifyItem
-        centerId={centerId}
         onSave={refresh}
         item={dialogState.selectedItem}
         visible={
@@ -122,8 +119,7 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={MANUFACTURING_ENDPOINTS.CENTER_CAPACITY_LOG.DELETE(
-            centerId,
+          apiPath={INVENTORY_ENDPOINTS.TRUCKS.DELETE(
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>
@@ -136,11 +132,11 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Center Capacity Logs" pageName="All" />
+      <BreadCrump name="Asset Categories" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Center Capacity Logs Table</h1>
+            <h1 className="text-xl font-bold">Asset Categories</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -153,7 +149,7 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add Log
+              Add Category
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
@@ -164,10 +160,14 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
             </button>
           </div>
         </div>
-        <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />
+        {/* <Table
+          columnDefs={columnDefinitions}
+          data={categories}
+          ref={tableRef}
+        /> */}
       </div>
     </div>
   );
 };
 
-export default CenterCapacityLogs;
+export default AssetsCategories;

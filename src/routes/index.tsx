@@ -17,6 +17,7 @@ import OutOfStockReport from "../pages/reports/inventory/out_of_stock_report";
 import StockAgingReport from "../pages/reports/inventory/stock_aging_report";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
+import ItemTransactionsRecords from "../pages/inventory/inventories/item_transaction";
 
 const AppRouter = () => {
   const token = useSelector((state: RootState) => state.userAuth.token.access_token)
@@ -43,6 +44,7 @@ const AppRouter = () => {
         <Route path="/stock-aging-report" element={<StockAgingReport/>} />
         <Route path="/stock-taking-report" element={<StockTakingReport />} />
         <Route path="/pos" element={<ReorderReport />} />
+        <Route path="/inventory/item/:id/:name" element={<ItemTransactionsRecords />} />
         </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />

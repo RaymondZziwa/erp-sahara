@@ -2,7 +2,7 @@ import { Icon } from "@iconify/react";
 
 import Reports from "../pages/reports";
 import TrialBalances from "../pages/reports/trialBalances";
-//import ReportsSummary from "../pages/reports/reportsSummary";
+import ReportsSummary from "../pages/reports/reportsSummary";
 import BalanceSheet from "../pages/reports/balanceSheet";
 import IncomeStatement from "../pages/reports/incomeStatement";
 import CashBook from "../pages/reports/cashBook";
@@ -43,12 +43,12 @@ const REPORTS_ROUTES = [
         path: "/cash-book",
         element: <CashBook />,
       },
-      // {
-      //   name: "Reports Summary",
-      //   icon: <Icon icon="solar:book-line-duotone" fontSize={20} />, // Icon for Reports Summary
-      //   path: "/summary",
-      //   element: <ReportsSummary />,
-      // },
+      {
+        name: "Reports Summary",
+        icon: <Icon icon="solar:book-line-duotone" fontSize={20} />, // Icon for Reports Summary
+        path: "/summary",
+        element: <ReportsSummary />,
+      },
     ],
   },
 ];

@@ -57,18 +57,29 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }
 
     const data = { ...formState };
+    const UpdateData = {
+      start_time: formatDate(formState.start_time),
+      downtime_reason: formState.downtime_reason,
+      end_time: formatDate(formState.end_time),
+    };
+    console.log("dt", UpdateData);
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
-      ? MANUFACTURING_ENDPOINTS.CENTER_DOWNTIME_LOG.UPDATE(item.id.toString())
+      ? MANUFACTURING_ENDPOINTS.CENTER_DOWNTIME_LOG.UPDATE(
+          centerId,
+          item.id.toString()
+        )
       : MANUFACTURING_ENDPOINTS.CENTER_DOWNTIME_LOG.ADD(centerId);
     await createRequest(
       endpoint,
       token.access_token,
-      {
-        ...data,
-        start_time: formatDate(formState.start_time),
-        end_time: formatDate(formState.end_time),
-      },
+      item?.id
+        ? UpdateData
+        : {
+            ...data,
+            start_time: formatDate(formState.start_time),
+            end_time: formatDate(formState.end_time),
+          },
       onSave,
       method
     );

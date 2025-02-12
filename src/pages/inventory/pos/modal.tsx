@@ -1,14 +1,14 @@
-//@ts-nocheck
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
-import useItems from "../../../hooks/inventory/useItems";
 import PosItemCard from "./item_card";
 import CartItem from "./cart_item";
 import CategoryNav from "./nav/category_filter";
 import PaymentComponent from "./payment_component";
 import { toast } from "react-toastify";
 import { createRequest } from "../../../utils/api";
+import { useReactToPrint } from "react-to-print";
+import { PrintableContent } from "./receipt";
 
 const clients = [
   { id: 1, name: "John Doe" },
@@ -29,7 +29,6 @@ interface CartItemType {
 }
 
 const PosModal: React.FC<Props> = ({ query }) => {
-  const { data } = useItems();
   const items = useSelector((state: RootState) => state.inventoryItems.data);
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [customer, setCustomer] = useState<string | number | null>(null);
@@ -39,6 +38,17 @@ const PosModal: React.FC<Props> = ({ query }) => {
   const [total, setTotal] = useState(0);
   const user = useSelector((state: RootState) => state.userAuth.user);
   const token = useSelector((state: RootState) => state.userAuth.token.access_token);
+
+      //const componentRef = useRef();
+      const  printBtnRef = useRef<HTMLButtonElement>()
+
+      const receiptRef = useRef<HTMLDivElement | null>(null);
+      const printRef = useRef()
+  
+    const handlePrint = useReactToPrint({
+        content: () => printRef.current,
+        documentTitle: "Receipt",
+    });
 
   const [formState, setFormState] = useState({
     cashier_id: user.id,
@@ -192,7 +202,9 @@ const PosModal: React.FC<Props> = ({ query }) => {
 
   if (response.success) {
     toast.success("Sale saved successfully!");
-    setCart([]); // Clear cart after submission
+    // handlePrint()
+    printBtnRef?.current?.click();
+    setCart([]);
   } else {
     toast.error("Error processing sale. Check your inputs.");
   }
@@ -240,12 +252,36 @@ const PosModal: React.FC<Props> = ({ query }) => {
 
           {/* Payment Component */}
           <PaymentComponent clients={clients} setClientName={setCustomer} setPaymentMethod={setPaymentMethod} />
+          
+                    <div ref={printRef} className="print-content">
+                        <PrintableContent 
+                        //@ts-expect-error --ignore
+                            paymentMethod={paymentMethod}
+                            total={total}
+                            cart={cart}
+                        />
+                        <style>
+                            {`
+                                @media print {
+                                    .print-content {
+                                        display: block !important;
+                                    }
+                                }
+                                .print-content {
+                                    display: none;
+                                }
+                            `}
+                        </style>
+                    </div>
 
           {/* Total and Checkout */}
           <div className="flex justify-between items-center mt-4">
             <div className="text-lg font-bold">Total: UGX {totalAmount.toFixed(2)}</div>
             <button onClick={handleCheckout} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
               Checkout
+            </button>
+            <button onClick={handlePrint} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+              Print Receipt
             </button>
           </div>
         </div>

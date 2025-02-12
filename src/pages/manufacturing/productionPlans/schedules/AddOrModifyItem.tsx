@@ -38,6 +38,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   onClose,
   item,
   onSave,
+  productionPlanId,
 }) => {
   const [formState, setFormState] = useState<
     Partial<ProductionPlanScheduleAdd>
@@ -112,12 +113,30 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
     const data: Partial<ProductionPlanScheduleAdd> = {
       ...formState,
+      production_plan_id: Number(productionPlanId),
       schedules: formState.schedules.map((schedule) => ({
         ...schedule,
         start_time: new Date(schedule.start_time).toISOString().slice(0, 10),
         end_time: new Date(schedule.end_time).toISOString().slice(0, 10),
       })),
     };
+
+    const updateData = {
+      production_plan_id: Number(productionPlanId),
+      machine_id: formState.schedules[0].machine_id,
+      start_time: new Date(formState.schedules[0].start_time)
+        .toISOString()
+        .slice(0, 10),
+      end_time: new Date(formState.schedules[0].end_time)
+        .toISOString()
+        .slice(0, 10),
+      description: formState.schedules[0].description,
+      work_order_id: formState.schedules[0].work_order_id,
+    };
+
+    let actualData = item?.id ? updateData : data;
+    console.log("actualData", actualData);
+
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? MANUFACTURING_ENDPOINTS.PRODUCTION_PLAN_SCHEDULES.UPDATE(
@@ -125,7 +144,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         )
       : MANUFACTURING_ENDPOINTS.PRODUCTION_PLAN_SCHEDULES.ADD;
 
-    await createRequest(endpoint, token.access_token, data, onSave, method);
+    await createRequest(
+      endpoint,
+      token.access_token,
+      actualData,
+      onSave,
+      method
+    );
     setIsSubmitting(false);
     onSave();
     onClose();

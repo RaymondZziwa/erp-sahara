@@ -1,4 +1,5 @@
-import React, { useRef, useState } from "react";
+
+import React, { useEffect, useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
 
@@ -6,12 +7,26 @@ import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog"
 import Table from "../../../components/table";
 import BreadCrump from "../../../components/layout/bread_crump";
 import AddOrModifyItem from "./AddOrModifyItem";
-import useInventories from "../../../hooks/inventory/useInventories";
 import { Inventory } from "../../../redux/slices/types/inventory/Inventory";
+import { useNavigate } from "react-router-dom";
+import useInventoryRecords from "../../../hooks/inventory/useInventoryRecords";
 
 const Inventories: React.FC = () => {
-  const { data, refresh } = useInventories();
+  const { data, refresh } = useInventoryRecords();
+  const navigate = useNavigate()
   const tableRef = useRef<any>(null);
+
+  const [storeId, setStoreId] = useState(1)
+  const [storeData, setStoreData] = useState([])
+
+  useEffect(()=> {
+      if(!data) {
+        refresh();
+      }else{
+        const dat = data.filter((store) => store.warehouse_id === storeId);
+        setStoreData(dat[0]?.stock_movements?.stock_in)
+      }
+    }, [storeId])
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: Inventory | undefined;
@@ -24,85 +39,44 @@ const Inventories: React.FC = () => {
     }
   };
 
-  const columnDefinitions: ColDef<Inventory>[] = [
-    {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
-      headerName: "Name",
-      field: "item.name",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Quantity",
-      field: "quantity",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-
-    {
-      headerName: "Ware house",
-      field: "warehouse.name",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Ref ID",
-      field: "ref_id",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Received At",
-      field: "received_date",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Actions",
-      field: "id",
-      sortable: false,
-      filter: false,
-      //@ts-expect-error --ignore
-      cellRenderer: (params: ICellRendererParams<Inventory>) => (
-        <div className="flex items-center gap-2">
-          {/* <button
-            className="bg-shade px-2 py-1 rounded text-white"
-            onClick={() =>
-              setDialogState({
-                ...dialogState,
-                currentAction: "edit",
-                selectedItem: params.data,
-              })
-            }
-          >
-            View
-          </button> */}
-          {/* <Icon
-            onClick={() =>
-              setDialogState({
-                ...dialogState,
-                currentAction: "delete",
-                selectedItem: params.data,
-              })
-            }
-            icon="solar:trash-bin-trash-bold"
-            className="text-red-500 cursor-pointer"
-            fontSize={20}
-          /> */}
-        </div>
-      ),
-    },
-  ];
+  const columnDefinitions: ColDef<any>[] = [
+      // {
+      //   headerName: "ID",
+      //   field: "id",
+      //   sortable: true,
+      //   filter: true,
+      //   width: 100,
+      // },
+      {
+        headerName: "Name",
+        field: "item_name",
+        sortable: true,
+        filter: true,
+      },
+      {
+        headerName: "Quantity",
+        field: "quantity",
+        sortable: true,
+        filter: true,
+        suppressSizeToFit: true,
+      },
+  
+      {
+        headerName: "Date",
+        field: "movement_date",
+        sortable: true,
+        filter: true,
+        suppressSizeToFit: true,
+      },
+      
+      {
+        headerName: "Status",
+        field: "status",
+        sortable: true,
+        filter: true,
+        suppressSizeToFit: true,
+      },
+    ];
 
   return (
     <div>
@@ -156,7 +130,7 @@ const Inventories: React.FC = () => {
             </button>
           </div>
         </div>
-        <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />
+        <Table columnDefs={columnDefinitions} data={storeData} ref={tableRef} />
       </div>
     </div>
   );

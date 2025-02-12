@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
@@ -46,7 +47,7 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
     quantity: 0,
     type: "",
     movement_date: "",
-    from_warehouse_id:0,
+    warehouse_id:1,
     movement_reason:"",
     picked_by:"",
     remarks:""
@@ -67,11 +68,6 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
     {label: "Donations", value: 'donations'},
     {label: "Return", value: 'return'},
     {label: "Purchase", value: 'purchase'},
-  ]
-
-  const destinations = [
-    {label: "Consuming", value: 'consuming'},
-    {label: "Processing", value: 'processing'},
   ]
 
   useEffect(() => {
@@ -198,8 +194,8 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
       <form
         id="item-form"
         onSubmit={handleSave}
-        className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-2"
       >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-2">
         <div className="p-field">
           <label className="font-semibold" htmlFor="item_id">
             Store
@@ -207,7 +203,7 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
           <Dropdown
             required
             name="from_warehouse_id"
-            value={stockOutForm.from_warehouse_id}
+            value={stockOutForm.warehouse_id}
             onChange={handleStockOutDropdownChange}
             options={warehouses}
             optionLabel="label"
@@ -230,23 +226,6 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
             optionLabel="label"
             optionValue="value"
             placeholder="Select type"
-            filter
-            className="w-full md:w-14rem"
-          />
-        </div>
-        <div className="p-field">
-          <label className="font-semibold" htmlFor="item_id">
-            Reason
-          </label>
-          <Dropdown
-            required
-            name="movement_reason"
-            value={stockOutForm.movement_reason}
-            onChange={handleStockOutDropdownChange}
-            options={destinations}
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Select Reason"
             filter
             className="w-full md:w-14rem"
           />
@@ -288,11 +267,11 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
             Movement Date
           </label>
           <InputText
-            id="received_date"
+            id="movement_date"
             name="movement_date"
             type="date"
             value={
-              stockOutForm.movement_date
+              stockOutForm.movement_date || new Date().toISOString().slice(0, 9)
             }
             onChange={handleStockOutInputChange}
             className="w-full"
@@ -313,6 +292,21 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
             onChange={handleStockOutInputChange}
             className="w-full"
             required   
+          />
+        </div>
+        </div>
+        <div className="p-field w-full">
+          <label className="font-semibold" htmlFor="movement_reason">
+            Remarks
+          </label>
+          <InputText
+            id="movement_reason"
+            name="movement_reason"
+            type="text"
+            value={stockOutForm.movement_reason || ""}
+            onChange={handleStockOutInputChange}
+            required
+            className="w-full h-[100px]"
           />
         </div>
       </form>

@@ -1,9 +1,8 @@
 import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
-
 import AddOrModifyItem from "./AddOrModifyItem";
-
+import { Link } from "react-router-dom";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import BreadCrump from "../../../components/layout/bread_crump";
 import Table from "../../../components/table";
@@ -14,6 +13,7 @@ import { WorkOrder } from "../../../redux/slices/types/manufacturing/WorkOrder";
 const WorkOrders: React.FC = () => {
   const { data: categories, refresh } = useWorkCenterOrders();
   const tableRef = useRef<any>(null);
+  console.log(categories);
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: WorkOrder | undefined;
@@ -39,6 +39,16 @@ const WorkOrders: React.FC = () => {
       field: "order_number",
       sortable: true,
       filter: true,
+      cellRenderer: (params: ICellRendererParams<WorkOrder>) => {
+        return (
+          <Link
+            className="text-teal-500"
+            to={`/manufacturing/workcenters/workorders/${params.data?.id}`}
+          >
+            {params?.data?.order_number.toString()}
+          </Link>
+        );
+      },
     },
     {
       headerName: "Status",
@@ -129,7 +139,7 @@ const WorkOrders: React.FC = () => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={MANUFACTURING_ENDPOINTS.WORK_CENTERS.DELETE(
+          apiPath={MANUFACTURING_ENDPOINTS.WORK_CENTER_ORDERS.DELETE(
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>

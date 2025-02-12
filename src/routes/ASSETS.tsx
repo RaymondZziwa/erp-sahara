@@ -1,5 +1,7 @@
 import { Icon } from "@iconify/react";
 import AssetsManagement from "../pages/assets/manage_assets";
+//import ToBeUpdated from "../pages/ToBeUpdated";
+import AssetsCategories from "../pages/assets/categories/manage_categories";
 
 const ASSETS = [
   {
@@ -10,13 +12,19 @@ const ASSETS = [
       {
         name: "Asset Management",
         icon: <Icon icon="solar:card-2-bold-duotone" fontSize={20} />,
-        path: "/",
+        path: "",
         element: <AssetsManagement />,
       },
+      {
+        name: "Asset Categories",
+        icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+        path: "asset_categories",
+        element: <AssetsCategories />,
+      },
       // {
-      //   name: "Maintainance management",
+      //   name: "Depreciation",
       //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-      //   path: "/userroles",
+      //   path: "asset_depreciation",
       //   element: <ToBeUpdated />,
       // },
     ],

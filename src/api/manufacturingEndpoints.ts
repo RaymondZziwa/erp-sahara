@@ -48,15 +48,19 @@ export const MANUFACTURING_ENDPOINTS = {
       `/erp/manfucaturing/productionplans/${productionPlanId}/schedules`,
     GET_BY_ID: (id: string) => `/erp/manfucaturing/productionplans/${id}`,
     ADD: "/erp/manfucaturing/productionplans/schedules/create",
-    UPDATE: (id: string) => `/erp/manfucaturing/productionplans/${id}/update`,
-    DELETE: (id: string) => `/erp/manfucaturing/productionplans/${id}/delete`,
+    UPDATE: (id: string) =>
+      `/erp/manfucaturing/productionplans/schedules/${id}/update`,
+    DELETE: (id: string) =>
+      `/erp/manfucaturing/productionplans/schedules/${id}/delete`,
   },
   PRODUCTION_PLAN_MATERIALS: {
     GET_ALL: (productionPlanId: string) =>
       `/erp/manfucaturing/productionplans/${productionPlanId}/materialplans`,
-    GET_BY_ID: (id: string) => `/erp/manfucaturing/productionplans/${id}`,
+    GET_BY_ID: (id: string) =>
+      `/manfucaturing/productionplans/3/materialplans/${id}`,
     ADD: "/erp/manfucaturing/productionplans/materialplans/create",
-    UPDATE: (id: string) => `/erp/manfucaturing/productionplans/${id}/update`,
+    UPDATE: (id: string) =>
+      `/erp/manfucaturing/productionplans/materialplans/${id}/update`,
     DELETE: (id: string) => `/erp/manfucaturing/productionplans/${id}/delete`,
   },
   PRODUCTION_LINES: {
@@ -77,12 +81,12 @@ export const MANUFACTURING_ENDPOINTS = {
   },
   CENTER_TASKS: {
     GET_ALL: (centerId: string) =>
-      `/erp/manfucaturing/workcenters/${centerId}/tasks`,
+      `/erp/manfucaturing/workorders/${centerId}/tasks`,
     GET_BY_ID: (id: string) => `/erp/manfucaturing/workcenters/${id}`,
-    ADD: (centerId: string) =>
-      `/erp/manfucaturing/workcenters/${centerId}/tasks/create`,
-    UPDATE: (id: string) => `/erp/manfucaturing/workcenters/${id}/update`,
-    DELETE: (id: string) => `/erp/manfucaturing/workcenters/${id}/delete`,
+    //ADD: (centerId: string) => `/erp/manfucaturing/workorders/tasks/create`,
+    UPDATE: (id: string) => `/erp/manfucaturing/workorders/tasks/${id}/update`,
+    DELETE: (centerId: string, id: string) =>
+      `/erp/manfucaturing/workorders/${centerId}/tasks/${id}/delete`,
   },
   CENTER_CAPACITY_LOG: {
     GET_ALL: (centerId: string) =>
@@ -90,8 +94,10 @@ export const MANUFACTURING_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/erp/manfucaturing/workcenters/${id}`,
     ADD: (centerId: string) =>
       `/erp/manfucaturing/workcenters/${centerId}/capacitylog/create`,
-    UPDATE: (id: string) => `/erp/manfucaturing/workcenters/${id}/update`,
-    DELETE: (id: string) => `/erp/manfucaturing/workcenters/${id}/delete`,
+    UPDATE: (centerId: string, id: string) =>
+      `/erp/manfucaturing/workcenters/${centerId}/capacitylog/${id}/update`,
+    DELETE: (centerId: string, id: string) =>
+      `/erp/manfucaturing/workcenters/${centerId}/capacitylog/${id}/delete`,
   },
   CENTER_DOWNTIME_LOG: {
     GET_ALL: (centerId: string) =>
@@ -99,7 +105,9 @@ export const MANUFACTURING_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/erp/manfucaturing/workcenters/${id}`,
     ADD: (centerId: string) =>
       `/erp/manfucaturing/workcenters/${centerId}/downtimelog/create`,
-    UPDATE: (id: string) => `/erp/manfucaturing/workcenters/${id}/update`,
-    DELETE: (id: string) => `/erp/manfucaturing/workcenters/${id}/delete`,
+    UPDATE: (centerId: string, id: string) =>
+      `/erp/manfucaturing/workcenters/${centerId}/downtimelog/${id}/update`,
+    DELETE: (centerId: string, id: string) =>
+      `/erp/manfucaturing/workcenters/${centerId}/downtimelog/${id}/delete`,
   },
 };
