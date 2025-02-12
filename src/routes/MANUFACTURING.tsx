@@ -1,5 +1,5 @@
 import { Icon } from "@iconify/react";
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import WorkCenters from "../pages/manufacturing/workCenters";
 import WorkOrders from "../pages/manufacturing/workCenterOrders";
 import EquipmentComp from "../pages/manufacturing/workEquipment";
@@ -14,7 +14,6 @@ import OrderDetails from "../pages/manufacturing/workCenterOrders/details";
 import Overview from "../pages/manufacturing/Overview";
 
 // Dynamic imports
-const SettingsPage = lazy(() => import("../pages/settings"));
 
 // Loader fallback component
 const Loading = () => <div>Loading...</div>;

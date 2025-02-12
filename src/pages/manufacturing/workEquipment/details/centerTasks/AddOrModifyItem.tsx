@@ -5,8 +5,6 @@ import useAuth from "../../../../../hooks/useAuth";
 import { MANUFACTURING_ENDPOINTS } from "../../../../../api/manufacturingEndpoints";
 import { createRequest } from "../../../../../utils/api";
 import { Dropdown } from "primereact/dropdown";
-import { Calendar } from "primereact/calendar";
-import { Nullable } from "primereact/ts-helpers";
 import { CenterTask } from "../../../../../redux/slices/types/manufacturing/CenterTask";
 import useWorkCenterOrders from "../../../../../hooks/manufacturing/workCenter/useWorkCentersOrders";
 import { InputText } from "primereact/inputtext";
@@ -111,12 +109,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     </div>
   );
 
-  const handleDateChange = (name: string, value: Nullable<Date>) => {
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
+  // const handleDateChange = (name: string, value: Nullable<Date>) => {
+  //   setFormState((prevState) => ({
+  //     ...prevState,
+  //     [name]: value,
+  //   }));
+  // };
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {

@@ -1,5 +1,3 @@
-import React from "react";
-
 function Overview() {
   return (
     <div className="max-w-6xl mx-auto font-[sans-serif]">

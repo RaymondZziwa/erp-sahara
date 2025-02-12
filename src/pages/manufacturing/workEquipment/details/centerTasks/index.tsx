@@ -8,7 +8,6 @@ import { MANUFACTURING_ENDPOINTS } from "../../../../../api/manufacturingEndpoin
 import BreadCrump from "../../../../../components/layout/bread_crump";
 import useCenterTasks from "../../../../../hooks/manufacturing/workCenter/useCenterTasks";
 import { CenterTask } from "../../../../../redux/slices/types/manufacturing/CenterTask";
-import useEmployees from "../../../../../hooks/hr/useEmployees";
 
 const CenterTasks = ({ centerId }: { centerId: string }) => {
   if (!centerId) {

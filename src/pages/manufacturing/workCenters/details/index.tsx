@@ -1,7 +1,6 @@
 import { TabPanel, TabView } from "primereact/tabview";
 import React from "react";
 import { useParams } from "react-router-dom";
-import CenterTasks from "../../workEquipment/details/centerTasks";
 import CenterCapacityLogs from "../centerCapacityLog";
 import CenterDownTimeLogs from "../centerDownTimeLog";
 
