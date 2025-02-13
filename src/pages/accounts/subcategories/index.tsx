@@ -7,6 +7,8 @@ import { AccountSubCategory } from "../../../redux/slices/types/accounts/subCate
 import useAccountSubCategories from "../../../hooks/accounts/useAccountsSubCategories";
 import AddOrModifyAccountSubCategory from "./AddOrModifyAccountSubCategory";
 import { Link } from "react-router-dom";
+import { Icon } from "@iconify/react";
+import BreadCrump from "../../../components/layout/bread_crump";
 
 const textFilterTemplate = (options: any) => (
   <input
@@ -35,44 +37,40 @@ const AccountSubCategories = () => {
   const { data, loading, error, refresh } = useAccountSubCategories();
 
   const actionBodyTemplate = (rowData: AccountSubCategory) => (
-    <div className="flex items-center space-x-2">
-      <Button
-        icon="pi pi-eye"
-        className="p-button-rounded p-button-info"
+    <div className="flex items-center gap-2">
+      <button
+        className="bg-shade px-2 py-1 rounded text-white"
         onClick={() => setViewingChartsForAccount(rowData)}
-        tooltip="View Chart of Accounts"
-        tooltipOptions={{ position: "top" }}
-      />
-      <Button
-        icon="pi pi-pencil"
-        className="p-button-rounded p-button-success"
+      >
+        View Charts
+      </button>
+      <button
+        className="bg-shade px-2 py-1 rounded text-white"
         onClick={() => setDialogState({ selectedCategory: rowData, currentAction: "edit" })}
-        tooltip="Edit"
-        tooltipOptions={{ position: "top" }}
-      />
-      <Button
-        icon="pi pi-trash"
-        className="p-button-rounded p-button-danger"
+      >
+        Edit
+      </button>
+      <Icon
+        icon="solar:trash-bin-trash-bold"
+        className="text-red-500 cursor-pointer"
+        fontSize={20}
         onClick={() => setDialogState({ selectedCategory: rowData, currentAction: "delete" })}
-        tooltip="Delete"
-        tooltipOptions={{ position: "top" }}
       />
     </div>
   );
-  
 
   const chartAccountsActionTemplate = (rowData: any) => (
-    <div className="flex items-center space-x-2">
-      <Button
-        icon="pi pi-pencil"
-        className="p-button-rounded p-button-success mr-2"
-        tooltip="Edit"
+    <div className="flex items-center gap-2">
+      <button
+        className="bg-shade px-2 py-1 rounded text-white"
         onClick={() => handleEditChartAccount(rowData)}
-      />
-      <Button
-        icon="pi pi-trash"
-        className="p-button-rounded p-button-danger"
-        tooltip="Delete"
+      >
+        Edit
+      </button>
+      <Icon
+        icon="solar:trash-bin-trash-bold"
+        className="text-red-500 cursor-pointer"
+        fontSize={20}
         onClick={() => handleDeleteChartAccount(rowData)}
       />
     </div>
@@ -92,87 +90,95 @@ const AccountSubCategories = () => {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-6">Account SubCategories</h2>
-      <div className="mb-4">
-        <Button
-          size="small"
-          label="Add Account SubCategory"
-          icon="pi pi-plus"
-          onClick={() => setDialogState({ selectedCategory: undefined, currentAction: "add" })}
-        />
-      </div>
+    <div>
+      <BreadCrump name="Account SubCategories" pageName="All" />
+      <div className="bg-white px-8 rounded-lg">
+        <div className="flex justify-between items-center">
+          <div className="py-2">
+            <h1 className="text-xl font-bold">Account SubCategories Table</h1>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setDialogState({ selectedCategory: undefined, currentAction: "add" })}
+              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
+            >
+              <Icon icon="solar:add-circle-bold" fontSize={20} />
+              Add SubCategory
+            </button>
+          </div>
+        </div>
 
-      {loading && <p className="text-blue-600">Loading...</p>}
-      {error && <p className="text-red-600">Error loading accounts.</p>}
+        {loading && <p className="text-blue-600">Loading...</p>}
+        {error && <p className="text-red-600">Error loading accounts.</p>}
 
-      <DataTable
-        value={data}
-        responsiveLayout="scroll"
-        paginator
-        rows={10}
-        className="p-datatable-striped mb-4"
-      >
-        <Column field="name" header="Name" />
-        <Column field="code" header="Code" />
-        <Column field="description" header="Description" />
-        <Column body={actionBodyTemplate} header="Actions" style={{ minWidth: "12rem" }} />
-      </DataTable>
+        <DataTable
+          value={data}
+          responsiveLayout="scroll"
+          paginator
+          rows={10}
+          className="p-datatable-striped mb-4"
+        >
+          <Column field="name" header="Name" />
+          <Column field="code" header="Code" />
+          <Column field="description" header="Description" />
+          <Column body={actionBodyTemplate} header="Actions" style={{ minWidth: "12rem" }} />
+        </DataTable>
 
-      {/* Charts of Accounts Dialog */}
-      <Dialog
-        header={`Chart of Accounts - ${viewingChartsForAccount?.name || ''}`}
-        visible={!!viewingChartsForAccount}
-        style={{ width: '80vw' }}
-        onHide={() => setViewingChartsForAccount(null)}
-      >
-        {viewingChartsForAccount && (
-          <DataTable
-            value={viewingChartsForAccount.chart_of_accounts}
-            responsiveLayout="scroll"
-            paginator
-            rows={10}
-            className="p-datatable-striped"
-          >
-            {chartOfAccountsColumns.map((col) => (
-              <Column
-                key={col.field}
-                field={col.field}
-                header={col.header}
-                filter
-                filterElement={textFilterTemplate}
-                body={
-                  col.field === "id"
-                    ? (rowData) => (
-                        <Link
-                          className="hover:underline"
-                          to={`/accounts/accounts/subcategories/${rowData.id}`}
-                        >
-                          {rowData.id}
-                        </Link>
-                      )
-                    : undefined
-                }
+        {/* Charts of Accounts Dialog */}
+        <Dialog
+          header={`Chart of Accounts - ${viewingChartsForAccount?.name || ''}`}
+          visible={!!viewingChartsForAccount}
+          style={{ width: '80vw' }}
+          onHide={() => setViewingChartsForAccount(null)}
+        >
+          {viewingChartsForAccount && (
+            <DataTable
+              value={viewingChartsForAccount.chart_of_accounts}
+              responsiveLayout="scroll"
+              paginator
+              rows={10}
+              className="p-datatable-striped"
+            >
+              {chartOfAccountsColumns.map((col) => (
+                <Column
+                  key={col.field}
+                  field={col.field}
+                  header={col.header}
+                  filter
+                  filterElement={textFilterTemplate}
+                  body={
+                    col.field === "id"
+                      ? (rowData) => (
+                          <Link
+                            className="hover:underline"
+                            to={`/accounts/accounts/subcategories/${rowData.id}`}
+                          >
+                            {rowData.id}
+                          </Link>
+                        )
+                      : undefined
+                  }
+                />
+              ))}
+              <Column 
+                body={chartAccountsActionTemplate} 
+                header="Actions" 
+                style={{ minWidth: "8rem" }} 
               />
-            ))}
-            <Column 
-              body={chartAccountsActionTemplate} 
-              header="Actions" 
-              style={{ minWidth: "8rem" }} 
-            />
-          </DataTable>
-        )}
-      </Dialog>
+            </DataTable>
+          )}
+        </Dialog>
 
-      {/* Add/Edit SubCategory Dialog */}
-      {(dialogState.currentAction === "edit" || dialogState.currentAction === "add") && (
-        <AddOrModifyAccountSubCategory
-          onSave={refresh}
-          item={dialogState.selectedCategory}
-          visible={dialogState.currentAction === "add" || !!dialogState.selectedCategory?.id}
-          onClose={() => setDialogState({ currentAction: "", selectedCategory: undefined })}
-        />
-      )}
+        {/* Add/Edit SubCategory Dialog */}
+        {(dialogState.currentAction === "edit" || dialogState.currentAction === "add") && (
+          <AddOrModifyAccountSubCategory
+            onSave={refresh}
+            item={dialogState.selectedCategory}
+            visible={dialogState.currentAction === "add" || !!dialogState.selectedCategory?.id}
+            onClose={() => setDialogState({ currentAction: "", selectedCategory: undefined })}
+          />
+        )}
+      </div>
     </div>
   );
 };
