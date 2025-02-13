@@ -62,15 +62,17 @@ const AccountSubCategories = () => {
   
 
   const chartAccountsActionTemplate = (rowData: any) => (
-    <div>
+    <div className="flex items-center space-x-2">
       <Button
         icon="pi pi-pencil"
         className="p-button-rounded p-button-success mr-2"
+        tooltip="Edit"
         onClick={() => handleEditChartAccount(rowData)}
       />
       <Button
         icon="pi pi-trash"
         className="p-button-rounded p-button-danger"
+        tooltip="Delete"
         onClick={() => handleDeleteChartAccount(rowData)}
       />
     </div>
