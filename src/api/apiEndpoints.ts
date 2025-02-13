@@ -13,6 +13,13 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/erp/accounts/currencies/${id}`,
     DELETE: (id: string) => `/erp/accounts/currencies/${id}/delete`,
   },
+  PAYMENT_METHODS: {
+    GET_ALL: "/erp/accounts/paymentmethod",
+    GET_BY_ID: (id: string) => `/erp/currencies/${id}`,
+    ADD: "/erp/accounts/paymentmethod/create",
+    UPDATE: (id: string) => `/erp/accounts/currencies/${id}`,
+    DELETE: (id: string) => `/erp/accounts/currencies/${id}/delete`,
+  },
   ITEMS: {
     GET_ALL: "/api/items",
     ADD: "/api/items/add",

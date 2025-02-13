@@ -16,6 +16,9 @@ const CenterTasks = ({ centerId }: { centerId: string }) => {
   const { data: data, refresh } = useCenterTasks({
     centerId,
   });
+
+  console.log(data, "dt");
+
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
@@ -49,18 +52,7 @@ const CenterTasks = ({ centerId }: { centerId: string }) => {
       sortable: true,
       filter: true,
     },
-    {
-      headerName: "Start  date",
-      field: "planned_start_time",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: " End date",
-      field: "planned_end_time",
-      sortable: true,
-      filter: true,
-    },
+
     {
       headerName: "Status",
       field: "status",
@@ -127,7 +119,8 @@ const CenterTasks = ({ centerId }: { centerId: string }) => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={MANUFACTURING_ENDPOINTS.EQUIPMENT_MAINTANANCE_LOG.DELETE(
+          apiPath={MANUFACTURING_ENDPOINTS.CENTER_TASKS.DELETE(
+            centerId,
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>

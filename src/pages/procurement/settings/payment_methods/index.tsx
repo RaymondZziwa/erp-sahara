@@ -1,26 +1,20 @@
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
-import AddOrModifyItem from "./AddOrModifyItem";
-import Table from "../../../../components/table";
+
 import ConfirmDeleteDialog from "../../../../components/dialog/ConfirmDeleteDialog";
-import { MANUFACTURING_ENDPOINTS } from "../../../../api/manufacturingEndpoints";
+import Table from "../../../../components/table";
 import BreadCrump from "../../../../components/layout/bread_crump";
-import useCenterCapacityLogs from "../../../../hooks/manufacturing/workCenter/useCenterCapacityLogs";
-import { CapapcityLog } from "../../../../redux/slices/types/manufacturing/CapacityLog";
+import { PaymentMethod } from "../../../../redux/slices/types/procurement/Currency";
+import AddOrModifyItem from "./AddOrModifyItem";
+import usePaymentMethods from "../../../../hooks/procurement/usePaymentMethods";
 
-const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
-  if (!centerId) {
-    return <div>No Id</div>;
-  }
-  const { data: data, refresh } = useCenterCapacityLogs({
-    centerId,
-  });
-
+const PaymentMethods: React.FC = () => {
+  const { data: methods, refresh } = usePaymentMethods();
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
-    selectedItem: CapapcityLog | undefined;
+    selectedItem: PaymentMethod | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
@@ -30,42 +24,16 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
     }
   };
 
-  const columnDefinitions: ColDef<CapapcityLog>[] = [
+  const columnDefinitions: ColDef<PaymentMethod>[] = [
     {
       headerName: "ID",
       field: "id",
       sortable: true,
       filter: true,
-      width: 100,
     },
     {
-      headerName: "Utlized Capacity",
-      field: "utilized_capacity",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Center",
-      field: "work_center.name",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Log  date",
-      field: "log_date",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: " Desc",
-      field: "description",
-      sortable: true,
-      filter: true,
-    },
-
-    {
-      headerName: "Created",
-      field: "created_at",
+      headerName: "Name",
+      field: "name",
       sortable: true,
       filter: true,
     },
@@ -74,7 +42,7 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
       field: "id",
       sortable: false,
       filter: false,
-      cellRenderer: (params: ICellRendererParams<CapapcityLog>) => (
+      cellRenderer: (params: ICellRendererParams<PaymentMethod>) => (
         <div className="flex items-center gap-2">
           <button
             className="bg-shade px-2 py-1 rounded text-white"
@@ -108,7 +76,6 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
   return (
     <div>
       <AddOrModifyItem
-        centerId={centerId}
         onSave={refresh}
         item={dialogState.selectedItem}
         visible={
@@ -120,30 +87,22 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
           setDialogState({ currentAction: "", selectedItem: undefined })
         }
       />
-      {dialogState.selectedItem && (
-        <ConfirmDeleteDialog
-          apiPath={MANUFACTURING_ENDPOINTS.CENTER_CAPACITY_LOG.DELETE(
-            centerId,
-            dialogState.selectedItem?.id.toString()
-          )}
-          onClose={() =>
-            setDialogState({ selectedItem: undefined, currentAction: "" })
-          }
-          visible={
-            !!dialogState.selectedItem?.id &&
-            dialogState.currentAction === "delete"
-          }
-          onConfirm={refresh}
-        />
-      )}
-      <BreadCrump name="Center Capacity Logs" pageName="All" />
+      <ConfirmDeleteDialog
+        apiPath={`/erp/accounts/paymentmethod/${dialogState.selectedItem?.id}/delete`}
+        onClose={() =>
+          setDialogState({ selectedItem: undefined, currentAction: "" })
+        }
+        visible={
+          !!dialogState.selectedItem?.id &&
+          dialogState.currentAction === "delete"
+        }
+        onConfirm={refresh}
+      />
+      <BreadCrump name="Settings" pageName="Payment Methods" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">
-              {`${data.length > 0 ? data[0].work_center.name : ""}`} Center
-              Capacity Logs Table
-            </h1>
+            <h1 className="text-xl font-bold">Payment Methods Table</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -156,7 +115,7 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add Log
+              Add method
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
@@ -167,10 +126,14 @@ const CenterCapacityLogs = ({ centerId }: { centerId: string }) => {
             </button>
           </div>
         </div>
-        <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />
+        <Table
+          columnDefs={columnDefinitions}
+          data={methods}
+          ref={tableRef}
+        />
       </div>
     </div>
   );
 };
 
-export default CenterCapacityLogs;
+export default PaymentMethods;

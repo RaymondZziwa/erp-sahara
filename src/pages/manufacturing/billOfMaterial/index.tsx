@@ -111,7 +111,7 @@ const BillOfMAterial: React.FC = () => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={MANUFACTURING_ENDPOINTS.WORK_CENTERS.DELETE(
+          apiPath={MANUFACTURING_ENDPOINTS.BILL_OF_MATERIAL.DELETE(
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>

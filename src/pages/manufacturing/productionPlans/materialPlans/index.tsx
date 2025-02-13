@@ -18,9 +18,11 @@ const ProductionMaterialPlans = ({
   if (!productionPlanId) {
     return <div>No Id</div>;
   }
+
   const { data: data, refresh } = useProductionPlanMaterials({
     productionPlanId,
   });
+
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
@@ -120,7 +122,7 @@ const ProductionMaterialPlans = ({
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={MANUFACTURING_ENDPOINTS.CENTER_DOWNTIME_LOG.DELETE(
+          apiPath={MANUFACTURING_ENDPOINTS.PRODUCTION_PLAN_MATERIALS.DELETE(
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>

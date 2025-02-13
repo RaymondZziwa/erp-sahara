@@ -17,9 +17,11 @@ const ProductionPlanSchedules = ({
   if (!productionPlanId) {
     return <div>No Id</div>;
   }
+
   const { data: data, refresh } = useProductionPlanSchedule({
     productionPlanId,
   });
+
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
@@ -114,7 +116,7 @@ const ProductionPlanSchedules = ({
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={MANUFACTURING_ENDPOINTS.CENTER_CAPACITY_LOG.DELETE(
+          apiPath={MANUFACTURING_ENDPOINTS.PRODUCTION_PLAN_SCHEDULES.DELETE(
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>

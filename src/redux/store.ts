@@ -29,7 +29,7 @@ import driversReducer from "../redux/slices/inventory/driversSlice";
 import itemsAttributesReducer from "../redux/slices/inventory/attributesSlice";
 import itemsAttributesValuesReducer from "../redux/slices/inventory/attributesValueSlice";
 import stockMovementSlice from "../redux/slices/inventory/stockMovementSlice";
-
+import paymentMethodReducer from '../redux/slices/accounts/payment_method'
 import MOSS_APP_REDUCERS from "./reducers/mossAppReducers";
 import { SALES_REDUCERS } from "./reducers/salesReducers";
 import { ACCOUNTS_REDUCERS } from "./reducers/accountsReducers";
@@ -51,6 +51,7 @@ import ApprovalLevelsReducer from './slices/approval_levels/levelSlice'
 
 const store = configureStore({
   reducer: {
+    paymentMethods: paymentMethodReducer,
     levels: ApprovalLevelsReducer,
     usersList: UsersReducer,
     roles: RoleReducer,

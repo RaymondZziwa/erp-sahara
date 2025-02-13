@@ -131,20 +131,20 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             className="w-full"
           />
         </div>
-
         <div className="p-field">
-          <label htmlFor="work_center_id">Maintainance Period</label>
+          <label htmlFor="work_center_id">Work Center</label>
           <Dropdown
-            id="maintenance_period"
-            name="maintenance_period"
-            value={formState.maintenance_period}
-            options={["day", "month", "week", "year"].map((center) => ({
-              value: center,
-              label: center,
+            id="work_center_id"
+            name="work_center_id"
+            value={formState.work_center_id}
+            options={workCenters.map((center) => ({
+              value: center.id,
+              label: center.name,
             }))}
             required
-            onChange={(e) => handleSelectChange("maintenance_period", e.value)}
-            placeholder="Select a period"
+            loading={workCentersLoading}
+            onChange={(e) => handleSelectChange("work_center_id", e.value)}
+            placeholder="Select a WorkCenter"
             className="w-full"
           />
         </div>
@@ -164,19 +164,18 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="work_center_id">Work Center</label>
+          <label htmlFor="work_center_id">Maintainance Period</label>
           <Dropdown
-            id="work_center_id"
-            name="work_center_id"
-            value={formState.work_center_id}
-            options={workCenters.map((center) => ({
-              value: center.id,
-              label: center.name,
+            id="maintenance_period"
+            name="maintenance_period"
+            value={formState.maintenance_period}
+            options={["day", "month", "week", "year"].map((center) => ({
+              value: center,
+              label: center,
             }))}
             required
-            loading={workCentersLoading}
-            onChange={(e) => handleSelectChange("work_center_id", e.value)}
-            placeholder="Select a WorkCenter"
+            onChange={(e) => handleSelectChange("maintenance_period", e.value)}
+            placeholder="Select a period"
             className="w-full"
           />
         </div>

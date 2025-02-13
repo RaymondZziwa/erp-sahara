@@ -124,6 +124,7 @@ const MaintainanceLogs: React.FC = () => {
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
           apiPath={MANUFACTURING_ENDPOINTS.EQUIPMENT_MAINTANANCE_LOG.DELETE(
+            equipmentId,
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>

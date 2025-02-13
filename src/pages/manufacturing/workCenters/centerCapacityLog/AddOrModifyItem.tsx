@@ -55,22 +55,36 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       setIsSubmitting(false);
       return; // Handle validation error here
     }
+    const updateData = {
+      log_date: formState.log_date,
+      utilized_capacity: Number(formState.utilized_capacity),
+      available_capacity: Number(formState.available_capacity),
+      description: formState.description,
+    };
 
     const data = { ...formState };
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
-      ? MANUFACTURING_ENDPOINTS.CENTER_CAPACITY_LOG.UPDATE(item.id.toString())
+      ? MANUFACTURING_ENDPOINTS.CENTER_CAPACITY_LOG.UPDATE(
+          centerId.toString(),
+          item.id.toString()
+        )
       : MANUFACTURING_ENDPOINTS.CENTER_CAPACITY_LOG.ADD(centerId);
+    console.log("up", updateData);
+    console.log("data", data);
     await createRequest(
       endpoint,
       token.access_token,
-      {
-        ...data,
-        log_date: formatDate(formState.log_date),
-      },
+      item?.id
+        ? { ...updateData, log_date: formatDate(formState.log_date) }
+        : {
+            ...data,
+            log_date: formatDate(formState.log_date),
+          },
       onSave,
       method
     );
+
     setIsSubmitting(false);
     onSave();
     onClose(); // Close the modal after saving
@@ -115,7 +129,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   };
   return (
     <Dialog
-      header={item?.id ? "Edit Task" : "Add Task"}
+      header={item?.id ? "Edit Log" : "Add Log"}
       visible={visible}
       style={{ width: "400px" }}
       footer={footer}
@@ -160,6 +174,17 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             dateFormat="yy-mm-dd"
             className="w-full"
             required
+          />
+        </div>
+        <div className="p-field">
+          <label htmlFor="description">Description</label>
+          <InputText
+            id="description"
+            name="description"
+            value={formState.description || ""}
+            onChange={handleInputChange}
+            required
+            className="w-full"
           />
         </div>
       </form>
