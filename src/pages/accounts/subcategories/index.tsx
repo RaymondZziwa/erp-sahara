@@ -34,7 +34,15 @@ const AccountSubCategories = () => {
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedCategory: undefined, currentAction: "" });
 
-  const { data, loading, error, refresh } = useAccountSubCategories();
+  const { data, loading, error, refresh, deleteSubCategory } = useAccountSubCategories();
+
+  const handleDeleteSubCategory = async (subCategoryId: number, is_system_created: number) => {
+    if (confirm("Are you sure you want to delete this subcategory?")) {
+      await deleteSubCategory(subCategoryId, is_system_created);
+      refresh(); // Refresh after deletion
+      setDialogState({ selectedCategory: undefined, currentAction: "" });
+    }
+  };
 
   const actionBodyTemplate = (rowData: AccountSubCategory) => (
     <div className="flex items-center gap-2">
@@ -54,40 +62,10 @@ const AccountSubCategories = () => {
         icon="solar:trash-bin-trash-bold"
         className="text-red-500 cursor-pointer"
         fontSize={20}
-        onClick={() => setDialogState({ selectedCategory: rowData, currentAction: "delete" })}
+        onClick={() => handleDeleteSubCategory(rowData.id, rowData.is_system_created)}
       />
     </div>
   );
-
-  const chartAccountsActionTemplate = (rowData: any) => (
-    <div className="flex items-center gap-2">
-      <button
-        className="bg-shade px-2 py-1 rounded text-white"
-        onClick={() => handleEditChartAccount(rowData)}
-      >
-        Edit
-      </button>
-      <Icon
-        icon="solar:trash-bin-trash-bold"
-        className="text-red-500 cursor-pointer"
-        fontSize={20}
-        onClick={() => handleDeleteChartAccount(rowData)}
-      />
-    </div>
-  );
-
-  const handleEditChartAccount = (chartAccount: any) => {
-    // Implement edit functionality
-    console.log("Edit chart account:", chartAccount);
-  };
-
-  const handleDeleteChartAccount = (chartAccount: any) => {
-    if (confirm("Are you sure you want to delete this chart account?")) {
-      // Implement delete functionality
-      console.log("Delete chart account:", chartAccount);
-      refresh();
-    }
-  };
 
   return (
     <div>
@@ -160,11 +138,6 @@ const AccountSubCategories = () => {
                   }
                 />
               ))}
-              <Column 
-                body={chartAccountsActionTemplate} 
-                header="Actions" 
-                style={{ minWidth: "8rem" }} 
-              />
             </DataTable>
           )}
         </Dialog>
