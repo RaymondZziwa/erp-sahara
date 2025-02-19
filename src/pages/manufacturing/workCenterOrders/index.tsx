@@ -13,7 +13,6 @@ import { WorkOrder } from "../../../redux/slices/types/manufacturing/WorkOrder";
 const WorkOrders: React.FC = () => {
   const { data: categories, refresh } = useWorkCenterOrders();
   const tableRef = useRef<any>(null);
-  console.log(categories);
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: WorkOrder | undefined;

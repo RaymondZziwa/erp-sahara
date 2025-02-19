@@ -129,7 +129,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   };
   return (
     <Dialog
-      header={item?.id ? "Edit Task" : "Add Task"}
+      header={item?.id ? "Edit Log" : "Add Log"}
       visible={visible}
       style={{ width: "400px" }}
       footer={footer}
