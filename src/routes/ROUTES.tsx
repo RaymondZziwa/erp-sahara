@@ -12,9 +12,11 @@ import ACCOUNTS_ROUTES from "./ACCOUNTS";
 // import PROJECTS_ROUTES from "./PROJECTS";
 import { Route } from "./routeTypes";
 import REPORTS_ROUTES from "./REPORTS";
+import CROPS_ROUTES from "./CROPS";
 // import CASHREQUISITION_ROUTES from "./CASH_REQUISITIONS";
 import MANUFACTURING_ROUTES from "./MANUFACTURING";
 import ASSETS from "./ASSETS";
+import FARM_GROUP_ROUTES from "./FARM_GROUPS";
 // import INVESTMENT_FINANCING from "./INVESTMENT_FINANCING";
 
 const ROUTES: Route[] = [
@@ -93,6 +95,20 @@ const ROUTES: Route[] = [
     icon: <Icon icon="solar:card-2-bold-duotone" fontSize={24} />, // More specific to project management
     path: "/assets",
     sidebarItems: ASSETS,
+  },
+
+  {
+    name: "Farm Groups",
+    icon: <Icon icon="mdi:tractor" fontSize={24} />, // Example: Tractor icon for a farm-related look
+    path: "/farm_groups",
+    sidebarItems: FARM_GROUP_ROUTES,
+  },  
+  
+  {
+    name: "Crops",
+    icon: <Icon icon="solar:card-2-bold-duotone" fontSize={24} />, // More specific to project management
+    path: "/crops",
+    sidebarItems: CROPS_ROUTES,
   },
   // {
   //   name: "Investment Financing",
