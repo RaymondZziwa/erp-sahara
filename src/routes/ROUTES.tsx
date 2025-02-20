@@ -104,12 +104,6 @@ const ROUTES: Route[] = [
     sidebarItems: FARM_GROUP_ROUTES,
   },  
   
-  {
-    name: "Crops",
-    icon: <Icon icon="solar:card-2-bold-duotone" fontSize={24} />, // More specific to project management
-    path: "/crops",
-    sidebarItems: CROPS_ROUTES,
-  },
   // {
   //   name: "Investment Financing",
   //   icon: <Icon icon="solar:money-bag-bold" fontSize={24} />, // More specific to project management

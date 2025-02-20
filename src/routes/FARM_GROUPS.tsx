@@ -14,7 +14,7 @@ const FARM_GROUP_ROUTES = [
     path: "",
     items: [
       {
-        name: "View Farm Groups",
+        name: "Farm Groups",
         icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
         path: "/",
         element: (
@@ -31,9 +31,9 @@ const FARM_GROUP_ROUTES = [
     path: "",
     items: [
       {
-        name: "View Crops",
+        name: "Crops",
         icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
-        path: "/",
+        path: "/crops",
         element: (
           <Suspense fallback={<Loading />}>
             <Crops />
