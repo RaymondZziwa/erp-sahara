@@ -25,9 +25,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     name: "",
     logo: "",
   });
-  const [logoPreview, setLogoPreview] = useState<string | ArrayBuffer | null>(
-    null
-  );
+  // const [logoPreview, setLogoPreview] = useState<string | ArrayBuffer | null>(
+  //   null
+  // );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
@@ -39,10 +39,10 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         name: item.name || "",
         logo: item.logo || "",
       });
-      typeof item.logo == "string" && setLogoPreview(item.logo || null); // Assuming `item.logo` is a URL
+      //typeof item.logo == "string" && setLogoPreview(item.logo || null); // Assuming `item.logo` is a URL
     } else {
       setFormState({ name: "", logo: "" });
-      setLogoPreview(null);
+      //setLogoPreview(null);
     }
   }, [item]);
 
@@ -54,20 +54,20 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-      setFormState((prevState) => ({
-        ...prevState,
-        logo: file,
-      }));
-    }
-  };
+  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setLogoPreview(reader.result);
+  //     };
+  //     reader.readAsDataURL(file);
+  //     setFormState((prevState) => ({
+  //       ...prevState,
+  //       logo: file,
+  //     }));
+  //   }
+  // };
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -76,12 +76,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     if (!formState.name) {
       setIsSubmitting(false);
       return; // Handle validation error here
-    }
-
-    const formData = new FormData();
-    formData.append("name", formState.name);
-    if (formState.logo instanceof File) {
-      formData.append("logo", formState.logo);
     }
 
     const method = item?.id ? "PUT" : "POST";
@@ -93,9 +87,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       await axios({
         method,
         url: baseURL + endpoint,
-        data: formData,
+        data: formState,
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "multipart/json",
           Authorization: `Bearer ${token.access_token}`,
         },
         onUploadProgress: (progressEvent) => {
@@ -148,10 +142,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
+       <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+      </p>
       <form id="item-form" onSubmit={handleSave}>
         <div className="p-fluid">
           <div className="p-field">
-            <label htmlFor="name">Name</label>
+            <label htmlFor="name">Name<span className="text-red-500">*</span></label>
             <InputText
               id="name"
               name="name"
@@ -160,7 +157,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               required
             />
           </div>
-          <div className="p-field">
+          {/* <div className="p-field">
             <label htmlFor="logo">Logo</label>
             <input
               id="logo"
@@ -178,7 +175,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                 />
               </div>
             )}
-          </div>
+          </div> */}
           {isSubmitting && uploadProgress < 100 && (
             <div className="p-field">
               <label>Upload Progress: {uploadProgress}%</label>

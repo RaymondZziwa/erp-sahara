@@ -32,7 +32,7 @@ const useSalaryStructures = () => {
         "GET",
         token.access_token
       );
-
+      console.log('ressss', response.data)
       dispatch(fetchDataSuccess(response.data)); // Dispatch action with fetched data on success
     } catch (error) {
       dispatch(

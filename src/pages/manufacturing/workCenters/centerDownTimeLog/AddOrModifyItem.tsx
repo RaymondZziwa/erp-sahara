@@ -9,6 +9,7 @@ import { Nullable } from "primereact/ts-helpers";
 
 import { CenterDownTimeLog } from "../../../../redux/slices/types/manufacturing/DownTimeLog";
 import { InputTextarea } from "primereact/inputtextarea";
+import { toast, ToastContainer } from "react-toastify";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -43,7 +44,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // @ts-expect-error
+    // @ts-expect-error --ignore
     const formatDate = (date: Date): Date => date.toISOString().slice(0, 10);
 
     // Basic validation
@@ -53,6 +54,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       !formState.downtime_reason
     ) {
       setIsSubmitting(false);
+      toast.warn('Please fill in all mandatory fields')
       return; // Handle validation error here
     }
 
@@ -126,6 +128,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
   return (
+    <>
+      <ToastContainer />
     <Dialog
       header={item?.id ? "Edit Log" : "Add Log"}
       visible={visible}
@@ -133,13 +137,16 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
+       <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+       </p>
       <form
         id="lead-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="downtime_reason">Reason</label>
+          <label htmlFor="downtime_reason">Reason<span className="text-red-500">*</span></label>
           <InputTextarea
             id="downtime_reason"
             name="downtime_reason"
@@ -152,7 +159,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
         {/* Actual End Date */}
         <div className="p-field">
-          <label htmlFor="start_time">Start Time</label>
+          <label htmlFor="start_time">Start Date<span className="text-red-500">*</span></label>
           <Calendar
             id="start_time"
             name="start_time"
@@ -164,7 +171,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           />
         </div>
         <div className="p-field">
-          <label htmlFor="end_time">End Time</label>
+          <label htmlFor="end_time">End Date<span className="text-red-500">*</span></label>
           <Calendar
             id="end_time"
             name="end_time"
@@ -177,6 +184,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
       </form>
     </Dialog>
+    </>
   );
 };
 

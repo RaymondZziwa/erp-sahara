@@ -9,6 +9,7 @@ import useAuth from "../../../../hooks/useAuth";
 import { UnitOfMeasurement } from "../../../../redux/slices/types/procurement/units";
 import { Dropdown, DropdownChangeEvent } from "primereact/dropdown";
 import { INVENTORY_ENDPOINTS } from "../../../../api/inventoryEndpoints";
+import { toast, ToastContainer } from "react-toastify";
 const unitTypes = [
   "Weight",
   "Volume",
@@ -67,10 +68,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Basic validation
-    if (!formState.name) {
+    if (!formState.name || !formState.abbreviation || !formState.type) {
+      toast.warn('Please fill in all required fields')
       return; // You can handle validation error here
     }
-    const data = { name: formState.name, type: formState.type };
+    const data = { name: formState.name, type: formState.type, abbreviation: formState.abbreviation };
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? INVENTORY_ENDPOINTS.UOM.UPDATE(item.id.toString())
@@ -99,6 +101,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   );
 
   return (
+    <>
+    <ToastContainer />
     <Dialog
       header={item?.id ? "Edit UOM" : "Add UOM"}
       visible={visible}
@@ -106,10 +110,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
+      <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+      </p>
       <form id="item-form" onSubmit={handleSave}>
         <div className="p-fluid">
           <div className="p-field">
-            <label htmlFor="name">Name</label>
+            <label htmlFor="name">Name<span className="text-red-500">*</span></label>
             <InputText
               id="name"
               name="name"
@@ -119,7 +126,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             />
           </div>
           <div className="p-field">
-            <label htmlFor="item_category_id">Unit Type</label>
+            <label htmlFor="item_category_id">Unit Type<span className="text-red-500">*</span></label>
             <div className="card flex justify-content-center">
               <Dropdown
                 required
@@ -138,7 +145,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             </div>
           </div>
           <div className="p-field">
-            <label htmlFor="abbreviation">Abbreviation</label>
+            <label htmlFor="abbreviation">Abbreviation<span className="text-red-500">*</span></label>
             <InputText
               id="abbreviation"
               name="abbreviation"
@@ -149,6 +156,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
       </form>
     </Dialog>
+    </>
   );
 };
 

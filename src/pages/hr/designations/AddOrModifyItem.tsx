@@ -11,6 +11,7 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { Designation } from "../../../redux/slices/types/hr/Designation";
 import useDepartments from "../../../hooks/hr/useDepartments";
 import { Dropdown } from "primereact/dropdown";
+import { toast, ToastContainer } from "react-toastify";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -57,20 +58,39 @@ const AddOrModifyTruck: React.FC<AddOrModifyItemProps> = ({
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+  
     // Basic validation
-    if (!formState.designation_name || !formState.description) {
+    if (!formState.designation_name || !formState.department_id) {
       setIsSubmitting(false);
-      return; // Handle validation error here
+      toast.warn('Fill in all the mandatory fields');
+      return;
     }
-    const data = { ...formState };
-    const method = item?.id ? "PUT" : "POST";
-    const endpoint = item?.id
-      ? HUMAN_RESOURCE_ENDPOINTS.DESIGNATIONS.UPDATE(item.id.toString())
-      : HUMAN_RESOURCE_ENDPOINTS.DESIGNATIONS.ADD;
-    await createRequest(endpoint, token.access_token, data, onSave, method);
-    setIsSubmitting(false);
-    onSave();
-    onClose(); // Close the modal after saving
+  
+    try {
+      const data = { ...formState };
+      const method = item?.id ? "PUT" : "POST";
+      const endpoint = item?.id
+        ? HUMAN_RESOURCE_ENDPOINTS.DESIGNATIONS.UPDATE(item.id.toString())
+        : HUMAN_RESOURCE_ENDPOINTS.DESIGNATIONS.ADD;
+      await createRequest(endpoint, token.access_token, data, onSave, method);
+  
+      // Reset form state
+      setFormState({
+        designation_name: "",
+        description: "",
+        department_id: 0, // Reset to default value
+        // Add other fields here if needed
+      });
+  
+      // Call onSave and onClose
+      onSave();
+      onClose(); // Close the modal after saving
+    } catch (error) {
+      console.error("Error saving designation:", error);
+      toast.error("An error occurred while saving designation.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const footer = (
@@ -96,6 +116,8 @@ const AddOrModifyTruck: React.FC<AddOrModifyItemProps> = ({
   );
 
   return (
+    <>
+      <ToastContainer />
     <Dialog
       header={item?.id ? "Edit Designation" : "Add Designation"}
       visible={visible}
@@ -103,13 +125,16 @@ const AddOrModifyTruck: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
+       <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+       </p>
       <form
         id="truck-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="designation_name">Name</label>
+          <label htmlFor="designation_name">Name<span className="text-red-500">*</span></label>
           <InputText
             id="designation_name"
             name="designation_name"
@@ -126,12 +151,11 @@ const AddOrModifyTruck: React.FC<AddOrModifyItemProps> = ({
             name="description"
             value={formState.description}
             onChange={handleInputChange}
-            required
             className="w-full"
           />
         </div>
         <div className="p-field">
-          <label htmlFor="department_id">Department</label>
+          <label htmlFor="department_id">Department<span className="text-red-500">*</span></label>
           <Dropdown
             filter
             id="department_id"
@@ -148,6 +172,7 @@ const AddOrModifyTruck: React.FC<AddOrModifyItemProps> = ({
         </div>
       </form>
     </Dialog>
+  </>
   );
 };
 

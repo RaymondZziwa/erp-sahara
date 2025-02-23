@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
@@ -10,26 +11,14 @@ import { createRequest } from "../../../utils/api";
 import { useReactToPrint } from "react-to-print";
 import { PrintableContent } from "./receipt";
 
-const clients = [
-  { id: 1, name: "John Doe" },
-  { id: 2, name: "Jane Smith" },
-  { id: 3, name: "Mark Johnson" },
-];
-
 interface Props {
   query: string;
 }
 
-interface CartItemType {
-  id: number;
-  name: string;
-  selling_price: string;
-  quantity: number;
-  discount: number;
-}
 
 const PosModal: React.FC<Props> = ({ query }) => {
   const items = useSelector((state: RootState) => state.inventoryItems.data);
+  const businessName = useSelector((state: RootState) => state.userAuth.organisation.organisation_name)
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [customer, setCustomer] = useState<string | number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<number | null>(null);
@@ -39,16 +28,8 @@ const PosModal: React.FC<Props> = ({ query }) => {
   const user = useSelector((state: RootState) => state.userAuth.user);
   const token = useSelector((state: RootState) => state.userAuth.token.access_token);
 
-      //const componentRef = useRef();
-      const  printBtnRef = useRef<HTMLButtonElement>()
-
-      const receiptRef = useRef<HTMLDivElement | null>(null);
-      const printRef = useRef()
-  
-    const handlePrint = useReactToPrint({
-        content: () => printRef.current,
-        documentTitle: "Receipt",
-    });
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactToPrintFn = useReactToPrint({ contentRef });
 
   const [formState, setFormState] = useState({
     cashier_id: user.id,
@@ -97,12 +78,12 @@ const PosModal: React.FC<Props> = ({ query }) => {
   useEffect(() => {
     let filteredItems = items;
   
-    // Apply category filter only if selectedCategory is NOT 0
-    if (selectedCategory !== 0) {
-      filteredItems = filteredItems.filter(
-        (item) => item.item_category_id === selectedCategory
-      );
-    }
+    // // Apply category filter only if selectedCategory is NOT 0
+    // if (selectedCategory !== 0) {
+    //   filteredItems = filteredItems.filter(
+    //     (item) => item.item_category_id === selectedCategory
+    //   );
+    // }
   
     // Apply search filter
     if (query.trim() !== "") {
@@ -202,8 +183,6 @@ const PosModal: React.FC<Props> = ({ query }) => {
 
   if (response.success) {
     toast.success("Sale saved successfully!");
-    // handlePrint()
-    printBtnRef?.current?.click();
     setCart([]);
   } else {
     toast.error("Error processing sale. Check your inputs.");
@@ -251,14 +230,15 @@ const PosModal: React.FC<Props> = ({ query }) => {
           </div>
 
           {/* Payment Component */}
-          <PaymentComponent clients={clients} setClientName={setCustomer} setPaymentMethod={setPaymentMethod} />
+          <PaymentComponent setClientName={setCustomer} setPaymentMethod={setPaymentMethod} />
           
-                    <div ref={printRef} className="print-content">
+                    <div ref={contentRef} className="print-content">
                         <PrintableContent 
                         //@ts-expect-error --ignore
                             paymentMethod={paymentMethod}
                             total={total}
                             cart={cart}
+                            businessName={businessName}
                         />
                         <style>
                             {`
@@ -280,7 +260,7 @@ const PosModal: React.FC<Props> = ({ query }) => {
             <button onClick={handleCheckout} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
               Checkout
             </button>
-            <button onClick={handlePrint} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            <button onClick={() => reactToPrintFn()} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
               Print Receipt
             </button>
           </div>

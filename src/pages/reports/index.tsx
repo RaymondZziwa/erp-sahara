@@ -4,6 +4,16 @@ import { Link } from "react-router-dom";
 
 const reportsData = [
   {
+    category: "Inventory",
+    reports: [
+      { name: "Supplier Performance Report", link: "/reports/supplier-performance-report" },
+      { name: "Out of Stock Report", link: "/reports/out-of-stock-report" },
+      { name: "Reorder Report", link: "/reports/reorder-report" },
+      { name: "Stock Aging Report", link: "/reports/stock-aging-report" },
+      { name: "Stock Taking Report", link: "/reports/stock-taking-report" },
+    ],
+  },
+  {
     category: "Accounting",
     reports: [
       { name: "General Ledger", link: "#" },
@@ -26,16 +36,6 @@ const reportsData = [
       { name: "Other Disclosures", link: "#" },
       { name: "Budget comparison", link: "#" },
       { name: "Budget performance report", link: "#" },
-    ],
-  },
-  {
-    category: "Inventory",
-    reports: [
-      { name: "Supplier Performance Report", link: "/supplier-performance-report" },
-      { name: "Out of Stock Report", link: "/out-of-stock-report" },
-      { name: "Reorder Report", link: "/reorder-report" },
-      { name: "Stock Aging Report", link: "/stock-aging-report" },
-      { name: "Stock Taking Report", link: "/stock-taking-report" },
     ],
   },
   // {

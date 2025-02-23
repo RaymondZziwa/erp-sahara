@@ -11,6 +11,7 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints";
 // import useUnitsOfMeasurement from "../../../hooks/inventory/useUnitsOfMeasurement";
 import { Dropdown } from "primereact/dropdown";
+import { toast } from "react-toastify";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -70,31 +71,51 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   };
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+        e.preventDefault();
+        setIsSubmitting(true);
+      
+        // Basic validation
+        if (!formState.name ||
+          !formState.location ||
+          !formState.capacity_per_day_uom ||
+          !formState.capacity_per_day
+        ) {
+          setIsSubmitting(false);
+          toast.warn('Fill in all the mandatory fields');
+          return;
+        }
+      
+        try {
+          const data = {
+            ...formState,
+            capacity_per_day: Number(formState.capacity_per_day),
+          };
 
-    // Basic validation
-    if (!formState.location || !formState.description) {
-      setIsSubmitting(false);
-      return; // Handle validation error here
-    }
-
-    const data = {
-      ...formState,
-      capacity_per_day: Number(formState.capacity_per_day),
+          const method = item?.id ? "PUT" : "POST";
+          const endpoint = item?.id
+            ? MANUFACTURING_ENDPOINTS.WORK_CENTERS.UPDATE(item.id.toString())
+            : MANUFACTURING_ENDPOINTS.WORK_CENTERS.ADD;
+          await createRequest(endpoint, token.access_token, data, onSave, method);
+          // Reset form state
+          setFormState({
+            name: "",
+            location: "",
+            capacity_per_day_uom: "",
+            capacity_per_day: 0,
+            description: ""
+          });
+      
+          // Call onSave and onClose
+          //toast.success('Loan type created successfully')
+          onSave();
+          onClose(); // Close the modal after saving
+        } catch (error) {
+          console.error("Error saving work center:", error);
+          toast.error("An error occurred while saving work center.");
+        } finally {
+          setIsSubmitting(false);
+        }
     };
-    // console.log("submitted data", data);
-
-    const method = item?.id ? "PUT" : "POST";
-    const endpoint = item?.id
-      ? MANUFACTURING_ENDPOINTS.WORK_CENTERS.UPDATE(item.id.toString())
-      : MANUFACTURING_ENDPOINTS.WORK_CENTERS.ADD;
-
-    await createRequest(endpoint, token.access_token, data, onSave, method);
-    setIsSubmitting(false);
-    onSave();
-    onClose(); // Close the modal after saving
-  };
 
   const footer = (
     <div className="flex justify-end space-x-2">
@@ -131,13 +152,16 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
+       <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+       </p>
       <form
         id="lead-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="name">Name</label>
+          <label htmlFor="name">Name<span className="text-red-500">*</span></label>
           <InputText
             id="name"
             name="name"
@@ -149,7 +173,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="location">Location</label>
+          <label htmlFor="location">Location<span className="text-red-500">*</span></label>
           <InputText
             id="location"
             name="location"
@@ -160,7 +184,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="capacity_per_day_uom">Capacity Per Day Units</label>
+          <label htmlFor="capacity_per_day_uom">Capacity Per Day Units<span className="text-red-500">*</span></label>
           <Dropdown
             filter
             id="capacity_per_day_uom"
@@ -180,7 +204,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="capacity_per_day">Capacity Per Day</label>
+          <label htmlFor="capacity_per_day">Capacity Per Day<span className="text-red-500">*</span></label>
           <InputText
             id="capacity_per_day"
             name="capacity_per_day"

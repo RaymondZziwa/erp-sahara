@@ -3,7 +3,7 @@ import React from 'react';
 export class PrintableContent extends React.Component {
     render() {
       //@ts-expect-error --ignore
-        const { cart, total, paymentMethod } = this.props;
+        const { cart, total, paymentMethod, businessName } = this.props;
         const today = new Date();
 
         const formattedDateTime = today.toLocaleString(undefined, {
@@ -18,6 +18,7 @@ export class PrintableContent extends React.Component {
             <div style={{ color: 'black', padding: '10px', fontSize: '10px' }}>
                 <div style={{ textAlign: 'center', marginBottom: '5px' }}>
                     {/* <img src={Logo} alt="receipt-logo" height="30px" /> */}
+                    <h2 style={{ textAlign: 'center', marginBottom: '10px' }}>{businessName}</h2>
                     <h4>Pos Receipt</h4>
                 </div>
                 {/* <div style={{ textAlign: 'center', borderBottom: '1px dashed black', marginBottom: '10px' }}>
@@ -60,7 +61,7 @@ export class PrintableContent extends React.Component {
                                 <tr key={item.id}>
                                     <td style={{ border: '1px solid black', padding: '2px' }}>{item.name}</td>
                                     <td style={{ border: '1px solid black', padding: '2px', textAlign: 'right' }}>
-                                        {item.unitCost}
+                                        {item.selling_price}
                                     </td>
                                     <td style={{ border: '1px solid black', padding: '2px', textAlign: 'right' }}>
                                         {item.discount}
@@ -69,7 +70,7 @@ export class PrintableContent extends React.Component {
                                         {item.quantity}
                                     </td>
                                     <td style={{ border: '1px solid black', padding: '2px', textAlign: 'right' }}>
-                                        {item.totalCost}
+                                        {item.quantity * item.selling_price}
                                     </td>
                                 </tr>
                             ))

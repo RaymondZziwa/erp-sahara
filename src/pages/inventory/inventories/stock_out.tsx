@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ColDef, ICellRendererParams } from "ag-grid-community";
+import { ColDef } from "ag-grid-community";
 import { Icon } from "@iconify/react";
 
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
@@ -11,6 +11,7 @@ import useInventoryRecords from "../../../hooks/inventory/useInventoryRecords";
 import { Dropdown } from "primereact/dropdown";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
+import { useNavigate } from "react-router-dom";
 // import { useSelector } from "react-redux";
 // import { RootState } from "../../../redux/store";
 
@@ -21,7 +22,7 @@ const StockOut: React.FC = () => {
   const [storeId, setStoreId] = useState(1)
   const [storeData, setStoreData] = useState([])
   const stores = useSelector((state: RootState) => state.warehouses.data)
-
+  const navigate = useNavigate()
   const warehouses = stores?.map(warehouse => ({
     label: warehouse.name, 
     value: warehouse.id, 
@@ -60,6 +61,10 @@ const StockOut: React.FC = () => {
       field: "item_name",
       sortable: true,
       filter: true,
+      cellClass: 'cursor-pointer hover:underline',
+      onCellClicked: (event) => {
+        navigate(`/inventory/item/${event.data.item_id}/${event.data.item_name}`);
+      },
     },
     {
       headerName: "Quantity",
@@ -114,7 +119,7 @@ const StockOut: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Inventory transactions Table</h1>
+            <h1 className="text-xl font-bold">Inventory transactions</h1>
           </div>
           <div className="flex gap-2 h-[50px] mb-10 mt-4">
              <div className="p-field">

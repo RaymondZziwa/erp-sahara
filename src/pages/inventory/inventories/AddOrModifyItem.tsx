@@ -48,7 +48,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const { data: suppliers } = useSuppliers();
 
   const sources = [
-    {label: "Manufacturing", value: 'manufacturing'},
     {label: "Donations", value: 'donations'},
     {label: "Return", value: 'return'},
     {label: "Purchase", value: 'purchase'},

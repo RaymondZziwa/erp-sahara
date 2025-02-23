@@ -110,7 +110,7 @@ export default function AdvancedProductForm({
                   onChange={(e) =>
                     handleProductChange("sku_unit", e.target.value)
                   }
-                  placeholder="Select Size"
+                  placeholder="Enter SKU"
                   className="w-full"
                 />
                 <small className="text-muted block mt-1">

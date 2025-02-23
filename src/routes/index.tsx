@@ -37,11 +37,11 @@ const AppRouter = () => {
             );
           })}
         <Route path="/" element={<Navigate to={token ? "/inventory" : "/login"} replace />} />
-        <Route path="/supplier-performance-report" element={<SupplierPerformanceReport />} />
-        <Route path="/damaged-stock-report" element={<DamagedStockReport />} />
+        <Route path="/reports/supplier-performance-report" element={<SupplierPerformanceReport />} />
+        <Route path="/reports/damaged-stock-report" element={<DamagedStockReport />} />
         <Route path="/out-of-stock-report" element={<OutOfStockReport />} />
-        <Route path="/reorder-report" element={<ReorderReport />} />
-        <Route path="/stock-aging-report" element={<StockAgingReport/>} />
+        <Route path="/reports/reorder-report" element={<ReorderReport />} />
+        <Route path="/reports/stock-aging-report" element={<StockAgingReport/>} />
         <Route path="/stock-taking-report" element={<StockTakingReport />} />
         <Route path="/pos" element={<ReorderReport />} />
         <Route path="/inventory/item/:id/:name" element={<ItemTransactionsRecords />} />

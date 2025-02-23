@@ -8,6 +8,7 @@ export interface Inventory {
   warehouse_id: number;
   received_date: string;
   quantity: number;
+  to_warehouse_id?: number;
   damaged_quantity: number;
   reorder_level: number;
   on_backorder: number;

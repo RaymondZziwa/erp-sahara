@@ -31,6 +31,7 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
     ref_id: undefined,
     quantity: undefined,
     warehouse_id: undefined,
+    to_warehouse_id: undefined,
     type:"",
     received_date: "",
     organisation_id: undefined,
@@ -48,6 +49,7 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
     type: "",
     movement_date: "",
     warehouse_id:1,
+    to_warehouse_id: 0,
     movement_reason:"",
     picked_by:"",
     remarks:""
@@ -65,9 +67,9 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
 
   const sources = [
     {label: "Manufacturing", value: 'manufacturing'},
-    {label: "Donations", value: 'donations'},
-    {label: "Return", value: 'return'},
-    {label: "Purchase", value: 'purchase'},
+    {label: "Written-off", value: 'written-off'},
+    {label: "milling", value: 'milling'},
+    {label: "Transfer", value: 'transfer'},
   ]
 
   useEffect(() => {
@@ -140,7 +142,7 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
   const stockOut = async () => {
     try {
       const response = await axios.post(
-        `${baseURL}${INVENTORY_ENDPOINTS.INVENTORIES.STOCK_OUT}`,
+        `${baseURL}${INVENTORY_ENDPOINTS.STOCK_MOVEMENTS.ADD}`,
         { ...stockOutForm },
         {
           headers: {
@@ -230,6 +232,27 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
             className="w-full md:w-14rem"
           />
         </div>
+        {
+          stockOutForm.type === 'transfer' && (
+            <div className="p-field">
+            <label className="font-semibold" htmlFor="item_id">
+              To Store
+            </label>
+            <Dropdown
+              required
+              name="to_warehouse_id"
+              value={stockOutForm.to_warehouse_id}
+              onChange={handleStockOutDropdownChange}
+              options={warehouses}
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select store"
+              filter
+              className="w-full md:w-14rem"
+            />
+          </div>
+          )
+        }
         <div className="p-field">
           <label className="font-semibold" htmlFor="item_id">
             Item
@@ -305,7 +328,6 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
             type="text"
             value={stockOutForm.movement_reason || ""}
             onChange={handleStockOutInputChange}
-            required
             className="w-full h-[100px]"
           />
         </div>

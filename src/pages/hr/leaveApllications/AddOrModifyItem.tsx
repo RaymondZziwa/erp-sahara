@@ -200,7 +200,6 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
             name="reason"
             value={formState.reason}
             onChange={handleInputChange}
-            required
             className="w-full"
             rows={4}
           />

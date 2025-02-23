@@ -1,25 +1,36 @@
-// @ts-nocheck
-import { useState } from "react";
+//@ts-nocheck
+import { useEffect, useState } from "react";
 import Select from "react-select";
 import usePaymentMethods from "../../../hooks/procurement/usePaymentMethods";
 import { InputText } from "primereact/inputtext";
+import { RootState } from "../../../redux/store";
+import { useSelector } from "react-redux";
 
-const PaymentComponent = ({ clients, setPaymentMethod, setClientName }) => {
-  const { data: methods = [] } = usePaymentMethods(); // Ensure methods is always an array
+const PaymentComponent = ({ setPaymentMethod, setClientName }) => {
+  const { data: methods = [] } = usePaymentMethods();
+  const customers = useSelector((state: RootState) => state.customers.data);
   const [isRegistered, setIsRegistered] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [clientName, setClientNameState] = useState("");
+  const [clients, setClients] = useState<any>([])
+
+
+  useEffect(()=> {
+    console.log('customers', customers)
+    // Format clients for React Select
+    const clientOptions = customers?.map(client => ({
+      value: client.organization_name,
+      label: client.organization_name,
+    }));
+
+    setClients(clientOptions)
+
+  },[customers])
 
   // Options for the payment method
   const paymentOptions = methods?.map((method) => ({
     value: method.id,
     label: method.name,
-  }));
-
-  // Format clients for React Select
-  const clientOptions = clients?.map(client => ({
-    value: client.id,
-    label: client.name,
   }));
 
   // Handle changes
@@ -70,8 +81,8 @@ const PaymentComponent = ({ clients, setPaymentMethod, setClientName }) => {
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Select Client (Optional)</label>
           <Select
-            options={clientOptions}
-            value={clientOptions?.find(option => option.value === selectedClient?.value)}
+            options={clients}
+            value={clients?.find(option => option.value === selectedClient?.value)}
             onChange={handleClientChange}
             placeholder="Select a client..."
           />

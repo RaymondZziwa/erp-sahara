@@ -26,13 +26,6 @@ const Suppliers: React.FC = () => {
 
   const columnDefinitions: ColDef<Supplier>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "Name",
       field: "supplier_name",
       sortable: true,
@@ -114,7 +107,7 @@ const Suppliers: React.FC = () => {
         }
       />
       <ConfirmDeleteDialog
-        apiPath={`/erp/procurement/suppliers/${dialogState.selectedCategory?.id}/delete`}
+        apiPath={`/erp/people/suppliers/${dialogState.selectedCategory?.id}/delete`}
         onClose={() =>
           setDialogState({ selectedCategory: undefined, currentAction: "" })
         }
@@ -128,7 +121,7 @@ const Suppliers: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Suppliers Table</h1>
+            <h1 className="text-xl font-bold">Suppliers</h1>
           </div>
           <div className="flex gap-2">
             <button

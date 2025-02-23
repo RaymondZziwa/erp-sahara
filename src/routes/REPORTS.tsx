@@ -2,10 +2,12 @@ import { Icon } from "@iconify/react";
 
 import Reports from "../pages/reports";
 import TrialBalances from "../pages/reports/trialBalances";
-import ReportsSummary from "../pages/reports/reportsSummary";
+// import ReportsSummary from "../pages/reports/reportsSummary";
 import BalanceSheet from "../pages/reports/balanceSheet";
 import IncomeStatement from "../pages/reports/incomeStatement";
 import CashBook from "../pages/reports/cashBook";
+import OutOfStockReport from "../pages/reports/inventory/out_of_stock_report";
+import StockTakingReport from "../pages/reports/inventory/stock_taking_report";
 
 const REPORTS_ROUTES = [
   {
@@ -18,6 +20,18 @@ const REPORTS_ROUTES = [
         icon: <Icon icon="solar:document-line-duotone" fontSize={20} />, // Different icon for Reports
         path: "/",
         element: <Reports />,
+      },
+      {
+        name: "Stock Taking Report",
+        icon: <Icon icon="solar:clipboard-line-duotone" fontSize={20} />, // Icon for Trial Balances
+        path: "/stock-taking-report",
+        element: <StockTakingReport />,
+      },
+      {
+        name: "Out of Stock Report",
+        icon: <Icon icon="solar:clipboard-line-duotone" fontSize={20} />, // Icon for Trial Balances
+        path: "/out-of-stock-report",
+        element: <OutOfStockReport />,
       },
       {
         name: "Trial Balances",
@@ -43,12 +57,12 @@ const REPORTS_ROUTES = [
         path: "/cash-book",
         element: <CashBook />,
       },
-      {
-        name: "Reports Summary",
-        icon: <Icon icon="solar:book-line-duotone" fontSize={20} />, // Icon for Reports Summary
-        path: "/summary",
-        element: <ReportsSummary />,
-      },
+      // {
+      //   name: "Reports Summary",
+      //   icon: <Icon icon="solar:book-line-duotone" fontSize={20} />, // Icon for Reports Summary
+      //   path: "/summary",
+      //   element: <ReportsSummary />,
+      // },
     ],
   },
 ];

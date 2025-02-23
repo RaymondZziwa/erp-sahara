@@ -5,7 +5,7 @@ import { InputText } from "primereact/inputtext";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { handleGenericError } from "../../utils/errorHandling";
-import Logo from '../../assets/images/logos/shrecu.jpeg'
+import Logo from '../../assets/images/sahara.jpeg'
 
 export default function LoginPage() {
   const { loginHandler, isLoading } = useAuth();

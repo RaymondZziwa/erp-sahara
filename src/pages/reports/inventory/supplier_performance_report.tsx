@@ -3,6 +3,7 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
+import { baseURL } from "../../../utils/api";
 //import { baseURL } from "../../../utils/api";
 
 const SupplierPerformanceReport = () => {
@@ -13,7 +14,7 @@ const SupplierPerformanceReport = () => {
     const fetchData = async () => {
       try {
         const response = await axios.post(
-          `https://merp.efinanci.co.tz/api/erp/inventories/reports/supplierperformancereport`,
+          `${baseURL}/erp/inventories/reports/supplierperformancereport`,
           {}, 
           {
             headers: {

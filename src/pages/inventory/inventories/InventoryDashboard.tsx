@@ -6,7 +6,6 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 
 export default function InventoryDashboard() {
-  const storeName = "Office Store (SPICE HUB)";
   // const products = Object.keys(inventoryData);
   const token = useSelector((state: RootState) => state.userAuth.token.access_token)
   const [liveFeed, setLiveFeed] = useState<any[]>([])
@@ -55,8 +54,7 @@ export default function InventoryDashboard() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">
-        {storeName} Inventory Dashboard
+      <h1 className="text-2xl font-bold mb-6">Inventory Dashboard
       </h1>
 
       {/* Product Cards */}
@@ -175,7 +173,7 @@ export default function InventoryDashboard() {
             </tr>
           </thead>
           <tbody>
-            {liveFeed.length > 0 ? liveFeed.map((feed: any) => {
+            {liveFeed ? liveFeed.map((feed: any) => {
               return (
                 <tr key={feed.movement_id} className="border-b">
                   <td className="py-2 px-4 font-medium">{feed.item_name}</td>

@@ -6,16 +6,16 @@ import { InputText } from "primereact/inputtext";
 import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 
+import { WorkCenter } from "../../../redux/slices/types/manufacturing/WorkCenter";
+import { InputTextarea } from "primereact/inputtextarea";
 import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints";
-import { Equipment } from "../../../redux/slices/types/manufacturing/Equipment";
+// import useUnitsOfMeasurement from "../../../hooks/inventory/useUnitsOfMeasurement";
 import { Dropdown } from "primereact/dropdown";
-import useWorkCenters from "../../../hooks/manufacturing/workCenter/useWorkCenters";
-import { toast, ToastContainer } from "react-toastify";
 
 interface AddOrModifyItemProps {
   visible: boolean;
   onClose: () => void;
-  item?: Equipment;
+  item?: WorkCenter;
   onSave: () => void;
 }
 
@@ -25,12 +25,29 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   item,
   onSave,
 }) => {
-  const [formState, setFormState] = useState<Partial<Equipment>>({
+  const [formState, setFormState] = useState<Partial<WorkCenter>>({
     name: "",
+    description: "",
+    location: "",
+    capacity_per_day_uom: "", //Unit of measure unit or hours
+    capacity_per_day: 0,
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { token } = useAuth();
+  // const { data: uom } = useUnitsOfMeasurement();
+  const uom = [
+    {
+      id: 1,
+      name: "hours",
+    },
+    {
+      id: 2,
+      name: "units",
+    },
+  ];
+  // console.log("uom", uom);
 
   useEffect(() => {
     if (item) {
@@ -42,12 +59,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }
   }, [item]);
 
-  const handleSelectChange = (name: keyof Equipment, value: any) => {
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -63,29 +74,27 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     setIsSubmitting(true);
 
     // Basic validation
-    if (!formState.name || !formState.maintenance_every_after) {
+    if (!formState.location || !formState.description) {
       setIsSubmitting(false);
-      toast.warn("Please fill in all mandatory fields")
       return; // Handle validation error here
     }
 
-    const data = { ...formState };
+    const data = {
+      ...formState,
+      capacity_per_day: Number(formState.capacity_per_day),
+    };
+    // console.log("submitted data", data);
+
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
-      ? MANUFACTURING_ENDPOINTS.EQUIPMENT.UPDATE(item.id.toString())
-      : MANUFACTURING_ENDPOINTS.EQUIPMENT.ADD;
-    await createRequest(
-      endpoint,
-      token.access_token,
-      { ...data, mantenance_every_after: formState.maintenance_every_after },
-      onSave,
-      method
-    );
+      ? MANUFACTURING_ENDPOINTS.WORK_CENTERS.UPDATE(item.id.toString())
+      : MANUFACTURING_ENDPOINTS.WORK_CENTERS.ADD;
+
+    await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();
     onClose(); // Close the modal after saving
   };
-  const { data: workCenters, loading: workCentersLoading } = useWorkCenters();
 
   const footer = (
     <div className="flex justify-end space-x-2">
@@ -108,27 +117,27 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       />
     </div>
   );
-
+  const handleSelectChange = (name: keyof WorkCenter, value: any) => {
+    setFormState((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
   return (
-    <>
-      <ToastContainer />
     <Dialog
-      header={item?.id ? "Edit Equipment" : "Add Equipment"}
+      header={item?.id ? "Edit Work Center" : "Add Work Center"}
       visible={visible}
       style={{ width: "400px" }}
       footer={footer}
       onHide={onClose}
     >
-      <p className="mb-6">
-          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
-       </p>
       <form
         id="lead-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="name">Name<span className="text-red-500">*</span></label>
+          <label htmlFor="name">Name</label>
           <InputText
             id="name"
             name="name"
@@ -138,57 +147,60 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             className="w-full"
           />
         </div>
-        <div className="p-field">
-          <label htmlFor="work_center_id">Work Center<span className="text-red-500">*</span></label>
-          <Dropdown
-            id="work_center_id"
-            name="work_center_id"
-            value={formState.work_center_id}
-            options={workCenters.map((center) => ({
-              value: center.id,
-              label: center.name,
-            }))}
-            required
-            loading={workCentersLoading}
-            onChange={(e) => handleSelectChange("work_center_id", e.value)}
-            placeholder="Select a WorkCenter"
-            className="w-full"
-          />
-        </div>
 
         <div className="p-field">
-          <label htmlFor="maintenance_every_after">
-            Maintenance every after<span className="text-red-500">*</span>
-          </label>
+          <label htmlFor="location">Location</label>
           <InputText
-            id="maintenance_every_after"
-            name="maintenance_every_after"
-            type="number"
-            value={formState.maintenance_every_after?.toString() || ""}
+            id="location"
+            name="location"
+            value={formState.location || ""}
             onChange={handleInputChange}
             className="w-full"
           />
         </div>
 
         <div className="p-field">
-          <label htmlFor="work_center_id">Maintainance Period<span className="text-red-500">*</span></label>
+          <label htmlFor="capacity_per_day_uom">Capacity Per Day Units</label>
           <Dropdown
-            id="maintenance_period"
-            name="maintenance_period"
-            value={formState.maintenance_period}
-            options={["day", "month", "week", "year"].map((center) => ({
-              value: center,
-              label: center,
+            filter
+            id="capacity_per_day_uom"
+            name="capacity_per_day_uom"
+            value={formState.capacity_per_day_uom}
+            options={uom.map((center) => ({
+              value: center.name,
+              label: center.name,
             }))}
             required
-            onChange={(e) => handleSelectChange("maintenance_period", e.value)}
-            placeholder="Select a period"
+            onChange={(e) =>
+              handleSelectChange("capacity_per_day_uom", e.value)
+            }
+            placeholder="Select a unit"
+            className="w-full"
+          />
+        </div>
+
+        <div className="p-field">
+          <label htmlFor="capacity_per_day">Capacity Per Day</label>
+          <InputText
+            id="capacity_per_day"
+            name="capacity_per_day"
+            value={formState.capacity_per_day?.toString() || ""}
+            onChange={handleInputChange}
+            className="w-full"
+          />
+        </div>
+        <div className="p-field">
+          <label htmlFor="description">Description</label>
+          <InputTextarea
+            id="description"
+            name="description"
+            value={formState.description || ""}
+            onChange={handleInputChange}
             className="w-full"
           />
         </div>
       </form>
     </Dialog>
-  </>
   );
 };
 

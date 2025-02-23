@@ -6,6 +6,7 @@ import {
 } from "../../redux/slices/roles/roleSlice.ts";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks.ts";
 import useAuth from "../useAuth.ts";
+import { baseURL } from "../../utils/api.ts";
 
 const useRoles = () => {
   const dispatch = useAppDispatch();
@@ -18,7 +19,7 @@ const useRoles = () => {
     }
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
-      const response = await fetch('https://tfc-api.efinanci.co.tz/api/roles', {
+      const response = await fetch(`${baseURL}/roles`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -26,6 +27,7 @@ const useRoles = () => {
         },
       });
       const data = await response.json();
+      console.log('json', data)
       dispatch(fetchDataSuccess(data.data));
     } catch (error) {
       dispatch(
@@ -64,7 +66,7 @@ const useRoles = () => {
 
   useEffect(() => {
     fetchDataFromApi();
-  }, [isFetchingLocalToken, token.access_token]);
+  }, []);
 
   const data = useAppSelector((state) => state.roles);
 

@@ -2,19 +2,21 @@ import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
 
-import ConfirmDeleteDialog from "../../../../components/dialog/ConfirmDeleteDialog";
-import Table from "../../../../components/table";
-import BreadCrump from "../../../../components/layout/bread_crump";
-import AddOrModifyItem from "./AddOrModifyItem";
-import { UnitOfMeasurement } from "../../../../redux/slices/types/procurement/units";
-import useUnitsOfMeasurement from "../../../../hooks/inventory/useUnitsOfMeasurement";
+import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
+import BreadCrump from "../../../components/layout/bread_crump";
+import Table from "../../../components/table";
+import useWorkCenters from "../../../hooks/manufacturing/workCenter/useWorkCenters";
+import { WorkCenter } from "../../../redux/slices/types/manufacturing/WorkCenter";
+import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints";
+import { Link } from "react-router-dom";
+import AddOrModifyItem from "./AddorModify";
 
-const UnitsOfMeasurement: React.FC = () => {
-  const { data: categories, refresh } = useUnitsOfMeasurement();
+const QualityControl: React.FC = () => {
+  const { data: categories, refresh } = useWorkCenters();
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
-    selectedItem: UnitOfMeasurement | undefined;
+    selectedItem: WorkCenter | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
@@ -24,27 +26,48 @@ const UnitsOfMeasurement: React.FC = () => {
     }
   };
 
-  const columnDefinitions: ColDef<UnitOfMeasurement>[] = [
+  const columnDefinitions: ColDef<WorkCenter>[] = [
     {
       headerName: "ID",
       field: "id",
       sortable: true,
       filter: true,
       width: 100,
+      cellRenderer: (params: ICellRendererParams<WorkCenter>) => {
+        return (
+          <Link
+            className="text-teal-500"
+            to={`/manufacturing/workcenters/centers/${params.data?.id}`}
+          >
+            {params?.data?.id.toString()}
+          </Link>
+        );
+      },
     },
     {
       headerName: "Name",
       field: "name",
       sortable: true,
       filter: true,
+      cellRenderer: (params: ICellRendererParams<WorkCenter>) => {
+        return (
+          <Link
+            className="text-teal-500"
+            to={`/manufacturing/workcenters/centers/${params.data?.id}`}
+          >
+            {params?.data?.name.toString()}
+          </Link>
+        );
+      },
     },
     {
-      headerName: "Abbreviation",
-      field: "abbreviation",
+      headerName: "Location",
+      field: "location",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
     },
+
     {
       headerName: "Created",
       field: "created_at",
@@ -56,7 +79,7 @@ const UnitsOfMeasurement: React.FC = () => {
       field: "id",
       sortable: false,
       filter: false,
-      cellRenderer: (params: ICellRendererParams<UnitOfMeasurement>) => (
+      cellRenderer: (params: ICellRendererParams<WorkCenter>) => (
         <div className="flex items-center gap-2">
           <button
             className="bg-shade px-2 py-1 rounded text-white"
@@ -101,22 +124,26 @@ const UnitsOfMeasurement: React.FC = () => {
           setDialogState({ currentAction: "", selectedItem: undefined })
         }
       />
-      <ConfirmDeleteDialog
-        apiPath={`/erp/inventories/uom/${dialogState.selectedItem?.id}/delete`}
-        onClose={() =>
-          setDialogState({ selectedItem: undefined, currentAction: "" })
-        }
-        visible={
-          !!dialogState.selectedItem?.id &&
-          dialogState.currentAction === "delete"
-        }
-        onConfirm={refresh}
-      />
-      <BreadCrump name="Settings" pageName="uom" />
+      {dialogState.selectedItem && (
+        <ConfirmDeleteDialog
+          apiPath={MANUFACTURING_ENDPOINTS.WORK_CENTERS.DELETE(
+            dialogState.selectedItem?.id.toString()
+          )}
+          onClose={() =>
+            setDialogState({ selectedItem: undefined, currentAction: "" })
+          }
+          visible={
+            !!dialogState.selectedItem?.id &&
+            dialogState.currentAction === "delete"
+          }
+          onConfirm={refresh}
+        />
+      )}
+      <BreadCrump name="Quality Control" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">UOM</h1>
+            <h1 className="text-xl font-bold">Quality Control</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -129,7 +156,7 @@ const UnitsOfMeasurement: React.FC = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add UOM
+              Add Center
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
@@ -150,4 +177,4 @@ const UnitsOfMeasurement: React.FC = () => {
   );
 };
 
-export default UnitsOfMeasurement;
+export default QualityControl;
