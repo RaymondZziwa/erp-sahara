@@ -42,7 +42,7 @@ const Table = forwardRef(
             {customHeader && <>{customHeader}</>}
             <tr>
               {columnDefs.map((col, index) => (
-                <th key={index} className="border p-2">
+                <th key={index} className="border p-2 text-left">
                   {col.headerName}
                 </th>
               ))}
@@ -52,7 +52,7 @@ const Table = forwardRef(
             {data.map((row, rowIndex) => (
               <tr key={rowIndex}>
                 {columnDefs.map((col, colIndex) => (
-                  <td key={colIndex} className="border p-2">
+                  <td key={colIndex} className="border p-2 text-left">
                     {row[col.field]}
                   </td>
                 ))}

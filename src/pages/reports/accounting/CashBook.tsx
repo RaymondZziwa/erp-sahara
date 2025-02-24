@@ -1,7 +1,11 @@
-import { useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ColDef } from "ag-grid-community";
 import Table from "./../ReportTable"; // Adjust path if needed
 import { Icon } from "@iconify/react";
+import { apiRequest } from "../../../utils/api";
+import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
+import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
+import useAuth from "../../../hooks/useAuth";
 
 type Transaction = {
   date: string;
@@ -12,66 +16,32 @@ type Transaction = {
 };
 
 const CashBook = () => {
+  const [cashBookData, setCashBookData] = useState<Transaction[] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { token, isFetchingLocalToken } = useAuth();
+
   const tableRef = useRef<any>(null);
 
-  const data: Transaction[] = [
-    {
-      date: "2025-02-13",
-      description: "Transaction 1",
-      cash_received: 182,
-      cash_paid: 0,
-      balance: 182,
-    },
-    {
-      date: "2025-01-21",
-      description: "Transaction 2",
-      cash_received: 450,
-      cash_paid: 0,
-      balance: 632,
-    },
-    {
-      date: "2025-02-13",
-      description: "Transaction 1",
-      cash_received: 182,
-      cash_paid: 0,
-      balance: 182,
-    },
-    {
-      date: "2025-01-21",
-      description: "Transaction 2",
-      cash_received: 450,
-      cash_paid: 0,
-      balance: 632,
-    },
-    {
-      date: "2025-02-13",
-      description: "Transaction 1",
-      cash_received: 182,
-      cash_paid: 0,
-      balance: 182,
-    },
-    {
-      date: "2025-01-21",
-      description: "Transaction 2",
-      cash_received: 450,
-      cash_paid: 0,
-      balance: 632,
-    },
-    {
-      date: "2025-02-13",
-      description: "Transaction 1",
-      cash_received: 182,
-      cash_paid: 0,
-      balance: 182,
-    },
-    {
-      date: "2025-01-21",
-      description: "Transaction 2",
-      cash_received: 450,
-      cash_paid: 0,
-      balance: 632,
-    },
-  ];
+  const fetchDataFromApi = async () => {
+    if (isFetchingLocalToken || !token.access_token) return;
+    setIsLoading(true);
+    try {
+      const response = await apiRequest<ServerResponse<Transaction[]>>(
+        REPORTS_ENDPOINTS.DETAILED_CASH_BOOK.GET_ALL,
+        "GET",
+        token.access_token
+      );
+      setCashBookData(response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDataFromApi();
+  }, [isFetchingLocalToken, token.access_token]);
 
   const columnDefs: ColDef<Transaction>[] = [
     { headerName: "Date", field: "date", sortable: true, filter: true },
@@ -116,20 +86,24 @@ const CashBook = () => {
       </div>
 
       {/* Pass customHeader inside the Table component */}
-      <Table
-        columnDefs={columnDefs}
-        data={data}
-        ref={tableRef}
-        customHeader={
-          <tr className="bg-gray-200">
-            <td className="text-center font-bold py-4 px-4" colSpan={5}>
-              <p className="text-center font-bold">Cash Flow Statement</p>
-              <p className="text-center font-bold">FY Ended 31 Dec 2023</p>
-              <p className="text-center text-sm">All Figures in UGX</p>
-            </td>
-          </tr>
-        }
-      />
+      {isLoading ? (
+        "Loading..."
+      ) : (
+        <Table
+          columnDefs={columnDefs}
+          data={cashBookData || []}
+          ref={tableRef}
+          customHeader={
+            <tr className="bg-gray-200">
+              <td className="text-center font-bold py-4 px-4" colSpan={5}>
+                <p className="text-center font-bold">Cash Book</p>
+                <p className="text-center font-bold">FY Ended 31 Dec 2023</p>
+                <p className="text-center text-sm">All Figures in UGX</p>
+              </td>
+            </tr>
+          }
+        />
+      )}
     </div>
   );
 };

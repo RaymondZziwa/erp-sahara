@@ -12,32 +12,11 @@ import useAuth from "../../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 import { apiRequest } from "../../../utils/api";
-
-interface DetailedIncomeStatementData {
-  income_statement: Incomestatement;
-  start_date: string;
-  end_date: string;
-}
-
-interface Incomestatement {
-  revenue_accounts: Account[];
-  total_revenue: number;
-  cost_of_sales: Account[];
-  total_cost_of_sales: number;
-  other_income: Account[];
-  total_other_income: number;
-  operating_expenses: number;
-}
-
-interface Account {
-  account_name: string;
-  account_code: string;
-  debit_sum: number;
-}
+import { IncomeStatement } from "../../../redux/slices/types/reports/IncomeStatement";
 
 const DetailedIncomeStatement: React.FC = () => {
   const [incomeStatement, setIncomeStatement] =
-    useState<DetailedIncomeStatementData | null>(null);
+    useState<IncomeStatement | null>(null);
   const [globalFilter, setGlobalFilter] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const printDivRef = useRef<HTMLDivElement>(null);
@@ -51,9 +30,7 @@ const DetailedIncomeStatement: React.FC = () => {
     if (isFetchingLocalToken || !token.access_token) return;
     setIsLoading(true);
     try {
-      const response = await apiRequest<
-        ServerResponse<DetailedIncomeStatementData>
-      >(
+      const response = await apiRequest<ServerResponse<IncomeStatement>>(
         REPORTS_ENDPOINTS.DETAILED_INCOME_STATEMENT.GET_ALL,
         "GET",
         token.access_token
@@ -98,21 +75,18 @@ const DetailedIncomeStatement: React.FC = () => {
         <h2 className="text-lg font-semibold mt-4">Revenue Accounts</h2>
         <DataTable
           loading={isLoading}
-          value={incomeStatement?.income_statement.revenue_accounts || []}
+          value={incomeStatement?.ledgers || []}
           globalFilter={globalFilter}
           scrollable
           footer={
             <strong>
-              Total Revenue:{" "}
-              {formatCurrency(
-                incomeStatement?.income_statement.total_revenue ?? 0
-              )}
+              Total Revenue: {formatCurrency(incomeStatement?.total ?? 0)}
             </strong>
           }
           header={header}
         >
           <Column field="account_name" header="Account Name" />
-          {/* <Column field="account_code" header="Account Code" /> */}
+          <Column field="account_code" header="Account Code" />
           <Column
             field="credit_sum"
             header="Credit Sum"
@@ -122,7 +96,7 @@ const DetailedIncomeStatement: React.FC = () => {
 
         {/* Cost of Sales Section */}
         <h2 className="text-lg font-semibold mt-4">Cost of Sales</h2>
-        <DataTable
+        {/* <DataTable
           loading={isLoading}
           value={incomeStatement?.income_statement.cost_of_sales || []}
           scrollable
@@ -137,16 +111,16 @@ const DetailedIncomeStatement: React.FC = () => {
         >
           <Column field="account_name" header="Account Name" />
           {/* <Column field="account_code" header="Account Code" /> */}
-          <Column
+        {/* <Column
             field="debit_sum"
             header="Debit Sum"
             body={(rowData) => formatCurrency(rowData.debit_sum)}
-          />
-        </DataTable>
+          /> */}
+        {/* </DataTable> */}
 
         {/* Other Income Section */}
         <h2 className="text-lg font-semibold mt-4">Other Income</h2>
-        <DataTable
+        {/* <DataTable
           loading={isLoading}
           value={incomeStatement?.income_statement.other_income || []}
           scrollable
@@ -158,18 +132,18 @@ const DetailedIncomeStatement: React.FC = () => {
               )}
             </strong>
           }
-        >
-          <Column field="account_name" header="Account Name" />
-          {/* <Column field="account_code" header="Account Code" /> */}
-          <Column
+        > */}
+        <Column field="account_name" header="Account Name" />
+        {/* <Column field="account_code" header="Account Code" /> */}
+        {/* <Column
             field="debit_sum"
             header="Debit Sum"
             body={(rowData: Account) => formatCurrency(rowData.debit_sum)}
           />
-        </DataTable>
+        </DataTable> */}
 
         {/* Operating Expenses and Net Income Calculation */}
-        <div className="flex justify-end mt-4">
+        {/* <div className="flex justify-end mt-4">
           <div className="grid grid-cols-1 gap-2">
             <strong>
               Operating Expenses:{" "}
@@ -186,7 +160,7 @@ const DetailedIncomeStatement: React.FC = () => {
               )}
             </strong>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

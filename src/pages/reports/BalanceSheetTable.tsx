@@ -51,7 +51,7 @@ const Table = forwardRef(
             {customHeader && <>{customHeader}</>}
             <tr>
               {columnDefs.map((col, index) => (
-                <th key={index} className="border p-2">
+                <th key={index} className="border p-2 text-left">
                   {col.headerName}
                 </th>
               ))}
@@ -78,10 +78,16 @@ const Table = forwardRef(
                   </>
                 ) : (
                   <>
-                    <td className="px-3">{row.account_id}</td>
-                    <td className="px-3">{row.account_code}</td>
-                    <td className="px-3">{row.account_name}</td>
-                    <td className="px-3">
+                    <td className="px-3 py-2 border-b border-gray-200">
+                      {row.account_id}
+                    </td>
+                    <td className="px-3 py-2 border-b border-gray-200">
+                      {row.account_code}
+                    </td>
+                    <td className="px-3 py-2 border-b border-gray-200">
+                      {row.account_name}
+                    </td>
+                    <td className="px-3 py-2 border-b border-gray-200">
                       {row.balance ? row.balance : row.net_cash_flow}
                     </td>
                   </>

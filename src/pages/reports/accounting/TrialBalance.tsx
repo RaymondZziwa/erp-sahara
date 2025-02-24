@@ -8,7 +8,7 @@ import { TrialBalance } from "../../../redux/slices/types/reports/TrialBalance";
 function TrialBalanceReport() {
   const { data = [] } = useTrialBalances();
 
-  const trialBalanceData: TrialBalance[] = Array.isArray(data) ? data : [data];
+  const trialBalanceData: TrialBalance[] = Array.isArray(data) ? data : [];
 
   const tableRef = useRef<any>(null);
 
@@ -46,6 +46,8 @@ function TrialBalanceReport() {
     }
   };
 
+  console.log("tbal", trialBalanceData);
+
   return (
     <div className="bg-white p-3">
       <div className="flex justify-between items-center mb-4">
@@ -60,20 +62,24 @@ function TrialBalanceReport() {
       </div>
 
       {/* Pass customHeader inside the Table component */}
-      <Table
-        columnDefs={columnDefs}
-        data={trialBalanceData}
-        ref={tableRef}
-        customHeader={
-          <tr className="bg-gray-200">
-            <td className="text-center font-bold py-4 px-4" colSpan={5}>
-              <p className="text-center font-bold">Trial Balance</p>
-              <p className="text-center font-bold">FY Ended 31 Dec 2023</p>
-              <p className="text-center text-sm">All Figures in UGX</p>
-            </td>
-          </tr>
-        }
-      />
+      {trialBalanceData.length < 1 ? (
+        "No data present"
+      ) : (
+        <Table
+          columnDefs={columnDefs}
+          data={trialBalanceData}
+          ref={tableRef}
+          customHeader={
+            <tr className="bg-gray-200">
+              <td className="text-center font-bold py-4 px-4" colSpan={5}>
+                <p className="text-center font-bold">Trial Balance</p>
+                <p className="text-center font-bold">FY Ended 31 Dec 2023</p>
+                <p className="text-center text-sm">All Figures in UGX</p>
+              </td>
+            </tr>
+          }
+        />
+      )}
     </div>
   );
 }

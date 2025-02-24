@@ -1,42 +1,54 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Table from "../BalanceSheetTable";
 import { Icon } from "@iconify/react";
+import { apiRequest } from "../../../utils/api";
+import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
+import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
+import useAuth from "../../../hooks/useAuth";
 
+interface cashFlowData {
+  operating_activities: {
+    Operating: cashFlowDetails[];
+  };
+  investing_activities: {
+    Investing: cashFlowDetails[];
+  };
+  financing_activities: {
+    Financing: cashFlowDetails[];
+  };
+}
+interface cashFlowDetails {
+  account_id: number;
+  account_name: string;
+  account_code: string;
+  net_cash_flow: number;
+}
 function Cashflow() {
+  const [cashFlow, setCashFlow] = useState<cashFlowData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { token, isFetchingLocalToken } = useAuth();
   const tableRef = useRef<any>(null);
 
-  const data = {
-    operating_activities: {
-      Operating: [
-        {
-          account_id: 1,
-          account_name: "Cash at Hand",
-          account_code: "10003",
-          net_cash_flow: 814,
-        },
-        {
-          account_id: 47,
-          account_name: "Beer Ltd",
-          account_code: "9551",
-          net_cash_flow: -521,
-        },
-        {
-          account_id: 2,
-          account_name: "Cash at Bank",
-          account_code: "10004",
-          net_cash_flow: 412,
-        },
-        {
-          account_id: 22,
-          account_name: "Hirthe-Batz",
-          account_code: "9956",
-          net_cash_flow: 26,
-        },
-      ],
-    },
-    investing_activities: [],
-    financing_activities: [],
+  const fetchDataFromApi = async () => {
+    if (isFetchingLocalToken || !token.access_token) return;
+    setIsLoading(true);
+    try {
+      const response = await apiRequest<ServerResponse<cashFlowData>>(
+        REPORTS_ENDPOINTS.CASH_FLOW_STATEMENT.GET_ALL,
+        "GET",
+        token.access_token
+      );
+      setCashFlow(response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchDataFromApi();
+  }, [isFetchingLocalToken, token.access_token]);
 
   const columnDefs = [
     { headerName: "Account ID", field: "account_id" },
@@ -47,9 +59,11 @@ function Cashflow() {
 
   const transformedData = [
     { isGroup: true, subcategory_name: "Operating Activities" },
-    ...data.operating_activities.Operating,
+    ...(cashFlow?.operating_activities?.Operating || []),
+    { isGroup: true, subcategory_name: "Investing Activities" },
+    ...(cashFlow?.investing_activities?.Investing || []),
     { isGroup: true, subcategory_name: "Financial Activities" },
-    ...data.operating_activities.Operating, // Replace with actual financing data
+    ...(cashFlow?.financing_activities?.Financing || []),
   ];
   const handleExportPDF = () => {
     if (tableRef.current) {
@@ -60,7 +74,7 @@ function Cashflow() {
   return (
     <div className="bg-white p-3">
       <div className="flex justify-between items-center mb-4">
-        <p className="font-bold text-xl">Balance Sheet Report</p>
+        <p className="font-bold text-xl">Cash Flow Report</p>
         <button
           className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
           onClick={handleExportPDF}
@@ -69,7 +83,11 @@ function Cashflow() {
           Print
         </button>
       </div>
-      <Table ref={tableRef} columnDefs={columnDefs} data={transformedData} />
+      {isLoading ? (
+        "Loading..."
+      ) : (
+        <Table ref={tableRef} columnDefs={columnDefs} data={transformedData} />
+      )}
     </div>
   );
 }

@@ -64,6 +64,10 @@ const AppRouter = () => {
             path="/income-statement-report"
             element={<IncomeStatementReport />}
           />
+          {/* <Route
+            path="/income-statement-report"
+            element={<DetailedIncomeStatement />}
+          /> */}
           <Route
             path="/income-statement-report-comparisons"
             element={<ComparisonIncomeStatement />}

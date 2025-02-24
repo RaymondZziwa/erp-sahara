@@ -1,24 +1,21 @@
 import React, { useState, useRef, useEffect } from "react";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
-import { formatCurrency } from "../../../utils/formatCurrency";
-import { IconField } from "primereact/iconfield";
-import { InputIcon } from "primereact/inputicon";
-import { useReactToPrint } from "react-to-print";
-
+import { Icon } from "@iconify/react";
 import useAuth from "../../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import { apiRequest } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
+import Table from "../BalanceSheetComparisonTable";
 
 interface ComparisonBalanceSheet {
   balance_sheet: Balancesheet;
   totals: Totals;
   subcategory_totals: SubcategoryTotals;
   current_fiscal_year: CurrentFiscalYear;
-  previous_fiscal_year: null; // If there are no fields, you can define this as null or create an interface if needed.
+  previous_fiscal_year: null;
+  data: {};
+  assets: [];
+  equity: [];
+  liabilities: [];
 }
 
 interface CurrentFiscalYear {
@@ -68,19 +65,16 @@ interface Equity {
   account_id: number;
   account_name: string;
   account_code: string;
-  current_balance: string; // If this is a string, otherwise, change to number.
-  previous_balance: number; // Assuming equity also has previous balance.
+  current_balance: string;
+  previous_balance: number;
 }
 
 const ComparisonBalanceSheet: React.FC = () => {
-  const [globalFilter, setGlobalFilter] = useState<string | null>(null);
   const [incomeStatement, setIncomeStatement] =
     useState<ComparisonBalanceSheet | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const printDivRef = useRef<HTMLDivElement>(null);
-  const { token, isFetchingLocalToken } = useAuth();
 
-  const reactToPrintFn = useReactToPrint({ contentRef: printDivRef });
+  const { token, isFetchingLocalToken } = useAuth();
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken || !token.access_token) return;
@@ -91,7 +85,9 @@ const ComparisonBalanceSheet: React.FC = () => {
         "GET",
         token.access_token
       );
-      setIncomeStatement(response.data);
+      console.log("resp", response.data);
+
+      setIncomeStatement(response.data.data as ComparisonBalanceSheet);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -99,196 +95,109 @@ const ComparisonBalanceSheet: React.FC = () => {
     }
   };
 
+  console.log("is", incomeStatement);
   useEffect(() => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-  // Helper functions to calculate totals
-  const calculateTotal = (data: Array<Asset | Equity>, field: keyof Asset) => {
-    return data.reduce(
-      (sum, item) => sum + parseFloat(String(item[field]) || "0"),
-      0
-    );
-  };
+  const tableRef = useRef<any>(null);
 
-  const header = (
-    <div className="table-header print:hidden flex justify-between items-center">
-      <h1 className="text-xl font-semibold">Comparison Balance Sheet</h1>
-      <IconField iconPosition="left">
-        <InputIcon className="pi pi-search"></InputIcon>
-        <InputText
-          placeholder="Search"
-          onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setGlobalFilter(e.target.value)
-          }
-        />
-      </IconField>
-      <Button
-        label="Print"
-        icon="pi pi-print"
-        className="p-button-primary"
-        onClick={() => reactToPrintFn()}
-      />
-    </div>
+  const { assets, equity, liabilities } = incomeStatement || {
+    assets: [],
+    equity: [],
+    liabilities: [],
+  };
+  interface ColumnDef {
+    headerName: string;
+    field: string;
+    valueFormatter?: (params: { value: any }) => any;
+  }
+
+  const columnDefs: ColumnDef[] = [
+    { headerName: "Account ID", field: "account_id" },
+    { headerName: "Account Code", field: "code" },
+    { headerName: "Account Name", field: "account_name" },
+    { headerName: "Balance", field: "balance" },
+    { headerName: "Previous Balance", field: "previous_amount" },
+    {
+      headerName: "Difference",
+      field: "difference",
+      valueFormatter: (params) =>
+        params.value !== undefined ? params.value : 0,
+    },
+  ];
+
+  const tableData = [...assets, ...equity, ...liabilities].flatMap(
+    (category: {
+      subcategory_name: string;
+      total: number;
+      previous_total: number;
+      difference: number;
+      accounts: any[];
+    }) => [
+      {
+        subcategory_name: category.subcategory_name,
+        isGroup: true,
+      },
+      ...category.accounts.map((account) => ({
+        account_id: account.account_id,
+        account_name: account.account_name,
+        account_code: account.code,
+        balance: account.balance,
+        previous_amount: account.previous_amount ?? 0,
+        difference: account.difference ?? 0,
+        subcategory_name: category.subcategory_name,
+        isGroup: false,
+      })),
+      {
+        subcategory_name: `${category.subcategory_name} - Total`,
+        total: category.total,
+        previous_amount: category.previous_total ?? 0,
+        difference: category.difference ?? 0,
+        isTotalRow: true,
+      },
+    ]
   );
 
+  const handleExportPDF = () => {
+    if (tableRef.current) {
+      tableRef.current.exportPDF();
+    }
+  };
+
   return (
-    <div>
-      <div className="print:p-2" ref={printDivRef}>
-        {/* Assets Section */}
-        <h2 className="text-lg font-semibold mt-4">Assets</h2>
-        <DataTable
-          loading={isLoading}
-          value={incomeStatement?.balance_sheet.assets || []}
-          globalFilter={globalFilter}
-          scrollable
-          footer={
-            <div className="flex bg-teal-200 p-2">
-              <strong className="w-1/3">Total Assets </strong>
-              <div className="w-1/3">
-                {formatCurrency(
-                  calculateTotal(
-                    incomeStatement?.balance_sheet.assets || [],
-                    "current_balance"
-                  )
-                )}
-              </div>
-              <div>
-                {formatCurrency(
-                  calculateTotal(
-                    incomeStatement?.balance_sheet.assets || [],
-                    "previous_balance"
-                  )
-                )}
-              </div>
-            </div>
-          }
-          header={header}
+    <div className="bg-white p-3">
+      <div className="flex justify-between items-center mb-4">
+        <p className="font-bold text-xl">Balance Comparison Sheet Report</p>
+        <button
+          className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
+          onClick={handleExportPDF}
         >
-          <Column
-            className="w-1/3"
-            field="account_name"
-            header="Account Name"
-          />
-          <Column
-            className="w-1/3"
-            field="current_balance"
-            header="Current Balance"
-            body={(rowData) => parseFloat(rowData.current_balance)}
-          />
-          <Column
-            field="previous_balance"
-            header="Previous Balance"
-            body={(rowData: Asset) => rowData.previous_balance}
-          />
-        </DataTable>
-
-        {/* Liabilities Section */}
-        <h2 className="text-lg font-semibold mt-4">Liabilities</h2>
-        <DataTable
-          loading={isLoading}
-          value={incomeStatement?.balance_sheet.liabilities || []}
-          scrollable
-          footer={
-            <div className="flex bg-teal-200 p-2">
-              <strong className="w-1/3">Total Liabilities</strong>
-              <div className="w-1/3">
-                {formatCurrency(
-                  calculateTotal(
-                    incomeStatement?.balance_sheet.liabilities || [],
-                    "current_balance"
-                  )
-                )}
-              </div>
-              <div>
-                {formatCurrency(
-                  calculateTotal(
-                    incomeStatement?.balance_sheet.liabilities || [],
-                    "previous_balance"
-                  )
-                )}
-              </div>
-            </div>
-          }
-        >
-          <Column
-            className="w-1/3"
-            field="account_name"
-            header="Account Name"
-          />
-          <Column
-            field="current_balance"
-            header="Current Balance"
-            body={(rowData) => parseFloat(rowData.current_balance)}
-          />
-          <Column
-            field="previous_balance"
-            header="Previous Balance"
-            body={(rowData: Equity) => rowData.previous_balance}
-          />
-        </DataTable>
-
-        {/* Equity Section */}
-        <h2 className="text-lg font-semibold mt-4">Equity</h2>
-        <DataTable
-          loading={isLoading}
-          value={incomeStatement?.balance_sheet.equity || []}
-          scrollable
-          footer={
-            <div className="flex bg-teal-200 p-2">
-              <strong className="w-1/3">Total Equity</strong>
-              <div className="w-1/3">
-                {formatCurrency(
-                  calculateTotal(
-                    incomeStatement?.balance_sheet.equity || [],
-                    "current_balance"
-                  )
-                )}
-              </div>
-              <div>
-                {formatCurrency(
-                  calculateTotal(
-                    incomeStatement?.balance_sheet.equity || [],
-                    "previous_balance"
-                  )
-                )}
-              </div>
-            </div>
-          }
-        >
-          <Column
-            className="w-1/3"
-            field="account_name"
-            header="Account Name"
-          />
-          <Column
-            field="current_balance"
-            header="Current Balance"
-            body={(rowData) =>
-              formatCurrency(parseFloat(rowData.current_balance))
-            }
-          />
-          <Column
-            field="previous_balance"
-            header="Previous Balance"
-            body={(rowData) => formatCurrency(rowData.previous_balance)}
-          />
-        </DataTable>
-
-        {/* Additional Calculations and Totals */}
-        <div className="flex justify-end mt-4">
-          <div className="grid grid-cols-1 gap-2">
-            <strong>
-              Grand Total:{" "}
-              {formatCurrency(
-                (incomeStatement?.totals.total_assets ?? 0) +
-                  (incomeStatement?.totals.total_liabilities ?? 0) +
-                  (incomeStatement?.totals.total_equity ?? 0)
-              )}
-            </strong>
-          </div>
-        </div>
+          <Icon icon="solar:printer-bold" fontSize={20} />
+          Print
+        </button>
       </div>
+
+      {/* Custom Table Component */}
+
+      {isLoading ? (
+        "Loading ..."
+      ) : (
+        <Table
+          columnDefs={columnDefs}
+          data={tableData}
+          ref={tableRef}
+          customHeader={
+            <tr className="bg-gray-200">
+              <td className="text-center font-bold py-4 px-4" colSpan={6}>
+                <p className="text-center font-bold">Sample Company</p>
+                <p className="text-center text-sm">31 Dec 2023</p>
+              </td>
+            </tr>
+          }
+        />
+      )}
+      {incomeStatement === null && !isLoading ? "No data Present" : ""}
     </div>
   );
 };
