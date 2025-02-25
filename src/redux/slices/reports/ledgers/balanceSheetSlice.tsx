@@ -1,24 +1,28 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { DataState } from "../../types/DataState";
-import { TrialBalance } from "../../types/reports/TrialBalance";
+import { balanceSheetType } from "../../types/reports/balanceSheet";
 
-const initialState: DataState<TrialBalance[]> = {
-  data: [],
+const initialState: DataState<balanceSheetType> = {
+  data: {
+    assets: [],
+    equity: [],
+    liabilities: [],
+  },
   loading: false,
   error: null,
 };
 
-const trialBalanceSlice = createSlice({
-  name: "trialBalance",
+const balanceSheetSlice = createSlice({
+  name: "balanceSheet", // Fix: Corrected slice name
   initialState,
   reducers: {
     fetchDataStart(state) {
       state.loading = true;
       state.error = null;
     },
-    fetchDataSuccess(state, action: PayloadAction<TrialBalance[]>) {
+    fetchDataSuccess(state, action: PayloadAction<balanceSheetType>) {
       state.loading = false;
-      state.data = action.payload;
+      state.data = action.payload; // Fix: Expecting an array of IncomeStatement
       state.error = null;
     },
     fetchDataFailure(state, action: PayloadAction<string>) {
@@ -29,5 +33,5 @@ const trialBalanceSlice = createSlice({
 });
 
 export const { fetchDataStart, fetchDataSuccess, fetchDataFailure } =
-  trialBalanceSlice.actions;
-export default trialBalanceSlice.reducer;
+  balanceSheetSlice.actions;
+export default balanceSheetSlice.reducer;
