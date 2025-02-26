@@ -128,7 +128,7 @@ const ComparisonTrialBalances: React.FC = () => {
       head: [fiscalYearRow, tableColumn],
       body: tableRows,
       headStyles: {
-        fillColor: "green",
+        fillColor: "#00ac9a",
         textColor: [255, 255, 255],
         fontStyle: "bold",
       },
@@ -141,9 +141,9 @@ const ComparisonTrialBalances: React.FC = () => {
   return (
     <div className="p-4 bg-white">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">Trial Balance Comparison</h1>
+        <h1 className="text-2xl font-bold">Trial Balance Comparison Report</h1>
         <button
-          className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
+          className="bg-shade px-2 py-2 rounded text-white flex gap-2 items-center"
           onClick={handleExportPDF}
         >
           <Icon icon="solar:printer-bold" fontSize={20} />
@@ -153,79 +153,90 @@ const ComparisonTrialBalances: React.FC = () => {
       {trialBalance.length < 1 && isLoading != true ? (
         "No Data Present"
       ) : (
-        <table className="w-full border border-black">
+        <table className="w-full border border-gray-200">
           <tbody>
+            <tr className="bg-gray-200">
+              <td className="text-center font-bold py-4 px-4" colSpan={8}>
+                <p className="text-center font-bold">
+                  Trial Balance Comparison
+                </p>
+                <p className="text-center text-sm">All Figures in UGX</p>
+              </td>
+            </tr>
             <tr className="font-bold">
-              <td className="border-r border-b border-black p-2" colSpan={2}>
+              <td className="border-r border-b border-gray-200 p-2" colSpan={2}>
                 Years
               </td>
 
-              <td className="border-r border-b border-black p-2" colSpan={2}>
+              <td className="border-r border-b border-gray-200 p-2" colSpan={2}>
                 {current_fy}
               </td>
 
-              <td className="border-r border-b border-black p-2" colSpan={2}>
+              <td className="border-r border-b border-gray-200 p-2" colSpan={2}>
                 {previous_fy}
               </td>
 
-              <td className="border-r border-b border-black" colSpan={2}></td>
+              <td
+                className="border-r border-b border-gray-200"
+                colSpan={2}
+              ></td>
             </tr>
             <tr className="font-bold">
-              <td className="border-r border-b border-black p-2">
+              <td className="border-r border-b border-gray-200 p-2">
                 Account Code
               </td>
 
-              <td className="border-r border-b border-black p-2">
+              <td className="border-r border-b border-gray-200 p-2">
                 Account Name
               </td>
 
-              <td className="border-r border-b border-black p-2">Debit</td>
+              <td className="border-r border-b border-gray-200 p-2">Debit</td>
 
-              <td className="border-r border-b border-black p-2">Credit</td>
+              <td className="border-r border-b border-gray-200 p-2">Credit</td>
 
-              <td className="border-r border-b border-black p-2">Debit</td>
+              <td className="border-r border-b border-gray-200 p-2">Debit</td>
 
-              <td className="border-r border-b border-black p-2">Credit</td>
+              <td className="border-r border-b border-gray-200 p-2">Credit</td>
 
-              <td className="border-r border-b border-black p-2">
+              <td className="border-r border-b border-gray-200 p-2">
                 Debit Difference
               </td>
 
-              <td className="border-r border-b border-black p-2">
+              <td className="border-r border-b border-gray-200 p-2">
                 Credit Difference
               </td>
             </tr>
             {trialBalance.map((item) => (
               <tr key={item.account_id}>
-                <td className="border-r border-b border-black px-2">
+                <td className="border-r border-b border-gray-200 px-2">
                   {item.account_code}
                 </td>
 
-                <td className="border-r border-b border-black px-2">
+                <td className="border-r border-b border-gray-200 px-2">
                   {item.account_name}
                 </td>
 
-                <td className="border-r border-b border-black px-2">
+                <td className="border-r border-b border-gray-200 px-2">
                   {item.current_debit !== 0 ? item.current_debit : ""}
                 </td>
 
-                <td className="border-r border-b border-black px-2">
+                <td className="border-r border-b border-gray-200 px-2">
                   {item.current_credit !== 0 ? item.current_credit : ""}
                 </td>
 
-                <td className="border-r border-b border-black px-2">
+                <td className="border-r border-b border-gray-200 px-2">
                   {item.previous_debit !== 0 ? item.previous_debit : ""}
                 </td>
 
-                <td className="border-r border-b border-black px-2">
+                <td className="border-r border-b border-gray-200 px-2">
                   {item.previous_credit !== 0 ? item.previous_credit : ""}
                 </td>
 
-                <td className="border-r border-b border-black px-2">
+                <td className="border-r border-b border-gray-200 px-2">
                   {item.debit_difference !== 0 ? item.debit_difference : ""}
                 </td>
 
-                <td className="border-r border-b border-black px-2">
+                <td className="border-r border-b border-gray-200 px-2">
                   {item.credit_difference !== 0 ? item.credit_difference : ""}
                 </td>
               </tr>
