@@ -46,8 +46,10 @@ import  PermissionReducer from './slices/permissions/permissionSlice'
 //users
 import UsersReducer from "./slices/user/usersSlice";
 //approval levels
-import ApprovalLevelsReducer from "./slices/approval_levels/levelSlice";
-//assets
+import ApprovalLevelsReducer from './slices/approval_levels/levelSlice'
+//farm groups
+import cropsReducer from '../redux/slices/crops/cropsSlice';
+import farmGroupsReducer from "../redux/slices/farmGroups/farmGroupsSlice";
 import AssetsCategoriesReducer from "./slices/assets/assetCategoriesSlice";
 
 const store = configureStore({
@@ -84,6 +86,8 @@ const store = configureStore({
     trucks: trucksSlice,
     itemsAttributes: itemsAttributesReducer,
     itemsAttributesValues: itemsAttributesValuesReducer,
+    crops: cropsReducer,
+    farmGroups: farmGroupsReducer,
     stockMovements: stockMovementSlice,
     ...MOSS_APP_REDUCERS,
     ...SALES_REDUCERS,
