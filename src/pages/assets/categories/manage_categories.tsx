@@ -1,21 +1,21 @@
-//@ts-nocheck
 import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
 import AddOrModifyItem from "./AddOrModifyItem";
-import { Truck } from "../../../redux/slices/types/mossApp/Trucks";
-import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import BreadCrump from "../../../components/layout/bread_crump";
-import useTrucks from "../../../hooks/inventory/useTrucks";
+import Table from "../../../components/table";
+import useAssetCategories from "../../../hooks/assets/useAssetCategories";
+import { AssetCategory } from "../../../redux/slices/types/mossApp/assets/asset";
+import { ASSETSENDPOINTS } from "../../../api/assetEndpoints";
 
 
 const AssetsCategories: React.FC = () => {
-  const { refresh } = useTrucks();
+  const {data: categories, refresh} = useAssetCategories()
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
-    selectedItem: Truck | undefined;
+    selectedItem: AssetCategory | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
@@ -25,54 +25,26 @@ const AssetsCategories: React.FC = () => {
     }
   };
 
-  //@ts-expect-error --ignore
-  const columnDefinitions: ColDef<Truck>[] = [
+  const columnDefinitions: ColDef<AssetCategory>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
-      headerName: "Plate",
-      field: "license_plate",
+      headerName: "Name",
+      field: "name",
       sortable: true,
       filter: true,
     },
     {
-      headerName: "Capacity",
-      field: "capacity",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Model",
-      field: "model",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Status",
-      field: "status",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Created",
+      headerName: "Created At",
       field: "created_at",
       sortable: true,
       filter: true,
+      suppressSizeToFit: true,
     },
     {
       headerName: "Actions",
       field: "id",
       sortable: false,
       filter: false,
-      cellRenderer: (params: ICellRendererParams<Truck>) => (
+      cellRenderer: (params: ICellRendererParams<AssetCategory>) => (
         <div className="flex items-center gap-2">
           <button
             className="bg-shade px-2 py-1 rounded text-white"
@@ -119,7 +91,7 @@ const AssetsCategories: React.FC = () => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={INVENTORY_ENDPOINTS.TRUCKS.DELETE(
+          apiPath={ASSETSENDPOINTS.ASSETCATEGORIES.DELETE(
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>
@@ -160,11 +132,11 @@ const AssetsCategories: React.FC = () => {
             </button>
           </div>
         </div>
-        {/* <Table
+        <Table
           columnDefs={columnDefinitions}
           data={categories}
           ref={tableRef}
-        /> */}
+        />
       </div>
     </div>
   );

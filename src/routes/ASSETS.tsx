@@ -27,6 +27,24 @@ const ASSETS = [
       //   path: "asset_depreciation",
       //   element: <ToBeUpdated />,
       // },
+      // {
+      //   name: "Asset Payment",
+      //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+      //   path: "asset_depreciation",
+      //   element: <ToBeUpdated />,
+      // },
+      // {
+      //   name: "Asset Income",
+      //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+      //   path: "asset_depreciation",
+      //   element: <ToBeUpdated />,
+      // },
+      // {
+      //   name: "Asset Expenses",
+      //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+      //   path: "asset_depreciation",
+      //   element: <ToBeUpdated />,
+      // },
     ],
   },
 ];

@@ -3,7 +3,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { handleGenericError } from "./errorHandling";
 import { toast } from "react-toastify";
 import { ServerResponse } from "../redux/slices/types/ServerResponse";
-//export const baseURL = "https://latcuapi.efinanci.co.tz/api";
+//export const baseURL = "https://latcu-api.efinanci.co.tz/api";
 //export const baseURL = "https://merp.efinanci.co.tz/api";
 export const baseURL2 = "https://merp.efinanci.co.tz/api";
 //export const baseURL = "demo-api.efinanci.co.tz";

@@ -47,9 +47,12 @@ import  PermissionReducer from './slices/permissions/permissionSlice'
 import UsersReducer from "./slices/user/usersSlice";
 //approval levels
 import ApprovalLevelsReducer from "./slices/approval_levels/levelSlice";
+//assets
+import AssetsCategoriesReducer from "./slices/assets/assetCategoriesSlice";
 
 const store = configureStore({
   reducer: {
+    assetCategories: AssetsCategoriesReducer,
     paymentMethods: paymentMethodReducer,
     levels: ApprovalLevelsReducer,
     usersList: UsersReducer,

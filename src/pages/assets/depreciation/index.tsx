@@ -2,20 +2,19 @@
 import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
-import { INVENTORY_ENDPOINTS } from "../../api/inventoryEndpoints";
-import ConfirmDeleteDialog from "../../components/dialog/ConfirmDeleteDialog";
-import BreadCrump from "../../components/layout/bread_crump";
-import useTrucks from "../../hooks/inventory/useTrucks";
 import AddOrModifyItem from "./AddOrModifyItem";
-import { Asset } from "../../redux/slices/types/mossApp/assets/asset";
+import { Truck } from "../../../redux/slices/types/mossApp/Trucks";
+import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
+import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
+import BreadCrump from "../../../components/layout/bread_crump";
+import useTrucks from "../../../hooks/inventory/useTrucks";
 
-
-const AssetsManagement: React.FC = () => {
+const AssetDepreciation: React.FC = () => {
   const { refresh } = useTrucks();
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
-    selectedItem: Asset | undefined;
+    selectedItem: Truck | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
@@ -26,7 +25,7 @@ const AssetsManagement: React.FC = () => {
   };
 
   //@ts-expect-error --ignore
-  const columnDefinitions: ColDef<Asset>[] = [
+  const columnDefinitions: ColDef<Truck>[] = [
     {
       headerName: "ID",
       field: "id",
@@ -72,7 +71,7 @@ const AssetsManagement: React.FC = () => {
       field: "id",
       sortable: false,
       filter: false,
-      cellRenderer: (params: ICellRendererParams<Asset>) => (
+      cellRenderer: (params: ICellRendererParams<Truck>) => (
         <div className="flex items-center gap-2">
           <button
             className="bg-shade px-2 py-1 rounded text-white"
@@ -132,11 +131,11 @@ const AssetsManagement: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Assets" pageName="All" />
+      <BreadCrump name="Asset Depreciation" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Assets</h1>
+            <h1 className="text-xl font-bold">Asset Depreciation</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -149,7 +148,7 @@ const AssetsManagement: React.FC = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add Asset
+              Add Depreciation
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
@@ -170,4 +169,4 @@ const AssetsManagement: React.FC = () => {
   );
 };
 
-export default AssetsManagement;
+export default AssetDepreciation;
