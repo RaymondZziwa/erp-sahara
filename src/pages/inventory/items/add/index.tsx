@@ -229,7 +229,7 @@ export default function AddProduct() {
       <div className="flex justify-between w-full">
         <div className="flex gap-2 w-full mx-4 my-2">
           <Button loading={isSubmitting} onClick={handleSave} size="small">
-            Save Changes
+            Save
           </Button>
           <Button size="small" className="!bg-red-500">
             Cancel

@@ -1,37 +1,25 @@
 //@ts-nocheck
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
-import useItems from "../../../hooks/inventory/useItems";
 import PosItemCard from "./item_card";
 import CartItem from "./cart_item";
 import CategoryNav from "./nav/category_filter";
 import PaymentComponent from "./payment_component";
 import { toast } from "react-toastify";
 import { createRequest } from "../../../utils/api";
-
-const clients = [
-  { id: 1, name: "John Doe" },
-  { id: 2, name: "Jane Smith" },
-  { id: 3, name: "Mark Johnson" },
-];
+import { useReactToPrint } from "react-to-print";
+import { PrintableContent } from "./receipt";
 
 interface Props {
   query: string;
 }
 
-interface CartItemType {
-  item_id: number;
-  name: string;
-  selling_price: string;
-  quantity: number;
-  discount: number;
-}
 
 const PosModal: React.FC<Props> = ({ query }) => {
-  const { data } = useItems();
   const items = useSelector((state: RootState) => state.inventoryItems.data);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const businessName = useSelector((state: RootState) => state.userAuth.organisation.organisation_name)
+  const [selectedCategory, setSelectedCategory] = useState(0);
   const [customer, setCustomer] = useState<string | number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<number | null>(null);
   const [searchedItems, setSearchedItems] = useState<CartItemType[]>([]);
@@ -40,12 +28,16 @@ const PosModal: React.FC<Props> = ({ query }) => {
   const user = useSelector((state: RootState) => state.userAuth.user);
   const token = useSelector((state: RootState) => state.userAuth.token.access_token);
 
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactToPrintFn = useReactToPrint({ contentRef });
+
   const [formState, setFormState] = useState({
     cashier_id: user.id,
     cashier_name: user.full_name,
     customer_id: typeof customer === "number" ? customer : 0,
     customer_name: typeof customer === "string" ? customer : "",
     warehouse_id: 1,
+    chart_of_account_id: 1,
     items: [],
     payment_method_id: paymentMethod,
     amount_paid: total,
@@ -53,7 +45,6 @@ const PosModal: React.FC<Props> = ({ query }) => {
     currency_id: 1,
   });
 
-  // Sync cart with formState.items
   useEffect(() => {
     setFormState((prev) => ({ ...prev, items: cart }));
   }, [cart]);
@@ -85,22 +76,38 @@ const PosModal: React.FC<Props> = ({ query }) => {
   };
 
   useEffect(() => {
-    if (query.trim() === "") {
-      setSearchedItems(items.slice(indexOfFirstItem, indexOfLastItem));
-    } else {
-      setSearchedItems(
-        items.filter((item) => item.name.toLowerCase().includes(query.toLowerCase()))
+    let filteredItems = items;
+  
+    // // Apply category filter only if selectedCategory is NOT 0
+    // if (selectedCategory !== 0) {
+    //   filteredItems = filteredItems.filter(
+    //     (item) => item.item_category_id === selectedCategory
+    //   );
+    // }
+  
+    // Apply search filter
+    if (query.trim() !== "") {
+      filteredItems = filteredItems.filter((item) =>
+        item.name.toLowerCase().includes(query.toLowerCase())
       );
     }
-  }, [query, items, indexOfFirstItem, indexOfLastItem]);
+  
+    // Ensure pagination stays within bounds
+    const totalFilteredItems = filteredItems.length;
+    const adjustedLastIndex = Math.min(indexOfLastItem, totalFilteredItems);
+    const adjustedFirstIndex = Math.min(indexOfFirstItem, adjustedLastIndex);
+  
+    setSearchedItems(filteredItems.slice(adjustedFirstIndex, adjustedLastIndex));
+  }, [query, items, selectedCategory, indexOfFirstItem, indexOfLastItem]);
+  
 
   // Add item to cart
   const addItemToCart = (item: CartItemType) => {
     setCart((prevCart) => {
-      const exists = prevCart.find((cartItem) => cartItem.item_id === item.id);
+      const exists = prevCart.find((cartItem) => cartItem.id === item.id);
       if (exists) {
         return prevCart.map((cartItem) =>
-          cartItem.item_id === item.id
+          cartItem.id === item.id
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem
         );
@@ -111,7 +118,7 @@ const PosModal: React.FC<Props> = ({ query }) => {
 
   // Remove item from cart
   const removeItemFromCart = (id: number) => {
-    setCart((prevCart) => prevCart.filter((item) => item.item_id !== id));
+    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   };
 
   // Update quantity
@@ -119,7 +126,7 @@ const PosModal: React.FC<Props> = ({ query }) => {
     if (quantity < 1) return;
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.item_id === id ? { ...item, quantity } : item
+        item.id === id ? { ...item, quantity } : item
       )
     );
   };
@@ -129,7 +136,7 @@ const PosModal: React.FC<Props> = ({ query }) => {
     if (discount < 0) return;
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.item_id === id ? { ...item, discount } : item
+        item.id === id ? { ...item, discount } : item
       )
     );
   };
@@ -170,14 +177,13 @@ const PosModal: React.FC<Props> = ({ query }) => {
     ...formState,
     items: formattedItems, // Ensure correct structure
   };
-  console.log("Submitting request:", requestData);
 
-  const endpoint = "/erp/inventories/pos-sale";
-  const response = await createRequest(endpoint, token, requestData, POST);
+  const endpoint = "/erp/inventories/pointsofsale";
+  const response = await createRequest(endpoint, token, requestData, 'POST');
 
   if (response.success) {
     toast.success("Sale saved successfully!");
-    setCart([]); // Clear cart after submission
+    setCart([]);
   } else {
     toast.error("Error processing sale. Check your inputs.");
   }
@@ -189,15 +195,18 @@ const PosModal: React.FC<Props> = ({ query }) => {
         <div className="w-3/5 h-[650px]">
           <CategoryNav selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 p-4">
-            {searchedItems.map((item) => (
+            {searchedItems.length > 0 ? searchedItems.map((item) => (
               <PosItemCard
                 key={item.item_id}
-                image={item.image}
+                image={item.image ?? 'https://picsum.photos/150'}
                 name={item.name}
                 price={item.selling_price}
                 addItem={() => addItemToCart(item)}
               />
-            ))}
+            )):
+
+              <p className="text-center">Not items found</p>
+            }
           </div>
 
           {/* Pagination Controls */}
@@ -221,13 +230,38 @@ const PosModal: React.FC<Props> = ({ query }) => {
           </div>
 
           {/* Payment Component */}
-          <PaymentComponent clients={clients} setClientName={setCustomer} setPaymentMethod={setPaymentMethod} />
+          <PaymentComponent setClientName={setCustomer} setPaymentMethod={setPaymentMethod} />
+          
+                    <div ref={contentRef} className="print-content">
+                        <PrintableContent 
+                        //@ts-expect-error --ignore
+                            paymentMethod={paymentMethod}
+                            total={total}
+                            cart={cart}
+                            businessName={businessName}
+                        />
+                        <style>
+                            {`
+                                @media print {
+                                    .print-content {
+                                        display: block !important;
+                                    }
+                                }
+                                .print-content {
+                                    display: none;
+                                }
+                            `}
+                        </style>
+                    </div>
 
           {/* Total and Checkout */}
           <div className="flex justify-between items-center mt-4">
             <div className="text-lg font-bold">Total: UGX {totalAmount.toFixed(2)}</div>
             <button onClick={handleCheckout} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
               Checkout
+            </button>
+            <button onClick={() => reactToPrintFn()} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+              Print Receipt
             </button>
           </div>
         </div>

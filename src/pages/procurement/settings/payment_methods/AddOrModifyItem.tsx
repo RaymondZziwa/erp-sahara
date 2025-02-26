@@ -93,7 +93,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
   return (
     <Dialog
-      header={item?.id ? "Edit Currency" : "Add Currency"}
+      header={item?.id ? "Edit Method" : "Add Payment Method"}
       visible={visible}
       style={{ width: "400px" }}
       footer={footer}
@@ -121,10 +121,10 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                     onChange={(e: DropdownChangeEvent) => {
                       setFormState({ ...formState, chart_of_account_id: e.value });
                   }}
-                    options={chartOfAccounts.map((acc) => ({
+                    options={chartOfAccounts?.length > 0 ? chartOfAccounts.map((acc) => ({
                       label: acc.name,
                       value: acc.id,
-                    }))}
+                    })):[]}
                     placeholder="Select Chart Of Account"
                     filter
                     className="w-full md:w-14rem"

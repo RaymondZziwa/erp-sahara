@@ -117,7 +117,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     <Dialog
       header={item?.id ? "Edit Machine Assignment" : "Add Machine Assignment"}
       visible={visible}
-      className="w-full sm:w-4/5 md:w-1/2"
+      className="w-full sm:w-4/5 md:w-1/4"
       footer={footer}
       onHide={onClose}
     >

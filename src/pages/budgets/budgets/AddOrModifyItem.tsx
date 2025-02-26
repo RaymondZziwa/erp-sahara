@@ -141,7 +141,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     ) {
       console.log("Missing required fields");
 
-      setIsSubmitting(false);
+      // setIsSubmitting(false);
       return; // Handle validation error here
     }
 

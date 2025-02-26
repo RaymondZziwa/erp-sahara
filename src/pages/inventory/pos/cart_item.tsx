@@ -5,7 +5,7 @@ interface props  {
     item: any,
     updateQuantity: () => void,
     updateDiscount: () => void,
-    removeItemFromCart: (id: number) => void
+    removeItemFromCart: (id: number) => void,
 }
 
 const CartItem: React.FC<props> = ({ item, updateQuantity, updateDiscount, removeItemFromCart }) => {
@@ -17,7 +17,7 @@ const CartItem: React.FC<props> = ({ item, updateQuantity, updateDiscount, remov
       <div className="flex flex-col  justify-between w-full">
         <div className="flex items-center justify-between space-x-4">
           <span className="font-medium">{item.name}</span>
-          <span className="text-lg font-semibold">UGX {parseFloat(item.selling_price).toFixed(2)}</span>
+          <span className="text-lg font-semibold">UGX {parseFloat(item.selling_price).toFixed(2) * item.quantity}</span>
         </div>
         {/* Toggleable section for Quantity and Discount */}
       <div className={`w-full mt-2 ${isOpen ? "block" : "hidden"}`}>

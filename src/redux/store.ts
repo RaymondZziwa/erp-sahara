@@ -29,7 +29,7 @@ import driversReducer from "../redux/slices/inventory/driversSlice";
 import itemsAttributesReducer from "../redux/slices/inventory/attributesSlice";
 import itemsAttributesValuesReducer from "../redux/slices/inventory/attributesValueSlice";
 import stockMovementSlice from "../redux/slices/inventory/stockMovementSlice";
-import paymentMethodReducer from '../redux/slices/accounts/payment_method'
+import paymentMethodReducer from "../redux/slices/accounts/payment_method";
 import MOSS_APP_REDUCERS from "./reducers/mossAppReducers";
 import { SALES_REDUCERS } from "./reducers/salesReducers";
 import { ACCOUNTS_REDUCERS } from "./reducers/accountsReducers";
@@ -39,20 +39,25 @@ import { PROJECTS_REDUCERS } from "./reducers/projectsReducers";
 import { REPORTS_REDUCERS } from "./reducers/reportsReducers";
 import { MANUFACTURING_REDUCERS } from "./reducers/manufacturingReducers";
 
-
 //roles
 import  RoleReducer from './slices/roles/roleSlice'
+//permissions
+import  PermissionReducer from './slices/permissions/permissionSlice'
 //users
-import UsersReducer from './slices/user/usersSlice'
+import UsersReducer from "./slices/user/usersSlice";
 //approval levels
-import ApprovalLevelsReducer from './slices/approval_levels/levelSlice'
+import ApprovalLevelsReducer from "./slices/approval_levels/levelSlice";
+//assets
+import AssetsCategoriesReducer from "./slices/assets/assetCategoriesSlice";
 
 const store = configureStore({
   reducer: {
+    assetCategories: AssetsCategoriesReducer,
     paymentMethods: paymentMethodReducer,
     levels: ApprovalLevelsReducer,
     usersList: UsersReducer,
     roles: RoleReducer,
+    permissions: PermissionReducer,
     userAuth: userAuthReducer,
     items: itemsReducer,
     categories: categoriesReducer,

@@ -130,7 +130,7 @@ const ApprovalLevels: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Approval Levels Table</h1>
+            <h1 className="text-xl font-bold">Approval Levels</h1>
           </div>
           <div className="flex gap-2">
             <button

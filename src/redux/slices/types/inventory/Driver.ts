@@ -1,7 +1,7 @@
 export interface Driver {
   id: number;
   organisation_id: number;
-  staff_id: number;
+  employee_id: number;
   license_number: string;
   status: number;
   created_at: string;

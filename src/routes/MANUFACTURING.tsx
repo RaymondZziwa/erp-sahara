@@ -1,3 +1,4 @@
+
 import { Icon } from "@iconify/react";
 import { Suspense } from "react";
 import WorkCenters from "../pages/manufacturing/workCenters";
@@ -10,10 +11,13 @@ import ProductionLines from "../pages/manufacturing/productionLines";
 import EquipmentAssignments from "../pages/manufacturing/equipmentAsssignments";
 import ProductionPlans from "../pages/manufacturing/productionPlans";
 import ProductionPlanDetails from "../pages/manufacturing/productionPlans/details";
-import OrderDetails from "../pages/manufacturing/workCenterOrders/details";
+//import OrderDetails from "../pages/manufacturing/workCenterOrders/details";
 import Overview from "../pages/manufacturing/Overview";
+//import ToBeUpdated from "../pages/ToBeUpdated";
+import QualityControl from "../pages/manufacturing/qualityControl";
 
 // Dynamic imports
+//const SettingsPage = lazy(() => import("../pages/settings"));
 
 // Loader fallback component
 const Loading = () => <div>Loading...</div>;
@@ -25,7 +29,7 @@ const MANUFACTURING_ROUTES = [
     path: "",
     items: [
       {
-        name: "Overview",
+        name: "Overview -",
         icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
         path: "/",
         element: (
@@ -35,7 +39,7 @@ const MANUFACTURING_ROUTES = [
         ),
       },
       {
-        name: "Work Orders",
+        name: "Work Orders -",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/workorders",
         element: (
@@ -45,7 +49,7 @@ const MANUFACTURING_ROUTES = [
         ),
       },
       {
-        name: "Equipment Assignemts",
+        name: "Equipment Assignemts -",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/equipment_assignments",
         element: (
@@ -55,7 +59,7 @@ const MANUFACTURING_ROUTES = [
         ),
       },
       {
-        name: "Bill of Material",
+        name: "Material Bill",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/bom",
         element: (
@@ -83,7 +87,7 @@ const MANUFACTURING_ROUTES = [
       },
 
       {
-        name: "Equipment",
+        name: "Machine -",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/equipment",
         element: (
@@ -103,7 +107,7 @@ const MANUFACTURING_ROUTES = [
         ),
       },
       {
-        name: "Production Plans",
+        name: "Production Plans-",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/productionplans",
         element: (
@@ -113,7 +117,27 @@ const MANUFACTURING_ROUTES = [
         ),
       },
       {
-        name: "Equipment Details",
+        name: "Processing-",
+        icon: <Icon icon="mdi:finance" fontSize={20} />,
+        path: "/productionplans",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <ProductionPlans />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Production Output -",
+        icon: <Icon icon="mdi:finance" fontSize={20} />,
+        path: "/productionplans",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <ProductionPlans />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Equipment Details -",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/equipment/:id",
         element: (
@@ -121,10 +145,10 @@ const MANUFACTURING_ROUTES = [
             <MaintainanceLogs />
           </Suspense>
         ),
-        hidden: true,
+        hidden: true
       },
       {
-        name: "Plan Details",
+        name: "Plan Details -",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/productionplans/:id",
         element: (
@@ -132,10 +156,9 @@ const MANUFACTURING_ROUTES = [
             <ProductionPlanDetails />
           </Suspense>
         ),
-        hidden: true,
       },
       {
-        name: "Center Details",
+        name: "Center Details -",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/centers/:id",
         element: (
@@ -143,18 +166,17 @@ const MANUFACTURING_ROUTES = [
             <EqupmentDetails />
           </Suspense>
         ),
-        hidden: true,
+        hidden: true
       },
       {
-        name: "Order Details",
+        name: "Quality Control -",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
-        path: "/workorders/:id",
+        path: "/qualitycontrol",
         element: (
           <Suspense fallback={<Loading />}>
-            <OrderDetails />
+            <QualityControl />
           </Suspense>
         ),
-        hidden: true,
       },
     ],
   },

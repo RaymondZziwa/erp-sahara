@@ -14,10 +14,14 @@ import {
 import useItemAttributeValues from "../../../hooks/inventory/useItemAttributesValues";
 import AddOrModifyAttributeValue from "./AddOrModifyAttributeValue";
 import { toast } from "react-toastify";
+import axios from "axios";
+import { baseURL } from "../../../utils/api";
+import { RootState } from "../../../redux/store";
+import { useSelector } from "react-redux";
 
 const ItemAttributes: React.FC = () => {
   const { data: categories, refresh } = useItemAttributes();
-
+  const token = useSelector((state: RootState) => state.userAuth.token)
   const [dialogState, setDialogState] = useState<{
     selectedItem: ItemAttribue | undefined;
     currentAction: "delete" | "edit" | "add" | "";
@@ -48,6 +52,26 @@ const ItemAttributes: React.FC = () => {
       currentAction: "delete",
     });
   };
+
+  const deleteAttribute = async (id: any) => {
+    const method = "DELETE";
+    const endpoint = id
+      && INVENTORY_ENDPOINTS.ITEM_ATTRIBUTE_VALUES.DELETE(id.toString())
+
+    try {
+      await axios({
+        method,
+        url: baseURL + endpoint,
+        headers: {
+          "Content-Type": "multipart/json",
+          Authorization: `Bearer ${token.access_token}`,
+        },
+      });
+    } catch (error) {
+      console.error("Error saving item", error);
+      // Handle error here
+    } 
+  }
 
   return (
     <div>
@@ -213,7 +237,6 @@ const ItemAttributes: React.FC = () => {
                     className="bg-gray-100 hover:bg-gray-200 rounded p-2 text-gray-800 flex justify-between"
                   >
                     <h4>{value.value}</h4>
-
                     <div className="flex gap-1">
                       <Icon
                         icon="meteor-icons:pencil"
@@ -231,7 +254,7 @@ const ItemAttributes: React.FC = () => {
                         icon="solar:trash-bin-trash-bold"
                         className="text-red-500 hover:text-red-600 cursor-pointer"
                         fontSize={18}
-                        onClick={() => {}}
+                        onClick={()=>deleteAttribute(value.id)}
                       />
                     </div>
                   </li>

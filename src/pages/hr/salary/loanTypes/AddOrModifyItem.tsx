@@ -9,6 +9,7 @@ import useAuth from "../../../../hooks/useAuth";
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../../api/hrEndpoints";
 import { InputTextarea } from "primereact/inputtextarea";
 import { LoanType } from "../../../../redux/slices/types/hr/salary/LoanType";
+import { toast, ToastContainer } from "react-toastify";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -50,23 +51,42 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       [name]: value,
     }));
   };
-
+  
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    // Basic validation
-    if (!formState.loan_type_name || !formState.description) {
-      return; // Handle validation error here
-    }
-    const data = { ...formState };
-    const method = item?.id ? "PUT" : "POST";
-    const endpoint = item?.id
-      ? HUMAN_RESOURCE_ENDPOINTS.LOAN_TYPES.UPDATE(item.id.toString())
-      : HUMAN_RESOURCE_ENDPOINTS.LOAN_TYPES.ADD;
-    await createRequest(endpoint, token.access_token, data, onSave, method);
-    setIsSubmitting(false);
-    onSave();
-    onClose(); // Close the modal after saving
+      e.preventDefault();
+      setIsSubmitting(true);
+    
+      // Basic validation
+      if (!formState.loan_type_name) {
+        setIsSubmitting(false);
+        toast.warn('Fill in all the mandatory fields');
+        return;
+      }
+    
+      try {
+        const data = { ...formState };
+        const method = item?.id ? "PUT" : "POST";
+        const endpoint = item?.id
+          ? HUMAN_RESOURCE_ENDPOINTS.LOAN_TYPES.UPDATE(item.id.toString())
+          : HUMAN_RESOURCE_ENDPOINTS.LOAN_TYPES.ADD;
+        await createRequest(endpoint, token.access_token, data, onSave, method);
+    
+        // Reset form state
+        setFormState({
+          loan_type_name: "",
+          description: "",
+        });
+    
+        // Call onSave and onClose
+        //toast.success('Loan type created successfully')
+        onSave();
+        onClose(); // Close the modal after saving
+      } catch (error) {
+        console.error("Error saving loan type:", error);
+        toast.error("An error occurred while saving loan type.");
+      } finally {
+        setIsSubmitting(false);
+      }
   };
 
   const footer = (
@@ -92,6 +112,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   );
 
   return (
+    <>
+      <ToastContainer />
     <Dialog
       header={item?.id ? "Edit Loan Types" : "Add Loan Types"}
       visible={visible}
@@ -99,13 +121,16 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
+      <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+       </p>
       <form
         id="truck-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="loan_type_name">Name</label>
+          <label htmlFor="loan_type_name">Name<span className="text-red-500">*</span></label>
           <InputText
             id="loan_type_name"
             name="loan_type_name"
@@ -122,12 +147,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             name="description"
             value={formState.description}
             onChange={handleInputChange}
-            required
             className="w-full"
           />
         </div>
       </form>
     </Dialog>
+    </>
   );
 };
 

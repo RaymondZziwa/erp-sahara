@@ -5,7 +5,7 @@ import { InputText } from "primereact/inputtext";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { handleGenericError } from "../../utils/errorHandling";
-//import Logo from '../../assets/images/sahara.jpeg'
+import Logo from '../../assets/images/logos/ltcu.jpeg';
 
 export default function LoginPage() {
   const { loginHandler, isLoading } = useAuth();
@@ -55,7 +55,7 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="flex items-center gap-2">
             {/* <div className="w-8 h-8 rounded bg-gradient-to-r from-purple-500 to-teal-500" /> */}
-            {/* <img src={Logo} alt="" className="w-48 h-48" /> */}
+            <img src={Logo} alt="" className="w-42 h-48" />
             {/* <span className="text-xl font-semibold">ERP</span> */}
           </div>
 

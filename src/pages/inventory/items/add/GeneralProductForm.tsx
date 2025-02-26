@@ -174,7 +174,7 @@ export default function GeneralProductForm({
                   customUpload
                   auto
                   accept="image/*"
-                  maxFileSize={1000000}
+                  maxFileSize={10000000000000}
                   emptyTemplate={
                     <div className="p-4 border-2 border-dashed text-center">
                       <i className="pi pi-image text-lg"></i>

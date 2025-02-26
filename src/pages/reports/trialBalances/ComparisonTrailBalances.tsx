@@ -3,54 +3,32 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
-import { formatCurrency } from "../../../utils/formatCurrency";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
 import { useReactToPrint } from "react-to-print";
-
 import useAuth from "../../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import { apiRequest } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 
 interface ComparisonTrialBalance {
-  trial_balance_comparison: Trialbalancecomparison[];
-  financial_year: Financialyear;
-  previous_financial_year: null;
-}
-
-interface Financialyear {
-  id: number;
-  financial_year: string;
-  start_date: string;
-  end_date: string;
-  organisation_id: number;
-  status: number;
-  remaining_days: number;
-  should_alert: boolean;
-}
-
-interface Trialbalancecomparison {
   account_id: number;
   account_name: string;
   account_code: string;
-  current_total_credit: string;
-  current_total_debit: string;
-  previous_total_credit: number;
-  previous_total_debit: number;
+  current_debit: number;
+  current_credit: number;
+  previous_debit: number;
+  previous_credit: number;
+  debit_difference: number;
+  credit_difference: number;
 }
+
 const ComparisonTrialBalances: React.FC = () => {
   const [globalFilter, setGlobalFilter] = useState<string | null>(null);
-  const [trialBalance, setTrialBalance] = useState<ComparisonTrialBalance>();
+  const [trialBalance, setTrialBalance] = useState<ComparisonTrialBalance[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(false);
-  const totalDebit = trialBalance?.trial_balance_comparison.reduce(
-    (acc, item) => acc + parseFloat(item.current_total_debit),
-    0
-  );
-  const totalCredit = trialBalance?.trial_balance_comparison.reduce(
-    (acc, item) => acc + parseFloat(item.current_total_credit),
-    0
-  );
 
   const printDivRef = useRef<HTMLDivElement>(null);
 
@@ -68,12 +46,16 @@ const ComparisonTrialBalances: React.FC = () => {
     }
     setIsLoading(true);
     try {
-      const response = await apiRequest<ServerResponse<ComparisonTrialBalance>>(
+      const response = await apiRequest<
+        ServerResponse<ComparisonTrialBalance[]>
+      >(
         REPORTS_ENDPOINTS.COMPARISON_TRIAL_BALANCES.GET_ALL,
         "GET",
         token.access_token
       );
       setIsLoading(false);
+      console.log("data", response.data);
+
       setTrialBalance(response.data); // Dispatch action with fetched data on success
     } catch (error) {
       setIsLoading(false);
@@ -90,7 +72,6 @@ const ComparisonTrialBalances: React.FC = () => {
         <div>
           <h1 className="text-xl font-semibold">
             Comparison Trial Balance for Financial Year{" "}
-            {trialBalance?.financial_year.financial_year}
           </h1>
         </div>
         <div>
@@ -120,42 +101,20 @@ const ComparisonTrialBalances: React.FC = () => {
       <div ref={printDivRef}>
         <DataTable
           loading={isLoading}
-          value={trialBalance?.trial_balance_comparison}
+          value={trialBalance}
           globalFilter={globalFilter}
           scrollable
-          footer={
-            <div className="flex justify-end">
-              <div className="grid grid-cols-2">
-                <>
-                  <strong>Total Debit:</strong>{" "}
-                  {formatCurrency(totalDebit?.toFixed(2) ?? 0)}
-                </>
-                <>
-                  <strong>Total Credit:</strong>{" "}
-                  {formatCurrency(totalCredit?.toFixed(2) ?? 0)}
-                </>
-              </div>
-            </div>
-          }
           header={header} // Adding the search filter
         >
+          <Column field="account_id" header="Account ID"></Column>
           <Column field="account_name" header="Account Name"></Column>
-          <Column
-            field="current_total_debit"
-            header="curr. Total Debit"
-          ></Column>
-          <Column
-            field="previous_total_credit"
-            header="Prev. Total Credit"
-          ></Column>
-          <Column
-            field="current_total_debit"
-            header="Curr. Total Debit"
-          ></Column>
-          <Column
-            field="previous_total_credit"
-            header="Prev. Total Credit"
-          ></Column>
+          <Column field="account_code" header="Account Code"></Column>
+          <Column field="current_debit" header="Current Debit"></Column>
+          <Column field="previous_debit" header="Previous Debit"></Column>
+          <Column field="debit_difference" header="Debit difference"></Column>
+          <Column field="current_credit" header="Current Credit"></Column>
+          <Column field="previous_credit" header="Previous Credit"></Column>
+          <Column field="credit_difference" header="Credit Difference"></Column>
         </DataTable>
       </div>
     </div>

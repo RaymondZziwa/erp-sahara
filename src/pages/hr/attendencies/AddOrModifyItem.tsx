@@ -8,7 +8,7 @@ import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
 import { Dropdown } from "primereact/dropdown";
 
 import { Attendence } from "../../../redux/slices/types/hr/Attendence";
-import useEmployees from "../../../hooks/hr/useEmployees"; // Assuming a custom hook for fetching employees
+import useEmployees from "../../../hooks/hr/useEmployees";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -24,7 +24,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   onSave,
 }) => {
   const [formState, setFormState] = useState<Partial<Attendence>>({
-    attendance_date: "",
+    attendance_date: new Date().toISOString().split('T')[0],
     check_in_time: "",
     check_out_time: "",
     employee_id: undefined,
@@ -80,9 +80,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     setIsSubmitting(true);
     // Basic validation
     if (
-      !formState.attendance_date ||
       !formState.check_in_time ||
-      !formState.check_out_time ||
       !formState.employee_id
     ) {
       setIsSubmitting(false);
@@ -136,31 +134,36 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
-        <div className="p-field">
+        {/* <div className="p-field">
           <label htmlFor="attendance_date">Attendance Date</label>
           <InputText
             id="attendance_date"
             name="attendance_date"
             type="date"
-            value={formState.attendance_date}
+            value={formState.attendance_date || new Date().toISOString().split('T')[0]}
             onChange={handleInputChange}
             required
             className="w-full"
           />
-        </div>
-        <div className="p-field">
-          <label htmlFor="check_in_time">Check In Time</label>
-          <InputText
-            id="check_in_time"
-            name="check_in_time"
-            type="time"
-            value={formState.check_in_time}
-            onChange={handleInputChange}
-            required
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
+        </div> */}
+        {
+          !item?.id &&
+          <div className="p-field">
+            <label htmlFor="check_in_time">Check In Time</label>
+            <InputText
+              id="check_in_time"
+              name="check_in_time"
+              type="time"
+              value={formState.check_in_time}
+              onChange={handleInputChange}
+              required
+              className="w-full"
+            />
+          </div>
+        }
+         {
+          item?.id &&
+          <div className="p-field">
           <label htmlFor="check_out_time">Check Out Time</label>
           <InputText
             id="check_out_time"
@@ -168,38 +171,43 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             type="time"
             value={formState.check_out_time}
             onChange={handleInputChange}
-            required
             className="w-full"
           />
         </div>
-        <div className="p-field">
-          <label htmlFor="employee_id">Employee</label>
-          <Dropdown
-            filter
-            id="employee_id"
-            name="employee_id"
-            value={formState.employee_id}
-            options={employees.map((employee) => ({
-              value: employee.id,
-              label: employee.first_name + " " + employee.last_name,
-            }))} // Assuming employees data is structured appropriately
-            onChange={handleDropdownChange}
-            required
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="status">Status</label>
-          <Dropdown
-            id="status"
-            name="status"
-            value={formState.status}
-            options={statusOptions}
-            onChange={handleDropdownChange}
-            required
-            className="w-full"
-          />
-        </div>
+        }
+        {
+          !item?.id &&
+          <>
+            <div className="p-field">
+              <label htmlFor="employee_id">Employee</label>
+              <Dropdown
+                filter
+                id="employee_id"
+                name="employee_id"
+                value={formState.employee_id}
+                options={employees.map((employee) => ({
+                  value: employee.id,
+                  label: employee.first_name + " " + employee.last_name,
+                }))} // Assuming employees data is structured appropriately
+                onChange={handleDropdownChange}
+                required
+                className="w-full"
+              />
+            </div>
+            <div className="p-field">
+              <label htmlFor="status">Status</label>
+              <Dropdown
+                id="status"
+                name="status"
+                value={formState.status}
+                options={statusOptions}
+                onChange={handleDropdownChange}
+                required
+                className="w-full"
+              />
+            </div>
+          </>
+        }
       </form>
     </Dialog>
   );

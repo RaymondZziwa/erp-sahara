@@ -23,6 +23,12 @@ export const REPORTS_ENDPOINTS = {
   JOURNAL_TYPES: {
     GET_ALL: "/erp/accounts/journal-types",
   },
+  CASH_FLOW_STATEMENT: {
+    GET_ALL: "/erp/reports/accounting/false/cash-flow-statement",
+  },
+  DETAILED_CASH_BOOK: {
+    GET_ALL: "/erp/reports/accounting/cashbook/2024-01-01/2024-12-01",
+  },
   DASHBOARD: {
     SALES: "/erp/reports/dashboard/sales-comparison-current-vs-previous-fy",
     PROFIT_AND_LOSS: (params: { start_date: string; end_date: string }) => {

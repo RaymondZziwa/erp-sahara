@@ -28,20 +28,13 @@ const Attendencies: React.FC = () => {
 
   const columnDefinitions: ColDef<Attendence>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
-      headerName: "Fname",
+      headerName: "First Name",
       field: "employee.first_name",
       sortable: true,
       filter: true,
     },
     {
-      headerName: "Lname",
+      headerName: "Last Name",
       field: "employee.last_name",
       sortable: true,
       filter: true,
@@ -146,11 +139,11 @@ const Attendencies: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Attendencies" pageName="All" />
+      <BreadCrump name="Attendance" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Attendencies Table</h1>
+            <h1 className="text-xl font-bold">Attendance</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -163,7 +156,7 @@ const Attendencies: React.FC = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add Attendency
+              Add Attendance
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"

@@ -196,11 +196,10 @@ const GeneralLedgers: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">General ledgers Table</h1>
+            <h1 className="text-xl font-bold">General ledgers</h1>
           </div>
           <div className="flex gap-2 my-2">
             <LedgerBtnsTypes onJournalClick={onJournalTypeClick} />
-
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
               onClick={handleExportPDF}

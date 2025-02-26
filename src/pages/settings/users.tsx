@@ -48,13 +48,13 @@ const UserSettings = () => {
               users.map((user) => (
                 <tr key={user.id} className="border-t">
                   <td className="p-3">{user.id}</td>
-                  <td className="p-3">{user.user.first_name} {user.user.last_name}</td>
-                  <td className="p-3">{user.user.email}</td>
-                  <td className="p-3">{user.user.gender}</td>
+                  <td className="p-3">{user.first_name} {user.last_name}</td>
+                  <td className="p-3">{user.email}</td>
+                  <td className="p-3">{user.gender}</td>
                   <td className="p-3">
                     {user.profilePicture && (
                       <img
-                        src={URL.createObjectURL(user.profilePicture)}
+                        src={URL.createObjectURL(profilePicture)}
                         alt="Profile"
                         className="h-10 w-10 rounded-full"
                       />
@@ -63,7 +63,7 @@ const UserSettings = () => {
                   <td className="p-3">
                     {user.signaturePicture && (
                       <img
-                        src={URL.createObjectURL(user.signaturePicture)}
+                        src={URL.createObjectURL(signaturePicture)}
                         alt="Signature"
                         className="h-10 w-10"
                       />

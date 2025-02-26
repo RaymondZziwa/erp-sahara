@@ -219,7 +219,7 @@ const CashRequisitions: React.FC = () => {
         <div className="flex justify-between items-center">
           <div className="py-2">
             <h1 className="text-xl font-bold">
-              Expense Requisitions Table({data.length})
+              Expense Requisitions ({data.length})
             </h1>
           </div>
           <div className="flex gap-2">

@@ -3,7 +3,6 @@ import { lazy, Suspense } from "react";
 import AddProduct from "../pages/inventory/items/add";
 import ItemAttributes from "../pages/inventory/itemAttributes";
 // import InventoryDashboard from "../pages/inventory/inventories/InventoryDashboard";
-import StockMovements from "../pages/inventory/stockMovements";
 import InventoryDashboard from "../pages/inventory/inventories/InventoryDashboard";
 //import Dashboard from "../pages/inventory/inventories/new_dasboard";
 import POS from "../pages/inventory/pos/pos";
@@ -53,16 +52,16 @@ const INVENTORY_ROUTES = [
           </Suspense>
         ),
       },
-      {
-        name: "Stock Transfer",
-        icon: <Icon icon="solar:archive-outline" fontSize={20} />,
-        path: "/stock",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <StockMovements />
-          </Suspense>
-        ),
-      },
+      // {
+      //   name: "Stock Transfer",
+      //   icon: <Icon icon="solar:archive-outline" fontSize={20} />,
+      //   path: "/stock",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <StockMovements />
+      //     </Suspense>
+      //   ),
+      // },
       {
         name: "Stock In",
         icon: <Icon icon="solar:archive-outline" fontSize={20} />,

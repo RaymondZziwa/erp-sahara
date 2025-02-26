@@ -52,7 +52,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
     // Basic validation
-    if (!formState.name) {
+    if (!formState.name || !formState.location) {
       return; // You can handle validation error here
     }
     const data: Partial<Warehouse> = {
@@ -100,10 +100,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
+      <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+      </p>
       <form id="item-form" onSubmit={handleSave}>
         <div className="p-fluid">
           <div className="p-field">
-            <label htmlFor="name">Name</label>
+            <label htmlFor="name">Name<span className="text-red-500">*</span></label>
             <InputText
               id="name"
               name="name"
@@ -112,7 +115,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               required
             />
           </div>
-          <div className="p-field">
+          {/* <div className="p-field">
             <label htmlFor="description">Latitude</label>
             <InputText
               id="latitude"
@@ -129,14 +132,15 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               value={formState.longtitude}
               onChange={handleInputChange}
             />
-          </div>
+          </div> */}
           <div className="p-field">
-            <label htmlFor="location">Location</label>
+            <label htmlFor="location">Address<span className="text-red-500">*</span></label>
             <InputText
               id="location"
               name="location"
               value={formState.location}
               onChange={handleInputChange}
+              required
             />
           </div>
         </div>

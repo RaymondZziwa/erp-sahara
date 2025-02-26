@@ -38,6 +38,11 @@ const StockMovements: React.FC = () => {
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(today.getMonth() - 1);
 
+
+  // useEffect(()=>{
+  //   const InventoryMvt = async () => {}
+  // },[])
+
   // Initialize state with default values
   const [startDate, setStartDate] = useState<Nullable<Date> | null>(
     oneMonthAgo
@@ -171,7 +176,7 @@ const StockMovements: React.FC = () => {
         }
         onConfirm={refresh}
       />
-      <BreadCrump name="Stock movements" pageName="Stock movements" />
+      <BreadCrump name="Stock" pageName="Stock" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center mb-4">
           <div className="flex gap-4 items-center">

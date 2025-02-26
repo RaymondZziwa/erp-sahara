@@ -6,13 +6,6 @@ const Sidebar = () => {
 
   return (
     <div className="bg-bg">
-      {/* <Link to={"/"} className="justify-center mb-4 hidden md:flex">
-        <img
-          src="/logo.jpg"
-          className="max-w-40 h-20 p-2 mix-blend-color-burn"
-          alt="Logo"
-        />
-      </Link> */}
       <div className="flex flex-col lg:flex-row  h-full mt-2 ">
         <div className="lg:w-fit w-full lg:static flex flex-col lg:flex-col bg-[#F2FCFC] h-full min-h-screen px-2 p-2">
           <ol
@@ -55,67 +48,61 @@ const Sidebar = () => {
             ))}
           </ol>
         </div>
-        <div className="p-2 ">
-          <div role="list" className="py-2">
-            {ROUTES.filter(
-              (route) => route.path === "/" + pathname.split("/")[1]
-            ).map((sidebarItem) => (
-              <div
-                key={sidebarItem.path}
-                className={`${
-                  sidebarItem.sidebarItems.length == 1 &&
-                  sidebarItem.sidebarItems[0].items.length == 1 &&
-                  "hidden"
-                }`}
-              >
-                {sidebarItem.sidebarItems.map((item) => (
-                  <div key={item.path} className="mb-4">
-                    <h4 className="font-semibold text-sm mb-2">{item.name}</h4>
-                    <ol role="list" className="md:pl-4  rounded">
-                      {item.items.map(
-                        (nestedItem) =>
-                          !nestedItem?.hidden && (
-                            <Link
+        <div className="p-2 max-h-[100vh] overflow-y-auto">
+        <div role="list" className="py-2">
+          {ROUTES.filter(
+            (route) => route.path === "/" + pathname.split("/")[1]
+          ).map((sidebarItem) => (
+            <div
+              key={sidebarItem.path}
+              className={`${
+                sidebarItem.sidebarItems.length == 1 &&
+                sidebarItem.sidebarItems[0].items.length == 1 &&
+                "hidden"
+              }`}
+            >
+              {sidebarItem.sidebarItems.map((item) => (
+                <div key={item.path} className="mb-4">
+                  <h4 className="font-semibold text-sm mb-2">{item.name}</h4>
+                  <ol role="list" className="md:pl-4 rounded">
+                    {item.items.map(
+                      (nestedItem) =>
+                        !nestedItem?.hidden && (
+                          <Link
+                            key={nestedItem.path}
+                            to={sidebarItem.path + item.path + nestedItem.path}
+                          >
+                            <li
                               key={nestedItem.path}
-                              to={
+                              className={`flex items-center gap-2 py-2 md:px-4 px-1 ${
+                                pathname ===
                                 sidebarItem.path + item.path + nestedItem.path
-                              }
+                                  ? "text-shade "
+                                  : " hover:bg-shade hover:text-white text-gray-600 hover:rounded"
+                              }`}
                             >
-                              <li
-                                key={nestedItem.path}
-                                className={`flex items-center gap-2 py-2 md:px-4 px-1  ${
+                              <div
+                                className={` ${
                                   pathname ===
                                   sidebarItem.path + item.path + nestedItem.path
                                     ? "text-shade "
-                                    : " hover:bg-shade hover:text-white text-gray-600 hover:rounded"
+                                    : " hover:bg-shade hover:text-white hover:rounded"
                                 }`}
                               >
-                                <div
-                                  className={`  ${
-                                    pathname ===
-                                    sidebarItem.path +
-                                      item.path +
-                                      nestedItem.path
-                                      ? "text-shade "
-                                      : " hover:bg-shade hover:text-white  hover:rounded"
-                                  }`}
-                                >
-                                  {nestedItem.icon}
-                                </div>
-                                <span className="text-sm ">
-                                  {nestedItem.name}
-                                </span>
-                              </li>
-                            </Link>
-                          )
-                      )}
-                    </ol>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
+                                {nestedItem.icon}
+                              </div>
+                              <span className="text-sm">{nestedItem.name}</span>
+                            </li>
+                          </Link>
+                        )
+                    )}
+                  </ol>
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
+      </div>
       </div>
     </div>
   );

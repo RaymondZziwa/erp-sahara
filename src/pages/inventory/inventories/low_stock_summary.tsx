@@ -27,7 +27,7 @@ const LowStockSummary = () => {
         fetchData();
     }, []);
     return (
-        <div className="p-4 rounded-md bg-white shadow overflow-auto">
+        <div className="p-4 rounded-md bg-white shadow overflow-auto w-full">
           <h2 className="text-xl font-bold mb-4">Low Stock Summary</h2>
           <table className="w-full border-collapse border border-gray-300">
             <thead>
