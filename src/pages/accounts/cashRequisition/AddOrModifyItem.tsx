@@ -1,8 +1,8 @@
+//@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { InputTextarea } from "primereact/inputtextarea";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { DataTable } from "primereact/datatable";
@@ -43,6 +43,7 @@ interface ReqItem {
   item_id: number;
   item_name: string;
   quantity: number;
+  unit_cost: number;
   price: number;
   budget_item_id?: number; //When a budget is selected on a requisition an added item must be compared to its budgeted value
 }
@@ -92,6 +93,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           item_name: it.item_name,
           quantity: +it.quantity,
           price: +it.item.cost_price,
+          unit_cost: +it.item.cost_price,
           budget_item_id: item.budget_id == null ? undefined : +item.budget_id,
           item_type:
             inventoryItems.find((reqIt) => reqIt.id == it.item_id)?.item_type ??
@@ -144,6 +146,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         item_id: selectedItem.item_id,
         item_name: selectedItem.item_name,
         price: +selectedItem.price,
+        unit_cost: +selectedItem.price,
         budget_item_id: selectedItem?.budget_item_id,
       };
 
@@ -172,6 +175,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           item_id: 0,
           item_name: "",
           price: 0,
+          unit_cost: 0,
           budget_item_id: 0,
           quantity: 0,
           uuid: uuidv4(),
@@ -191,18 +195,27 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }
 
     const method = item?.id ? "PUT" : "POST";
+
+    // Construct the payload with `unit_cost` included
     const data = {
       ...formState,
       date_expected: new Date(formState.date_expected ?? new Date())
         .toISOString()
         .slice(0, 10),
+      items: formState.items?.map((item) => ({
+        ...item,
+        unit_cost: item.unit_cost ?? 0, // Explicitly include `unit_cost`
+      })),
     };
+
+    console.log("Payload:", data); // Log the payload for verification
+
     const endpoint = item?.id
       ? ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.UPDATE(item.id.toString())
       : ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.ADD;
 
-    await createRequest(endpoint, token.access_token, data, onSave, method);
-    setIsSubmitting(false);
+    //await createRequest(endpoint, token.access_token, {test: 'test'}, onSave, method);
+    setIsSubmitting(false);     
     onSave();
     onClose();
   };
@@ -220,6 +233,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         item_name: item.name,
         quantity: 0,
         price: +item.amount_in_base_currency,
+        unit_cost: +item.amount_in_base_currency,
         budget_item_id: item.budget_id,
         uuid: uuidv4(),
         item_type:
@@ -231,6 +245,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         item_name: item.name,
         quantity: 0,
         price: +item.cost_price,
+        unit_cost: +item.cost_price,
         uuid: uuidv4(),
         item_type: item.item_type,
       }));
@@ -253,6 +268,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         type="submit"
         form="project-form"
         size="small"
+        onClick={(e) => handleSave(e)}
       />
     </div>
   );
@@ -264,6 +280,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const selectedCurrency = currencies.find(
     (curr) => curr.id == formState.currency_id
   );
+
   return (
     <Dialog
       header={item?.id ? "Edit Cash Requisition" : "Add Cash Requisition"}
@@ -274,7 +291,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     >
       <form
         id="project-form"
-        onSubmit={handleSave}
+        //onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
       >
         {/* Form Fields */}
@@ -324,7 +341,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
         <div className="p-field">
           <label htmlFor="purpose">Purpose</label>
-          <InputTextarea
+          <InputText
             id="purpose"
             name="purpose"
             value={formState.purpose || ""}

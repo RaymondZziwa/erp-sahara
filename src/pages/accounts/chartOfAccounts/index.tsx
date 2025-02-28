@@ -2,7 +2,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
-
 import AddOrModifyItem from "./AddOrModifyItem";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import Table from "../../../components/table";
@@ -12,15 +11,16 @@ import { ACCOUNTS_ENDPOINTS } from "../../../api/accountsEndpoints";
 import BreadCrump from "../../../components/layout/bread_crump";
 import { Button } from "primereact/button";
 import { Link } from "react-router-dom";
+import DepositBalance from "./deposit";
 
 const ChartOfAccounts: React.FC = () => {
   const { data, refresh } = useChartOfAccounts();
   const tableRef = useRef<any>(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [accountCountsByCategory, setAccountCountsByCategory] = useState<any>()
+  const [accountCountsByCategory, setAccountCountsByCategory] = useState<any>();
   const [dialogState, setDialogState] = useState<{
     selectedItem: ChartofAccount | undefined;
-    currentAction: "delete" | "edit" | "add" | "";
+    currentAction: "delete" | "edit" | "add" | "balance" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
   const handleExportPDF = () => {
@@ -46,7 +46,6 @@ const ChartOfAccounts: React.FC = () => {
         </div>
       ),
     },
-
     {
       headerName: "Desc",
       field: "description",
@@ -74,7 +73,6 @@ const ChartOfAccounts: React.FC = () => {
       sortable: true,
       filter: true,
     },
-
     {
       headerName: "Actions",
       field: "id",
@@ -82,6 +80,18 @@ const ChartOfAccounts: React.FC = () => {
       filter: false,
       cellRenderer: (params: ICellRendererParams<ChartofAccount>) => (
         <div className="flex items-center gap-2">
+          <button
+            className="bg-shade px-2 py-1 rounded text-white"
+            onClick={() =>
+              setDialogState({
+                ...dialogState,
+                currentAction: "balance", // Set action to "balance"
+                selectedItem: params.data,
+              })
+            }
+          >
+            Balance
+          </button>
           <button
             className="bg-shade px-2 py-1 rounded text-white"
             onClick={() =>
@@ -110,23 +120,22 @@ const ChartOfAccounts: React.FC = () => {
       ),
     },
   ];
+
   // Initialize the account count by category
-  useEffect(()=> {
-    if(data) {
+  useEffect(() => {
+    if (data) {
       const accountCountsByCategory = data.reduce<{ [key: string]: number }>(
         (acc, item) => {
           const categoryName = item.account_sub_category.account_category.name;
-          // Increment or initialize the count for each category
           acc[categoryName] = (acc[categoryName] || 0) + 1;
-          // Increment the total count for 'all'
           acc["all"] = (acc["all"] || 0) + 1;
           return acc;
         },
-        { all: 0 } // Initialize 'all' to 0
+        { all: 0 }
       );
-      setAccountCountsByCategory(accountCountsByCategory)
+      setAccountCountsByCategory(accountCountsByCategory);
     }
-  },[data])
+  }, [data]);
 
   return (
     <div>
@@ -138,6 +147,14 @@ const ChartOfAccounts: React.FC = () => {
           (dialogState.currentAction == "edit" &&
             !!dialogState.selectedItem?.id)
         }
+        onClose={() =>
+          setDialogState({ currentAction: "", selectedItem: undefined })
+        }
+      />
+      <DepositBalance
+        onSave={refresh}
+        item={dialogState.selectedItem}
+        visible={dialogState.currentAction === "balance"} // Only show for "balance" action
         onClose={() =>
           setDialogState({ currentAction: "", selectedItem: undefined })
         }
@@ -186,27 +203,28 @@ const ChartOfAccounts: React.FC = () => {
           </div>
         </div>
         <ul className="flex gap-2 my-2">
-          {accountCountsByCategory && Object.entries(accountCountsByCategory).map(([category, count]) => (
-            <li key={category}>
-              <Button
-                onClick={() => setSelectedCategory(category)}
-                outlined={category != selectedCategory}
-                size="small"
-                severity="info"
-                type="button"
-                label={category}
-                icon="pi pi-wallet"
-                className={`text-nowrap capitalize p-2 ${
-                  category == selectedCategory
-                    ? ""
-                    : "bg-white !text-black hover:!bg-gray-300"
-                }`}
-                badge={count && count.toString()}
-                badgeClassName="p-badge-danger"
-                raised
-              />
-            </li>
-          ))}
+          {accountCountsByCategory &&
+            Object.entries(accountCountsByCategory).map(([category, count]) => (
+              <li key={category}>
+                <Button
+                  onClick={() => setSelectedCategory(category)}
+                  outlined={category != selectedCategory}
+                  size="small"
+                  severity="info"
+                  type="button"
+                  label={category}
+                  icon="pi pi-wallet"
+                  className={`text-nowrap capitalize p-2 ${
+                    category == selectedCategory
+                      ? ""
+                      : "bg-white !text-black hover:!bg-gray-300"
+                  }`}
+                  badge={count && count.toString()}
+                  badgeClassName="p-badge-danger"
+                  raised
+                />
+              </li>
+            ))}
         </ul>
         <Table
           columnDefs={columnDefinitions}

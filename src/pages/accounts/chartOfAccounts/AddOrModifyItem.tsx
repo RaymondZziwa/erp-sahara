@@ -214,45 +214,50 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         onSubmit={handleSave}
         className="p-fluid grid md:grid-cols-2 gap-4"
       >
-        <div className="p-field">
-          <label htmlFor="accountType">Category</label>
-          <Dropdown
-            id="accountType"
-            name="accountType"
-            value={accountType}
-            options={accountTypes.map((account) => ({
-              label: account.name,
-              value: account.id,
-            }))}
-            onChange={(e) => setAccountType(e.value)}
-            className="w-full"
-          />
-        </div>
+        {!item?.id && (
+          <div className="p-field">
+            <label htmlFor="accountType">Category</label>
+            <Dropdown
+              id="accountType"
+              name="accountType"
+              value={accountType}
+              options={accountTypes.map((account) => ({
+                label: account.name,
+                value: account.id,
+              }))}
+              onChange={(e) => setAccountType(e.value)}
+              className="w-full"
+            />
+          </div>
+        )}
 
-        <div className="p-field col-span-full">
+        <div className="p-field">
           <label htmlFor="account_sub_category_id">Sub Category</label>
           <TreeSelect
             filter
-            disabled={!accountType}
-            value={formState.account_sub_category_id?.toString()}
+            value={
+              item?.id
+                ? item?.account_sub_category.id.toString() // Ensure value is a string
+                : formState.account_sub_category_id?.toString() // Ensure value is a string
+            }
             onChange={(e) => {
               setFormState({
                 ...formState,
-                account_sub_category_id: +(e.value ?? 0),
+                account_sub_category_id: +(e.value ?? 0), // Convert back to number
               });
             }}
             options={accountNodes}
             className="md:w-20rem w-full"
             placeholder="Select Item"
-          ></TreeSelect>
+          />
 
-          <div className="bg-gray-300 my-2 rounded p-2 h-10 text-sm">
+          {/* <div className="bg-gray-300 my-2 rounded p-2 h-14 text-sm">
             {accountTypes
               .find((accountCat) => accountCat.id == accountType)
               ?.account_sub_categories.find(
                 (cat) => cat.id == formState.account_sub_category_id
               )?.description ?? "No selected account sub category"}
-          </div>
+          </div> */}
         </div>
         <div className="p-field">
           <label htmlFor="name">Name</label>
@@ -263,53 +268,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             onChange={handleInputChange}
             required
             className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="name">Opening Balance</label>
-          <InputNumber
-            disabled={accountType == 4 || accountType == 5}
-            id="opening_balance"
-            name="opening_balance"
-            placeholder={
-              accountType == 4 || accountType == 5 ? "Not required" : ""
-            }
-            value={formState?.opening_balance}
-            onChange={(e) =>
-              setFormState({ ...formState, opening_balance: e.value ?? null })
-            }
-            required={!(accountType == 4 || accountType == 5)}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field col-span-full">
-          <label htmlFor="description">Description</label>
-          <InputTextarea
-            id="description"
-            name="description"
-            value={formState.description}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="currency_id">Currency</label>
-          <Dropdown
-            disabled={
-              !(formState.opening_balance && formState?.opening_balance > 0)
-            }
-            id="currency_id"
-            name="currency_id"
-            value={formState.currency_id}
-            options={currencies.map((curr) => ({
-              label: curr.code,
-              value: curr.id,
-            }))}
-            onChange={(e) =>
-              setFormState({ ...formState, currency_id: e.value })
-            }
-            className="w-full"
-            placeholder="Select Currency"
           />
         </div>
         <div className="p-field">
@@ -330,32 +288,86 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             placeholder="Select Cash Flow"
           />
         </div>
-        <div className="p-field">
-          <label htmlFor="name">Is Contra</label>
-          <div className="flex gap-2">
-            {[
-              { name: "Yes", value: 1 },
-              { name: "No", value: 0 },
-            ].map((option) => (
-              <div key={option.value}>
-                <RadioButton
-                  inputId="is_contra"
-                  name={option.name}
-                  value={option.value}
-                  onChange={(e) => {
-                    setFormState({ ...formState, is_contra: e.value });
-                  }}
-                  checked={
-                    formState.is_contra?.toString() == option.value.toString()
-                  }
-                />
-                <label htmlFor="is_contra" className="ml-2">
-                  {option.name}
-                </label>
-              </div>
-            ))}
+        {!item?.id && (
+          <div className="p-field">
+            <label htmlFor="name">Opening Balance</label>
+            <InputNumber
+              disabled={accountType == 4 || accountType == 5}
+              id="opening_balance"
+              name="opening_balance"
+              placeholder={
+                accountType == 4 || accountType == 5 ? "Not required" : ""
+              }
+              value={formState?.opening_balance}
+              onChange={(e) =>
+                setFormState({ ...formState, opening_balance: e.value ?? null })
+              }
+              required={!(accountType == 4 || accountType == 5)}
+              className="w-full"
+            />
           </div>
+        )}
+        {!item?.id && (
+          <div className="p-field">
+            <label htmlFor="currency_id">Currency</label>
+            <Dropdown
+              disabled={
+                !(formState.opening_balance && formState?.opening_balance > 0)
+              }
+              id="currency_id"
+              name="currency_id"
+              value={formState.currency_id}
+              options={currencies.map((curr) => ({
+                label: curr.code,
+                value: curr.id,
+              }))}
+              onChange={(e) =>
+                setFormState({ ...formState, currency_id: e.value })
+              }
+              className="w-full"
+              placeholder="Select Currency"
+            />
+          </div>
+        )}
+        <div className="p-field col-span-full">
+          <label htmlFor="description">Description</label>
+          <InputTextarea
+            id="description"
+            name="description"
+            value={formState.description}
+            onChange={handleInputChange}
+            className="w-full"
+          />
         </div>
+
+        {!item?.id && (
+          <div className="p-field">
+            <label htmlFor="name">Is Contra</label>
+            <div className="flex gap-2">
+              {[
+                { name: "Yes", value: 1 },
+                { name: "No", value: 0 },
+              ].map((option) => (
+                <div key={option.value}>
+                  <RadioButton
+                    inputId="is_contra"
+                    name={option.name}
+                    value={option.value}
+                    onChange={(e) => {
+                      setFormState({ ...formState, is_contra: e.value });
+                    }}
+                    checked={
+                      formState.is_contra?.toString() == option.value.toString()
+                    }
+                  />
+                  <label htmlFor="is_contra" className="ml-2">
+                    {option.name}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </form>
     </Dialog>
   );

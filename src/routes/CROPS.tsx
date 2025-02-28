@@ -1,6 +1,5 @@
 import { Icon } from "@iconify/react";
 import { Suspense } from "react";
-import WorkCenters from "../pages/manufacturing/workCenters";
 import Crops from "../pages/crops";
 
 // Dynamic imports

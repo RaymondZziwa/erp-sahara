@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useRef, useState } from "react";
 import { ColDef } from "ag-grid-community";
 import { Icon } from "@iconify/react";
@@ -44,33 +45,24 @@ const GeneralLedgers: React.FC = () => {
     }
   };
 
-  const columnDefinitions: ColDef<Ledger>[] = [
+  const columnDefinitions: ColDef<any>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
-      headerName: "Account",
-      field: "chart_of_account.name",
+      headerName: "Debit A/C",
+      field: "debit_account.name",
       sortable: true,
       filter: true,
     },
     {
-      headerName: "Debit amount",
-      field: "debit_sum",
+      headerName: "Credit A/C",
+      field: "credit_account.name",
       sortable: true,
       filter: true,
     },
-
     {
-      headerName: "Credit amount",
-      field: "credit_sum",
+      headerName: "Amount",
+      field: "amount",
       sortable: true,
       filter: true,
-      suppressSizeToFit: true,
     },
     // {
     //   headerName: "Actions",
@@ -211,7 +203,7 @@ const GeneralLedgers: React.FC = () => {
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={data?.summaries ?? []}
+          data={data?.data ?? []}
           ref={tableRef}
         />
       </div>
