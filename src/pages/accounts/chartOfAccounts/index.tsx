@@ -90,7 +90,7 @@ const ChartOfAccounts: React.FC = () => {
               })
             }
           >
-            Balance
+            Add Opening Balance
           </button>
           <button
             className="bg-shade px-2 py-1 rounded text-white"
@@ -178,7 +178,7 @@ const ChartOfAccounts: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Chart of Accounts Table</h1>
+            <h1 className="text-xl font-bold">Chart of Accounts</h1>
           </div>
           <div className="flex gap-2">
             <button

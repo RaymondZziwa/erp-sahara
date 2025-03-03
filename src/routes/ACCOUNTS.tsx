@@ -8,6 +8,10 @@ import Budgets from "../pages/budgets/budgets";
 import FiscalYears from "../pages/budgets/fiscalYears";
 import ChartOfAccountDetails from "../pages/accounts/subcategories/details";
 import PaymentMethods from "../pages/procurement/settings/payment_methods";
+import BankingLedgers from "../pages/accounts/generalLedgers/banking";
+import SalesTransactions from "../pages/accounts/generalLedgers/sales";
+import ExpenseTransactions from "../pages/accounts/generalLedgers/expenses";
+import OtherTransactions from "../pages/accounts/generalLedgers/other_transaction";
 
 // Dynamic imports
 const Accounts = lazy(() => import("../pages/accounts/categories"));
@@ -30,27 +34,35 @@ const ACCOUNTS_ROUTES = [
       //   path: "/expense-requisitions",
       //   element: <CashRequisitions />,
       // },
+      // {
+      //   name: "Journal transactions",
+      //   icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
+      //   path: "/journal-transactions",
+      //   element: <GeneralLedgers />,
+      // },
       {
-        name: "Journal transactions",
+        name: "Banking",
+        icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
+        path: "/banking-transactions",
+        element: <BankingLedgers />,
+      },
+      {
+        name: "Sales / Income",
+        icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
+        path: "/sales-transactions",
+        element: <SalesTransactions />,
+      },
+      {
+        name: "Expenses",
+        icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
+        path: "/expense-transactions",
+        element: <ExpenseTransactions />,
+      },
+      {
+        name: "Other transactions",
         icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
         path: "/journal-transactions",
-        element: <GeneralLedgers />,
-      },
-      {
-        name: "Budgets",
-        icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
-        path: "/budgets",
-        element: <Budgets />,
-      },
-      {
-        name: "Fiscal Years",
-        icon: <Icon icon="mdi:calendar-clock" fontSize={20} />,
-        path: "/years",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <FiscalYears />
-          </Suspense>
-        ),
+        element: <OtherTransactions />,
       },
       {
         name: "Chart of Accounts",
@@ -87,6 +99,16 @@ const ACCOUNTS_ROUTES = [
         element: (
           <Suspense fallback={<Loading />}>
             <AccountsSubCategories />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Fiscal Years",
+        icon: <Icon icon="mdi:calendar-clock" fontSize={20} />,
+        path: "/years",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <FiscalYears />
           </Suspense>
         ),
       },

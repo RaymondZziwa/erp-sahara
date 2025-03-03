@@ -1,5 +1,4 @@
-
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ColDef } from "ag-grid-community";
 import AddOrModifyItem from "./AddOrModifyItem";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
@@ -10,13 +9,18 @@ import { PROJECTS_ENDPOINTS } from "../../../api/projectsEndpoints";
 
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
 import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
-import LedgerBtnsTypes from "./CashTransactions";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
-import NCTBtnsTypes from "./NCT";
+import { baseURL } from "../../../utils/api";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux/store";
+import { toast } from "react-toastify";
 
-const GeneralLedgers: React.FC = () => {
-  const { data, refresh } = useGeneralLedgers();
+const BankingLedgers: React.FC = () => {
+  const { refresh } = useGeneralLedgers();
   const tableRef = useRef<any>(null);
+  const [dt, setDt] = useState<any[]>([])
+  const token = useSelector((state: RootState) => state.userAuth.token.access_token)
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: Ledger | undefined;
@@ -38,13 +42,37 @@ const GeneralLedgers: React.FC = () => {
     debitAccountHeader: "",
   });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
+  useEffect(()=>{
+    const fetchRecords = async () => {
+        try {
+           const response = await axios.get(
+             `${baseURL}/erp/accounts/general-ledger/20`,{
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+             }
+           ); 
+           console.log('resqq', response.data.data.data)
+           setDt(response.data.data.data);
+        //    if(response.success) {
+        //     setDt(response.data.data)
+        //    }
+           
+        } catch (error) {
+            toast.error(error)
+        }
     }
-  };
+
+    fetchRecords()
+  },[])
 
   const columnDefinitions: ColDef<any>[] = [
+    {
+      headerName: "Date",
+      field: "transaction_date",
+      sortable: true,
+      filter: true,
+    },
     {
       headerName: "Debit A/C",
       field: "debit_account.name",
@@ -63,40 +91,12 @@ const GeneralLedgers: React.FC = () => {
       sortable: true,
       filter: true,
     },
-    // {
-    //   headerName: "Actions",
-    //   field: "chart_of_account.id",
-    //   sortable: false,
-    //   filter: false,
-    //   cellRenderer: (params: ICellRendererParams<Ledger>) => (
-    //     <div className="flex items-center gap-2">
-    //       <button
-    //         className="bg-shade px-2 py-1 rounded text-white"
-    //         onClick={() =>
-    //           setDialogState({
-    //             ...dialogState,
-    //             currentAction: "edit",
-    //             selectedItem: params.data,
-    //           })
-    //         }
-    //       >
-    //         Edit
-    //       </button>
-    //       <Icon
-    //         onClick={() =>
-    //           setDialogState({
-    //             ...dialogState,
-    //             currentAction: "delete",
-    //             selectedItem: params.data,
-    //           })
-    //         }
-    //         icon="solar:trash-bin-trash-bold"
-    //         className="text-red-500 cursor-pointer"
-    //         fontSize={20}
-    //       />
-    //     </div>
-    //   ),
-    // },
+    {
+      headerName: "Description",
+      field: "journal_transaction.description",
+      sortable: true,
+      filter: true,
+    },
   ];
 
   interface JournalTypeClickParams {
@@ -106,6 +106,7 @@ const GeneralLedgers: React.FC = () => {
     journalType: string;
     creditAccountHeader: string;
     debitAccountHeader: string;
+    journalId: number
   }
 
   const onJournalTypeClick = ({
@@ -115,6 +116,7 @@ const GeneralLedgers: React.FC = () => {
     journalType,
     creditAccountHeader,
     debitAccountHeader,
+    journalId
   }: JournalTypeClickParams) => {
     setDialogState({
       selectedItem: undefined,
@@ -125,6 +127,7 @@ const GeneralLedgers: React.FC = () => {
       journalType,
       creditAccountHeader,
       debitAccountHeader,
+      journalId
     });
   };
 
@@ -183,25 +186,32 @@ const GeneralLedgers: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Ledger Transactions" pageName="All" />
+      <BreadCrump name="Banking Transactions" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
-          <div className="flex gap-2 my-2 justify-end">
-            <LedgerBtnsTypes onJournalClick={onJournalTypeClick} />
-            <NCTBtnsTypes onJournalClick={onJournalTypeClick} />
-            <GTBtnsTypes onJournalClick={onJournalTypeClick} />
-            {/* <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
+          <div className="flex gap-2 my-2 ml-auto">
+            <button
+              className="bg-shade px-2 py-1 rounded text-white flex gap-2"
+              onClick={() =>
+                onJournalTypeClick({
+                  debitAccountsType: AccountType.ASSETS,
+                  creditAccountsType: AccountType.ASSETS,
+                  endpoint: "/erp/accounts/transactions/cash-to-cash-account",
+                  journalType: "Banking journal",
+                  creditAccountHeader: "Credit A/C",
+                  debitAccountHeader: "Debit A/C",
+                  journalId: 20,
+                })
+              }
             >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button> */}
+              Cash Transfer
+            </button>
           </div>
         </div>
+
         <Table
           columnDefs={columnDefinitions}
-          data={data?.data ?? []}
+          data={dt ? dt : []}
           ref={tableRef}
         />
       </div>
@@ -209,4 +219,4 @@ const GeneralLedgers: React.FC = () => {
   );
 };
 
-export default GeneralLedgers;
+export default BankingLedgers;

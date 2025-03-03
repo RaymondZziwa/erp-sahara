@@ -53,16 +53,22 @@ const AccountSubCategories = () => {
       </button>
       <button
         className="bg-shade px-2 py-1 rounded text-white"
-        onClick={() => setDialogState({ selectedCategory: rowData, currentAction: "edit" })}
+        onClick={() =>
+          setDialogState({ selectedCategory: rowData, currentAction: "edit" })
+        }
       >
         Edit
       </button>
-      <Icon
-        icon="solar:trash-bin-trash-bold"
-        className="text-red-500 cursor-pointer"
-        fontSize={20}
-        onClick={() => handleDeleteSubCategory(rowData.id, rowData.is_system_created)}
-      />
+      {rowData.is_system_created === 0 && (
+        <Icon
+          icon="solar:trash-bin-trash-bold"
+          className="text-red-500 cursor-pointer"
+          fontSize={20}
+          onClick={() =>
+            handleDeleteSubCategory(rowData.id, rowData.is_system_created)
+          }
+        />
+      )}
     </div>
   );
 

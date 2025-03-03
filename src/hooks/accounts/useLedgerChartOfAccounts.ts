@@ -18,6 +18,7 @@ const useLedgerChartOfAccounts = ({
   accountType: AccountType;
 }) => {
   const [accounts, setAccounts] = useState<ChartofAccount[]>([]);
+  const [balances, setBalances] = useState<any[]>([])
   const dispatch = useAppDispatch();
   const { token, isFetchingLocalToken } = useAuth();
 
@@ -78,13 +79,27 @@ const useLedgerChartOfAccounts = ({
     }
   };
 
+  const fetchAccountBalances = async () => {
+    try {
+      const response = await apiRequest<ServerResponse<any[]>>(
+        ACCOUNTS_ENDPOINTS.GET_ACCOUNT_BALANCES,
+        "GET",
+        token.access_token
+      );
+      setBalances(response.data)
+    } catch (error) {
+      console.log('error while fetching balances', error)
+    }
+  }
+
   useEffect(() => {
     fetchDataFromApi();
+    fetchAccountBalances()
   }, [isFetchingLocalToken, token.access_token, accountType]); // Include accountType in dependencies
 
   const data = useAppSelector((state) => state.ledgerChartOfAccounts);
 
-  return { ...data, refresh: fetchDataFromApi, data: accounts };
+  return { ...data, refresh: fetchDataFromApi, data: accounts, balances };
 };
 
 export default useLedgerChartOfAccounts;

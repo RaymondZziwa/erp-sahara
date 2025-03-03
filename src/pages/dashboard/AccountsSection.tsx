@@ -6,7 +6,7 @@ import { AccountType } from "../../redux/slices/types/accounts/accountTypes";
 import { Link } from "react-router-dom";
 
 const AccountsSection = () => {
-  const { data: chartOfAccounts } = useLedgerChartOfAccounts({
+  const { balances: chartOfAccounts } = useLedgerChartOfAccounts({
     accountType: AccountType.CASH,
   });
   return (

@@ -14,16 +14,6 @@ const journalTypes: {
   debitAccountHeader: string;
 }[] = [
   {
-    label: "Add Expense",
-    value: 1,
-    icon: "pi pi-money-bill",
-    endpoint: "/erp/accounts/transactions/save-expense",
-    debitAccountsType: AccountType.EXPENSES,
-    creditAccountsType: AccountType.CASH,
-    creditAccountHeader: "Cash",
-    debitAccountHeader: "Expense",
-  },
-  {
     label: "Add Payable",
     value: 2,
     icon: "pi pi-check",
@@ -43,16 +33,7 @@ const journalTypes: {
     creditAccountHeader: "Cash",
     debitAccountHeader: "Liabilities",
   },
-  {
-    label: "Add Income",
-    value: 4,
-    icon: "pi pi-plus-circle",
-    endpoint: "/erp/accounts/transactions/save-income",
-    debitAccountsType: AccountType.CASH,
-    creditAccountsType: AccountType.INCOME,
-    creditAccountHeader: "Income",
-    debitAccountHeader: "Cash",
-  },
+
   {
     label: "Add Receivable",
     value: 5,
@@ -94,16 +75,6 @@ const journalTypes: {
     debitAccountHeader: "Expenses",
   },
   {
-    label: "Cash Flow",
-    value: 9,
-    icon: "pi pi-wallet",
-    endpoint: "/erp/accounts/transactions/cash-to-cash-account",
-    debitAccountsType: AccountType.CASH,
-    creditAccountsType: AccountType.CASH,
-    creditAccountHeader: "Cash",
-    debitAccountHeader: "Cash",
-  },
-  {
     label: "General Transaction",
     value: 10,
     icon: "pi pi-times-circle",
@@ -128,7 +99,7 @@ interface LedgerBtnsTypesProps {
   onJournalClick: (params: JournalTypeClickParams) => void;
 }
 
-export default function LedgerBtnsTypes({
+export default function NCTBtnsTypes({
   onJournalClick,
 }: LedgerBtnsTypesProps) {
   const items: MenuItem[] = journalTypes.map((jtype) => ({
@@ -151,7 +122,7 @@ export default function LedgerBtnsTypes({
         dropdownIcon="pi pi-plus"
         severity="warning"
         size="small"
-        label="Select to record Journal Entry"
+        label="None Cash Transactions"
         model={items}
       />
     </div>

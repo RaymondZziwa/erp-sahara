@@ -33,16 +33,7 @@ interface AddOrModifyItemProps {
   journalType: string;
   creditAccountsHeader: string;
   debitAccountsHeader: string;
-}
-
-interface IAddLedger {
-  transaction_date: string;
-  reference?: string;
-  journal_type_id: number;
-  description: string;
-  lines: Line[];
-  supporting_files?: File[];
-  currency_id: number;
+  journalId: number
 }
 
 interface AddLedger {
@@ -63,13 +54,6 @@ interface AddLedger {
   supporting_files: File[];
 }
 
-interface Line {
-  chart_of_account_id: number;
-  credit_amount?: number;
-  debit_amount?: number;
-  currency_id: number;
-}
-
 const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   visible,
   onClose,
@@ -79,6 +63,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   creditAccountType,
   endpoint,
   journalType,
+  journalId
 }) => {
   const [formState, setFormState] = useState<Partial<AddLedger>>({
     transaction_date: new Date(),
@@ -86,13 +71,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     project_id: null,
     segment_id: null,
     budget_id: null,
-    journal_type_id: journalType.toLowerCase().includes("expense")
-      ? 4
-      : journalType.includes("income")
-      ? 5
-      : journalType.includes("cashflow")
-      ? 20
-      : 3,
+    journal_type_id: journalId,
     description: "",
     lines: [],
     currency_id: 2,
@@ -122,7 +101,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     console.log("item", item);
   }, []);
 
- 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -170,13 +148,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       : endpoint;
 
     try {
-      await createRequest(
-        endPoint,
-        token.access_token,
-        data,
-        onSave,
-        method
-      );
+      await createRequest(endPoint, token.access_token, data, onSave, method);
       setIsSubmitting(false);
 
       onSave();
@@ -236,9 +208,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
   return (
     <Dialog
-      header={
-        item?.id ? `${journalType ?? ""} Journal` : `${journalType} Journal`
-      }
+      header={item?.id ? `${journalType ?? ""}` : `${journalType}`}
       visible={visible}
       className="max-w-full md:max-w-screen-lg px-2 md:w-[1024px]"
       footer={footer}
@@ -305,42 +275,46 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               placeholder="Select Currency"
             />
           </div>
-          <div className="">
-            <label htmlFor="account type">Project (Optional)</label>
-            <Dropdown
-              className="p-inputtext-sm"
-              filter
-              showClear
-              loading={projectsLoading}
-              value={formState.project_id}
-              options={projects.map((project) => ({
-                value: project.id,
-                label: project.name,
-              }))}
-              onChange={(e: DropdownChangeEvent) =>
-                setFormState({ ...formState, project_id: e.value })
-              }
-              placeholder="Select Project"
-            />
-          </div>
-          <div className="">
-            <label htmlFor="account type">Budget (Optional)</label>
-            <Dropdown
-              className="p-inputtext-sm"
-              showClear
-              filter
-              loading={budgetsLoading}
-              value={formState.budget_id}
-              options={budgets.map((budget) => ({
-                value: budget.id,
-                label: budget.name,
-              }))}
-              onChange={(e: DropdownChangeEvent) =>
-                setFormState({ ...formState, budget_id: e.value })
-              }
-              placeholder="Select Budget"
-            />
-          </div>
+          {!journalType.includes("Banking") && (
+            <>
+              <div className="">
+                <label htmlFor="account type">Project (Optional)</label>
+                <Dropdown
+                  className="p-inputtext-sm"
+                  filter
+                  showClear
+                  loading={projectsLoading}
+                  value={formState.project_id}
+                  options={projects.map((project) => ({
+                    value: project.id,
+                    label: project.name,
+                  }))}
+                  onChange={(e: DropdownChangeEvent) =>
+                    setFormState({ ...formState, project_id: e.value })
+                  }
+                  placeholder="Select Project"
+                />
+              </div>
+              <div className="">
+                <label htmlFor="account type">Budget (Optional)</label>
+                <Dropdown
+                  className="p-inputtext-sm"
+                  showClear
+                  filter
+                  loading={budgetsLoading}
+                  value={formState.budget_id}
+                  options={budgets.map((budget) => ({
+                    value: budget.id,
+                    label: budget.name,
+                  }))}
+                  onChange={(e: DropdownChangeEvent) =>
+                    setFormState({ ...formState, budget_id: e.value })
+                  }
+                  placeholder="Select Budget"
+                />
+              </div>
+            </>
+          )}
         </div>
         <div className="col-span-full">
           <h3 className="font-bold text-xl">Entry</h3>

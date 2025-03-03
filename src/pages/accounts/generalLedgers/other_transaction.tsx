@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from "react";
 import { ColDef } from "ag-grid-community";
 import AddOrModifyItem from "./AddOrModifyItem";
@@ -14,7 +13,7 @@ import LedgerBtnsTypes from "./CashTransactions";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import NCTBtnsTypes from "./NCT";
 
-const GeneralLedgers: React.FC = () => {
+const OtherTransactions: React.FC = () => {
   const { data, refresh } = useGeneralLedgers();
   const tableRef = useRef<any>(null);
 
@@ -183,13 +182,12 @@ const GeneralLedgers: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Ledger Transactions" pageName="All" />
+      <BreadCrump name="Other Transactions" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="flex gap-2 my-2 justify-end">
-            <LedgerBtnsTypes onJournalClick={onJournalTypeClick} />
             <NCTBtnsTypes onJournalClick={onJournalTypeClick} />
-            <GTBtnsTypes onJournalClick={onJournalTypeClick} />
+            {/* <GTBtnsTypes onJournalClick={onJournalTypeClick} /> */}
             {/* <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
               onClick={handleExportPDF}
@@ -209,4 +207,4 @@ const GeneralLedgers: React.FC = () => {
   );
 };
 
-export default GeneralLedgers;
+export default OtherTransactions;
