@@ -32,9 +32,9 @@ interface fiscalYearType {
 }
 
 const ComparisonTrialBalances: React.FC = () => {
-  const [trialBalance, setTrialBalance] = useState<ComparisonTrialBalance[]>(
-    []
-  );
+  const [trialBalance, setTrialBalance] = useState<
+    ComparisonTrialBalance[] | null
+  >([]);
   const [fiscalYears, setFiscalYears] = useState<fiscalYearType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -77,6 +77,8 @@ const ComparisonTrialBalances: React.FC = () => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
+  console.log(trialBalance);
+
   let current_fy = fiscalYears[fiscalYears.length - 1]?.financial_year;
   let previous_fy = fiscalYears[fiscalYears.length - 1]?.financial_year;
 
@@ -108,7 +110,7 @@ const ComparisonTrialBalances: React.FC = () => {
     ];
 
     // Map your trial balance data into table rows (replace 0 with "")
-    const tableRows = trialBalance.map((item) => [
+    const tableRows = trialBalance?.map((item) => [
       item.account_code,
       item.account_name,
       item.current_debit !== 0 ? item.current_debit : "",
@@ -162,7 +164,7 @@ const ComparisonTrialBalances: React.FC = () => {
           Print
         </button>
       </div>
-      {trialBalance.length < 1 && isLoading != true ? (
+      {trialBalance && trialBalance.length < 1 && isLoading != true ? (
         "No Data Present"
       ) : (
         <table className="w-full border border-gray-200">
@@ -218,7 +220,7 @@ const ComparisonTrialBalances: React.FC = () => {
                 Credit Difference
               </td>
             </tr>
-            {trialBalance.map((item) => (
+            {trialBalance?.map((item) => (
               <tr key={item.account_id}>
                 <td className="border-r border-b border-gray-200 px-2">
                   {item.account_code}
@@ -256,7 +258,9 @@ const ComparisonTrialBalances: React.FC = () => {
           </tbody>
         </table>
       )}
-      {trialBalance.length < 1 && isLoading == true ? "Loading..." : ""}
+      {trialBalance && trialBalance.length < 1 && isLoading == true
+        ? "Loading..."
+        : ""}
     </div>
   );
 };

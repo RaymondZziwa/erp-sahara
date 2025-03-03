@@ -264,6 +264,16 @@ function BalanceSheetReport() {
                 .toLocaleString()}
             </td>
           </tr>
+          <tr className="font-bold bg-gray-200">
+            <td className="p-3 " colSpan={2}>
+              PROFIT/LOSS
+            </td>
+            <td className="p-3 ">
+              {data.current_profit_or_loss
+                ? data?.current_profit_or_loss.toLocaleString()
+                : 0}
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>

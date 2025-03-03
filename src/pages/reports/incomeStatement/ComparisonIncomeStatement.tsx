@@ -234,6 +234,9 @@ const ComparisonIncomeStatement: React.FC = () => {
             </tbody>
           </table>
         )}
+        {isLoading === false && incomeStatement.length === 0 && (
+          <p className="text-left">No data available</p>
+        )}
       </div>
     </div>
   );
