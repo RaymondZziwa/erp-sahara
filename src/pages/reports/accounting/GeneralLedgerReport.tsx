@@ -32,7 +32,6 @@ const GeneralLedgerReport = () => {
         "GET",
         token.access_token
       );
-      console.log("res", response.data);
 
       setLedgerData(response.data);
     } catch (error) {
@@ -55,24 +54,59 @@ const GeneralLedgerReport = () => {
       head: [["Account Name", "Total Debits", "Total Credits"]],
       body: ledgerData?.summaries.map((item) => [
         item.account_name,
-        item.total_debits,
-        item.total_credits,
+        item?.total_debits.toLocaleString(),
+        item?.total_credits.toLocaleString(),
       ]),
       theme: "grid",
+      headStyles: {
+        fillColor: [222, 226, 230], // Set to white or desired color
+        textColor: "black", // Set text color to black
+        fontStyle: "bold",
+      },
+      tableLineWidth: 0, // Removes outer table borders
+      tableLineColor: [255, 255, 255], // Makes sure no table outline
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          data.cell.styles.lineWidth = {
+            top: 0.2,
+            right: 0,
+            bottom: 0.2,
+            left: 0,
+          }; // [top, right, bottom, left]
+        }
+      },
     });
 
     // Add totals row
     autoTable(doc, {
       startY: (doc as any).previousAutoTable.finalY + 5,
       body: [
-        ["Total Credits", "", ledgerData?.total_credit ?? 0],
-        ["Total Debits", "", ledgerData?.total_debit ?? 0],
+        ["Total Credits", "", ledgerData?.total_credit.toLocaleString() ?? 0],
+        ["Total Debits", "", ledgerData?.total_debit.toLocaleString() ?? 0],
       ],
       theme: "grid",
+      styles: {
+        fillColor: [222, 226, 230], // Set to white or desired color
+        textColor: "black", // Set text color to black
+        fontStyle: "bold",
+      },
+      tableLineWidth: 0, // Removes outer table borders
+      tableLineColor: [255, 255, 255], // Makes sure no table outline
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          data.cell.styles.lineWidth = {
+            top: 0.2,
+            right: 0,
+            bottom: 0.2,
+            left: 0,
+          }; // [top, right, bottom, left]
+        }
+      },
     });
 
     doc.save("General_Ledger_Report.pdf");
   };
+
   return (
     <div className="bg-white p-3">
       <div className="flex justify-between items-center mb-4">
@@ -104,10 +138,10 @@ const GeneralLedgerReport = () => {
                       {item.account_name}
                     </td>
                     <td className="px-3 py-2 border-gray-200 border-b">
-                      {item.total_credits}
+                      {item.total_credits.toLocaleString()}
                     </td>
                     <td className="px-3 py-2 border-gray-200 border-b">
-                      {item.total_debits}
+                      {item.total_debits.toLocaleString()}
                     </td>
                   </tr>
                 </>
@@ -117,13 +151,17 @@ const GeneralLedgerReport = () => {
               <td className="px-3 py-2 " colSpan={2}>
                 Total Credits
               </td>
-              <td className="px-3 py-2">{ledgerData?.total_credit}</td>
+              <td className="px-3 py-2">
+                {ledgerData?.total_credit.toLocaleString()}
+              </td>
             </tr>
             <tr className="font-bold bg-gray-200">
               <td className="px-3 py-2" colSpan={2}>
                 Total Debits
               </td>
-              <td className="px-3 py-2">{ledgerData?.total_debit}</td>
+              <td className="px-3 py-2">
+                {ledgerData?.total_debit.toLocaleString()}
+              </td>
             </tr>
           </tbody>
         </table>

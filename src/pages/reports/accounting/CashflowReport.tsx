@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
-import Table from "../BalanceSheetTable";
+import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import { apiRequest } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import useAuth from "../../../hooks/useAuth";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface cashFlowData {
   operating_activities: {
@@ -27,7 +28,6 @@ function Cashflow() {
   const [cashFlow, setCashFlow] = useState<cashFlowData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { token, isFetchingLocalToken } = useAuth();
-  const tableRef = useRef<any>(null);
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken || !token.access_token) return;
@@ -50,25 +50,107 @@ function Cashflow() {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-  const columnDefs = [
-    { headerName: "Account ID", field: "account_id" },
-    { headerName: "Account Code", field: "account_code" },
-    { headerName: "Account Name", field: "account_name" },
-    { headerName: "Net Cash Flow", field: "net_cash_flow" },
-  ];
+  const operating_activities = cashFlow?.operating_activities;
+  const financing_activities = cashFlow?.financing_activities;
+  const investing_activities = cashFlow?.investing_activities;
 
-  const transformedData = [
-    { isGroup: true, subcategory_name: "Operating Activities" },
-    ...(cashFlow?.operating_activities?.Operating || []),
-    { isGroup: true, subcategory_name: "Investing Activities" },
-    ...(cashFlow?.investing_activities?.Investing || []),
-    { isGroup: true, subcategory_name: "Financial Activities" },
-    ...(cashFlow?.financing_activities?.Financing || []),
-  ];
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
+  const handleExportPDF = (cashFlow: cashFlowData) => {
+    const doc = new jsPDF();
+    doc.setFillColor(255, 255, 255);
+    doc.text("Cash Flow Statement", 20, 10);
+
+    const tableBody: any[] = [];
+
+    const sections = [
+      {
+        title: "Cash Flow from Operating Activities",
+        data: cashFlow.operating_activities.Operating,
+      },
+      {
+        title: "Cash Flow from Investing Activities",
+        data: cashFlow.investing_activities.Investing || [],
+      },
+      {
+        title: "Cash Flow from Financing Activities",
+        data: cashFlow.financing_activities.Financing || [],
+      },
+    ];
+
+    sections.forEach(({ title, data }) => {
+      // **Header Row for Section (e.g., "Cash Flow from Operating Activities")**
+      tableBody.push([
+        {
+          content: title,
+          colSpan: 2,
+          styles: {
+            fontStyle: "bold",
+            fillColor: [222, 226, 230],
+            halign: "left",
+            cellPadding: 3,
+          },
+        },
+      ]);
+
+      if (data.length > 0) {
+        // **Account Rows**
+        data.forEach((item) => {
+          tableBody.push([
+            item.account_name,
+            {
+              content: item.net_cash_flow.toLocaleString(),
+              styles: { halign: "right" },
+            },
+          ]);
+        });
+
+        // **Total Row**
+        const total = data.reduce((acc, item) => acc + item.net_cash_flow, 0);
+        tableBody.push([
+          {
+            content: "Net " + title.split(" from ")[1],
+            styles: {
+              fontStyle: "bold",
+              fillColor: [246, 249, 252],
+              halign: "left",
+            },
+          },
+          {
+            content: total.toLocaleString(),
+            styles: { fontStyle: "bold", halign: "right" },
+          },
+        ]);
+      } else {
+        // **No Data Message**
+        tableBody.push([
+          {
+            content: "No transactions recorded",
+            colSpan: 2,
+            styles: { halign: "center", fontStyle: "italic" },
+          },
+        ]);
+      }
+    });
+
+    autoTable(doc, {
+      body: tableBody,
+      theme: "grid",
+      styles: { textColor: "black", cellPadding: 3, lineWidth: 0.2 },
+      margin: { top: 20 },
+      tableLineWidth: 0, // Removes outer table borders
+      tableLineColor: [255, 255, 255], // Makes sure no table outline
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          data.cell.styles.lineWidth = {
+            top: 0.2,
+            right: 0,
+            bottom: 0.2,
+            left: 0,
+          }; // [top, right, bottom, left]
+        }
+      },
+    });
+
+    doc.save("CashFlowStatement.pdf");
   };
 
   return (
@@ -77,7 +159,7 @@ function Cashflow() {
         <p className="font-bold text-xl">Cash Flow Report</p>
         <button
           className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-          onClick={handleExportPDF}
+          onClick={() => cashFlow && handleExportPDF(cashFlow)}
         >
           <Icon icon="solar:printer-bold" fontSize={20} />
           Print
@@ -86,7 +168,78 @@ function Cashflow() {
       {isLoading ? (
         "Loading..."
       ) : (
-        <Table ref={tableRef} columnDefs={columnDefs} data={transformedData} />
+        <table className="w-full">
+          <tbody>
+            <tr className="font-bold bg-gray-200">
+              <td className="p-3" colSpan={2}>
+                Cash Flow from Operating Activities
+              </td>
+            </tr>
+            {operating_activities?.Operating
+              ? operating_activities?.Operating.map((item) => {
+                  return (
+                    <tr>
+                      <td className="px-5 py-2 border-gray-300 border-b border-r">
+                        {item.account_name}
+                      </td>
+                      <td className="px-5 py-2 border-gray-200 border-b">
+                        {item.net_cash_flow}
+                      </td>
+                    </tr>
+                  );
+                })
+              : ""}
+            <tr>
+              <td className="px-5 py-2 font-bold border-gray-200 border-b">
+                Net Cash from Operations
+              </td>
+              <td className="px-5 py-2 font-bold border-gray-200 border-b">
+                {operating_activities?.Operating.reduce(
+                  (acc, item) => acc + item.net_cash_flow,
+                  0
+                )}
+              </td>
+            </tr>
+            <tr className="font-bold bg-gray-200">
+              <td className="p-3" colSpan={2}>
+                Cash Flow from Investing Activities
+              </td>
+            </tr>
+            {investing_activities?.Investing
+              ? investing_activities?.Investing.map((item) => {
+                  return (
+                    <tr>
+                      <td className="px-5 py-2 border-gray-200 border-b">
+                        {item.account_name}
+                      </td>
+                      <td className="px-5 py-2 border-gray-200 border-b">
+                        {item.net_cash_flow}
+                      </td>
+                    </tr>
+                  );
+                })
+              : ""}
+            <tr className="font-bold bg-gray-200">
+              <td className="p-3" colSpan={2}>
+                Cash Flow from Financing Activities
+              </td>
+            </tr>
+            {financing_activities?.Financing
+              ? financing_activities?.Financing.map((item) => {
+                  return (
+                    <tr>
+                      <td className="px-5 py-2 border-gray-200 border-b">
+                        {item.account_name}
+                      </td>
+                      <td className="px-5 py-2 border-gray-200 border-b">
+                        {item.net_cash_flow}
+                      </td>
+                    </tr>
+                  );
+                })
+              : ""}
+          </tbody>
+        </table>
       )}
     </div>
   );

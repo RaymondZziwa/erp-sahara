@@ -14,12 +14,6 @@ function TrialBalanceReport() {
 
   const columnDefs: ColDef<TrialBalance>[] = [
     {
-      headerName: "Account ID",
-      field: "account_id",
-      sortable: true,
-      filter: true,
-    },
-    {
       headerName: "Account Name",
       field: "account_name",
       sortable: true,
@@ -73,7 +67,6 @@ function TrialBalanceReport() {
             <tr className="bg-gray-200">
               <td className="text-center font-bold py-4 px-4" colSpan={5}>
                 <p className="text-center font-bold">Trial Balance</p>
-                <p className="text-center font-bold">FY Ended 31 Dec 2023</p>
                 <p className="text-center text-sm">All Figures in UGX</p>
               </td>
             </tr>
