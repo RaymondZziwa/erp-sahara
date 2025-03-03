@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import useAuth from "../../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import { apiRequest } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
-import Table from "../IncomeStatementTable";
 import { Icon } from "@iconify/react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface ComparisonIncomeStatementData {
   income_statement: Incomestatement;
@@ -60,33 +61,113 @@ const ComparisonIncomeStatement: React.FC = () => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-  const tableRef = useRef<any>(null);
+  const handleExportPDF = (data: Incomestatement[]) => {
+    const doc = new jsPDF();
+    doc.setFillColor(255, 255, 255);
+    doc.text("Income Statement Comparison Report", 20, 10);
 
-  const columnDefs = [
-    { headerName: "Ledger ID", field: "ledger_id" },
-    { headerName: "Ledger Code", field: "ledger_code" },
-    { headerName: "Ledger Name", field: "ledger_name" },
-    { headerName: "Amount", field: "amount" },
-    { headerName: "Previous Amount", field: "previous_amount" },
-    { headerName: "Difference", field: "difference" },
-  ];
+    const tableBody: any[] = [];
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
+    data.forEach((category) => {
+      tableBody.push([
+        {
+          content: category.sub_category_name,
+          colSpan: 4,
+          styles: {
+            fillColor: [222, 226, 230], // Light Gray Background
+            fontStyle: "bold",
+            halign: "left",
+            cellPadding: 3,
+          },
+        },
+      ]);
+
+      tableBody.push([
+        {
+          content: "Name",
+          styles: { halign: "left", fontStyle: "bold" },
+        },
+        {
+          content: "Current Amount",
+          styles: { halign: "center", fontStyle: "bold" },
+        },
+        {
+          content: "Previous Amount",
+          styles: { halign: "center", fontStyle: "bold" },
+        },
+        {
+          content: "Difference",
+          styles: { halign: "center", fontStyle: "bold" },
+        },
+      ]);
+
+      category.ledgers.forEach((ledger) => {
+        tableBody.push([
+          ledger.ledger_name,
+          {
+            content: ledger.amount.toLocaleString(),
+            styles: { halign: "center" },
+          },
+          {
+            content: ledger.previous_amount.toLocaleString(),
+            styles: { halign: "center" },
+          },
+          {
+            content: ledger.difference.toLocaleString(),
+            styles: { halign: "center" },
+          },
+        ]);
+      });
+
+      tableBody.push([
+        {
+          content: "SubCategory Total",
+          colSpan: 3,
+          styles: {
+            fontStyle: "bold",
+            fillColor: [246, 249, 252],
+            halign: "left",
+          },
+        },
+        {
+          content: category.total.toLocaleString(),
+          styles: { fontStyle: "bold", halign: "right" },
+        },
+      ]);
+    });
+
+    autoTable(doc, {
+      body: tableBody,
+      theme: "grid",
+      styles: { textColor: "black", cellPadding: 2, lineWidth: 0.2 },
+      margin: { top: 20 },
+      tableLineWidth: 0, // Removes outer table borders
+      tableLineColor: [255, 255, 255], // Makes sure no table outline
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          data.cell.styles.lineWidth = {
+            top: 0.2,
+            right: 0,
+            bottom: 0.2,
+            left: 0,
+          }; // [top, right, bottom, left]
+        }
+      },
+    });
+
+    doc.save("IncomeStatementComparison.pdf");
   };
 
   return (
     <div>
       <div className="bg-white p-3">
         <div className="flex justify-between items-center mb-4">
-          <p className="font-bold text-2xl">
-            Income Statement Comparison Report
-          </p>
+          <p className="font-bold text-2xl">Income Statement Comparison</p>
           <button
             className="bg-shade p-3 rounded text-white flex gap-2 items-center"
-            onClick={handleExportPDF}
+            onClick={() =>
+              incomeStatement.length > 0 && handleExportPDF(incomeStatement)
+            }
           >
             <Icon icon="solar:printer-bold" fontSize={20} />
             Print
@@ -97,27 +178,61 @@ const ComparisonIncomeStatement: React.FC = () => {
         {isLoading ? (
           "Loading..."
         ) : (
-          <Table
-            columnDefs={columnDefs}
-            data={incomeStatement?.flatMap((category) => [
-              { sub_category_name: category.sub_category_name, isGroup: true }, // Group row
-              ...category.ledgers.map((ledger) => ({
-                ...ledger,
-                sub_category_name: category.sub_category_name,
-                isGroup: false,
-              })),
-              { total: category.total, isTotalRow: true }, // Subcategory total row
-            ])}
-            ref={tableRef}
-            customHeader={
-              <tr className="bg-gray-200">
-                <td className="text-center font-bold py-4 px-4" colSpan={6}>
-                  <p className="text-center font-bold">Sample Company</p>
-                  <p className="text-center text-sm">31 Dec 2023</p>
-                </td>
-              </tr>
-            }
-          />
+          <table className="w-full">
+            <tbody>
+              {incomeStatement?.map((category) => {
+                return (
+                  <>
+                    <tr className="font-bold bg-gray-200">
+                      <td className="p-3 " colSpan={4}>
+                        {category.sub_category_name}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-3 py-2 border-gray-200 border-b">
+                        Name
+                      </td>
+                      <td className="px-3 py-2 border-gray-200 border-b">
+                        Current Amount
+                      </td>
+                      <td className="px-3 py-2 border-gray-200 border-b">
+                        Previous Amount
+                      </td>
+                      <td className="px-3 py-2 border-gray-200 border-b">
+                        Difference
+                      </td>
+                    </tr>
+                    {category.ledgers.map((ledger: any) => {
+                      return (
+                        <tr>
+                          <td className="px-3 py-2 border-gray-200 border-b">
+                            {ledger.ledger_name}
+                          </td>
+                          <td className="px-3 py-2 border-gray-200 border-b">
+                            {ledger.amount.toLocaleString()}
+                          </td>
+                          <td className="px-3 py-2 border-gray-200 border-b">
+                            {ledger.previous_amount.toLocaleString()}
+                          </td>
+                          <td className="px-3 py-2 border-gray-200 border-b">
+                            {ledger.difference.toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    <tr className="font-bold bg-gray-100">
+                      <td className="p-3 " colSpan={3}>
+                        SubCategory Total
+                      </td>
+                      <td className="p-3 ">
+                        {category.total.toLocaleString()}
+                      </td>
+                    </tr>
+                  </>
+                );
+              })}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

@@ -1,46 +1,95 @@
-import { useState, useRef } from "react";
-import Table from "../IncomeStatementTable"; // Adjust path if needed
 import { Icon } from "@iconify/react";
 import useIncomeStatement from "../../../hooks/reports/useIncomeStatement";
-import { IconField } from "primereact/iconfield";
-import { InputIcon } from "primereact/inputicon";
-import { InputText } from "primereact/inputtext";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 function IncomeStatementReport() {
-  const tableRef = useRef<any>(null);
   const { data = [] } = useIncomeStatement();
-  const [, setGlobalFilter] = useState<string | null>(null);
 
-  // Column definitions
-  const columnDefs = [
-    { headerName: "Ledger ID", field: "ledger_id" },
-    { headerName: "Ledger Code", field: "ledger_code" },
-    { headerName: "Ledger Name", field: "ledger_name" },
-    { headerName: "Amount", field: "amount" },
-  ];
+  const handleExportPDF = (data: any[]) => {
+    const doc = new jsPDF();
+    doc.setFillColor(255, 255, 255);
+    doc.text("Income Statement Report", 20, 10);
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
+    const tableBody: any[] = [];
+
+    data.forEach((category) => {
+      // Section Header (Category)
+      tableBody.push([
+        {
+          content: category.sub_category_name,
+          colSpan: 2,
+          styles: {
+            fillColor: [222, 226, 230], // Light Gray Background
+            fontStyle: "bold",
+            halign: "left",
+            cellPadding: 3,
+          },
+        },
+      ]);
+
+      // Ledger Items
+      category.ledgers.forEach((ledger: any) => {
+        tableBody.push([
+          ledger.ledger_name,
+          {
+            content: ledger.amount.toLocaleString(),
+            styles: { halign: "right" },
+          },
+        ]);
+      });
+
+      // SubCategory Total
+      tableBody.push([
+        {
+          content: "SubCategory Total",
+          styles: {
+            fontStyle: "bold",
+            fillColor: [246, 249, 252],
+            halign: "left",
+          },
+        },
+        {
+          content: category.total.toLocaleString(),
+          styles: { fontStyle: "bold", halign: "right" },
+        },
+      ]);
+    });
+
+    autoTable(doc, {
+      body: tableBody,
+      theme: "grid",
+      styles: {
+        textColor: "black",
+        cellPadding: 2,
+        lineWidth: 0.2, // Ensures borders are visible
+      },
+      margin: { top: 20 },
+      tableLineWidth: 0, // Removes outer table borders
+      tableLineColor: [255, 255, 255], // Makes sure no table outline
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          data.cell.styles.lineWidth = {
+            top: 0.2,
+            right: 0,
+            bottom: 0.2,
+            left: 0,
+          }; // [top, right, bottom, left]
+        }
+      },
+    });
+
+    doc.save("IncomeStatement.pdf");
   };
 
   return (
     <div className="bg-white p-3">
       <div className="flex justify-between items-center mb-4">
         <p className="font-bold text-2xl">Income Statement Report</p>
-        <IconField iconPosition="left">
-          <InputIcon className="pi pi-search"></InputIcon>
-          <InputText
-            placeholder="Search"
-            onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setGlobalFilter(e.target.value)
-            }
-          />
-        </IconField>
+
         <button
           className="bg-shade p-3 rounded text-white flex gap-2 items-center"
-          onClick={handleExportPDF}
+          onClick={() => handleExportPDF(data)}
         >
           <Icon icon="solar:printer-bold" fontSize={20} />
           Print
@@ -51,27 +100,37 @@ function IncomeStatementReport() {
       {data == null || data.length < 1 ? (
         "No data present"
       ) : (
-        <Table
-          columnDefs={columnDefs}
-          data={data.flatMap((category) => [
-            { sub_category_name: category.sub_category_name, isGroup: true }, // Group row
-            ...category.ledgers.map((ledger) => ({
-              ...ledger,
-              sub_category_name: category.sub_category_name,
-              isGroup: false,
-            })),
-            { total: category.total, isTotalRow: true }, // Subcategory total row
-          ])}
-          ref={tableRef}
-          customHeader={
-            <tr className="bg-gray-200">
-              <td className="text-center font-bold py-4 px-4" colSpan={4}>
-                <p className="text-center font-bold">Sample Company</p>
-                <p className="text-center text-sm">31 Dec 2023</p>
-              </td>
-            </tr>
-          }
-        />
+        <table className="w-full">
+          <tbody>
+            {data.map((category) => {
+              return (
+                <>
+                  <tr className="font-bold bg-gray-200">
+                    <td className="p-3 " colSpan={3}>
+                      {category.sub_category_name}
+                    </td>
+                  </tr>
+                  {category.ledgers.map((ledger: any) => {
+                    return (
+                      <tr>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {ledger.ledger_name}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {ledger.amount.toLocaleString()}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="font-bold bg-gray-100">
+                    <td className="p-3 ">SubCategory Total</td>
+                    <td className="p-3 ">{category.total.toLocaleString()}</td>
+                  </tr>
+                </>
+              );
+            })}
+          </tbody>
+        </table>
       )}
     </div>
   );

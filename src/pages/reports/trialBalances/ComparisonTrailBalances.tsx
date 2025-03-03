@@ -87,10 +87,10 @@ const ComparisonTrialBalances: React.FC = () => {
     const tableColumn = [
       "Account Code",
       "Account Name",
-      `${current_fy} Debit`,
-      `${current_fy} Credit`,
-      `${previous_fy} Debit`,
-      `${previous_fy} Credit`,
+      ` Debit`,
+      `Credit`,
+      `Debit`,
+      `Credit`,
       "Debit Difference",
       "Credit Difference",
     ];
@@ -128,9 +128,21 @@ const ComparisonTrialBalances: React.FC = () => {
       head: [fiscalYearRow, tableColumn],
       body: tableRows,
       headStyles: {
-        fillColor: "#00ac9a",
-        textColor: [255, 255, 255],
+        fillColor: [222, 226, 230],
+        textColor: "black",
         fontStyle: "bold",
+      },
+      tableLineWidth: 0, // Removes outer table borders
+      tableLineColor: [255, 255, 255], // Makes sure no table outline
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          data.cell.styles.lineWidth = {
+            top: 0.2,
+            right: 0.2,
+            bottom: 0.2,
+            left: 0.2,
+          }; // [top, right, bottom, left]
+        }
       },
     });
 
