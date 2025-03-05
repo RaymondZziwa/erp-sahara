@@ -183,7 +183,9 @@ function Cashflow() {
                         {item.account_name}
                       </td>
                       <td className="px-5 py-2 border-gray-200 border-b">
-                        {item.net_cash_flow}
+                        {item.net_cash_flow
+                          ? item.net_cash_flow.toLocaleString()
+                          : ""}
                       </td>
                     </tr>
                   );
@@ -191,13 +193,15 @@ function Cashflow() {
               : ""}
             <tr>
               <td className="px-5 py-2 font-bold border-gray-200 border-b">
-                Net Cash from Operations
+                Net Cash from Operations Activities
               </td>
-              <td className="px-5 py-2 font-bold border-gray-200 border-b">
-                {operating_activities?.Operating.reduce(
-                  (acc, item) => acc + item.net_cash_flow,
-                  0
-                )}
+              <td className="px-6 py-2 font-bold border-gray-200 border-b">
+                {operating_activities?.Operating
+                  ? operating_activities?.Operating.reduce(
+                      (acc, item) => acc + item.net_cash_flow,
+                      0
+                    ).toLocaleString()
+                  : ""}
               </td>
             </tr>
             <tr className="font-bold bg-gray-200">
@@ -209,16 +213,31 @@ function Cashflow() {
               ? investing_activities?.Investing.map((item) => {
                   return (
                     <tr>
-                      <td className="px-5 py-2 border-gray-200 border-b">
+                      <td className="px-5 py-2 border-gray-200 border-b border-r">
                         {item.account_name}
                       </td>
                       <td className="px-5 py-2 border-gray-200 border-b">
-                        {item.net_cash_flow}
+                        {item.net_cash_flow
+                          ? item.net_cash_flow.toLocaleString()
+                          : ""}
                       </td>
                     </tr>
                   );
                 })
               : ""}
+            <tr>
+              <td className="px-5 py-2 font-bold border-gray-200 border-b">
+                Net Cash from Investing Activities
+              </td>
+              <td className="px-6 py-2 font-bold border-gray-200 border-b">
+                {investing_activities?.Investing
+                  ? investing_activities?.Investing.reduce(
+                      (acc, item) => acc + item.net_cash_flow,
+                      0
+                    ).toLocaleString()
+                  : ""}
+              </td>
+            </tr>
             <tr className="font-bold bg-gray-200">
               <td className="p-3" colSpan={2}>
                 Cash Flow from Financing Activities
@@ -228,16 +247,31 @@ function Cashflow() {
               ? financing_activities?.Financing.map((item) => {
                   return (
                     <tr>
-                      <td className="px-5 py-2 border-gray-200 border-b">
+                      <td className="px-5 py-2 border-gray-200 border-b border-r">
                         {item.account_name}
                       </td>
                       <td className="px-5 py-2 border-gray-200 border-b">
-                        {item.net_cash_flow}
+                        {item.net_cash_flow
+                          ? item.net_cash_flow.toLocaleString()
+                          : ""}
                       </td>
                     </tr>
                   );
                 })
               : ""}
+            <tr>
+              <td className="px-5 py-2 font-bold border-gray-200 border-b">
+                Net Cash from Financing Activities
+              </td>
+              <td className="px-6 py-2 font-bold border-gray-200 border-b">
+                {financing_activities?.Financing
+                  ? financing_activities?.Financing.reduce(
+                      (acc, item) => acc + item.net_cash_flow,
+                      0
+                    ).toLocaleString()
+                  : ""}
+              </td>
+            </tr>
           </tbody>
         </table>
       )}

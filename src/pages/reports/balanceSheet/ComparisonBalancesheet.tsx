@@ -99,6 +99,7 @@ const ComparisonBalanceSheet: React.FC = () => {
       console.log("resp", response.data);
 
       setIncomeStatement(response.data.data as ComparisonBalanceSheet);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -250,6 +251,51 @@ const ComparisonBalanceSheet: React.FC = () => {
     doc.save("BalanceSheet.pdf");
   };
 
+  let totalCurrentAssetAmount = assets?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.total,
+    0
+  );
+
+  let totalPreviousAssetAmount = assets?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.previous_total,
+    0
+  );
+
+  let totalAssetDifference = assets?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.difference,
+    0
+  );
+
+  let totalCurrentEquityAmount = equity?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.total,
+    0
+  );
+
+  let totalPreviousEquityAmount = equity?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.previous_total,
+    0
+  );
+
+  let totalEquityDifference = equity?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.difference,
+    0
+  );
+
+  let totalLiabilitiesCurrentAmount = liabilities?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.total,
+    0
+  );
+
+  let totalLiabilitiesPreviousAmount = liabilities?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.previous_total,
+    0
+  );
+
+  let totalLiabilitiesDifference = liabilities?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.difference,
+    0
+  );
+
   return (
     <div className="bg-white p-3">
       <div className="flex justify-between items-center mb-4">
@@ -265,8 +311,8 @@ const ComparisonBalanceSheet: React.FC = () => {
 
       {/* Custom Table Component */}
 
-      {isLoading ? (
-        "Loading ..."
+      {isLoading && incomeStatement == null ? (
+        "Loading..."
       ) : (
         <table className="w-full">
           <tbody>
@@ -312,13 +358,19 @@ const ComparisonBalanceSheet: React.FC = () => {
                           {account.account_name}
                         </td>
                         <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.balance.toLocaleString()}
+                          {account.balance
+                            ? account.balance.toLocaleString()
+                            : ""}
                         </td>
                         <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.previous_amount.toLocaleString()}
+                          {account.previous_amount
+                            ? account.previous_amount.toLocaleString()
+                            : ""}
                         </td>
                         <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.difference.toLocaleString()}
+                          {account.difference
+                            ? account.difference.toLocaleString()
+                            : ""}
                         </td>
                       </tr>
                     );
@@ -331,28 +383,19 @@ const ComparisonBalanceSheet: React.FC = () => {
                 TOTAL ASSETS
               </td>
               <td className="p-3 ">
-                {assets
-                  ?.reduce(
-                    (acc, item: SubcategoryDetail) => acc + item.total,
-                    0
-                  )
-                  .toLocaleString()}
+                {Number(totalCurrentAssetAmount) > 0
+                  ? totalCurrentAssetAmount.toLocaleString()
+                  : ""}
               </td>
               <td className="p-3 ">
-                {assets
-                  ?.reduce(
-                    (acc, item: SubcategoryDetail) => acc + item.previous_total,
-                    0
-                  )
-                  .toLocaleString()}
+                {Number(totalPreviousAssetAmount) > 0
+                  ? totalPreviousAssetAmount.toLocaleString()
+                  : ""}
               </td>
               <td className="p-3 ">
-                {assets
-                  ?.reduce(
-                    (acc, item: SubcategoryDetail) => acc + item.difference,
-                    0
-                  )
-                  .toLocaleString()}
+                {Number(totalAssetDifference) > 0
+                  ? totalAssetDifference.toLocaleString()
+                  : ""}
               </td>
             </tr>
 
@@ -397,13 +440,19 @@ const ComparisonBalanceSheet: React.FC = () => {
                           {account.account_name}
                         </td>
                         <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.balance.toLocaleString()}
+                          {account.balance
+                            ? account.balance.toLocaleString()
+                            : ""}
                         </td>
                         <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.previous_amount.toLocaleString()}
+                          {account.previous_amount
+                            ? account.previous_amount.toLocaleString()
+                            : ""}
                         </td>
                         <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.difference.toLocaleString()}
+                          {account.difference
+                            ? account.difference.toLocaleString()
+                            : ""}
                         </td>
                       </tr>
                     );
@@ -416,28 +465,19 @@ const ComparisonBalanceSheet: React.FC = () => {
                 TOTAL EQUITY
               </td>
               <td className="p-3 ">
-                {equity
-                  ?.reduce(
-                    (acc, item: SubcategoryDetail) => acc + item.total,
-                    0
-                  )
-                  .toLocaleString()}
+                {Number(totalCurrentEquityAmount) > 0
+                  ? totalCurrentEquityAmount.toLocaleString()
+                  : ""}
               </td>
               <td className="p-3 ">
-                {equity
-                  ?.reduce(
-                    (acc, item: SubcategoryDetail) => acc + item.previous_total,
-                    0
-                  )
-                  .toLocaleString()}
+                {Number(totalPreviousEquityAmount) > 0
+                  ? totalPreviousEquityAmount.toLocaleString()
+                  : ""}
               </td>
               <td className="p-3 ">
-                {equity
-                  ?.reduce(
-                    (acc, item: SubcategoryDetail) => acc + item.difference,
-                    0
-                  )
-                  .toLocaleString()}
+                {Number(totalEquityDifference) > 0
+                  ? totalEquityDifference.toLocaleString()
+                  : ""}
               </td>
             </tr>
             <tr className="font-bold bg-gray-300">
@@ -481,13 +521,19 @@ const ComparisonBalanceSheet: React.FC = () => {
                           {account.account_name}
                         </td>
                         <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.balance.toLocaleString()}
+                          {account.balance
+                            ? account.balance.toLocaleString()
+                            : ""}
                         </td>
                         <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.previous_amount.toLocaleString()}
+                          {account.previous_amount
+                            ? account.previous_amount.toLocaleString()
+                            : ""}
                         </td>
                         <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.difference.toLocaleString()}
+                          {account.difference
+                            ? account.difference.toLocaleString()
+                            : ""}
                         </td>
                       </tr>
                     );
@@ -500,34 +546,25 @@ const ComparisonBalanceSheet: React.FC = () => {
                 TOTAL LIABILITIES
               </td>
               <td className="p-3 ">
-                {liabilities
-                  ?.reduce(
-                    (acc, item: SubcategoryDetail) => acc + item.total,
-                    0
-                  )
-                  .toLocaleString()}
+                {Number(totalLiabilitiesCurrentAmount) > 0
+                  ? totalLiabilitiesCurrentAmount.toLocaleString()
+                  : ""}
               </td>
               <td className="p-3 ">
-                {liabilities
-                  ?.reduce(
-                    (acc, item: SubcategoryDetail) => acc + item.previous_total,
-                    0
-                  )
-                  .toLocaleString()}
+                {Number(totalLiabilitiesPreviousAmount) > 0
+                  ? totalLiabilitiesPreviousAmount.toLocaleString()
+                  : ""}
               </td>
               <td className="p-3 ">
-                {liabilities
-                  ?.reduce(
-                    (acc, item: SubcategoryDetail) => acc + item.difference,
-                    0
-                  )
-                  .toLocaleString()}
+                {Number(totalLiabilitiesDifference) > 0
+                  ? totalLiabilitiesDifference.toLocaleString()
+                  : ""}
               </td>
             </tr>
           </tbody>
         </table>
       )}
-      {incomeStatement === null && !isLoading ? "No data Present" : ""}
+      {/* {isLoading && incomeStatement == null ? "Loading...." : ""} */}
     </div>
   );
 };

@@ -169,14 +169,6 @@ const ComparisonTrialBalances: React.FC = () => {
       ) : (
         <table className="w-full border border-gray-200">
           <tbody>
-            <tr className="bg-gray-200">
-              <td className="text-center font-bold py-4 px-4" colSpan={8}>
-                <p className="text-center font-bold">
-                  Trial Balance Comparison
-                </p>
-                <p className="text-center text-sm">All Figures in UGX</p>
-              </td>
-            </tr>
             <tr className="font-bold">
               <td className="border-r border-b border-gray-200 p-2" colSpan={2}>
                 Years
