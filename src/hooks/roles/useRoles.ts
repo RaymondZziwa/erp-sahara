@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   fetchDataStart,
   fetchDataSuccess,
@@ -11,6 +11,7 @@ import { baseURL } from "../../utils/api.ts";
 const useRoles = () => {
   const dispatch = useAppDispatch();
   const { token, isFetchingLocalToken } = useAuth();
+  const [roles, setRoles] = useState([])
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken) return;
@@ -29,6 +30,7 @@ const useRoles = () => {
       const data = await response.json();
       console.log('json', data)
       dispatch(fetchDataSuccess(data.data));
+      setRoles(data.data)
     } catch (error) {
       dispatch(
         fetchDataFailure(
@@ -70,7 +72,7 @@ const useRoles = () => {
 
   const data = useAppSelector((state) => state.roles);
 
-  return { ...data, refresh: fetchDataFromApi, deleteRole };
+  return { ...data, refresh: fetchDataFromApi, deleteRole, roles: roles };
 };
 
 export default useRoles;

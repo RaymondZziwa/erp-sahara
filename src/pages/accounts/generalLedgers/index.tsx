@@ -1,7 +1,6 @@
+
 import React, { useRef, useState } from "react";
 import { ColDef } from "ag-grid-community";
-import { Icon } from "@iconify/react";
-
 import AddOrModifyItem from "./AddOrModifyItem";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import Table from "../../../components/table";
@@ -11,11 +10,10 @@ import { PROJECTS_ENDPOINTS } from "../../../api/projectsEndpoints";
 
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
 import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
-import LedgerBtnsTypes from "./LedgerTypesBtns";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 
 const GeneralLedgers: React.FC = () => {
-  const { data, refresh } = useGeneralLedgers();
+  const { refresh } = useGeneralLedgers();
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
@@ -38,39 +36,25 @@ const GeneralLedgers: React.FC = () => {
     debitAccountHeader: "",
   });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
 
-  const columnDefinitions: ColDef<Ledger>[] = [
+  const columnDefinitions: ColDef<any>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
-      headerName: "Account",
-      field: "chart_of_account.name",
+      headerName: "Debit A/C",
+      field: "debit_account.name",
       sortable: true,
       filter: true,
     },
     {
-      headerName: "Debit amount",
-      field: "debit_sum",
+      headerName: "Credit A/C",
+      field: "credit_account.name",
       sortable: true,
       filter: true,
     },
-
     {
-      headerName: "Credit amount",
-      field: "credit_sum",
+      headerName: "Amount",
+      field: "amount",
       sortable: true,
       filter: true,
-      suppressSizeToFit: true,
     },
     // {
     //   headerName: "Actions",
@@ -108,34 +92,34 @@ const GeneralLedgers: React.FC = () => {
     // },
   ];
 
-  interface JournalTypeClickParams {
-    debitAccountsType: AccountType;
-    creditAccountsType: AccountType;
-    endpoint: string;
-    journalType: string;
-    creditAccountHeader: string;
-    debitAccountHeader: string;
-  }
+  // interface JournalTypeClickParams {
+  //   debitAccountsType: AccountType;
+  //   creditAccountsType: AccountType;
+  //   endpoint: string;
+  //   journalType: string;
+  //   creditAccountHeader: string;
+  //   debitAccountHeader: string;
+  // }
 
-  const onJournalTypeClick = ({
-    debitAccountsType,
-    creditAccountsType,
-    endpoint,
-    journalType,
-    creditAccountHeader,
-    debitAccountHeader,
-  }: JournalTypeClickParams) => {
-    setDialogState({
-      selectedItem: undefined,
-      currentAction: "add",
-      debitAccountsType,
-      creditAccountsType,
-      endpoint,
-      journalType,
-      creditAccountHeader,
-      debitAccountHeader,
-    });
-  };
+  // const onJournalTypeClick = ({
+  //   debitAccountsType,
+  //   creditAccountsType,
+  //   endpoint,
+  //   journalType,
+  //   creditAccountHeader,
+  //   debitAccountHeader,
+  // }: JournalTypeClickParams) => {
+  //   setDialogState({
+  //     selectedItem: undefined,
+  //     currentAction: "add",
+  //     debitAccountsType,
+  //     creditAccountsType,
+  //     endpoint,
+  //     journalType,
+  //     creditAccountHeader,
+  //     debitAccountHeader,
+  //   });
+  // };
 
   return (
     <div>
@@ -149,24 +133,19 @@ const GeneralLedgers: React.FC = () => {
           creditAccountType={dialogState.creditAccountsType}
           onSave={refresh}
           item={dialogState.selectedItem}
-          visible={
-            dialogState.currentAction == "add" ||
+          visible={dialogState.currentAction == "add" ||
             (dialogState.currentAction == "edit" &&
-              !!dialogState.selectedItem?.id)
-          }
-          onClose={() =>
-            setDialogState({
-              currentAction: "",
-              selectedItem: undefined,
-              debitAccountsType: AccountType.ASSETS,
-              creditAccountsType: AccountType.ASSETS,
-              endpoint: "",
-              journalType: "",
-              debitAccountHeader: "",
-              creditAccountHeader: "",
-            })
-          }
-        />
+              !!dialogState.selectedItem?.id)}
+          onClose={() => setDialogState({
+            currentAction: "",
+            selectedItem: undefined,
+            debitAccountsType: AccountType.ASSETS,
+            creditAccountsType: AccountType.ASSETS,
+            endpoint: "",
+            journalType: "",
+            debitAccountHeader: "",
+            creditAccountHeader: "",
+          })}        />
       )}
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
@@ -192,26 +171,25 @@ const GeneralLedgers: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Ledger Summaries" pageName="All" />
+      <BreadCrump name="Ledger Transactions" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
-          <div className="py-2">
-            <h1 className="text-xl font-bold">General ledgers</h1>
-          </div>
-          <div className="flex gap-2 my-2">
-            <LedgerBtnsTypes onJournalClick={onJournalTypeClick} />
-            <button
+          <div className="flex gap-2 my-2 justify-end">
+            {/* <LedgerBtnsTypes onJournalClick={onJournalTypeClick} />
+            <NCTBtnsTypes onJournalClick={onJournalTypeClick} />
+            <GTBtnsTypes onJournalClick={onJournalTypeClick} /> */}
+            {/* <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
               onClick={handleExportPDF}
             >
               <Icon icon="solar:printer-bold" fontSize={20} />
               Print
-            </button>
+            </button> */}
           </div>
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={data?.summaries ?? []}
+          data={[]}
           ref={tableRef}
         />
       </div>

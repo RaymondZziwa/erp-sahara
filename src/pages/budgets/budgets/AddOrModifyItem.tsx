@@ -15,7 +15,6 @@ import useBudgets from "../../../hooks/budgets/useBudgets";
 import useLedgerChartOfAccounts from "../../../hooks/accounts/useLedgerChartOfAccounts";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import { InputNumber } from "primereact/inputnumber";
-import useItems from "../../../hooks/inventory/useItems";
 
 interface AddBudget {
   name: string;
@@ -64,8 +63,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     accountType: AccountType.INCOME,
   });
   const { data: budgets } = useBudgets();
-  const { data: items, loading: itemsLoading } = useItems();
-
+  
   useEffect(() => {
     if (item) {
       setFormState({
@@ -130,6 +128,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    // console.log(formState)
 
     // Basic validation
     if (
@@ -151,7 +150,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       : BUDGETS_ENDPOINTS.BUDGETS.ADD;
     const data: AddBudget = {
       name: formState.name,
-      allocated_amount: +formState.allocated_amount,
+      allocated_amount: Number(formState.allocated_amount),
       currency_id: formState.currency_id,
       fiscal_year_id: formState.fiscal_year_id,
       description: formState.description?.toString(),
@@ -167,6 +166,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           type: item.type,
         })) ?? [],
     };
+    console.log(data);
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();
@@ -216,7 +216,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             name="name"
             value={formState.name || ""}
             onChange={handleInputChange}
-            required
+            // required
             className="w-full"
           />
         </div>
@@ -228,7 +228,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             name="allocated_amount"
             value={formState.allocated_amount || ""}
             onChange={handleInputChange}
-            required
+            // required
             className="w-full"
           />
         </div>
@@ -249,7 +249,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                 currency_id: e.value,
               }))
             }
-            required
+            // required
             className="w-full"
           />
         </div>
@@ -276,7 +276,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                 fiscal_year_id: e.value,
               }))
             }
-            required
+            // required
             className="w-full"
           />
         </div>
@@ -324,18 +324,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               <div className="grid grid-cols-4 gap-4 items-center">
                 {item.type == "expense" ? (
                   <div className="p-field">
-                    <Dropdown
-                      loading={itemsLoading}
+                    <InputText
                       placeholder="Select Item"
                       id="item_id"
                       name="item_id"
-                      value={item.name}
-                      options={items.map((item) => ({
-                        label: item.name,
-                        value: item.name,
-                      }))} // Example options
-                      onChange={(e) => handleItemChange(index, "name", e.value)}
-                      required
+                      value={item.name || ""}
+                      onChange={(e) => handleItemChange(index, "name", e.target.value)}
+                      // required
                       className="w-full"
                     />
                   </div>

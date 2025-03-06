@@ -20,7 +20,7 @@ const BUDGETS_ROUTES = [
       {
         name: "Budgets Overview",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
-        path: "/budgets",
+        path: "/",
         element: (
           <Suspense fallback={<Loading />}>
             <Budgets />
