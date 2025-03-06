@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
-import { ColDef } from "ag-grid-community";
-import Table from "./../ReportTable"; // Adjust path if needed
+import { useState, useEffect } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { Icon } from "@iconify/react";
 import { apiRequest } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
@@ -19,8 +19,6 @@ const CashBook = () => {
   const [cashBookData, setCashBookData] = useState<Transaction[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { token, isFetchingLocalToken } = useAuth();
-
-  const tableRef = useRef<any>(null);
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken || !token.access_token) return;
@@ -43,33 +41,54 @@ const CashBook = () => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-  const columnDefs: ColDef<Transaction>[] = [
-    { headerName: "Date", field: "date", sortable: true, filter: true },
-    {
-      headerName: "Cash Received",
-      field: "cash_received",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Cash Paid",
-      field: "cash_paid",
-      sortable: true,
-      filter: true,
-    },
-    { headerName: "Balance", field: "balance", sortable: true, filter: true },
-    {
-      headerName: "Description",
-      field: "description",
-      sortable: true,
-      filter: true,
-    },
-  ];
-
   const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
+    if (!cashBookData || cashBookData.length === 0) {
+      console.error("No data to export.");
+      return;
     }
+
+    const doc = new jsPDF();
+    doc.setFillColor(255, 255, 255);
+    doc.text("Cash Book Report", 20, 10);
+
+    // Table Headers
+    const tableHeaders = [
+      "Date",
+      "Cash Received",
+      "Cash Paid",
+      "Balance",
+      "Description",
+    ];
+
+    // Table Data
+    const tableBody = cashBookData.map((item) => [
+      item.date,
+      item.cash_received ? item.cash_received.toLocaleString() : "",
+      item.cash_paid ? item.cash_paid.toLocaleString() : "",
+      item.balance ? item.balance.toLocaleString() : "",
+      item.description,
+    ]);
+
+    // Generate PDF Table
+    autoTable(doc, {
+      head: [tableHeaders],
+      body: tableBody,
+      theme: "grid",
+      styles: { fontSize: 10, cellPadding: 2 },
+      headStyles: {
+        fillColor: [222, 226, 230],
+        textColor: "black",
+        fontStyle: "bold",
+      },
+      columnStyles: {
+        1: { halign: "right" }, // Align "Cash Received" column to the right
+        2: { halign: "right" }, // Align "Cash Paid" column to the right
+        3: { halign: "right" }, // Align "Balance" column to the right
+      },
+      margin: { top: 20 },
+    });
+
+    doc.save("CashBook.pdf");
   };
 
   return (
@@ -86,24 +105,52 @@ const CashBook = () => {
       </div>
 
       {/* Pass customHeader inside the Table component */}
-      {isLoading ? (
+      {isLoading && cashBookData == null ? (
         "Loading..."
       ) : (
-        <Table
-          columnDefs={columnDefs}
-          data={cashBookData || []}
-          ref={tableRef}
-          customHeader={
-            <tr className="bg-gray-200">
-              <td className="text-center font-bold py-4 px-4" colSpan={5}>
-                <p className="text-center font-bold">Cash Book</p>
-                <p className="text-center font-bold">FY Ended 31 Dec 2023</p>
-                <p className="text-center text-sm">All Figures in UGX</p>
+        <table>
+          <tbody>
+            <tr>
+              <td className="px-5 py-2 w-[30px] border-gray-300 border-b">
+                Date
+              </td>
+              <td className="px-5 py-2 border-gray-300 border-b">
+                Cash Received
+              </td>
+              <td className="px-5 py-2 border-gray-300 border-b">Cash Paid</td>
+              <td className="px-5 py-2 border-gray-300 border-b">Balance</td>
+              <td className="px-5 py-2 border-gray-300 border-b">
+                Description
               </td>
             </tr>
-          }
-        />
+            {Array.isArray(cashBookData) &&
+              cashBookData.map((item) => {
+                return (
+                  <tr>
+                    <td className="px-5 py-2 border-gray-300 border-b">
+                      {item.date}
+                    </td>
+                    <td className="px-5 py-2 border-gray-300 border-b">
+                      {item.cash_received
+                        ? item.cash_received.toLocaleString()
+                        : ""}
+                    </td>
+                    <td className="px-5 py-2 border-gray-300 border-b">
+                      {item.cash_paid ? item.cash_paid.toLocaleString() : ""}
+                    </td>
+                    <td className="px-5 py-2 border-gray-300 border-b">
+                      {item.balance ? item.balance.toLocaleString() : ""}
+                    </td>
+                    <td className="px-5 py-2 border-gray-300 border-b">
+                      {item.description}
+                    </td>
+                  </tr>
+                );
+              })}
+          </tbody>
+        </table>
       )}
+      {!isLoading && cashBookData == null ? "No data to display" : ""}
     </div>
   );
 };

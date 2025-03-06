@@ -125,11 +125,6 @@ const GeneralLedgerReport = () => {
       ) : (
         <table className="w-full">
           <tbody>
-            <tr className="font-bold bg-gray-200">
-              <td className="p-3 ">Account Name</td>
-              <td className="p-3 ">Debits</td>
-              <td className="p-3 ">Credits</td>
-            </tr>
             {ledgerData?.summaries.map((item) => {
               return (
                 <>
