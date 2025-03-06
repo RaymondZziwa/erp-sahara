@@ -12,7 +12,6 @@ import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
 import { RootState } from "../../../redux/store";
 import { baseURL } from "../../../utils/api";
 
@@ -61,7 +60,7 @@ const ExpenseTransactions: React.FC = () => {
         //     setDt(response.data.data)
         //    }
       } catch (error) {
-        toast.error(error);
+        //toast.error(error);
       }
     };
 
@@ -188,7 +187,7 @@ const ExpenseTransactions: React.FC = () => {
       <BreadCrump name="Expenses Transactions" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
-          <div className="flex gap-2 my-2 justify-end">
+          <div className="flex gap-2 my-2 ml-auto">
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
               onClick={() =>

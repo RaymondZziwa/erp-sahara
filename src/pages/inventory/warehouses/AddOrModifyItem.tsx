@@ -22,7 +22,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 }) => {
   const [formState, setFormState] = useState<Partial<Warehouse>>({
     name: "",
-    latitude: "",
+    location: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,12 +31,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     if (item) {
       setFormState({
         name: item.name || "",
-        latitude: item.latitude,
-        longtitude: item.longtitude,
         location: item.location,
+        warehouse_type_id: 0,
       });
     } else {
-      setFormState({ name: "", latitude: "", location: "", longtitude: "" });
+      setFormState({ warehouse_type_id: 0, name: "", location: "" });
     }
   }, [item]);
 
@@ -57,9 +56,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }
     const data: Partial<Warehouse> = {
       name: formState.name,
-      latitude: formState.latitude,
       location: formState?.location,
-      longtitude: formState?.longtitude,
       id: formState?.id,
     };
     const method = item?.id ? "PUT" : "POST";
@@ -115,24 +112,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               required
             />
           </div>
-          {/* <div className="p-field">
-            <label htmlFor="description">Latitude</label>
-            <InputText
-              id="latitude"
-              name="latitude"
-              value={formState.latitude}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div className="p-field">
-            <label htmlFor="longitude">Longitude</label>
-            <InputText
-              id="longitude"
-              name="longtitude"
-              value={formState.longtitude}
-              onChange={handleInputChange}
-            />
-          </div> */}
+
           <div className="p-field">
             <label htmlFor="location">Address<span className="text-red-500">*</span></label>
             <InputText

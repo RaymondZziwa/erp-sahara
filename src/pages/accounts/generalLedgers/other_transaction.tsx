@@ -9,12 +9,11 @@ import { PROJECTS_ENDPOINTS } from "../../../api/projectsEndpoints";
 
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
 import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
-import LedgerBtnsTypes from "./CashTransactions";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import NCTBtnsTypes from "./NCT";
 
 const OtherTransactions: React.FC = () => {
-  const { data, refresh } = useGeneralLedgers();
+  const { refresh } = useGeneralLedgers();
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
@@ -37,11 +36,6 @@ const OtherTransactions: React.FC = () => {
     debitAccountHeader: "",
   });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
 
   const columnDefinitions: ColDef<any>[] = [
     {
@@ -131,32 +125,28 @@ const OtherTransactions: React.FC = () => {
     <div>
       {dialogState.currentAction !== "" && (
         <AddOrModifyItem
-          creditAccountsHeader={dialogState.creditAccountHeader}
-          debitAccountsHeader={dialogState.debitAccountHeader}
-          journalType={dialogState.journalType}
-          endpoint={dialogState.endpoint}
-          debitAccountType={dialogState.debitAccountsType}
-          creditAccountType={dialogState.creditAccountsType}
-          onSave={refresh}
-          item={dialogState.selectedItem}
-          visible={
-            dialogState.currentAction == "add" ||
-            (dialogState.currentAction == "edit" &&
-              !!dialogState.selectedItem?.id)
-          }
-          onClose={() =>
-            setDialogState({
-              currentAction: "",
-              selectedItem: undefined,
-              debitAccountsType: AccountType.ASSETS,
-              creditAccountsType: AccountType.ASSETS,
-              endpoint: "",
-              journalType: "",
-              debitAccountHeader: "",
-              creditAccountHeader: "",
-            })
-          }
-        />
+                  creditAccountsHeader={dialogState.creditAccountHeader}
+                  debitAccountsHeader={dialogState.debitAccountHeader}
+                  journalType={dialogState.journalType}
+                  endpoint={dialogState.endpoint}
+                  debitAccountType={dialogState.debitAccountsType}
+                  creditAccountType={dialogState.creditAccountsType}
+
+                  onSave={refresh}
+                  item={dialogState.selectedItem}
+                  visible={dialogState.currentAction == "add" ||
+                      (dialogState.currentAction == "edit" &&
+                          !!dialogState.selectedItem?.id)}
+                  onClose={() => setDialogState({
+                      currentAction: "",
+                      selectedItem: undefined,
+                      debitAccountsType: AccountType.ASSETS,
+                      creditAccountsType: AccountType.ASSETS,
+                      endpoint: "",
+                      journalType: "",
+                      debitAccountHeader: "",
+                      creditAccountHeader: "",
+                  })}        />
       )}
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
@@ -199,7 +189,7 @@ const OtherTransactions: React.FC = () => {
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={data?.data ?? []}
+          data={[]}
           ref={tableRef}
         />
       </div>

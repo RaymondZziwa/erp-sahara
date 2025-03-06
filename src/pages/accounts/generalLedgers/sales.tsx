@@ -10,14 +10,13 @@ import { PROJECTS_ENDPOINTS } from "../../../api/projectsEndpoints";
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
 import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
 import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
 import { RootState } from "../../../redux/store";
 import { baseURL } from "../../../utils/api";
 import axios from "axios";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 
 const SalesTransactions: React.FC = () => {
-  const { data, refresh } = useGeneralLedgers();
+  const { refresh } = useGeneralLedgers();
   const tableRef = useRef<any>(null);
   const [dt, setDt] = useState<any[]>([]);
   const token = useSelector(
@@ -60,7 +59,7 @@ const SalesTransactions: React.FC = () => {
       //     setDt(response.data.data)
       //    }
     } catch (error) {
-      toast.error(error);
+      //toast.error(error);
     }
   };
 
@@ -188,7 +187,7 @@ const SalesTransactions: React.FC = () => {
       <BreadCrump name="Sales Transactions" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
-          <div className="flex gap-2 my-2 justify-end">
+          <div className="flex gap-2 my-2 ml-auto">
             {/* <LedgerBtnsTypes onJournalClick={onJournalTypeClick} />
             <NCTBtnsTypes onJournalClick={onJournalTypeClick} />
             <GTBtnsTypes onJournalClick={onJournalTypeClick} /> */}

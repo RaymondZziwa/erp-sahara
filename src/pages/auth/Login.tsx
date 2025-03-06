@@ -5,11 +5,13 @@ import { InputText } from "primereact/inputtext";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { handleGenericError } from "../../utils/errorHandling";
+import { useTranslation } from "react-i18next";
 //import Logo from '../../assets/images/logos/ltcu.jpeg';
 
 export default function LoginPage() {
   const { loginHandler, isLoading } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,7 +64,7 @@ export default function LoginPage() {
           {/* Header */}
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold tracking-tight">
-              Welcome back!
+              {t("welcome")}
             </h1>
             {/* <p className="text-sm text-muted-foreground">
               Your Admin Dashboard

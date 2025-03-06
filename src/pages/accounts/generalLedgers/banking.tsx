@@ -14,7 +14,6 @@ import { baseURL } from "../../../utils/api";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
-import { toast } from "react-toastify";
 
 const BankingLedgers: React.FC = () => {
   const { refresh } = useGeneralLedgers();
@@ -59,7 +58,7 @@ const BankingLedgers: React.FC = () => {
         //    }
            
         } catch (error) {
-            toast.error(error)
+            console.log(error)
         }
     }
 
@@ -116,7 +115,7 @@ const BankingLedgers: React.FC = () => {
     journalType,
     creditAccountHeader,
     debitAccountHeader,
-    journalId
+    //journalId
   }: JournalTypeClickParams) => {
     setDialogState({
       selectedItem: undefined,
@@ -127,7 +126,7 @@ const BankingLedgers: React.FC = () => {
       journalType,
       creditAccountHeader,
       debitAccountHeader,
-      journalId
+      //journalId
     });
   };
 
@@ -135,32 +134,27 @@ const BankingLedgers: React.FC = () => {
     <div>
       {dialogState.currentAction !== "" && (
         <AddOrModifyItem
-          creditAccountsHeader={dialogState.creditAccountHeader}
-          debitAccountsHeader={dialogState.debitAccountHeader}
-          journalType={dialogState.journalType}
-          endpoint={dialogState.endpoint}
-          debitAccountType={dialogState.debitAccountsType}
-          creditAccountType={dialogState.creditAccountsType}
-          onSave={refresh}
-          item={dialogState.selectedItem}
-          visible={
-            dialogState.currentAction == "add" ||
-            (dialogState.currentAction == "edit" &&
-              !!dialogState.selectedItem?.id)
-          }
-          onClose={() =>
-            setDialogState({
-              currentAction: "",
-              selectedItem: undefined,
-              debitAccountsType: AccountType.ASSETS,
-              creditAccountsType: AccountType.ASSETS,
-              endpoint: "",
-              journalType: "",
-              debitAccountHeader: "",
-              creditAccountHeader: "",
-            })
-          }
-        />
+                  creditAccountsHeader={dialogState.creditAccountHeader}
+                  debitAccountsHeader={dialogState.debitAccountHeader}
+                  journalType={dialogState.journalType}
+                  endpoint={dialogState.endpoint}
+                  debitAccountType={dialogState.debitAccountsType}
+                  creditAccountType={dialogState.creditAccountsType}
+                  onSave={refresh}
+                  item={dialogState.selectedItem}
+                  visible={dialogState.currentAction == "add" ||
+                      (dialogState.currentAction == "edit" &&
+                          !!dialogState.selectedItem?.id)}
+                  onClose={() => setDialogState({
+                      currentAction: "",
+                      selectedItem: undefined,
+                      debitAccountsType: AccountType.ASSETS,
+                      creditAccountsType: AccountType.ASSETS,
+                      endpoint: "",
+                      journalType: "",
+                      debitAccountHeader: "",
+                      creditAccountHeader: "",
+                  })}       />
       )}
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
@@ -197,7 +191,7 @@ const BankingLedgers: React.FC = () => {
                   debitAccountsType: AccountType.ASSETS,
                   creditAccountsType: AccountType.ASSETS,
                   endpoint: "/erp/accounts/transactions/cash-to-cash-account",
-                  journalType: "Banking journal",
+                  journalType: "Banking transactions",
                   creditAccountHeader: "Credit A/C",
                   debitAccountHeader: "Debit A/C",
                   journalId: 20,

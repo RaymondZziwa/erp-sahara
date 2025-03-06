@@ -10,12 +10,10 @@ import { PROJECTS_ENDPOINTS } from "../../../api/projectsEndpoints";
 
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
 import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
-import LedgerBtnsTypes from "./CashTransactions";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
-import NCTBtnsTypes from "./NCT";
 
 const GeneralLedgers: React.FC = () => {
-  const { data, refresh } = useGeneralLedgers();
+  const { refresh } = useGeneralLedgers();
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
@@ -38,11 +36,6 @@ const GeneralLedgers: React.FC = () => {
     debitAccountHeader: "",
   });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
 
   const columnDefinitions: ColDef<any>[] = [
     {
@@ -99,34 +92,34 @@ const GeneralLedgers: React.FC = () => {
     // },
   ];
 
-  interface JournalTypeClickParams {
-    debitAccountsType: AccountType;
-    creditAccountsType: AccountType;
-    endpoint: string;
-    journalType: string;
-    creditAccountHeader: string;
-    debitAccountHeader: string;
-  }
+  // interface JournalTypeClickParams {
+  //   debitAccountsType: AccountType;
+  //   creditAccountsType: AccountType;
+  //   endpoint: string;
+  //   journalType: string;
+  //   creditAccountHeader: string;
+  //   debitAccountHeader: string;
+  // }
 
-  const onJournalTypeClick = ({
-    debitAccountsType,
-    creditAccountsType,
-    endpoint,
-    journalType,
-    creditAccountHeader,
-    debitAccountHeader,
-  }: JournalTypeClickParams) => {
-    setDialogState({
-      selectedItem: undefined,
-      currentAction: "add",
-      debitAccountsType,
-      creditAccountsType,
-      endpoint,
-      journalType,
-      creditAccountHeader,
-      debitAccountHeader,
-    });
-  };
+  // const onJournalTypeClick = ({
+  //   debitAccountsType,
+  //   creditAccountsType,
+  //   endpoint,
+  //   journalType,
+  //   creditAccountHeader,
+  //   debitAccountHeader,
+  // }: JournalTypeClickParams) => {
+  //   setDialogState({
+  //     selectedItem: undefined,
+  //     currentAction: "add",
+  //     debitAccountsType,
+  //     creditAccountsType,
+  //     endpoint,
+  //     journalType,
+  //     creditAccountHeader,
+  //     debitAccountHeader,
+  //   });
+  // };
 
   return (
     <div>
@@ -140,24 +133,19 @@ const GeneralLedgers: React.FC = () => {
           creditAccountType={dialogState.creditAccountsType}
           onSave={refresh}
           item={dialogState.selectedItem}
-          visible={
-            dialogState.currentAction == "add" ||
+          visible={dialogState.currentAction == "add" ||
             (dialogState.currentAction == "edit" &&
-              !!dialogState.selectedItem?.id)
-          }
-          onClose={() =>
-            setDialogState({
-              currentAction: "",
-              selectedItem: undefined,
-              debitAccountsType: AccountType.ASSETS,
-              creditAccountsType: AccountType.ASSETS,
-              endpoint: "",
-              journalType: "",
-              debitAccountHeader: "",
-              creditAccountHeader: "",
-            })
-          }
-        />
+              !!dialogState.selectedItem?.id)}
+          onClose={() => setDialogState({
+            currentAction: "",
+            selectedItem: undefined,
+            debitAccountsType: AccountType.ASSETS,
+            creditAccountsType: AccountType.ASSETS,
+            endpoint: "",
+            journalType: "",
+            debitAccountHeader: "",
+            creditAccountHeader: "",
+          })}        />
       )}
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
@@ -187,9 +175,9 @@ const GeneralLedgers: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="flex gap-2 my-2 justify-end">
-            <LedgerBtnsTypes onJournalClick={onJournalTypeClick} />
+            {/* <LedgerBtnsTypes onJournalClick={onJournalTypeClick} />
             <NCTBtnsTypes onJournalClick={onJournalTypeClick} />
-            <GTBtnsTypes onJournalClick={onJournalTypeClick} />
+            <GTBtnsTypes onJournalClick={onJournalTypeClick} /> */}
             {/* <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
               onClick={handleExportPDF}
@@ -201,7 +189,7 @@ const GeneralLedgers: React.FC = () => {
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={data?.data ?? []}
+          data={[]}
           ref={tableRef}
         />
       </div>

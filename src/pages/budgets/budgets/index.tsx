@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
 
@@ -28,6 +28,10 @@ const Budgets: React.FC = () => {
       tableRef.current.exportPDF();
     }
   };
+
+  useEffect(()=>{
+    console.log('budgets', data)
+  },[data])
 
   const columnDefinitions: ColDef<Budget>[] = [
     {

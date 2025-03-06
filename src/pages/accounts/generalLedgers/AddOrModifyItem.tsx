@@ -1,4 +1,3 @@
-//@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
@@ -21,6 +20,8 @@ import useProjects from "../../../hooks/projects/useProjects";
 import useBudgets from "../../../hooks/budgets/useBudgets";
 import FileUploadInput from "../../../components/FileUploadInput";
 import { toast } from "react-toastify";
+import useAssetsAccounts from "../../../hooks/accounts/useAssetsAccounts";
+//import CustomDropdown from "../../../components/custom/customDropdown";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -33,9 +34,8 @@ interface AddOrModifyItemProps {
   journalType: string;
   creditAccountsHeader: string;
   debitAccountsHeader: string;
-  journalId: number
+  //journalId: number
 }
-
 interface AddLedger {
   transaction_date: Date;
   reference: string;
@@ -54,6 +54,13 @@ interface AddLedger {
   supporting_files: File[];
 }
 
+interface Line {
+  chart_of_account_id: number;
+  credit_amount?: number;
+  debit_amount?: number;
+  currency_id: number;
+}
+
 const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   visible,
   onClose,
@@ -63,7 +70,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   creditAccountType,
   endpoint,
   journalType,
-  journalId
 }) => {
   const [formState, setFormState] = useState<Partial<AddLedger>>({
     transaction_date: new Date(),
@@ -71,7 +77,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     project_id: null,
     segment_id: null,
     budget_id: null,
-    journal_type_id: journalId,
+    journal_type_id: journalType.toLowerCase().includes("expense")
+      ? 4
+      : journalType.includes("income")
+      ? 5
+      : journalType.includes("cashflow")
+      ? 20
+      : 20,
     description: "",
     lines: [],
     currency_id: 2,
@@ -82,24 +94,23 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const { data: currenciesData, loading: currenciesLoading } = useCurrencies();
   const { data: projects, loading: projectsLoading } = useProjects();
   const { data: budgets, loading: budgetsLoading } = useBudgets();
+  const { data: accounts, refresh } = useAssetsAccounts();
 
-  const { data: creditAccounts, loading: creditAccountsLoading } =
-    useLedgerChartOfAccounts({
-      accountType: creditAccountType,
-    });
-  const { data: debitAccounts, loading: debitAccountsLoading } =
-    useLedgerChartOfAccounts({
-      accountType: debitAccountType,
-    });
+  useEffect(() => {
+    if (!accounts) {
+      refresh();
+    }
+  }, [accounts]);
+
   const currencies = currenciesData.map((curr) => ({
     label: curr.code,
     value: curr.id,
   }));
 
-  useEffect(() => {
-    console.log("jt", journalType);
-    console.log("item", item);
-  }, []);
+  // useEffect(() => {
+  //   console.log("jt", journalType);
+  //   console.log("item", item);
+  // }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -354,9 +365,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               body={(line: (typeof formState.lines)[0], options) => (
                 <Dropdown
                   className="p-inputtext-sm"
-                  loading={debitAccountsLoading}
+                  loading={false}
                   value={line.debit_account_id}
-                  options={debitAccounts.map((account) => ({
+                  options={accounts.map((account) => ({
                     value: account.id,
                     label: account.name,
                   }))}
@@ -376,9 +387,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               body={(line: (typeof formState.lines)[0], options) => (
                 <Dropdown
                   className="p-inputtext-sm"
-                  loading={creditAccountsLoading}
+                  loading={false}
                   value={line.credit_account_id}
-                  options={creditAccounts.map((account) => ({
+                  options={accounts.map((account) => ({
                     value: account.id,
                     label: account.name,
                   }))}
@@ -418,7 +429,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             />
           </DataTable>
         </div>
-        <div className="col-span-full">
+        <div className="col-span-full h-24">
           <h4 className="text-xl font-bold my-2">Support Files</h4>
           <FileUploadInput
             uploadVisible={false}

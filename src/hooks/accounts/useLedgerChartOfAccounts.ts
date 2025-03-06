@@ -95,11 +95,11 @@ const useLedgerChartOfAccounts = ({
   useEffect(() => {
     fetchDataFromApi();
     fetchAccountBalances()
-  }, [isFetchingLocalToken, token.access_token, accountType]); // Include accountType in dependencies
+  }, [isFetchingLocalToken, token.access_token]); // Include accountType in dependencies
 
   const data = useAppSelector((state) => state.ledgerChartOfAccounts);
 
   return { ...data, refresh: fetchDataFromApi, data: accounts, balances };
-};
+}; 
 
 export default useLedgerChartOfAccounts;

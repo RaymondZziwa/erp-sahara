@@ -51,9 +51,11 @@ import ApprovalLevelsReducer from './slices/approval_levels/levelSlice'
 import cropsReducer from '../redux/slices/crops/cropsSlice';
 import farmGroupsReducer from "../redux/slices/farmGroups/farmGroupsSlice";
 import AssetsCategoriesReducer from "./slices/assets/assetCategoriesSlice";
+import AssetsAccountsReducer from "./slices/accounts/assetsAccountsSlice";
 
 const store = configureStore({
   reducer: {
+    assetsAccounts: AssetsAccountsReducer,
     assetCategories: AssetsCategoriesReducer,
     paymentMethods: paymentMethodReducer,
     levels: ApprovalLevelsReducer,
