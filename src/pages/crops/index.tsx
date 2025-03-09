@@ -34,22 +34,12 @@ const Crops: React.FC = () => {
       filter: true,
       width: 100,
       sort: "asc", 
-      cellRenderer: (params: ICellRendererParams<Crop>) => (
-        <Link className="text-teal-500" to={`/crops/${params.data?.id}`}>
-          {params?.data?.id.toString()}
-        </Link>
-      ),
     },
     {
       headerName: "Crop Name",
       field: "name",
       sortable: true,
       filter: true,
-      cellRenderer: (params: ICellRendererParams<Crop>) => (
-        <Link className="text-teal-500" to={`/crops/${params.data?.id}`}>
-          {params?.data?.name.toString()}
-        </Link>
-      ),
     },
     {
       headerName: "Growth Period",

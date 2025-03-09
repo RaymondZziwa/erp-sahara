@@ -5,6 +5,7 @@ import { Icon } from "@iconify/react";
 import AddOrModifyFarmGroup from "./AddOrModifyItem";
 import ConfirmDeleteDialog from "../../components/dialog/ConfirmDeleteDialog";
 import BreadCrump from "../../components/layout/bread_crump";
+import AttachCropsDialog from "./AttachCropsDialog";
 import Table from "../../components/table";
 import useFarmGroups from "../../hooks/farm_groups/useFarmGroups";
 import { FarmGroup } from "../../redux/slices/types/farmGroups/FarmGroup";
@@ -17,7 +18,7 @@ const FarmGroups: React.FC = () => {
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: FarmGroup | undefined;
-    currentAction: "delete" | "edit" | "add" | "";
+    currentAction: "delete" | "edit" | "add" | "attach-crops" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
   const handleExportPDF = () => {
@@ -32,22 +33,12 @@ const FarmGroups: React.FC = () => {
       filter: true,
       width: 100,
       sort: "asc",
-      cellRenderer: (params: ICellRendererParams<FarmGroup>) => (
-        <Link className="text-teal-500" to={`/farm/groups/${params.data?.id}`}>
-          {params?.data?.id?.toString() ?? "N/A"}
-        </Link>
-      ),
     },
     {
       headerName: "Organization Name",
       field: "customer.organization_name",
       sortable: true,
       filter: true,
-      cellRenderer: (params: ICellRendererParams<FarmGroup>) => (
-        <Link className="text-teal-500" to={`/farm/groups/${params.data?.id}`}>
-          {params?.data?.customer?.organization_name?.toString() ?? "N/A"}
-        </Link>
-      ),
     },
     {
       headerName: "Number of Members",
@@ -60,27 +51,24 @@ const FarmGroups: React.FC = () => {
       field: "customer.email",
       sortable: true,
       filter: true,
-      cellRenderer: (params: ICellRendererParams<FarmGroup>) => (
-        params?.data?.customer?.email ?? "N/A"
-      ),
+      cellRenderer: (params: ICellRendererParams<FarmGroup>) =>
+        params?.data?.customer?.email ?? "N/A",
     },
     {
       headerName: "Primary Contact Person",
       field: "customer.primary_contact_person",
       sortable: true,
       filter: true,
-      cellRenderer: (params: ICellRendererParams<FarmGroup>) => (
-        params?.data?.customer?.primary_contact_person ?? "N/A"
-      ),
+      cellRenderer: (params: ICellRendererParams<FarmGroup>) =>
+        params?.data?.customer?.primary_contact_person ?? "N/A",
     },
     {
       headerName: "Phone Number",
       field: "customer.phone_number",
       sortable: true,
       filter: true,
-      cellRenderer: (params: ICellRendererParams<FarmGroup>) => (
-        params?.data?.customer?.phone_number ?? "N/A"
-      ),
+      cellRenderer: (params: ICellRendererParams<FarmGroup>) =>
+        params?.data?.customer?.phone_number ?? "N/A",
     },
     {
       headerName: "Actions",
@@ -111,6 +99,17 @@ const FarmGroups: React.FC = () => {
             className="text-red-500 cursor-pointer"
             fontSize={20}
           />
+          <button
+            className="bg-shade px-4 py-1 rounded text-white"
+            onClick={() =>
+              setDialogState({
+                currentAction: "attach-crops",
+                selectedItem: params.data,
+              })
+            }
+          >
+            crops
+          </button>
         </div>
       ),
     },
@@ -123,15 +122,22 @@ const FarmGroups: React.FC = () => {
         item={dialogState.selectedItem}
         visible={
           dialogState.currentAction === "add" ||
-          (dialogState.currentAction === "edit" && !!dialogState.selectedItem?.id)
+          (dialogState.currentAction === "edit" &&
+            !!dialogState.selectedItem?.id)
         }
-        onClose={() => setDialogState({ currentAction: "", selectedItem: undefined })}
+        onClose={() =>
+          setDialogState({ currentAction: "", selectedItem: undefined })
+        }
       />
 
       {dialogState.currentAction === "delete" && dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={FARM_GROUPS_ENDPOINTS.FARM_GROUPS.DELETE(dialogState.selectedItem.id.toString())}
-          onClose={() => setDialogState({ currentAction: "", selectedItem: undefined })}
+          apiPath={FARM_GROUPS_ENDPOINTS.FARM_GROUPS.DELETE(
+            dialogState.selectedItem.id.toString()
+          )}
+          onClose={() =>
+            setDialogState({ currentAction: "", selectedItem: undefined })
+          }
           visible={true}
           onConfirm={() => {
             refresh();
@@ -140,13 +146,29 @@ const FarmGroups: React.FC = () => {
         />
       )}
 
+      {dialogState.currentAction === "attach-crops" &&
+        dialogState.selectedItem && (
+          <AttachCropsDialog
+            farmGroup={dialogState.selectedItem}
+            onClose={() =>
+              setDialogState({ currentAction: "", selectedItem: undefined })
+            }
+            onAttachSuccess={refresh}
+          />
+        )}
+
       <BreadCrump name="Farm Groups" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold">Farm Groups Table</h1>
           <div className="flex gap-2">
             <button
-              onClick={() => setDialogState({ currentAction: "add", selectedItem: undefined })}
+              onClick={() =>
+                setDialogState({
+                  currentAction: "add",
+                  selectedItem: undefined,
+                })
+              }
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
@@ -161,7 +183,11 @@ const FarmGroups: React.FC = () => {
             </button>
           </div>
         </div>
-        <Table columnDefs={columnDefinitions} data={farmGroups ?? []} ref={tableRef} />
+        <Table
+          columnDefs={columnDefinitions}
+          data={farmGroups ?? []}
+          ref={tableRef}
+        />
       </div>
     </div>
   );
