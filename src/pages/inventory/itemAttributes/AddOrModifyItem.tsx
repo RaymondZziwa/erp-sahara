@@ -56,9 +56,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       return; // Handle validation error here
     }
 
-    const formData = new FormData();
-    formData.append("name", formState.name);
-
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? INVENTORY_ENDPOINTS.ITEM_ATTRIBUTES.UPDATE(item.id.toString())
@@ -68,9 +65,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       await axios({
         method,
         url: baseURL + endpoint,
-        data: formData,
+        data: formState,
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "multipart/json",
           Authorization: `Bearer ${token.access_token}`,
         },
       });

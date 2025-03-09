@@ -20,6 +20,8 @@ import useProjects from "../../../hooks/projects/useProjects";
 import useBudgets from "../../../hooks/budgets/useBudgets";
 import FileUploadInput from "../../../components/FileUploadInput";
 import { toast } from "react-toastify";
+import useAssetsAccounts from "../../../hooks/accounts/useAssetsAccounts";
+//import CustomDropdown from "../../../components/custom/customDropdown";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -32,18 +34,8 @@ interface AddOrModifyItemProps {
   journalType: string;
   creditAccountsHeader: string;
   debitAccountsHeader: string;
+  //journalId: number
 }
-
-interface IAddLedger {
-  transaction_date: string;
-  reference?: string;
-  journal_type_id: number;
-  description: string;
-  lines: Line[];
-  supporting_files?: File[];
-  currency_id: number;
-}
-
 interface AddLedger {
   transaction_date: Date;
   reference: string;
@@ -52,8 +44,12 @@ interface AddLedger {
   budget_id?: number | null;
   journal_type_id: number;
   description: string;
-  debitLines: Line[];
-  creditLines: Line[];
+  lines: {
+    debit_account_id: number;
+    credit_account_id: number;
+    amount: number;
+    currency_id: number;
+  }[];
   currency_id: number;
   supporting_files: File[];
 }
@@ -81,47 +77,40 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     project_id: null,
     segment_id: null,
     budget_id: null,
-    journal_type_id: 0,
+    journal_type_id: journalType.toLowerCase().includes("expense")
+      ? 4
+      : journalType.includes("income")
+      ? 5
+      : journalType.includes("cashflow")
+      ? 20
+      : 20,
     description: "",
-    debitLines: [],
-    creditLines: [],
+    lines: [],
+    currency_id: 2,
+    supporting_files: [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { token } = useAuth();
   const { data: currenciesData, loading: currenciesLoading } = useCurrencies();
   const { data: projects, loading: projectsLoading } = useProjects();
   const { data: budgets, loading: budgetsLoading } = useBudgets();
+  const { data: accounts, refresh } = useAssetsAccounts();
 
-  const { data: creditAccounts, loading: creditAccountsLoading } =
-    useLedgerChartOfAccounts({
-      accountType: creditAccountType,
-    });
-  const { data: debitAccounts, loading: debitAccountsLoading } =
-    useLedgerChartOfAccounts({
-      accountType: debitAccountType,
-    });
+  useEffect(() => {
+    if (!accounts) {
+      refresh();
+    }
+  }, [accounts]);
+
   const currencies = currenciesData.map((curr) => ({
     label: curr.code,
     value: curr.id,
   }));
 
-  useEffect(() => {
-    if (item) {
-      // setFormState({ ...item });
-    } else {
-      setFormState({
-        transaction_date: new Date(),
-        reference: "",
-        project_id: null,
-        segment_id: null,
-        budget_id: null,
-        journal_type_id: 3,
-        description: "",
-        debitLines: [],
-        creditLines: [],
-      });
-    }
-  }, [item]);
+  // useEffect(() => {
+  //   console.log("jt", journalType);
+  //   console.log("item", item);
+  // }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -133,71 +122,54 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
 
-  const isBalanced = () => {
-    const totalCredit = (formState.creditLines || []).reduce(
-      (acc, line) => acc + (line.credit_amount || 0),
-      0
-    );
-    const totalDebit = (formState.debitLines || []).reduce(
-      (acc, line) => acc + (line.debit_amount || 0),
-      0
-    );
-    return totalCredit === totalDebit;
-  };
-
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!isBalanced()) {
-      toast.warn("Credit and debit amounts must balance.");
-      return;
-    }
-
     setIsSubmitting(true);
-    if (
-      !formState.journal_type_id ||
-      !formState.currency_id ||
-      formState.currency_id == undefined
-    ) {
-      setIsSubmitting(false);
-      return;
-    }
-    const data: IAddLedger = {
-      ...formState,
-      lines: [
-        ...(formState.creditLines ?? []),
-        ...(formState.debitLines ?? []),
-      ].map((line) => ({ ...line, currency_id: formState.currency_id! })),
 
+    // Validate required fields
+    // if (
+    //   !formState.journal_type_id ||
+    //   !formState.currency_id ||
+    //   formState?.lines.length === 0
+    // ) {
+    //   toast.warn("Please fill in all required fields.");
+    //   setIsSubmitting(false);
+    //   return;
+    // }
+
+    // Prepare the payload
+    const data = {
+      ...formState,
       transaction_date:
         formState.transaction_date?.toISOString().slice(0, 10) ?? "",
-      reference: formState.reference,
-      //"project_id": 1, Nullable
-      // "segment_id": 2, Nullable
-      //"budget_id": 3, Nullable
+      reference: formState.reference ?? "",
       journal_type_id: formState.journal_type_id,
       description: formState.description ?? "",
       currency_id: formState.currency_id,
-      supporting_files: formState?.supporting_files,
+      lines: formState?.lines.map((line) => ({
+        ...line,
+        currency_id: formState.currency_id!,
+      })),
+      supporting_files: formState.supporting_files,
     };
+
     const method = item?.id ? "PUT" : "POST";
     const endPoint = item?.id
       ? ACCOUNTS_ENDPOINTS.TRANSACTIONS.UPDATE(item.id.toString())
       : endpoint;
 
-    await createRequest(endPoint, token.access_token, data, onSave, method);
-    setIsSubmitting(false);
-    setFormState({
-      reference: "",
-      project_id: null,
-      segment_id: null,
-      budget_id: null,
-      journal_type_id: 0,
-      description: "",
-      debitLines: [],
-      creditLines: [],
-    });
-    onSave();
-    onClose();
+    try {
+      await createRequest(endPoint, token.access_token, data, onSave, method);
+      setIsSubmitting(false);
+
+      onSave();
+      onClose(); // Close the modal after saving
+    } catch (error) {
+      console.error("Error saving transaction:", error);
+      toast.error("An error occurred while saving the transaction.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const footer = (
@@ -224,112 +196,30 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   );
 
   const handleItemChange = (
-    type: "credit" | "debit",
     index: number,
-    field: keyof Line,
-    value: string | number
+    field: keyof (typeof formState.lines)[0],
+    value: number
   ) => {
-    const updatedItems =
-      type == "credit"
-        ? [...(formState.creditLines ?? [])]
-        : [...(formState.debitLines ?? [])];
-    updatedItems[index] = { ...updatedItems[index], [field]: value };
-
-    type == "credit"
-      ? setFormState((prevState) => ({
-          ...prevState,
-          creditLines: updatedItems,
-        }))
-      : setFormState((prevState) => ({
-          ...prevState,
-          debitLines: updatedItems,
-        }));
+    const updatedLines = [...(formState.lines ?? [])];
+    updatedLines[index] = { ...updatedLines[index], [field]: value };
+    setFormState((prevState) => ({
+      ...prevState,
+      lines: updatedLines,
+    }));
   };
 
-  const handleItemSelectChange = (
-    type: "credit" | "debit",
-    index: number,
-    value: string
-  ) => {
-    const selectedItem = (
-      type === "credit" ? creditAccounts : debitAccounts
-    ).find((item) => item.id.toString() === value.toString());
-
-    if (selectedItem) {
-      const updatedItems = [
-        ...(type === "credit"
-          ? formState.creditLines ?? []
-          : formState.debitLines ?? []),
-      ];
-
-      updatedItems[index] = {
-        ...updatedItems[index],
-        chart_of_account_id: selectedItem.id,
-      };
-
-      if (type === "credit") {
-        setFormState((prevState) => ({
-          ...prevState,
-          creditLines: [...updatedItems],
-        }));
-      } else {
-        setFormState((prevState) => ({
-          ...prevState,
-          debitLines: [...updatedItems],
-        }));
-      }
-    }
+  const removeItem = (index: number) => {
+    const updatedLines = [...(formState.lines ?? [])];
+    updatedLines.splice(index, 1);
+    setFormState((prevState) => ({
+      ...prevState,
+      lines: updatedLines,
+    }));
   };
 
-  const removeItem = (type: "credit" | "debit", index: number) => {
-    const updatedItems =
-      type == "credit"
-        ? [...(formState.creditLines ?? [])]
-        : [...(formState.debitLines ?? [])];
-    updatedItems.splice(index, 1);
-    type == "credit"
-      ? setFormState((prevState) => ({
-          ...prevState,
-          creditLines: updatedItems,
-        }))
-      : setFormState((prevState) => ({
-          ...prevState,
-          debitLines: updatedItems,
-        }));
-  };
-
-  const addItem = (type: "credit" | "debit") => {
-    type == "credit"
-      ? setFormState((prevState) => ({
-          ...prevState,
-          creditLines: [
-            ...(prevState.creditLines ?? []),
-            {
-              chart_of_account_id: 0,
-              currency_id: 0,
-              credit_amount: 0,
-              debit_amount: 0,
-            },
-          ],
-        }))
-      : setFormState((prevState) => ({
-          ...prevState,
-          debitLines: [
-            ...(prevState.debitLines ?? []),
-            {
-              chart_of_account_id: 0,
-              currency_id: 0,
-              credit_amount: 0,
-              debit_amount: 0,
-            },
-          ],
-        }));
-  };
   return (
     <Dialog
-      header={
-        item?.id ? `${journalType ?? ""} Journal` : `${journalType} Journal`
-      }
+      header={item?.id ? `${journalType ?? ""}` : `${journalType}`}
       visible={visible}
       className="max-w-full md:max-w-screen-lg px-2 md:w-[1024px]"
       footer={footer}
@@ -396,211 +286,150 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               placeholder="Select Currency"
             />
           </div>
-          <div className="">
-            <label htmlFor="account type">Project (Optional)</label>
-            <Dropdown
-              className="p-inputtext-sm"
-              filter
-              showClear
-              loading={projectsLoading}
-              value={formState.project_id}
-              options={projects.map((project) => ({
-                value: project.id,
-                label: project.name,
-              }))}
-              onChange={(e: DropdownChangeEvent) =>
-                setFormState({ ...formState, project_id: e.value })
-              }
-              placeholder="Select Project"
+          {!journalType.includes("Banking") && (
+            <>
+              <div className="">
+                <label htmlFor="account type">Project (Optional)</label>
+                <Dropdown
+                  className="p-inputtext-sm"
+                  filter
+                  showClear
+                  loading={projectsLoading}
+                  value={formState.project_id}
+                  options={projects.map((project) => ({
+                    value: project.id,
+                    label: project.name,
+                  }))}
+                  onChange={(e: DropdownChangeEvent) =>
+                    setFormState({ ...formState, project_id: e.value })
+                  }
+                  placeholder="Select Project"
+                />
+              </div>
+              <div className="">
+                <label htmlFor="account type">Budget (Optional)</label>
+                <Dropdown
+                  className="p-inputtext-sm"
+                  showClear
+                  filter
+                  loading={budgetsLoading}
+                  value={formState.budget_id}
+                  options={budgets.map((budget) => ({
+                    value: budget.id,
+                    label: budget.name,
+                  }))}
+                  onChange={(e: DropdownChangeEvent) =>
+                    setFormState({ ...formState, budget_id: e.value })
+                  }
+                  placeholder="Select Budget"
+                />
+              </div>
+            </>
+          )}
+        </div>
+        <div className="col-span-full">
+          <h3 className="font-bold text-xl">Entry</h3>
+          <DataTable
+            size="small"
+            value={formState.lines}
+            emptyMessage="No items added yet."
+            className="w-full"
+            footer={
+              <div className="p-field mt-3">
+                <Button
+                  size="small"
+                  type="button"
+                  label="More"
+                  icon="pi pi-plus"
+                  onClick={() =>
+                    setFormState((prevState) => ({
+                      ...prevState,
+                      lines: [
+                        ...(prevState.lines ?? []),
+                        {
+                          debit_account_id: 0,
+                          credit_account_id: 0,
+                          amount: 0,
+                          currency_id: formState.currency_id ?? 0,
+                        },
+                      ],
+                    }))
+                  }
+                  className="p-button-outlined w-max"
+                />
+              </div>
+            }
+          >
+            <Column
+              header="Debit Account"
+              body={(line: (typeof formState.lines)[0], options) => (
+                <Dropdown
+                  className="p-inputtext-sm"
+                  loading={false}
+                  value={line.debit_account_id}
+                  options={accounts.map((account) => ({
+                    value: account.id,
+                    label: account.name,
+                  }))}
+                  onChange={(e) =>
+                    handleItemChange(
+                      options.rowIndex,
+                      "debit_account_id",
+                      e.value
+                    )
+                  }
+                  placeholder="Select Debit Account"
+                />
+              )}
             />
-          </div>
-          <div className="">
-            <label htmlFor="account type">Budget (Optional)</label>
-            <Dropdown
-              className="p-inputtext-sm"
-              showClear
-              filter
-              loading={budgetsLoading}
-              value={formState.budget_id}
-              options={budgets.map((budget) => ({
-                value: budget.id,
-                label: budget.name,
-              }))}
-              onChange={(e: DropdownChangeEvent) =>
-                setFormState({ ...formState, budget_id: e.value })
-              }
-              placeholder="Select Budget"
+            <Column
+              header="Credit Account"
+              body={(line: (typeof formState.lines)[0], options) => (
+                <Dropdown
+                  className="p-inputtext-sm"
+                  loading={false}
+                  value={line.credit_account_id}
+                  options={accounts.map((account) => ({
+                    value: account.id,
+                    label: account.name,
+                  }))}
+                  onChange={(e) =>
+                    handleItemChange(
+                      options.rowIndex,
+                      "credit_account_id",
+                      e.value
+                    )
+                  }
+                  placeholder="Select Credit Account"
+                />
+              )}
             />
-          </div>
+            <Column
+              header="Amount"
+              body={(line: (typeof formState.lines)[0], options) => (
+                <InputNumber
+                  className="w-max p-inputtext-sm"
+                  value={line.amount}
+                  onChange={(e) =>
+                    handleItemChange(options.rowIndex, "amount", e.value ?? 0)
+                  }
+                />
+              )}
+            />
+            <Column
+              header="Actions"
+              body={(_, options) => (
+                <Button
+                  type="button"
+                  icon="pi pi-trash"
+                  className="!bg-red-500 p-2"
+                  onClick={() => removeItem(options.rowIndex)}
+                />
+              )}
+            />
+          </DataTable>
         </div>
-        <div className="col-span-full">
-          <h3 className="font-bold  text-xl">{creditAccountType} - Credit</h3>
-          <div className="col-span-full">
-            <DataTable
-              size="small"
-              value={formState.creditLines}
-              emptyMessage="No items added yet."
-              className="w-full"
-              footer={
-                <div className="p-field mt-3">
-                  <Button
-                    size="small"
-                    type="button"
-                    label="Add Item"
-                    icon="pi pi-plus"
-                    onClick={() => addItem("credit")}
-                    className="p-button-outlined w-max"
-                  />
-                </div>
-              }
-            >
-              <Column
-                header="Item"
-                field="item_name"
-                className="p-inputtext-sm"
-                body={(item: Line, options) =>
-                  item.chart_of_account_id > 0 ? (
-                    creditAccounts.find(
-                      (acc) => acc.id === item.chart_of_account_id
-                    )?.name
-                  ) : (
-                    <Dropdown
-                      loading={creditAccountsLoading}
-                      value={item.chart_of_account_id}
-                      options={creditAccounts?.map((account) => ({
-                        value: account.id,
-                        label: account.name,
-                      }))}
-                      onChange={(e) =>
-                        handleItemSelectChange(
-                          "credit",
-                          options.rowIndex,
-                          e.value
-                        )
-                      }
-                      placeholder="Select Account"
-                    />
-                  )
-                }
-              />
-              <Column
-                header="Amount"
-                field="credit_amount"
-                body={(item: Line, options) => (
-                  <InputNumber
-                    className="w-max p-inputtext-sm"
-                    value={item.credit_amount}
-                    onChange={(e) =>
-                      handleItemChange(
-                        "credit",
-                        options.rowIndex,
-                        "credit_amount",
-                        e.value ? +e.value : ""
-                      )
-                    }
-                  />
-                )}
-              />
-
-              <Column
-                header="Actions"
-                body={(_, options) => (
-                  <Button
-                    type="button"
-                    icon="pi pi-trash"
-                    className="!bg-red-500 p-2"
-                    onClick={() => removeItem("credit", options.rowIndex)}
-                  />
-                )}
-              />
-            </DataTable>
-          </div>
-        </div>
-
-        <div className="col-span-full">
-          <h3 className="font-bold  text-xl">{debitAccountType} - Debit</h3>
-          <div className="col-span-full">
-            <DataTable
-              size="small"
-              value={formState.debitLines}
-              emptyMessage="No items added yet."
-              className="w-full"
-              footer={
-                <div className="p-field mt-3">
-                  <Button
-                    size="small"
-                    type="button"
-                    label="Add Item"
-                    icon="pi pi-plus"
-                    onClick={() => addItem("debit")}
-                    className="p-button-outlined w-max"
-                  />
-                </div>
-              }
-            >
-              <Column
-                header="Item"
-                field="item_name"
-                body={(item: Line, options) =>
-                  item.chart_of_account_id > 0 ? (
-                    debitAccounts.find(
-                      (acc) => acc.id === item.chart_of_account_id
-                    )?.name
-                  ) : (
-                    <Dropdown
-                      className="p-inputtext-sm"
-                      loading={debitAccountsLoading}
-                      value={item.chart_of_account_id}
-                      options={debitAccounts?.map((account) => ({
-                        value: account.id,
-                        label: account.name,
-                      }))}
-                      onChange={(e) =>
-                        handleItemSelectChange(
-                          "debit",
-                          options.rowIndex,
-                          e.value
-                        )
-                      }
-                      placeholder="Select Account"
-                    />
-                  )
-                }
-              />
-              <Column
-                header="Amount"
-                field="debit_amount"
-                body={(item: Line, options) => (
-                  <InputNumber
-                    className="w-max p-inputtext-sm"
-                    value={item.debit_amount}
-                    onChange={(e) =>
-                      handleItemChange(
-                        "debit",
-                        options.rowIndex,
-                        "debit_amount",
-                        e.value ? +e.value : ""
-                      )
-                    }
-                  />
-                )}
-              />
-
-              <Column
-                header="Actions"
-                body={(_, options) => (
-                  <Button
-                    type="button"
-                    icon="pi pi-trash"
-                    className="!bg-red-500 p-2"
-                    onClick={() => removeItem("credit", options.rowIndex)}
-                  />
-                )}
-              />
-            </DataTable>
-          </div>
-        </div>
-        <div className="col-span-full">
+        <div className="col-span-full h-24">
           <h4 className="text-xl font-bold my-2">Support Files</h4>
           <FileUploadInput
             uploadVisible={false}

@@ -45,7 +45,7 @@ const ApprovalLevels = () => {
             </tr>
           </thead>
           <tbody>
-            {levels.length > 0 ? (
+            {levels && levels.length > 0 ? (
               levels.map((level) => (
                 <tr key={level.id} className="border-t">
                   <td className="p-3">{level.id}</td>

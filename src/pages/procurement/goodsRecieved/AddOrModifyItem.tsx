@@ -326,7 +326,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             itemTemplate={(option: Driver) => (
               <div
                 key={option.id}
-              >{`${option.staff_id} ${option.license_number}`}</div>
+              >{`${option.employee_id} ${option.license_number}`}</div>
             )}
             optionLabel="staff_id"
           />

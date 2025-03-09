@@ -28,13 +28,6 @@ const Employees: React.FC = () => {
 
   const columnDefinitions: ColDef<Employee>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "First Name",
       field: "first_name",
       sortable: true,
@@ -48,12 +41,41 @@ const Employees: React.FC = () => {
       suppressSizeToFit: true,
     },
     {
-      headerName: "Gender",
-      field: "gender",
+      headerName: "Department",
+      field: "department.name",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
     },
+    {
+      headerName: "Designation",
+      field: "designation.designation_name",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "Address",
+      field: "address",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "DOB",
+      field: "date_of_birth",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "Salary Structure",
+      field: "salary_structure.structure_name",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+
 
     {
       headerName: "Actions",
@@ -124,7 +146,7 @@ const Employees: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Employees Table</h1>
+            <h1 className="text-xl font-bold">Employees</h1>
           </div>
           <div className="flex gap-2">
             <button

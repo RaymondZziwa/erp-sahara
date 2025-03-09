@@ -6,6 +6,7 @@ import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
 import { LeaveType } from "../../../redux/slices/types/hr/Leave";
+import { toast, ToastContainer } from "react-toastify";
 
 interface AddOrModifyLeaveProps {
   visible: boolean;
@@ -54,25 +55,39 @@ const AddOrModifyLeave: React.FC<AddOrModifyLeaveProps> = ({
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+  
     // Basic validation
     if (!formState.leave_name || !formState.max_days) {
       setIsSubmitting(false);
+      toast.warn('Please fill in all the required fields');
       return; // Handle validation error here
     }
-
-    const data = { ...formState };
-    const method = item?.id ? "PUT" : "POST";
-    const endpoint = item?.id
-      ? HUMAN_RESOURCE_ENDPOINTS.LEAVE_TYPES.UPDATE(item.id.toString())
-      : HUMAN_RESOURCE_ENDPOINTS.LEAVE_TYPES.ADD;
-
-    await createRequest(endpoint, token.access_token, data, onSave, method);
-    setIsSubmitting(false);
-    onSave();
-    onClose(); // Close the modal after saving
+  
+    try {
+      const data = { ...formState };
+      const method = item?.id ? "PUT" : "POST";
+      const endpoint = item?.id
+        ? HUMAN_RESOURCE_ENDPOINTS.LEAVE_TYPES.UPDATE(item.id.toString())
+        : HUMAN_RESOURCE_ENDPOINTS.LEAVE_TYPES.ADD;
+      await createRequest(endpoint, token.access_token, data, onSave, method);
+  
+      // Reset form state
+      setFormState({
+        leave_name: "",
+        max_days: 0, // Reset to default value
+        // Add other fields here if needed
+      });
+  
+      // Call onSave and onClose
+      onSave();
+      onClose(); // Close the modal after saving
+    } catch (error) {
+      console.error("Error saving leave type:", error);
+      toast.error("An error occurred while saving the leave type.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
   const footer = (
     <div className="flex justify-end space-x-2">
       <Button
@@ -96,6 +111,8 @@ const AddOrModifyLeave: React.FC<AddOrModifyLeaveProps> = ({
   );
 
   return (
+    <>
+      <ToastContainer />
     <Dialog
       header={item?.id ? "Edit Leave Type" : "Add Leave Type"}
       visible={visible}
@@ -103,13 +120,16 @@ const AddOrModifyLeave: React.FC<AddOrModifyLeaveProps> = ({
       footer={footer}
       onHide={onClose}
     >
+      <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+       </p>
       <form
         id="leave-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="leave_name">Leave Name</label>
+          <label htmlFor="leave_name">Leave Name<span className="text-red-500">*</span></label>
           <InputText
             id="leave_name"
             name="leave_name"
@@ -130,7 +150,7 @@ const AddOrModifyLeave: React.FC<AddOrModifyLeaveProps> = ({
           />
         </div>
         <div className="p-field">
-          <label htmlFor="max_days">Max Days</label>
+          <label htmlFor="max_days">Max Days<span className="text-red-500">*</span></label>
           <InputText
             id="max_days"
             name="max_days"
@@ -143,6 +163,7 @@ const AddOrModifyLeave: React.FC<AddOrModifyLeaveProps> = ({
         </div>
       </form>
     </Dialog>
+    </>
   );
 };
 

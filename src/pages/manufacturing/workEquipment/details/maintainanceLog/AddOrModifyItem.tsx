@@ -10,6 +10,7 @@ import useEmployees from "../../../../../hooks/hr/useEmployees";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { Nullable } from "primereact/ts-helpers";
+import { ToastContainer } from "react-toastify";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -66,7 +67,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // @ts-expect-error
+    // @ts-expect-error --ignore
     const formatDate = (date: Date): Date => date.toISOString().slice(0, 10);
 
     if (
@@ -135,6 +136,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
   return (
+    <>
+      <ToastContainer />
     <Dialog
       header={item?.id ? "Edit Equipment Log" : "Add Equipment Log"}
       visible={visible}
@@ -142,13 +145,16 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
+      <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+      </p>
       <form
         id="lead-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="work_center_id">Performed By</label>
+          <label htmlFor="work_center_id">Performed By<span className="text-red-500">*</span></label>
           <Dropdown
             loading={employeesLoading}
             id="performed_by"
@@ -160,12 +166,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             }))}
             required
             onChange={(e) => handleSelectChange("performed_by", e.value)}
-            placeholder="Select a period"
+            placeholder="Select an employee"
             className="w-full"
           />
         </div>
         <div className="p-field">
-          <label htmlFor="work_center_id">Status</label>
+          <label htmlFor="work_center_id">Status<span className="text-red-500">*</span></label>
           <Dropdown
             id="status"
             name="status"
@@ -196,7 +202,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
         <div className="p-field">
           <label htmlFor="mantenance_every_after">
-            Maintenance every after
+            Maintenance every after<span className="text-red-500">*</span>
           </label>
           <InputText
             id="mantenance_every_after"
@@ -210,7 +216,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
         {/* Actual End Date */}
         <div className="p-field">
-          <label htmlFor="maintenance_date">Maintenance Date</label>
+          <label htmlFor="maintenance_date">Maintenance Date<span className="text-red-500">*</span></label>
           <Calendar
             id="maintenance_date"
             name="maintenance_date"
@@ -222,7 +228,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           />
         </div>
         <div className="p-field">
-          <label htmlFor="maintenance_end_date">Mantenance End Date</label>
+          <label htmlFor="maintenance_end_date">Mantenance End Date<span className="text-red-500">*</span></label>
           <Calendar
             id="maintenance_end_date"
             name="maintenance_end_date"
@@ -235,6 +241,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
       </form>
     </Dialog>
+  </>
   );
 };
 

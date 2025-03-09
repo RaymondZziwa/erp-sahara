@@ -60,4 +60,5 @@ export const ACCOUNTS_ENDPOINTS = {
   GET_PREPAID_ACCOUNTS: "/erp/accounts/get-prepaid-accounts",
   GET_ALL_ACCOUNTS: "/erp/accounts/get-all-accounts",
   GET_FISCAL_YEARS: "/erp/accounts/fiscalyear",
+  GET_ACCOUNT_BALANCES: "/erp/reports/dashboard/cash-balances"
 };

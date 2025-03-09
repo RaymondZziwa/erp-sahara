@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useState } from "react";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
@@ -42,6 +43,7 @@ interface ReqItem {
   item_id: number;
   item_name: string;
   quantity: number;
+  unit_cost: number;
   price: number;
   budget_item_id?: number; //When a budget is selected on a requisition an added item must be compared to its budgeted value
 }
@@ -138,6 +140,7 @@ const AddCashRequisition: React.FC = () => {
         item_id: selectedItem.item_id,
         item_name: selectedItem.item_name,
         price: +selectedItem.price,
+        unit_cost: +selectedItem.price,
         budget_item_id: selectedItem?.budget_item_id,
       };
 
@@ -166,6 +169,7 @@ const AddCashRequisition: React.FC = () => {
           item_id: 0,
           item_name: "",
           price: 0,
+          unit_cost: 0,
           budget_item_id: 0,
           quantity: 0,
           uuid: uuidv4(),
@@ -179,18 +183,22 @@ const AddCashRequisition: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!formState.title || !formState.currency_id) {
-      setIsSubmitting(false);
-      return;
-    }
+    // if (!formState.title || !formState.currency_id) {
+    //   setIsSubmitting(false);
+    //   return;
+    // }
     const onSave = () => {};
     const method = "POST";
-    const data = {
-      ...formState,
-      date_expected: new Date(formState.date_expected ?? new Date())
-        .toISOString()
-        .slice(0, 10),
-    };
+     const data = {
+       ...formState,
+       date_expected: new Date(formState.date_expected ?? new Date())
+         .toISOString()
+         .slice(0, 10),
+       items: formState.items?.map((item) => ({
+         ...item,
+         unit_cost: item.unit_cost ?? 0, // Explicitly include `unit_cost`
+       })),
+     };
     const endpoint = ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.ADD;
 
     await createRequest(endpoint, token.access_token, data, onSave, method);

@@ -99,13 +99,16 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
+       <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+       </p>
       <form
         id="truck-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="bonus_type_name">Name</label>
+          <label htmlFor="bonus_type_name">Name<span className="text-red-500">*</span></label>
           <InputText
             id="bonus_type_name"
             name="bonus_type_name"

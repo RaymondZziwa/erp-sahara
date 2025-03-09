@@ -42,7 +42,7 @@ const Drivers: React.FC = () => {
     },
     {
       headerName: "Staff ID",
-      field: "staff_id",
+      field: "employee_id",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
@@ -130,7 +130,7 @@ const Drivers: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Drivers Table</h1>
+            <h1 className="text-xl font-bold">Drivers</h1>
           </div>
           <div className="flex gap-2">
             <button

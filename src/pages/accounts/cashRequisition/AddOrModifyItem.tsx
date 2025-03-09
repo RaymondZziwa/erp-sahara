@@ -1,8 +1,8 @@
+//@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { InputTextarea } from "primereact/inputtextarea";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { DataTable } from "primereact/datatable";
@@ -21,6 +21,7 @@ import { v4 as uuidv4 } from "uuid"; // Import uuid
 import { InputNumber } from "primereact/inputnumber";
 import { formatCurrency } from "../../../utils/formatCurrency";
 import useDepartments from "../../../hooks/hr/useDepartments";
+import { Budget } from "../../../redux/slices/types/budgets/Budget";
 
 interface AddCashRequisition {
   title: string;
@@ -43,6 +44,7 @@ interface ReqItem {
   item_id: number;
   item_name: string;
   quantity: number;
+  unit_cost: number;
   price: number;
   budget_item_id?: number; //When a budget is selected on a requisition an added item must be compared to its budgeted value
 }
@@ -63,45 +65,51 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const [formState, setFormState] = useState<Partial<AddCashRequisition>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedItemType, setSelectedItemType] = useState("All");
+  const { data: budgets, refresh } = useBudgets();
+  const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const [allItems, setAllItems] = useState<ReqItem[]>([]);
 
   const { token } = useAuth();
   const { data: currencies } = useCurrencies();
   const { data: inventoryItems } = useItems();
   const { data: projects } = useProjects();
-  const { data: budgets } = useBudgets();
   const { data: employees } = useEmployees();
   const { data: departments } = useDepartments();
 
-  useEffect(() => {
-    if (item) {
-      setFormState({
-        title: item.title,
-        total_amount: +item.total_amount,
-        currency_id: item.currency_id,
-        date_expected: item.date_expected,
-        requester_id: item.requester_id,
-        department_id: item.department_id,
-        purpose: item.purpose,
-        segment_id: item.segment_id,
-        budget_id: item?.budget_id ?? undefined,
-        project_id: item.project_id,
-        branch_id: item.branch_id,
-        items: item.cash_requisition_items.map((it) => ({
-          uuid: uuidv4(),
-          item_id: it.id,
-          item_name: it.item_name,
-          quantity: +it.quantity,
-          price: +it.item.cost_price,
-          budget_item_id: item.budget_id == null ? undefined : +item.budget_id,
-          item_type:
-            inventoryItems.find((reqIt) => reqIt.id == it.item_id)?.item_type ??
-            "Product",
-        })),
-      });
-    } else {
-      setFormState({});
-    }
-  }, [item]);
+ useEffect(() => {
+   if (formState.budget_id) {
+     const selectedBudget = budgets.find(
+       (budget) => budget.id === formState.budget_id
+     );
+     console.log("selected budget2233:", selectedBudget);
+     if (selectedBudget) {
+      console.log("selected budget22:", selectedBudget);
+       const budgetItems = selectedBudget.items.map((item) => ({
+         item_id: item.id,
+         item_name: item.name,
+         quantity: 0,
+         price: +item.amount_in_base_currency,
+         unit_cost: +item.amount_in_base_currency,
+         budget_item_id: item.budget_id,
+         uuid: uuidv4(),
+         item_type: "Product", // Default to "Product" or adjust as needed
+       }));
+       setAllItems(budgetItems);
+     }
+   } else {
+     setAllItems(
+       inventoryItems.map((item) => ({
+         item_id: item.id,
+         item_name: item.name,
+         quantity: 0,
+         price: +item.cost_price,
+         unit_cost: +item.cost_price,
+         uuid: uuidv4(),
+         item_type: item.item_type,
+       }))
+     );
+   }
+ }, [formState.budget_id, budgets, inventoryItems]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -114,10 +122,20 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   };
 
   const handleSelectChange = (name: keyof AddCashRequisition, value: any) => {
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    if (name === "budget_id") {
+      setFormState((prevState) => ({
+        ...prevState,
+        [name]: value,
+      }));
+      const selected = budgets.find((budget) => budget.id === value);
+      console.log('selected budget:', selected)
+      setSelectedBudget(selected);
+    } else {
+      setFormState((prevState) => ({
+        ...prevState,
+        [name]: value,
+      }));
+    }
   };
 
   const handleItemChange = (
@@ -144,6 +162,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         item_id: selectedItem.item_id,
         item_name: selectedItem.item_name,
         price: +selectedItem.price,
+        unit_cost: +selectedItem.price,
         budget_item_id: selectedItem?.budget_item_id,
       };
 
@@ -172,6 +191,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           item_id: 0,
           item_name: "",
           price: 0,
+          unit_cost: 0,
           budget_item_id: 0,
           quantity: 0,
           uuid: uuidv4(),
@@ -191,17 +211,26 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }
 
     const method = item?.id ? "PUT" : "POST";
+
+    // Construct the payload with `unit_cost` included
     const data = {
       ...formState,
       date_expected: new Date(formState.date_expected ?? new Date())
         .toISOString()
         .slice(0, 10),
+      items: formState.items?.map((item) => ({
+        ...item,
+        unit_cost: item.unit_cost ?? 0, // Explicitly include `unit_cost`
+      })),
     };
+
+    console.log("Payload:", data); // Log the payload for verification
+
     const endpoint = item?.id
       ? ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.UPDATE(item.id.toString())
       : ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.ADD;
 
-    await createRequest(endpoint, token.access_token, data, onSave, method);
+    //await createRequest(endpoint, token.access_token, {test: 'test'}, onSave, method);
     setIsSubmitting(false);
     onSave();
     onClose();
@@ -211,29 +240,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     ? budgets.find((budget) => budget.id.toString() == formState.budget_id)
         ?.items
     : [];
-
-  const allItems: ReqItem[] = formState.budget_id
-    ? budgetItems?.map((item) => ({
-        //to be fixed
-        item_id:
-          inventoryItems.find((it) => it.name == item.name)?.id ?? item.id,
-        item_name: item.name,
-        quantity: 0,
-        price: +item.amount_in_base_currency,
-        budget_item_id: item.budget_id,
-        uuid: uuidv4(),
-        item_type:
-          inventoryItems.find((reqIt) => reqIt.id == item.id)?.item_type ??
-          "Product",
-      })) ?? []
-    : inventoryItems.map((item) => ({
-        item_id: item.id,
-        item_name: item.name,
-        quantity: 0,
-        price: +item.cost_price,
-        uuid: uuidv4(),
-        item_type: item.item_type,
-      }));
 
   const footer = (
     <div className="flex justify-end space-x-2">
@@ -253,6 +259,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         type="submit"
         form="project-form"
         size="small"
+        onClick={(e) => handleSave(e)}
       />
     </div>
   );
@@ -264,6 +271,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const selectedCurrency = currencies.find(
     (curr) => curr.id == formState.currency_id
   );
+
   return (
     <Dialog
       header={item?.id ? "Edit Cash Requisition" : "Add Cash Requisition"}
@@ -274,7 +282,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     >
       <form
         id="project-form"
-        onSubmit={handleSave}
+        //onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
       >
         {/* Form Fields */}
@@ -324,7 +332,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
         <div className="p-field">
           <label htmlFor="purpose">Purpose</label>
-          <InputTextarea
+          <InputText
             id="purpose"
             name="purpose"
             value={formState.purpose || ""}
@@ -442,14 +450,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                 ) : (
                   <Dropdown
                     value={item.uuid}
-                    options={(selectedItemType?.toLowerCase() == "all"
-                      ? allItems
-                      : allItems.filter(
-                          (item) =>
-                            item?.item_type?.toLowerCase() ==
-                            selectedItemType?.toLowerCase()
-                        )
-                    )?.map((it) => ({
+                    options={allItems.map((it) => ({
                       value: it.uuid,
                       label: it.item_name,
                     }))}
@@ -500,7 +501,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               field="price"
               body={(item: ReqItem) => <div>{item.quantity * item.price}</div>}
             />
-            {/* <Column header="Price" field="price" /> */}
             <Column
               header="Actions"
               body={(_, options) => (

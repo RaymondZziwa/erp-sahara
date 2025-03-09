@@ -9,6 +9,7 @@ import useAuth from "../../../hooks/useAuth";
 import { Department } from "../../../redux/slices/types/hr/Departments";
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
 import { InputTextarea } from "primereact/inputtextarea";
+import { toast, ToastContainer } from "react-toastify";
 
 interface AddOrModifyTruckProps {
   visible: boolean;
@@ -52,21 +53,39 @@ const AddOrModifyTruck: React.FC<AddOrModifyTruckProps> = ({
   };
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    // Basic validation
-    if (!formState.name || !formState.description) {
-      return; // Handle validation error here
-    }
-    const data = { ...formState };
-    const method = item?.id ? "PUT" : "POST";
-    const endpoint = item?.id
-      ? HUMAN_RESOURCE_ENDPOINTS.DEPARTMENTS.UPDATE(item.id.toString())
-      : HUMAN_RESOURCE_ENDPOINTS.DEPARTMENTS.ADD;
-    await createRequest(endpoint, token.access_token, data, onSave, method);
-    setIsSubmitting(false);
-    onSave();
-    onClose(); // Close the modal after saving
+      e.preventDefault();
+      setIsSubmitting(true);
+    
+      // Basic validation
+      if (!formState.name) {
+        setIsSubmitting(false);
+        toast.warn('Fill in all the mandatory fields')
+        return;
+      }
+    
+      try {
+        const data = { ...formState };
+        const method = item?.id ? "PUT" : "POST";
+        const endpoint = item?.id
+          ? HUMAN_RESOURCE_ENDPOINTS.DEPARTMENTS.UPDATE(item.id.toString())
+          : HUMAN_RESOURCE_ENDPOINTS.DEPARTMENTS.ADD;
+        await createRequest(endpoint, token.access_token, data, onSave, method);
+    
+        // Reset form state
+        setFormState({
+          name: "",
+          description: "",
+        });
+    
+        // Call onSave and onClose
+        onSave();
+        onClose(); // Close the modal after saving
+      } catch (error) {
+        console.error("Error saving department:", error);
+        toast.error("An error occurred while saving department.");
+      } finally {
+        setIsSubmitting(false);
+      }
   };
 
   const footer = (
@@ -92,26 +111,30 @@ const AddOrModifyTruck: React.FC<AddOrModifyTruckProps> = ({
   );
 
   return (
+    <>
+      <ToastContainer />
     <Dialog
-      header={item?.id ? "Edit Truck" : "Add Truck"}
+      header={item?.id ? "Edit Department" : "Add Department"}
       visible={visible}
       style={{ width: "400px" }}
       footer={footer}
       onHide={onClose}
     >
+      <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+       </p>
       <form
         id="truck-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="name">Name</label>
+          <label htmlFor="name">Name<span className="text-red-500">*</span></label>
           <InputText
             id="name"
             name="name"
             value={formState.name}
             onChange={handleInputChange}
-            required
             className="w-full"
           />
         </div>
@@ -122,12 +145,12 @@ const AddOrModifyTruck: React.FC<AddOrModifyTruckProps> = ({
             name="description"
             value={formState.description}
             onChange={handleInputChange}
-            required
             className="w-full"
           />
         </div>
       </form>
     </Dialog>
+    </>
   );
 };
 

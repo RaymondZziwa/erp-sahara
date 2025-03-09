@@ -3,7 +3,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
-//import { baseURL } from "../../../utils/api";
+import { baseURL } from "../../../utils/api";
 
 const ReorderReport = () => {
   const token = useSelector((state: RootState) => state.userAuth.token)
@@ -13,7 +13,7 @@ const ReorderReport = () => {
     const fetchData = async () => {
       try {
         const response = await axios.post(
-          `https://merp.efinanci.co.tz/api/erp/inventories/reports/reorderreport`,
+          `${baseURL}/erp/inventories/reports/reorderreport`,
           {}, 
           {
             headers: {

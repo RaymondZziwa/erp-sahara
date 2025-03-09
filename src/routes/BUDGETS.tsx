@@ -1,11 +1,12 @@
+
 import { Icon } from "@iconify/react";
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import FiscalYears from "../pages/budgets/fiscalYears";
 import Budgets from "../pages/budgets/budgets";
 import BudgetDetails from "../pages/budgets/budgetDetails";
 
 // Dynamic imports
-const SettingsPage = lazy(() => import("../pages/settings"));
+//const SettingsPage = lazy(() => import("../pages/settings"));
 
 // Loader fallback component
 const Loading = () => <div>Loading...</div>;
@@ -17,12 +18,12 @@ const BUDGETS_ROUTES = [
     path: "",
     items: [
       {
-        name: "CPI Overview",
-        icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
+        name: "Budgets Overview",
+        icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/",
         element: (
           <Suspense fallback={<Loading />}>
-            <SettingsPage />
+            <Budgets />
           </Suspense>
         ),
       },
@@ -40,16 +41,6 @@ const BUDGETS_ROUTES = [
         element: (
           <Suspense fallback={<Loading />}>
             <FiscalYears />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Budgets Overview",
-        icon: <Icon icon="mdi:finance" fontSize={20} />,
-        path: "/budgets",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Budgets />
           </Suspense>
         ),
       },
