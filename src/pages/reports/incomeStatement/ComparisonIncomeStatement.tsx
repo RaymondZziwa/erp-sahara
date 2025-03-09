@@ -55,8 +55,6 @@ const ComparisonIncomeStatement: React.FC = () => {
     }
   };
 
-  console.log("income", incomeStatement);
-
   useEffect(() => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
@@ -69,6 +67,7 @@ const ComparisonIncomeStatement: React.FC = () => {
     const tableBody: any[] = [];
 
     data.forEach((category) => {
+      const categoryTotal = category.total ?? "";
       tableBody.push([
         {
           content: category.sub_category_name,
@@ -130,7 +129,7 @@ const ComparisonIncomeStatement: React.FC = () => {
           },
         },
         {
-          content: category.total.toLocaleString(),
+          content: categoryTotal.toLocaleString(), // Use safe value
           styles: { fontStyle: "bold", halign: "right" },
         },
       ]);
@@ -225,7 +224,9 @@ const ComparisonIncomeStatement: React.FC = () => {
                         SubCategory Total
                       </td>
                       <td className="p-3 ">
-                        {category.total.toLocaleString()}
+                        {Number(category.total)
+                          ? category.total.toLocaleString()
+                          : ""}
                       </td>
                     </tr>
                   </>

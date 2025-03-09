@@ -125,6 +125,19 @@ function BalanceSheetReport() {
     doc.save("BalanceSheet.pdf");
   };
 
+  let totalLiability: number = liabilities?.reduce(
+    (acc, item) => acc + item.subcategory_total,
+    0
+  );
+  let totalEquity: number = equity?.reduce(
+    (acc, item) => acc + item.subcategory_total,
+    0
+  );
+  let currentProfitOrLoss = data?.current_profit_or_loss;
+
+  let totalLiabilityAndEquityAndProfitLoss =
+    totalLiability + totalEquity + currentProfitOrLoss;
+
   return (
     <div className="bg-white p-3">
       <div className="flex justify-between items-center mb-4">
@@ -184,47 +197,6 @@ function BalanceSheetReport() {
 
           <tr className="font-bold bg-gray-300">
             <td className="p-3 " colSpan={3}>
-              EQUITY
-            </td>
-          </tr>
-          {equity?.map((item) => {
-            return (
-              <>
-                <tr className="font-bold bg-gray-100">
-                  <td className="p-3 " colSpan={3}>
-                    {item.subcategory_name}
-                  </td>
-                </tr>
-                {item.accounts.map((account: any) => {
-                  return (
-                    <tr>
-                      <td className="px-3 py-2 border-gray-200 border-b w-[100px]">
-                        {account.account_code}
-                      </td>
-                      <td className="px-3 py-2 border-gray-200 border-b">
-                        {account.account_name}
-                      </td>
-                      <td className="px-3 py-2 border-gray-200 border-b">
-                        {account.balance.toLocaleString()}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </>
-            );
-          })}
-          <tr className="font-bold bg-gray-200">
-            <td className="p-3 " colSpan={2}>
-              TOTAL EQUITY
-            </td>
-            <td className="p-3 ">
-              {equity
-                ?.reduce((acc, item) => acc + item.subcategory_total, 0)
-                .toLocaleString()}
-            </td>
-          </tr>
-          <tr className="font-bold bg-gray-300">
-            <td className="p-3 " colSpan={3}>
               LIABILITIES
             </td>
           </tr>
@@ -264,6 +236,47 @@ function BalanceSheetReport() {
                 .toLocaleString()}
             </td>
           </tr>
+          <tr className="font-bold bg-gray-300">
+            <td className="p-3 " colSpan={3}>
+              EQUITY
+            </td>
+          </tr>
+          {equity?.map((item) => {
+            return (
+              <>
+                <tr className="font-bold bg-gray-100">
+                  <td className="p-3 " colSpan={3}>
+                    {item.subcategory_name}
+                  </td>
+                </tr>
+                {item.accounts.map((account: any) => {
+                  return (
+                    <tr>
+                      <td className="px-3 py-2 border-gray-200 border-b w-[100px]">
+                        {account.account_code}
+                      </td>
+                      <td className="px-3 py-2 border-gray-200 border-b">
+                        {account.account_name}
+                      </td>
+                      <td className="px-3 py-2 border-gray-200 border-b">
+                        {account.balance.toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </>
+            );
+          })}
+          <tr className="font-bold bg-gray-200">
+            <td className="p-3 " colSpan={2}>
+              TOTAL EQUITY
+            </td>
+            <td className="p-3 ">
+              {equity
+                ?.reduce((acc, item) => acc + item.subcategory_total, 0)
+                .toLocaleString()}
+            </td>
+          </tr>
           <tr className="font-bold bg-gray-200">
             <td className="p-3 " colSpan={2}>
               PROFIT/LOSS
@@ -272,6 +285,16 @@ function BalanceSheetReport() {
               {data.current_profit_or_loss
                 ? data?.current_profit_or_loss.toLocaleString()
                 : 0}
+            </td>
+          </tr>
+          <tr className="font-bold bg-gray-400">
+            <td className="p-3 " colSpan={2}>
+              Total Liabilities and Shareholder's Equity
+            </td>
+            <td className="p-3 ">
+              {totalLiabilityAndEquityAndProfitLoss
+                ? totalLiabilityAndEquityAndProfitLoss.toLocaleString()
+                : ""}
             </td>
           </tr>
         </tbody>

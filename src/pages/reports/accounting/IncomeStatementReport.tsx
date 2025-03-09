@@ -25,7 +25,7 @@ function IncomeStatementReport() {
         "GET",
         token.access_token
       );
-      setIncomeStatementData(response.data.data);
+      setIncomeStatementData(response.data.data || []);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -41,6 +41,14 @@ function IncomeStatementReport() {
   }, [isFetchingLocalToken, token.access_token]);
 
   const handleExportPDF = (data: any[]) => {
+    console.log("Exporting Data:", data);
+
+    if (!data || data.length === 0) {
+      console.error("No valid data to export.");
+      alert("No data available to export!");
+      return;
+    }
+
     const doc = new jsPDF();
     doc.setFillColor(255, 255, 255);
     doc.text("Income Statement Report", 20, 10);
@@ -48,10 +56,13 @@ function IncomeStatementReport() {
     const tableBody: any[] = [];
 
     data.forEach((category) => {
+      // Ensure category.total exists
+      const categoryTotal = category.total ?? ""; // Fix: Default to 0 if undefined
+
       // Section Header (Category)
       tableBody.push([
         {
-          content: category.sub_category_name,
+          content: category.sub_category_name || "Unknown Category",
           colSpan: 2,
           styles: {
             fillColor: [222, 226, 230], // Light Gray Background
@@ -65,9 +76,9 @@ function IncomeStatementReport() {
       // Ledger Items
       category.ledgers.forEach((ledger: any) => {
         tableBody.push([
-          ledger.ledger_name,
+          ledger.ledger_name || "Unknown Ledger",
           {
-            content: ledger.amount.toLocaleString(),
+            content: ledger.amount ? ledger.amount.toLocaleString() : "0",
             styles: { halign: "right" },
           },
         ]);
@@ -84,7 +95,7 @@ function IncomeStatementReport() {
           },
         },
         {
-          content: category.total.toLocaleString(),
+          content: categoryTotal.toLocaleString(), // Use safe value
           styles: { fontStyle: "bold", halign: "right" },
         },
       ]);
@@ -96,23 +107,12 @@ function IncomeStatementReport() {
       styles: {
         textColor: "black",
         cellPadding: 2,
-        lineWidth: 0.2, // Ensures borders are visible
+        lineWidth: 0.2,
       },
       margin: { top: 20 },
-      tableLineWidth: 0, // Removes outer table borders
-      tableLineColor: [255, 255, 255], // Makes sure no table outline
-      didParseCell: function (data) {
-        if (data.section === "body") {
-          data.cell.styles.lineWidth = {
-            top: 0.2,
-            right: 0,
-            bottom: 0.2,
-            left: 0,
-          }; // [top, right, bottom, left]
-        }
-      },
     });
 
+    console.log("Saving PDF...");
     doc.save("IncomeStatement.pdf");
   };
 
@@ -125,7 +125,7 @@ function IncomeStatementReport() {
         <button
           className="bg-shade p-3 rounded text-white flex gap-2 items-center"
           onClick={() =>
-            incomeStatementData &&
+            incomeStatementData != null &&
             handleExportPDF(
               Array.isArray(incomeStatementData)
                 ? incomeStatementData
@@ -166,8 +166,14 @@ function IncomeStatementReport() {
                     );
                   })}
                   <tr className="font-bold bg-gray-100">
-                    <td className="p-3 ">{category.sub_category_name} Total</td>
-                    <td className="p-3 ">{category.total.toLocaleString()}</td>
+                    <td className="p-3 ">
+                      {category?.sub_category_name} Total
+                    </td>
+                    <td className="p-3 ">
+                      {Number(category.total)
+                        ? category.total.toLocaleString()
+                        : ""}
+                    </td>
                   </tr>
                 </>
               );
@@ -175,7 +181,7 @@ function IncomeStatementReport() {
           </tbody>
         </table>
       )}
-      {!isLoading && incomeStatementData === null && "No data present"}
+      {!isLoading && incomeStatementData === null ? "No data present" : ""}
     </div>
   );
 }
