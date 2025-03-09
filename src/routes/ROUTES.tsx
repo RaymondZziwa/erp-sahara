@@ -75,7 +75,6 @@ const ROUTES: Route[] = [
     path: "/budgets",
     sidebarItems: BUDGETS_ROUTES,
   },
-  
 
   // {
   //   name: "MOSS App",
@@ -84,7 +83,6 @@ const ROUTES: Route[] = [
   //   sidebarItems: MOSS_APP_ROUTES,
   //   hidden: true,
   // },
-  
 
   {
     name: "Human Resource",
@@ -104,8 +102,8 @@ const ROUTES: Route[] = [
     icon: <Icon icon="mdi:tractor" fontSize={24} />, // Example: Tractor icon for a farm-related look
     path: "/farm_groups",
     sidebarItems: FARM_GROUP_ROUTES,
-  },  
-  
+  },
+
   // {
   //   name: "Investment Financing",
   //   icon: <Icon icon="solar:money-bag-bold" fontSize={24} />, // More specific to project management

@@ -24,7 +24,7 @@ export const REPORTS_ENDPOINTS = {
     GET_ALL: "/erp/accounts/journal-types",
   },
   CASH_FLOW_STATEMENT: {
-    GET_ALL: "/erp/reports/accounting/false/cash-flow-statement",
+    GET_ALL: "/erp/reports/accounting/false/cash-flow-statement-indirect",
   },
   DETAILED_CASH_BOOK: {
     GET_ALL: "/erp/reports/accounting/cashbook/2024-01-01/2024-12-01",

@@ -9,20 +9,32 @@ import autoTable from "jspdf-autotable";
 
 interface cashFlowData {
   operating_activities: {
-    Operating: cashFlowDetails[];
+    current_profit_or_loss: number;
+    additions_to_cash: {
+      depreciations: number;
+      decrease_in_cash_receivable: number;
+      increase_in_accounts_payable: number;
+      increase_in_tax_payable: number;
+    };
+    subtractions_from_cash: {
+      increase_in_inventory: number;
+    };
+    net_cash_from_operating_activities: number;
   };
   investing_activities: {
-    Investing: cashFlowDetails[];
+    asset_purchase: number;
+    sale_of_asset: number;
+    loans_to_customers: number;
+    proceeds_from_sales_of_investments: number;
   };
   financing_activities: {
-    Financing: cashFlowDetails[];
+    loan_disbursements: number;
+    loan_repayments: number;
+    equity_contributions: number;
+    equity_withdrawals: number;
   };
-}
-interface cashFlowDetails {
-  account_id: number;
-  account_name: string;
-  account_code: string;
-  net_cash_flow: number;
+  cash_at_beginning_of_period: number;
+  cash_at_end_of_period: number;
 }
 function Cashflow() {
   const [cashFlow, setCashFlow] = useState<cashFlowData | null>(null);
@@ -38,6 +50,7 @@ function Cashflow() {
         "GET",
         token.access_token
       );
+
       setCashFlow(response.data);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -45,6 +58,8 @@ function Cashflow() {
       setIsLoading(false);
     }
   };
+
+  console.log("Cash Flow", cashFlow);
 
   useEffect(() => {
     fetchDataFromApi();
@@ -61,23 +76,7 @@ function Cashflow() {
 
     const tableBody: any[] = [];
 
-    const sections = [
-      {
-        title: "Cash Flow from Operating Activities",
-        data: cashFlow.operating_activities.Operating,
-      },
-      {
-        title: "Cash Flow from Investing Activities",
-        data: cashFlow.investing_activities.Investing || [],
-      },
-      {
-        title: "Cash Flow from Financing Activities",
-        data: cashFlow.financing_activities.Financing || [],
-      },
-    ];
-
-    sections.forEach(({ title, data }) => {
-      // **Header Row for Section (e.g., "Cash Flow from Operating Activities")**
+    const addSection = (title: string, data: Record<string, number>) => {
       tableBody.push([
         {
           content: title,
@@ -91,53 +90,72 @@ function Cashflow() {
         },
       ]);
 
-      if (data.length > 0) {
-        // **Account Rows**
-        data.forEach((item) => {
-          tableBody.push([
-            item.account_name,
-            {
-              content: item.net_cash_flow.toLocaleString(),
-              styles: { halign: "right" },
-            },
-          ]);
-        });
+      Object.entries(data).forEach(([key, value]) => {
+        tableBody.push([
+          key.replace(/_/g, " "), // Formatting key names for better readability
+          {
+            content: value.toLocaleString(),
+            styles: { halign: "right" },
+          },
+        ]);
+      });
 
-        // **Total Row**
-        const total = data.reduce((acc, item) => acc + item.net_cash_flow, 0);
-        tableBody.push([
-          {
-            content: "Net " + title.split(" from ")[1],
-            styles: {
-              fontStyle: "bold",
-              fillColor: [246, 249, 252],
-              halign: "left",
-            },
+      const total = Object.values(data).reduce((acc, value) => acc + value, 0);
+      tableBody.push([
+        {
+          content: "Total " + title.split(" from ")[1],
+          styles: {
+            fontStyle: "bold",
+            fillColor: [246, 249, 252],
+            halign: "left",
           },
-          {
-            content: total.toLocaleString(),
-            styles: { fontStyle: "bold", halign: "right" },
-          },
-        ]);
-      } else {
-        // **No Data Message**
-        tableBody.push([
-          {
-            content: "No transactions recorded",
-            colSpan: 2,
-            styles: { halign: "center", fontStyle: "italic" },
-          },
-        ]);
-      }
+        },
+        {
+          content: total.toLocaleString(),
+          styles: { fontStyle: "bold", halign: "right" },
+        },
+      ]);
+    };
+
+    addSection("Cash Flow from Operating Activities", {
+      current_profit_or_loss:
+        cashFlow.operating_activities.current_profit_or_loss,
+      ...cashFlow.operating_activities.additions_to_cash,
+      ...cashFlow.operating_activities.subtractions_from_cash,
     });
+
+    addSection(
+      "Cash Flow from Investing Activities",
+      cashFlow.investing_activities
+    );
+    addSection(
+      "Cash Flow from Financing Activities",
+      cashFlow.financing_activities
+    );
+
+    tableBody.push([
+      { content: "Cash at Beginning of Period", styles: { fontStyle: "bold" } },
+      {
+        content: cashFlow.cash_at_beginning_of_period.toLocaleString(),
+        styles: { halign: "right" },
+      },
+    ]);
+
+    tableBody.push([
+      { content: "Cash at End of Period", styles: { fontStyle: "bold" } },
+      {
+        content: cashFlow.cash_at_end_of_period.toLocaleString(),
+        styles: { fontStyle: "bold", halign: "right" },
+      },
+    ]);
 
     autoTable(doc, {
       body: tableBody,
       theme: "grid",
       styles: { textColor: "black", cellPadding: 3, lineWidth: 0.2 },
       margin: { top: 20 },
-      tableLineWidth: 0, // Removes outer table borders
-      tableLineColor: [255, 255, 255], // Makes sure no table outline
+      tableLineWidth: 0,
+      tableLineColor: [255, 255, 255],
       didParseCell: function (data) {
         if (data.section === "body") {
           data.cell.styles.lineWidth = {
@@ -145,7 +163,7 @@ function Cashflow() {
             right: 0,
             bottom: 0.2,
             left: 0,
-          }; // [top, right, bottom, left]
+          };
         }
       },
     });
@@ -175,101 +193,183 @@ function Cashflow() {
                 Cash Flow from Operating Activities
               </td>
             </tr>
-            {operating_activities?.Operating
-              ? operating_activities?.Operating.map((item) => {
-                  return (
-                    <tr>
-                      <td className="px-5 py-2 border-gray-300 border-b border-r">
-                        {item.account_name}
-                      </td>
-                      <td className="px-5 py-2 border-gray-200 border-b">
-                        {item.net_cash_flow
-                          ? item.net_cash_flow.toLocaleString()
-                          : ""}
-                      </td>
-                    </tr>
-                  );
-                })
-              : ""}
+
             <tr>
               <td className="px-5 py-2 font-bold border-gray-200 border-b">
-                Net Cash from Operations Activities
+                Net Earnings
               </td>
-              <td className="px-6 py-2 font-bold border-gray-200 border-b">
-                {operating_activities?.Operating
-                  ? operating_activities?.Operating.reduce(
-                      (acc, item) => acc + item.net_cash_flow,
-                      0
-                    ).toLocaleString()
-                  : ""}
+              <td className="px-5 py-2 font-bold border-gray-200 border-b">
+                {operating_activities?.current_profit_or_loss}
               </td>
             </tr>
+            <tr>
+              <td
+                className="px-5 py-2 font-bold border-gray-200 border-b"
+                colSpan={2}
+              >
+                Additions to Cash
+              </td>
+            </tr>
+            <tr>
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Depreciation
+              </td>
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {operating_activities?.additions_to_cash.depreciations}
+              </td>
+            </tr>
+            <tr>
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Decrease in Cash Receivable
+              </td>
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {
+                  operating_activities?.additions_to_cash
+                    .decrease_in_cash_receivable
+                }
+              </td>
+            </tr>
+            <tr>
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Increase in Accounts Payable
+              </td>
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {
+                  operating_activities?.additions_to_cash
+                    .increase_in_accounts_payable
+                }
+              </td>
+            </tr>
+            <tr>
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Increase in Tax Payable
+              </td>
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {
+                  operating_activities?.additions_to_cash
+                    .increase_in_tax_payable
+                }
+              </td>
+            </tr>
+            <tr>
+              <td
+                className="px-5 py-2 font-bold border-gray-200 border-b"
+                colSpan={2}
+              >
+                Subtractions from Cash
+              </td>
+            </tr>
+            <tr>
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Increase in Inventory
+              </td>
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {
+                  operating_activities?.subtractions_from_cash
+                    .increase_in_inventory
+                }
+              </td>
+            </tr>
+            <tr>
+              <td className="px-5 py-2 font-bold border-gray-200 border-b">
+                Current Profit or Loss
+              </td>
+              <td className="px-6 py-2 font-bold border-gray-200 border-b">
+                {operating_activities?.current_profit_or_loss}
+              </td>
+            </tr>
+
             <tr className="font-bold bg-gray-200">
               <td className="p-3" colSpan={2}>
                 Cash Flow from Investing Activities
               </td>
             </tr>
-            {investing_activities?.Investing
-              ? investing_activities?.Investing.map((item) => {
-                  return (
-                    <tr>
-                      <td className="px-5 py-2 border-gray-200 border-b border-r">
-                        {item.account_name}
-                      </td>
-                      <td className="px-5 py-2 border-gray-200 border-b">
-                        {item.net_cash_flow
-                          ? item.net_cash_flow.toLocaleString()
-                          : ""}
-                      </td>
-                    </tr>
-                  );
-                })
-              : ""}
+
             <tr>
-              <td className="px-5 py-2 font-bold border-gray-200 border-b">
-                Net Cash from Investing Activities
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Asset Purchase
               </td>
-              <td className="px-6 py-2 font-bold border-gray-200 border-b">
-                {investing_activities?.Investing
-                  ? investing_activities?.Investing.reduce(
-                      (acc, item) => acc + item.net_cash_flow,
-                      0
-                    ).toLocaleString()
-                  : ""}
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {investing_activities?.asset_purchase}
               </td>
             </tr>
+            <tr>
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Sale of Asset
+              </td>
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {investing_activities?.sale_of_asset}
+              </td>
+            </tr>
+            <tr>
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Loan to Customers
+              </td>
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {investing_activities?.loans_to_customers}
+              </td>
+            </tr>
+            <tr>
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Proceeds from sales of investments
+              </td>
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {investing_activities?.proceeds_from_sales_of_investments}
+              </td>
+            </tr>
+
             <tr className="font-bold bg-gray-200">
               <td className="p-3" colSpan={2}>
                 Cash Flow from Financing Activities
               </td>
             </tr>
-            {financing_activities?.Financing
-              ? financing_activities?.Financing.map((item) => {
-                  return (
-                    <tr>
-                      <td className="px-5 py-2 border-gray-200 border-b border-r">
-                        {item.account_name}
-                      </td>
-                      <td className="px-5 py-2 border-gray-200 border-b">
-                        {item.net_cash_flow
-                          ? item.net_cash_flow.toLocaleString()
-                          : ""}
-                      </td>
-                    </tr>
-                  );
-                })
-              : ""}
+
             <tr>
-              <td className="px-5 py-2 font-bold border-gray-200 border-b">
-                Net Cash from Financing Activities
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Loan Disbursements
               </td>
-              <td className="px-6 py-2 font-bold border-gray-200 border-b">
-                {financing_activities?.Financing
-                  ? financing_activities?.Financing.reduce(
-                      (acc, item) => acc + item.net_cash_flow,
-                      0
-                    ).toLocaleString()
-                  : ""}
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {financing_activities?.loan_disbursements}
+              </td>
+            </tr>
+            <tr>
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Loan Repayments
+              </td>
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {financing_activities?.loan_repayments}
+              </td>
+            </tr>
+            <tr>
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Equity Contributions
+              </td>
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {financing_activities?.equity_contributions}
+              </td>
+            </tr>
+            <tr>
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Equity Withdrawals
+              </td>
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {financing_activities?.equity_withdrawals}
+              </td>
+            </tr>
+            <tr className="font-bold bg-gray-200">
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Cash at Beginning of Period
+              </td>
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {cashFlow?.cash_at_beginning_of_period}
+              </td>
+            </tr>
+            <tr className="font-bold bg-gray-200">
+              <td className="px-5 py-2 border-gray-200 border-b border-r">
+                Cash at End of Period
+              </td>
+              <td className="px-5 py-2 border-gray-200 border-b">
+                {cashFlow?.cash_at_end_of_period}
               </td>
             </tr>
           </tbody>

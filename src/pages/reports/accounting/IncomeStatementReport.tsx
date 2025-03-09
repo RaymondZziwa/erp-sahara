@@ -11,8 +11,9 @@ import { IncomeStatement } from "../../../redux/slices/types/reports/IncomeState
 
 function IncomeStatementReport() {
   const [isLoading, setIsLoading] = useState(false);
-  const [incomeStatementData, setIncomeStatementData] =
-    useState<IncomeStatement | null>(null);
+  const [incomeStatementData, setIncomeStatementData] = useState<
+    IncomeStatement[] | null
+  >(null);
   const { token, isFetchingLocalToken } = useAuth();
 
   const fetchDataFromApi = async () => {
@@ -24,7 +25,7 @@ function IncomeStatementReport() {
         "GET",
         token.access_token
       );
-      setIncomeStatementData(response.data);
+      setIncomeStatementData(response.data.data);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -32,6 +33,8 @@ function IncomeStatementReport() {
       setIsLoading(false);
     }
   };
+
+  // console.log(incomeStatementData);
 
   useEffect(() => {
     fetchDataFromApi();
@@ -142,38 +145,33 @@ function IncomeStatementReport() {
       ) : (
         <table className="w-full">
           <tbody>
-            {Array.isArray(incomeStatementData) &&
-              incomeStatementData.map((category) => {
-                return (
-                  <>
-                    <tr className="font-bold bg-gray-200">
-                      <td className="p-3 " colSpan={3}>
-                        {category.sub_category_name}
-                      </td>
-                    </tr>
-                    {category.ledgers.map((ledger: any) => {
-                      return (
-                        <tr>
-                          <td className="px-3 py-2 border-gray-200 border-b">
-                            {ledger.ledger_name}
-                          </td>
-                          <td className="px-3 py-2 border-gray-200 border-b">
-                            {ledger.amount.toLocaleString()}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                    <tr className="font-bold bg-gray-100">
-                      <td className="p-3 ">
-                        {category.sub_category_name} Total
-                      </td>
-                      <td className="p-3 ">
-                        {category.total.toLocaleString()}
-                      </td>
-                    </tr>
-                  </>
-                );
-              })}
+            {incomeStatementData?.map((category) => {
+              return (
+                <>
+                  <tr className="font-bold bg-gray-200">
+                    <td className="p-3 " colSpan={3}>
+                      {category.sub_category_name}
+                    </td>
+                  </tr>
+                  {category.ledgers.map((ledger: any) => {
+                    return (
+                      <tr>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {ledger.ledger_name}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {ledger.amount.toLocaleString()}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="font-bold bg-gray-100">
+                    <td className="p-3 ">{category.sub_category_name} Total</td>
+                    <td className="p-3 ">{category.total.toLocaleString()}</td>
+                  </tr>
+                </>
+              );
+            })}
           </tbody>
         </table>
       )}

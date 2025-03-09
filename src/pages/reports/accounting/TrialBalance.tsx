@@ -122,16 +122,16 @@ function TrialBalanceReport() {
               trialBalanceData.map((item) => {
                 return (
                   <tr>
-                    <td className="px-5 py-2 w-[30px] border-gray-300 border-b">
+                    <td className="px-5 py-2 w-[30px] border-gray-300 border">
                       {item.account_code}
                     </td>
-                    <td className="px-5 py-2 border-gray-300 border-b">
+                    <td className="px-5 py-2 border-gray-300 border">
                       {item.account_name}
                     </td>
-                    <td className="px-5 py-2 border-gray-300 border-b">
+                    <td className="px-5 py-2 border-gray-300 border">
                       {item.debit ? item.debit.toLocaleString() : ""}
                     </td>
-                    <td className="px-5 py-2 border-gray-300 border-b">
+                    <td className="px-5 py-2 border-gray-300 border">
                       {item.credit ? item.credit.toLocaleString() : ""}
                     </td>
                   </tr>
