@@ -184,16 +184,6 @@ function BalanceSheetReport() {
               </>
             );
           })}
-          <tr className="font-bold bg-gray-200">
-            <td className="p-3 " colSpan={2}>
-              TOTAL ASSETS
-            </td>
-            <td className="p-3 ">
-              {assets
-                ?.reduce((acc, item) => acc + item.subcategory_total, 0)
-                .toLocaleString()}
-            </td>
-          </tr>
 
           <tr className="font-bold bg-gray-300">
             <td className="p-3 " colSpan={3}>
@@ -287,9 +277,20 @@ function BalanceSheetReport() {
                 : 0}
             </td>
           </tr>
+          <tr className="font-bold bg-gray-400 border-b border-white">
+            <td className="p-3 " colSpan={2}>
+              TOTAL ASSETS
+            </td>
+            <td className="p-3 ">
+              {assets
+                ?.reduce((acc, item) => acc + item.subcategory_total, 0)
+                .toLocaleString()}
+            </td>
+          </tr>
+
           <tr className="font-bold bg-gray-400">
             <td className="p-3 " colSpan={2}>
-              Total Liabilities and Shareholder's Equity
+              TOTAL LIABILITIES AND SHAREHOLDER'S EQUITY
             </td>
             <td className="p-3 ">
               {totalLiabilityAndEquityAndProfitLoss
