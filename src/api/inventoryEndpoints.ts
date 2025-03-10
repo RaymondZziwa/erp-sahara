@@ -109,4 +109,11 @@ export const INVENTORY_ENDPOINTS = {
     UPDATE: (id: string) => `/erp/people/drivers/${id}/update`,
     DELETE: (id: string) => `/erp/people/drivers/${id}/delete`,
   },
+  WAREHOUSE_TYPES: {
+    GET_ALL: "/erp/people/warehousetypes",
+    GET_BY_ID: (id: string) => `/erp/people/warehousetypes/${id}`,
+    ADD: "/erp/people/warehousetypes/create",
+    UPDATE: (id: string) => `/erp/people/warehousetypes/${id}/update`,
+    DELETE: (id: string) => `/erp/people/warehousetypes/${id}/delete`,
+  }
 };

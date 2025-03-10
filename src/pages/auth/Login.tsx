@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 export default function LoginPage() {
   const { loginHandler, isLoading } = useAuth();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

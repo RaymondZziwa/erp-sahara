@@ -23,6 +23,7 @@ import CashBook from "../pages/reports/accounting/CashBook";
 import ComparisonTrialBalances from "../pages/reports/trialBalances/ComparisonTrailBalances";
 import ComparisonIncomeStatement from "../pages/reports/incomeStatement/ComparisonIncomeStatement";
 import ComparisonBalanceSheet from "../pages/reports/balanceSheet/ComparisonBalancesheet";
+import BudgetDetails from "../pages/budgets/budgetDetails";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -79,6 +80,10 @@ const AppRouter = () => {
           <Route
             path="/trial-balance-comparisons"
             element={<ComparisonTrialBalances />}
+          />
+          <Route
+            path="budgets/budget-details/:id"
+            element={<BudgetDetails />}
           />
         </Route>
         <Route path="/login" element={<LoginPage />} />

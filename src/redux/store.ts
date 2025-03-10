@@ -52,9 +52,11 @@ import cropsReducer from '../redux/slices/crops/cropsSlice';
 import farmGroupsReducer from "../redux/slices/farmGroups/farmGroupsSlice";
 import AssetsCategoriesReducer from "./slices/assets/assetCategoriesSlice";
 import AssetsAccountsReducer from "./slices/accounts/assetsAccountsSlice";
+import WarehouseTypesReducer from "./slices/inventory/warehouseTypesSlice";
 
 const store = configureStore({
   reducer: {
+    warehouseTypes: WarehouseTypesReducer,
     assetsAccounts: AssetsAccountsReducer,
     assetCategories: AssetsCategoriesReducer,
     paymentMethods: paymentMethodReducer,
