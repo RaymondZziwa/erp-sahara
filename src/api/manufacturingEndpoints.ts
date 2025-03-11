@@ -83,7 +83,7 @@ export const MANUFACTURING_ENDPOINTS = {
     GET_ALL: (centerId: string) =>
       `/erp/manfucaturing/workorders/${centerId}/tasks`,
     GET_BY_ID: (id: string) => `/erp/manfucaturing/workcenters/${id}`,
-    ADD: (centerId: string) => `/erp/manfucaturing/workorders/tasks/create`,
+    //ADD: (centerId: string) => `/erp/manfucaturing/workorders/tasks/create`,
     UPDATE: (id: string) => `/erp/manfucaturing/workorders/tasks/${id}/update`,
     DELETE: (centerId: string, id: string) =>
       `/erp/manfucaturing/workorders/${centerId}/tasks/${id}/delete`,

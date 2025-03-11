@@ -24,7 +24,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   onClose,
   item,
   onSave,
-  centerId,
+  //centerId,
 }) => {
   const [formState, setFormState] = useState<Partial<CenterTask>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,7 +76,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? MANUFACTURING_ENDPOINTS.CENTER_TASKS.UPDATE(item.id.toString())
-      : MANUFACTURING_ENDPOINTS.CENTER_TASKS.ADD(centerId);
+      : "";
 
     await createRequest(
       endpoint,

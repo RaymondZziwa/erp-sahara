@@ -122,7 +122,7 @@ const ProductionMaterialPlans = ({
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={MANUFACTURING_ENDPOINTS.CENTER_DOWNTIME_LOG.DELETE(
+          apiPath={MANUFACTURING_ENDPOINTS.CENTER_DOWNTIME_LOG.DELETE("",
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>
