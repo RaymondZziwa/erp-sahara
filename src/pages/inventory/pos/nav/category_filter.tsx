@@ -16,10 +16,10 @@ import { useEffect } from "react";
           {data.map((category) => (
             <button
               key={category.id}
-              onClick={() => onSelectCategory(category.name)}
+              onClick={() => onSelectCategory(category.id)}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200
                 ${
-                  selectedCategory.toLocaleLowerCase() === category.name.toLocaleLowerCase()
+                  selectedCategory === category.id
                     ? "border-2 border-teal-500 text-teal-500 font-semibold"
                     : "text-gray-700 hover:text-teal-500"
                 }`}

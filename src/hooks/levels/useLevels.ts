@@ -21,7 +21,7 @@ const useLevels = () => {
     }
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
-      const response = await fetch('https://merp.efinanci.co.tz/api/erp/accounts/requisitions-approval-level', {
+      const response = await fetch('https://tfc-api.efinanci.co.tz/api/erp/accounts/requisitions-approval-level', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

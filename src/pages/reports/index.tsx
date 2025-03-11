@@ -3,35 +3,51 @@ import { Icon } from "@iconify/react";
 import { Link } from "react-router-dom";
 
 const reportsData = [
-  // {
-  //   category: "Accounting",
-  //   reports: [
-  //     { name: "General Ledger", link: "#" },
-  //     { name: "Trial Balance", link: "#" },
-  //     { name: "Income Statement", link: "#" },
-  //     { name: "Balance Sheet", link: "#" },
-  //     { name: "Statement of Cash Flow", link: "#" },
-  //     { name: "Cash book", link: "#" },
-  //     { name: "Ledger book", link: "#" },
-  //     { name: "Petty cash book", link: "#" },
-  //     { name: "Statement of Changes in Equity", link: "#" },
-  //     { name: "Aging Receivables", link: "#" },
-  //     { name: "Liquid Assets", link: "#" },
-  //     { name: "Investment Report", link: "#" },
-  //     { name: "Trial Balance Comparison", link: "#" },
-  //     { name: "Profit/Loss Comparison", link: "#" },
-  //     { name: "Balance Sheet Comparison", link: "#" },
-  //     { name: "Aging Payables", link: "#" },
-  //     { name: "Capital Adequacy", link: "#" },
-  //     { name: "Other Disclosures", link: "#" },
-  //     { name: "Budget comparison", link: "#" },
-  //     { name: "Budget performance report", link: "#" },
-  //   ],
-  // },
+  {
+    category: "Accounting",
+    reports: [
+      { name: "Trial Balance", link: "/trial-balance" },
+      {
+        name: "Trial Balance Comparison",
+        link: "/trial-balance-comparisons",
+      },
+      { name: "Income Statement", link: "/income-statement-report" },
+      {
+        name: "Income Statement Comparisons",
+        link: "/income-statement-report-comparisons",
+      },
+      { name: "Balance Sheet", link: "/balance-sheet" },
+      {
+        name: "Balance Sheet Comparisons",
+        link: "/balance-sheet-comparisons",
+      },
+      { name: "Cash Flow", link: "/cashflow-report" },
+      // { name: "Owner's equity", link: "/owner-equity" },
+      { name: "Owner's equity", link: "#" },
+      { name: "Cash book", link: "/cash-book" },
+      { name: "General Ledger", link: "/general-ledger-book" },
+      // { name: "Ledger book", link: "#" },
+      // { name: "Petty cash book", link: "#" },
+      // { name: "Statement of Changes in Equity", link: "#" },
+      // { name: "Liquid Assets", link: "#" },
+      // { name: "Investment Report", link: "#" },
+
+      // { name: "Profit/Loss Comparison", link: "#" },
+      // { name: "Balance Sheet Comparison", link: "#" },
+      // { name: "Aging Payables", link: "#" },
+      // { name: "Capital Adequacy", link: "#" },
+      // { name: "Other Disclosures", link: "#" },
+      // { name: "Budget comparison", link: "#" },
+      // { name: "Budget performance report", link: "#" },
+    ],
+  },
   {
     category: "Inventory",
     reports: [
-      { name: "Supplier Performance Report", link: "/supplier-performance-report" },
+      {
+        name: "Supplier Performance Report",
+        link: "/supplier-performance-report",
+      },
       { name: "Out of Stock Report", link: "/out-of-stock-report" },
       { name: "Reorder Report", link: "/reorder-report" },
       { name: "Stock Aging Report", link: "/stock-aging-report" },

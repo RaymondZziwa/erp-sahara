@@ -10,12 +10,12 @@ const SETTINGS_ROUTES = [
     icon: <Icon icon="solar:layers-line-duotone" fontSize={24} />,
     path: "/",
     items: [
-      {
-        name: "Users",
-        icon: <Icon icon="solar:user-line-duotone" fontSize={20} />,
-        path: "users",
-        element: <UserSettings />,
-      },
+      // {
+      //   name: "Users",
+      //   icon: <Icon icon="solar:user-line-duotone" fontSize={20} />,
+      //   path: "users",
+      //   element: <UserSettings />,
+      // },
       {
         name: "User Roles",
         icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,

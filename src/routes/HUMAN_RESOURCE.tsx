@@ -164,7 +164,7 @@ const HUMAN_RESOURCE_ROUTES = [
         ),
       },
       {
-        name: "Leave Applications",
+        name: "Leave Applications --",
         icon: <Icon icon="mdi:clipboard-text-outline" fontSize={20} />,
         path: "/leaveapplications",
         element: (

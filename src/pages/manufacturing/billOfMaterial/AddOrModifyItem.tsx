@@ -10,6 +10,7 @@ import { BillOfMaterial } from "../../../redux/slices/types/manufacturing/BillOf
 import useUnitsOfMeasurement from "../../../hooks/inventory/useUnitsOfMeasurement";
 import useItems from "../../../hooks/inventory/useItems";
 import { InputText } from "primereact/inputtext";
+import { toast, ToastContainer } from "react-toastify";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -96,7 +97,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+    console.log('dt', formState)
     // Basic validation
     if (
       !formState.item_id ||
@@ -104,6 +105,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       !formState.bom_items?.length
     ) {
       setIsSubmitting(false);
+      toast.warn('Please fill in all mandatory fields')
       return; // Handle validation error here
     }
 
@@ -170,6 +172,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   );
 
   return (
+    <>
+      <ToastContainer />
     <Dialog
       header={item?.id ? "Edit Bill Of Material" : "Add Bill Of Material"}
       visible={visible}
@@ -177,14 +181,17 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
+       <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+       </p>
       <form
         id="lead-form"
         onSubmit={handleSave}
-        className="space-y-4 grid grid-cols-1 gap-4"
+        className="grid grid-cols-2 gap-4"
       >
-        <div className="flex flex-col space-y-2">
+        <div className="flex flex-col">
           <label htmlFor="item_id" className="text-lg font-medium">
-            Item
+            Item<span className="text-red-500">*</span>
           </label>
           <Dropdown
             id="item_id"
@@ -203,9 +210,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           />
         </div>
 
-        <div className="flex flex-col space-y-2">
+        <div className="flex flex-col">
           <label htmlFor="version" className="text-lg font-medium">
-            Version
+            Version<span className="text-red-500">*</span>
           </label>
           <InputText
             id="version"
@@ -218,11 +225,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label className="text-lg font-medium">Bill Of Material Items</label>
+          <label className="text-lg font-medium">Bill Of Material Items<span className="text-red-500">*</span></label>
           {formState.bom_items?.map((bomItem, index) => (
             <div
               key={index}
-              className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end"
+              className="flex flex-row gap-2"
             >
               <div className="col-span-2">
                 <label
@@ -264,7 +271,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                 />
               </div>
 
-              <div className="col-span-2">
+              <div className="flex flex-row gap-2">
+                <div>
                 <label
                   htmlFor={`unit_of_measurement_${index}`}
                   className="text-lg font-medium"
@@ -284,14 +292,14 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   placeholder="Select UOM"
                   className="w-full"
                 />
-              </div>
-
-              <div className="col-span-2">
+                </div>
+                <div className="col-span-2">
                 <Button
                   icon="pi pi-trash"
                   onClick={() => removeBomItem(index)}
-                  className="!bg-red-500  p-button-danger w-full"
+                  className="!bg-red-500 p-button-danger w-[50px] mt-7"
                 />
+              </div>
               </div>
             </div>
           ))}
@@ -305,6 +313,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
       </form>
     </Dialog>
+    </>
   );
 };
 

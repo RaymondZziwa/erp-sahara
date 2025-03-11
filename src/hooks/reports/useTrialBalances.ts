@@ -26,7 +26,7 @@ const useTrialBalances = () => {
     }
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
-      const response = await apiRequest<ServerResponse<TrialBalance>>(
+      const response = await apiRequest<ServerResponse<TrialBalance[]>>(
         REPORTS_ENDPOINTS.TRIAL_BALANCES.GET_ALL,
         "GET",
         token.access_token

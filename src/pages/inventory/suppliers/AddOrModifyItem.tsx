@@ -8,6 +8,7 @@ import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import { Supplier } from "../../../redux/slices/types/inventory/Suppliers";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
+import { ToastContainer } from "react-toastify";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -144,6 +145,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   );
 
   return (
+    <>
+      <ToastContainer />
     <Dialog
       header={item?.id ? "Edit Supplier" : "Add Supplier"}
       visible={visible}
@@ -151,13 +154,16 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
+       <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+      </p>
       <form
         id="item-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 lg:grid-cols-2 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="supplier_name">Supplier Name</label>
+          <label htmlFor="supplier_name">Supplier Name<span className="text-red-500">*</span></label>
           <InputText
             id="supplier_name"
             name="supplier_name"
@@ -178,17 +184,18 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           />
         </div>
         <div className="p-field">
-          <label htmlFor="address">Address</label>
+          <label htmlFor="address">Address<span className="text-red-500">*</span></label>
           <InputText
             id="address"
             name="address"
             value={formState.address}
             onChange={handleInputChange}
             className="w-full"
+            required
           />
         </div>
         <div className="p-field">
-          <label htmlFor="supplier_type">Supplier Type</label>
+          <label htmlFor="supplier_type">Supplier Type<span className="text-red-500">*</span></label>
           <Dropdown
             id="supplier_type"
             name="supplier_type"
@@ -196,36 +203,40 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             options={supplierTypes}
             onChange={handleDropdownChange}
             className="w-full"
+            required
           />
         </div>
         <div className="p-field">
-          <label htmlFor="contact_person">Contact Person</label>
+          <label htmlFor="contact_person">Contact Person<span className="text-red-500">*</span></label>
           <InputText
             id="contact_person"
             name="contact_person"
             value={formState.contact_person}
             onChange={handleInputChange}
             className="w-full"
+            required
           />
         </div>
         <div className="p-field">
-          <label htmlFor="contact_person_title">Contact Person Title</label>
+          <label htmlFor="contact_person_title">Contact Person Title<span className="text-red-500">*</span></label>
           <InputText
             id="contact_person_title"
             name="contact_person_title"
             value={formState.contact_person_title}
             onChange={handleInputChange}
             className="w-full"
+            required
           />
         </div>
         <div className="p-field">
-          <label htmlFor="phone_number">Phone Number</label>
+          <label htmlFor="phone_number">Phone Number<span className="text-red-500">*</span></label>
           <InputText
             id="phone_number"
             name="phone_number"
             value={formState.phone_number}
             onChange={handleInputChange}
             className="w-full"
+            required
           />
         </div>
         <div className="p-field">
@@ -274,6 +285,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
       </form>
     </Dialog>
+  </>
   );
 };
 

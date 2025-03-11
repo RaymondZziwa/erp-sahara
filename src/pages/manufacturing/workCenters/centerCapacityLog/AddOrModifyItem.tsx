@@ -9,6 +9,7 @@ import { Nullable } from "primereact/ts-helpers";
 
 import { InputText } from "primereact/inputtext";
 import { CapapcityLog } from "../../../../redux/slices/types/manufacturing/CapacityLog";
+import { toast, ToastContainer } from "react-toastify";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -43,7 +44,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // @ts-expect-error
+    // @ts-expect-error --ignore
     const formatDate = (date: Date): Date => date.toISOString().slice(0, 10);
 
     // Basic validation
@@ -53,6 +54,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       !formState.log_date
     ) {
       setIsSubmitting(false);
+      toast.warn('Please fill in all the mandatory fields')
       return; // Handle validation error here
     }
     const updateData = {
@@ -128,20 +130,25 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
   return (
+    <>
+      <ToastContainer />
     <Dialog
-      header={item?.id ? "Edit Task" : "Add Task"}
+      header={item?.id ? "Edit Log" : "Add Log"}
       visible={visible}
       style={{ width: "400px" }}
       footer={footer}
       onHide={onClose}
     >
+       <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+       </p>
       <form
         id="lead-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="utilized_capacity">Utlized Capacity</label>
+          <label htmlFor="utilized_capacity">Utlized Capacity<span className="text-red-500">*</span></label>
           <InputText
             id="utilized_capacity"
             name="utilized_capacity"
@@ -152,7 +159,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           />
         </div>
         <div className="p-field">
-          <label htmlFor="available_capacity">Available Capacity</label>
+          <label htmlFor="available_capacity">Available Capacity<span className="text-red-500">*</span></label>
           <InputText
             id="available_capacity"
             name="available_capacity"
@@ -165,7 +172,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
         {/* Actual End Date */}
         <div className="p-field">
-          <label htmlFor="log_date">Log Date</label>
+          <label htmlFor="log_date">Log Date<span className="text-red-500">*</span></label>
           <Calendar
             id="log_date"
             name="log_date"
@@ -183,12 +190,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             name="description"
             value={formState.description || ""}
             onChange={handleInputChange}
-            required
             className="w-full"
           />
         </div>
       </form>
     </Dialog>
+  </>
   );
 };
 

@@ -1,25 +1,26 @@
-import React, { useState, useRef, useEffect } from "react";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
-import { formatCurrency } from "../../../utils/formatCurrency";
-import { IconField } from "primereact/iconfield";
-import { InputIcon } from "primereact/inputicon";
-import { useReactToPrint } from "react-to-print";
-
+import React, { useState, useEffect } from "react";
 import useAuth from "../../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import { apiRequest } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
+import { ACCOUNTS_ENDPOINTS } from "../../../api/accountsEndpoints";
+import { Icon } from "@iconify/react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface ComparisonTrialBalance {
-  trial_balance_comparison: Trialbalancecomparison[];
-  financial_year: Financialyear;
-  previous_financial_year: null;
+  account_id: number;
+  account_name: string;
+  account_code: string;
+  current_debit: number;
+  current_credit: number;
+  previous_debit: number;
+  previous_credit: number;
+  debit_difference: number;
+  credit_difference: number;
 }
 
-interface Financialyear {
+interface fiscalYearType {
   id: number;
   financial_year: string;
   start_date: string;
@@ -30,34 +31,12 @@ interface Financialyear {
   should_alert: boolean;
 }
 
-interface Trialbalancecomparison {
-  account_id: number;
-  account_name: string;
-  account_code: string;
-  current_total_credit: string;
-  current_total_debit: string;
-  previous_total_credit: number;
-  previous_total_debit: number;
-}
 const ComparisonTrialBalances: React.FC = () => {
-  const [globalFilter, setGlobalFilter] = useState<string | null>(null);
-  const [trialBalance, setTrialBalance] = useState<ComparisonTrialBalance>();
+  const [trialBalance, setTrialBalance] = useState<
+    ComparisonTrialBalance[] | null
+  >([]);
+  const [fiscalYears, setFiscalYears] = useState<fiscalYearType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const totalDebit = trialBalance?.trial_balance_comparison.reduce(
-    (acc, item) => acc + parseFloat(item.current_total_debit),
-    0
-  );
-  const totalCredit = trialBalance?.trial_balance_comparison.reduce(
-    (acc, item) => acc + parseFloat(item.current_total_credit),
-    0
-  );
-
-  const printDivRef = useRef<HTMLDivElement>(null);
-
-  // useReactToPrint setup
-  const reactToPrintFn = useReactToPrint({
-    contentRef: printDivRef,
-  });
 
   const { token, isFetchingLocalToken } = useAuth();
 
@@ -68,13 +47,28 @@ const ComparisonTrialBalances: React.FC = () => {
     }
     setIsLoading(true);
     try {
-      const response = await apiRequest<ServerResponse<ComparisonTrialBalance>>(
+      const response = await apiRequest<
+        ServerResponse<ComparisonTrialBalance[]>
+      >(
         REPORTS_ENDPOINTS.COMPARISON_TRIAL_BALANCES.GET_ALL,
         "GET",
         token.access_token
       );
       setIsLoading(false);
+
       setTrialBalance(response.data); // Dispatch action with fetched data on success
+    } catch (error) {
+      setIsLoading(false);
+    }
+    try {
+      const response = await apiRequest<ServerResponse<fiscalYearType[]>>(
+        ACCOUNTS_ENDPOINTS.GET_FISCAL_YEARS,
+        "GET",
+        token.access_token
+      );
+      setIsLoading(false);
+
+      setFiscalYears(response.data); // Dispatch action with fetched data on success
     } catch (error) {
       setIsLoading(false);
     }
@@ -83,81 +77,182 @@ const ComparisonTrialBalances: React.FC = () => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-  // Header with search functionality
-  const header = (
-    <div className="table-header print:hidden flex justify-between items-center">
-      <div>
-        <div>
-          <h1 className="text-xl font-semibold">
-            Comparison Trial Balance for Financial Year{" "}
-            {trialBalance?.financial_year.financial_year}
-          </h1>
-        </div>
-        <div>
-          <IconField iconPosition="left">
-            <InputIcon className="pi pi-search"></InputIcon>
-            <InputText
-              placeholder="Search"
-              onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setGlobalFilter(e.target.value)
-              }
-            />
-          </IconField>
-        </div>
-      </div>{" "}
-      <Button
-        label="Print"
-        icon="pi pi-print"
-        className="p-button-primary"
-        onClick={() => reactToPrintFn()} // Trigger printing on click
-      />
-    </div>
-  );
+  console.log(trialBalance);
+
+  let current_fy = fiscalYears[fiscalYears.length - 1]?.financial_year;
+  let previous_fy = fiscalYears[fiscalYears.length - 1]?.financial_year;
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+
+    // Define table columns
+    const tableColumn = [
+      "Account Code",
+      "Account Name",
+      ` Debit`,
+      `Credit`,
+      `Debit`,
+      `Credit`,
+      "Debit Difference",
+      "Credit Difference",
+    ];
+
+    // Add the fiscal years row manually
+    const fiscalYearRow = [
+      "Years",
+      "",
+      current_fy,
+      "",
+      previous_fy,
+      "",
+      "",
+      "",
+    ];
+
+    // Map your trial balance data into table rows (replace 0 with "")
+    const tableRows = trialBalance?.map((item) => [
+      item.account_code,
+      item.account_name,
+      item.current_debit !== 0 ? item.current_debit : "",
+      item.current_credit !== 0 ? item.current_credit : "",
+      item.previous_debit !== 0 ? item.previous_debit : "",
+      item.previous_credit !== 0 ? item.previous_credit : "",
+      item.debit_difference !== 0 ? item.debit_difference : "",
+      item.credit_difference !== 0 ? item.credit_difference : "",
+    ]);
+
+    // Add title
+    doc.text("Trial Balance Comparison", 14, 15);
+
+    // Generate the table with the extra row
+    autoTable(doc, {
+      startY: 20,
+      head: [fiscalYearRow, tableColumn],
+      body: tableRows,
+      headStyles: {
+        fillColor: [222, 226, 230],
+        textColor: "black",
+        fontStyle: "bold",
+      },
+      tableLineWidth: 0, // Removes outer table borders
+      tableLineColor: [255, 255, 255], // Makes sure no table outline
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          data.cell.styles.lineWidth = {
+            top: 0.2,
+            right: 0.2,
+            bottom: 0.2,
+            left: 0.2,
+          }; // [top, right, bottom, left]
+        }
+      },
+    });
+
+    // Save the PDF
+    doc.save("Trial_Balance_Comparison.pdf");
+  };
 
   return (
-    <div>
-      {/* Trial Balance section to print, wrapped in ref */}
-      <div ref={printDivRef}>
-        <DataTable
-          loading={isLoading}
-          value={trialBalance?.trial_balance_comparison}
-          globalFilter={globalFilter}
-          scrollable
-          footer={
-            <div className="flex justify-end">
-              <div className="grid grid-cols-2">
-                <>
-                  <strong>Total Debit:</strong>{" "}
-                  {formatCurrency(totalDebit?.toFixed(2) ?? 0)}
-                </>
-                <>
-                  <strong>Total Credit:</strong>{" "}
-                  {formatCurrency(totalCredit?.toFixed(2) ?? 0)}
-                </>
-              </div>
-            </div>
-          }
-          header={header} // Adding the search filter
+    <div className="p-4 bg-white">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Trial Balance Comparison Report</h1>
+        <button
+          className="bg-shade px-2 py-2 rounded text-white flex gap-2 items-center"
+          onClick={handleExportPDF}
         >
-          <Column field="account_name" header="Account Name"></Column>
-          <Column
-            field="current_total_debit"
-            header="curr. Total Debit"
-          ></Column>
-          <Column
-            field="previous_total_credit"
-            header="Prev. Total Credit"
-          ></Column>
-          <Column
-            field="current_total_debit"
-            header="Curr. Total Debit"
-          ></Column>
-          <Column
-            field="previous_total_credit"
-            header="Prev. Total Credit"
-          ></Column>
-        </DataTable>
+          <Icon icon="solar:printer-bold" fontSize={20} />
+          Print
+        </button>
       </div>
+      {trialBalance && trialBalance.length < 1 && isLoading != true ? (
+        "No Data Present"
+      ) : (
+        <table className="w-full border border-gray-200">
+          <tbody>
+            <tr className="font-bold">
+              <td className="border-r border-b border-gray-200 p-2" colSpan={2}>
+                Years
+              </td>
+
+              <td className="border-r border-b border-gray-200 p-2" colSpan={2}>
+                {current_fy}
+              </td>
+
+              <td className="border-r border-b border-gray-200 p-2" colSpan={2}>
+                {previous_fy}
+              </td>
+
+              <td
+                className="border-r border-b border-gray-200"
+                colSpan={2}
+              ></td>
+            </tr>
+            <tr className="font-bold">
+              <td className="border-r border-b border-gray-200 p-2">
+                Account Code
+              </td>
+
+              <td className="border-r border-b border-gray-200 p-2">
+                Account Name
+              </td>
+
+              <td className="border-r border-b border-gray-200 p-2">Debit</td>
+
+              <td className="border-r border-b border-gray-200 p-2">Credit</td>
+
+              <td className="border-r border-b border-gray-200 p-2">Debit</td>
+
+              <td className="border-r border-b border-gray-200 p-2">Credit</td>
+
+              <td className="border-r border-b border-gray-200 p-2">
+                Debit Difference
+              </td>
+
+              <td className="border-r border-b border-gray-200 p-2">
+                Credit Difference
+              </td>
+            </tr>
+            {trialBalance?.map((item) => (
+              <tr key={item.account_id}>
+                <td className="border-r border-b border-gray-200 px-2">
+                  {item.account_code}
+                </td>
+
+                <td className="border-r border-b border-gray-200 px-2">
+                  {item.account_name}
+                </td>
+
+                <td className="border-r border-b border-gray-200 px-2">
+                  {item.current_debit !== 0 ? item.current_debit : ""}
+                </td>
+
+                <td className="border-r border-b border-gray-200 px-2">
+                  {item.current_credit !== 0 ? item.current_credit : ""}
+                </td>
+
+                <td className="border-r border-b border-gray-200 px-2">
+                  {item.previous_debit !== 0 ? item.previous_debit : ""}
+                </td>
+
+                <td className="border-r border-b border-gray-200 px-2">
+                  {item.previous_credit !== 0 ? item.previous_credit : ""}
+                </td>
+
+                <td className="border-r border-b border-gray-200 px-2">
+                  {item.debit_difference !== 0 ? item.debit_difference : ""}
+                </td>
+
+                <td className="border-r border-b border-gray-200 px-2">
+                  {item.credit_difference !== 0 ? item.credit_difference : ""}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {trialBalance && trialBalance.length < 1 && isLoading == true
+        ? "Loading..."
+        : ""}
     </div>
   );
 };

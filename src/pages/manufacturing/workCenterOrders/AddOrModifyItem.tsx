@@ -132,13 +132,16 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
+      <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+       </p>
       <form
         id="lead-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="item_id">Item</label>
+          <label htmlFor="item_id">Item<span className="text-red-500">*</span></label>
           <Dropdown
             id="item_id"
             name="item_id"
@@ -155,7 +158,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             className="w-full"
           />
           <div className="p-field">
-            <label htmlFor="quantity">Quantity</label>
+            <label htmlFor="quantity">Quantity<span className="text-red-500">*</span></label>
             <InputText
               id="quantity"
               name="quantity"
@@ -169,7 +172,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
           {/* Actual Start Date */}
           <div className="p-field">
-            <label htmlFor="actual_start_date">Actual Start Date</label>
+            <label htmlFor="actual_start_date">Actual Start Date<span className="text-red-500">*</span></label>
             <Calendar
               id="actual_start_date"
               name="actual_start_date"
@@ -183,7 +186,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
           {/* Actual End Date */}
           <div className="p-field">
-            <label htmlFor="actual_end_date">Actual End Date</label>
+            <label htmlFor="actual_end_date">Actual End Date<span className="text-red-500">*</span></label>
             <Calendar
               id="actual_end_date"
               name="actual_end_date"
@@ -197,7 +200,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
           {/* Planned Start Date */}
           <div className="p-field">
-            <label htmlFor="planned_start_date">Planned Start Date</label>
+            <label htmlFor="planned_start_date">Planned Start Date<span className="text-red-500">*</span></label>
             <Calendar
               id="planned_start_date"
               name="planned_start_date"
@@ -210,7 +213,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
           {/* Planned End Date */}
           <div className="p-field">
-            <label htmlFor="planned_end_date">Planned End Date</label>
+            <label htmlFor="planned_end_date">Planned End Date<span className="text-red-500">*</span></label>
             <Calendar
               id="planned_end_date"
               name="planned_end_date"
@@ -222,7 +225,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           </div>
         </div>
         <div className="p-field">
-          <label htmlFor="production_line_id">Production Line</label>
+          <label htmlFor="production_line_id">Production Line<span className="text-red-500">*</span></label>
           <Dropdown
             filter
             id="production_line_id"

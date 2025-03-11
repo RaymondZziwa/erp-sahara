@@ -57,7 +57,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     // Basic validation
     console.log(formState);
 
-    if (!formState.staff_id || !formState.license_number) {
+    if (!formState.employee_id || !formState.license_number) {
       setIsSubmitting(false);
       return; // Handle validation error here
     }
@@ -108,11 +108,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="staff_id">Staff Member</label>
+          <label htmlFor="empoyee_id">Staff Member</label>
           <Dropdown
-            id={`staff_id`}
-            value={formState.staff_id}
-            onChange={(e) => setFormState({ ...formState, staff_id: e.value })}
+            id={`empoyee_id`}
+            value={formState.employee_id}
+            onChange={(e) => setFormState({ ...formState, employee_id: e.value })}
             options={employees.map((employee) => ({
               value: employee.id,
               label: `${employee.last_name} ${employee.last_name}`,

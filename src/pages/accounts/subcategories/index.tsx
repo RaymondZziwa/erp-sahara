@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Accordion, AccordionTab } from "primereact/accordion";
-import { Button } from "primereact/button";
+import { Dialog } from "primereact/dialog";
 import { AccountSubCategory } from "../../../redux/slices/types/accounts/subCategories";
 import useAccountSubCategories from "../../../hooks/accounts/useAccountsSubCategories";
 import AddOrModifyAccountSubCategory from "./AddOrModifyAccountSubCategory";
 import { Link } from "react-router-dom";
+import { Icon } from "@iconify/react";
+import BreadCrump from "../../../components/layout/bread_crump";
 
-// Filter template for text input
 const textFilterTemplate = (options: any) => (
   <input
     type="text"
@@ -19,7 +19,6 @@ const textFilterTemplate = (options: any) => (
   />
 );
 
-// Columns for chart of accounts
 const chartOfAccountsColumns = [
   { field: "id", header: "Account ID" },
   { field: "name", header: "Account Name" },
@@ -28,90 +27,136 @@ const chartOfAccountsColumns = [
 ];
 
 const AccountSubCategories = () => {
+  const [viewingChartsForAccount, setViewingChartsForAccount] = useState<AccountSubCategory | null>(null);
   const [dialogState, setDialogState] = useState<{
     selectedCategory: AccountSubCategory | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedCategory: undefined, currentAction: "" });
 
-  const { data, loading, error, refresh } = useAccountSubCategories();
+  const { data, loading, error, refresh, deleteSubCategory } = useAccountSubCategories();
 
-  return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-6">Account SubCategories</h2>
-      <div className="mb-4">
-        <Button
-          size="small"
-          label="Add Account SubCategory"
-          icon="pi pi-plus"
+  const handleDeleteSubCategory = async (subCategoryId: number, is_system_created: number) => {
+    if (confirm("Are you sure you want to delete this subcategory?")) {
+      await deleteSubCategory(subCategoryId, is_system_created);
+      refresh(); // Refresh after deletion
+      setDialogState({ selectedCategory: undefined, currentAction: "" });
+    }
+  };
+
+  const actionBodyTemplate = (rowData: AccountSubCategory) => (
+    <div className="flex items-center gap-2">
+      <button
+        className="bg-shade px-2 py-1 rounded text-white"
+        onClick={() => setViewingChartsForAccount(rowData)}
+      >
+        View Charts
+      </button>
+      <button
+        className="bg-shade px-2 py-1 rounded text-white"
+        onClick={() =>
+          setDialogState({ selectedCategory: rowData, currentAction: "edit" })
+        }
+      >
+        Edit
+      </button>
+      {rowData.is_system_created === 0 && (
+        <Icon
+          icon="solar:trash-bin-trash-bold"
+          className="text-red-500 cursor-pointer"
+          fontSize={20}
           onClick={() =>
-            setDialogState({
-              selectedCategory: undefined,
-              currentAction: "add",
-            })
-          }
-        />
-      </div>
-
-      {loading && <p className="text-blue-600">Loading...</p>}
-      {error && <p className="text-red-600">Error loading accounts.</p>}
-
-      <Accordion multiple>
-        {data?.map((account) => (
-          <AccordionTab key={account.id} header={`Account: ${account.name}`}>
-            {/* Chart of Accounts Accordion */}
-            <Accordion multiple>
-              <AccordionTab header="Chart of Accounts">
-                <DataTable
-                  value={account.chart_of_accounts}
-                  responsiveLayout="scroll"
-                  paginator
-                  rows={10}
-                  className="p-datatable-striped"
-                >
-                  {chartOfAccountsColumns.map((col) => (
-                    <Column
-                      key={col.field}
-                      field={col.field}
-                      header={col.header}
-                      filter
-                      filterElement={textFilterTemplate}
-                      body={
-                        col.field === "id"
-                          ? (rowData) => (
-                              <Link
-                                className="hover:underline"
-                                to={`/accounts/accounts/subcategories/${rowData.id}`}
-                              >
-                                {rowData.id}
-                              </Link>
-                            )
-                          : undefined
-                      }
-                    />
-                  ))}
-                </DataTable>
-              </AccordionTab>
-            </Accordion>
-          </AccordionTab>
-        ))}
-      </Accordion>
-
-      {/* Add or Modify Subcategory Account Dialog */}
-      {(dialogState.currentAction === "edit" ||
-        dialogState.currentAction === "add") && (
-        <AddOrModifyAccountSubCategory
-          onSave={refresh}
-          item={dialogState.selectedCategory}
-          visible={
-            dialogState.currentAction === "add" ||
-            (dialogState.currentAction === "edit" &&
-              !!dialogState.selectedCategory?.id)
-          }
-          onClose={() =>
-            setDialogState({ currentAction: "", selectedCategory: undefined })
+            handleDeleteSubCategory(rowData.id, rowData.is_system_created)
           }
         />
       )}
+    </div>
+  );
+
+  return (
+    <div>
+      <BreadCrump name="Account SubCategories" pageName="All" />
+      <div className="bg-white px-8 rounded-lg">
+        <div className="flex justify-between items-center">
+          <div className="py-2">
+            <h1 className="text-xl font-bold">Account SubCategories Table</h1>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setDialogState({ selectedCategory: undefined, currentAction: "add" })}
+              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
+            >
+              <Icon icon="solar:add-circle-bold" fontSize={20} />
+              Add SubCategory
+            </button>
+          </div>
+        </div>
+
+        {loading && <p className="text-blue-600">Loading...</p>}
+        {error && <p className="text-red-600">Error loading accounts.</p>}
+
+        <DataTable
+          value={data}
+          responsiveLayout="scroll"
+          paginator
+          rows={10}
+          className="p-datatable-striped mb-4"
+        >
+          <Column field="name" header="Name" />
+          <Column field="code" header="Code" />
+          <Column field="description" header="Description" />
+          <Column body={actionBodyTemplate} header="Actions" style={{ minWidth: "12rem" }} />
+        </DataTable>
+
+        {/* Charts of Accounts Dialog */}
+        <Dialog
+          header={`Chart of Accounts - ${viewingChartsForAccount?.name || ''}`}
+          visible={!!viewingChartsForAccount}
+          style={{ width: '80vw' }}
+          onHide={() => setViewingChartsForAccount(null)}
+        >
+          {viewingChartsForAccount && (
+            <DataTable
+              value={viewingChartsForAccount.chart_of_accounts}
+              responsiveLayout="scroll"
+              paginator
+              rows={10}
+              className="p-datatable-striped"
+            >
+              {chartOfAccountsColumns.map((col) => (
+                <Column
+                  key={col.field}
+                  field={col.field}
+                  header={col.header}
+                  filter
+                  filterElement={textFilterTemplate}
+                  body={
+                    col.field === "id"
+                      ? (rowData) => (
+                          <Link
+                            className="hover:underline"
+                            to={`/accounts/accounts/subcategories/${rowData.id}`}
+                          >
+                            {rowData.id}
+                          </Link>
+                        )
+                      : undefined
+                  }
+                />
+              ))}
+            </DataTable>
+          )}
+        </Dialog>
+
+        {/* Add/Edit SubCategory Dialog */}
+        {(dialogState.currentAction === "edit" || dialogState.currentAction === "add") && (
+          <AddOrModifyAccountSubCategory
+            onSave={refresh}
+            item={dialogState.selectedCategory}
+            visible={dialogState.currentAction === "add" || !!dialogState.selectedCategory?.id}
+            onClose={() => setDialogState({ currentAction: "", selectedCategory: undefined })}
+          />
+        )}
+      </div>
     </div>
   );
 };

@@ -142,14 +142,17 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
+       <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+       </p>
       <form
         id="lead-form"
         onSubmit={handleSave}
-        className="space-y-4 grid grid-cols-1 gap-4"
+        className="grid grid-cols-2 gap-4"
       >
         <div className="flex flex-col space-y-2">
           <label htmlFor="name" className="text-lg font-medium">
-            Name
+            Name<span className="text-red-500">*</span>
           </label>
           <InputText
             id="name"
@@ -163,7 +166,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
         <div className="flex flex-col space-y-2">
           <label htmlFor="status" className="text-lg font-medium">
-            Status
+            Status<span className="text-red-500">*</span>
           </label>
           <Dropdown
             id="status"
@@ -193,7 +196,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
         <div className="flex flex-col space-y-2">
           <label htmlFor="work_center_id" className="text-lg font-medium">
-            Work Center
+            Work Center<span className="text-red-500">*</span>
           </label>
           <Dropdown
             id="work_center_id"

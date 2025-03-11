@@ -28,13 +28,6 @@ const Designations: React.FC = () => {
 
   const columnDefinitions: ColDef<Designation>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "Name",
       field: "designation_name",
       sortable: true,
@@ -129,7 +122,7 @@ const Designations: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Designations Table</h1>
+            <h1 className="text-xl font-bold">Designations</h1>
           </div>
           <div className="flex gap-2">
             <button

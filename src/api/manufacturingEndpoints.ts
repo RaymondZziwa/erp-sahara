@@ -73,18 +73,28 @@ export const MANUFACTURING_ENDPOINTS = {
   EQUIPMENT_MAINTANANCE_LOG: {
     GET_ALL: (equipmentId: string) =>
       `/erp/manfucaturing/machines/${equipmentId}/maintenancelogs`,
-    GET_BY_ID: (id: string) => `/erp/manfucaturing/machines/${id}`,
+    GET_BY_ID: (equpmentId: string, id: string) =>
+      `/erp/manfucaturing/machines/${equpmentId}/maintenancelogs/${id}`,
     ADD: (equipmentId: string) =>
-      `/erp/manfucaturing/machines/create/${equipmentId}/maintenancelogs`,
-    UPDATE: (id: string) => `/erp/manfucaturing/machines/${id}/update`,
-    DELETE: (id: string) => `/erp/manfucaturing/machines/${id}/delete`,
+      `/erp/manfucaturing/machines/${equipmentId}/maintenancelogs/create`,
+    UPDATE: (equpmentId: string, id: string) =>
+      `/erp/manfucaturing/machines/${equpmentId}/maintenancelogs/${id}/update`,
+    DELETE: (equpmentId: string, id: string) =>
+      `/erp/manfucaturing/machines/${equpmentId}/maintenancelogs/${id}/delete`,
   },
   CENTER_TASKS: {
     GET_ALL: (centerId: string) =>
       `/erp/manfucaturing/workorders/${centerId}/tasks`,
     GET_BY_ID: (id: string) => `/erp/manfucaturing/workcenters/${id}`,
+<<<<<<< HEAD
     //ADD: (centerId: string) => `/erp/manfucaturing/workorders/tasks/create`,
     UPDATE: (id: string) => `/erp/manfucaturing/workorders/tasks/${id}/update`,
+=======
+    ADD: (centerId: string) =>
+      `/erp/manfucaturing/workorders/${centerId}/tasks/create`,
+    UPDATE: (centerId: string, id: string) =>
+      `/erp/manfucaturing/workorders/${centerId}/tasks/${id}/update`,
+>>>>>>> 8f14ab57ad2ca16821052e80bada6ddc29b1ed18
     DELETE: (centerId: string, id: string) =>
       `/erp/manfucaturing/workorders/${centerId}/tasks/${id}/delete`,
   },

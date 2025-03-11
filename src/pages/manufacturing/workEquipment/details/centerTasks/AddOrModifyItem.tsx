@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
@@ -5,11 +6,10 @@ import useAuth from "../../../../../hooks/useAuth";
 import { MANUFACTURING_ENDPOINTS } from "../../../../../api/manufacturingEndpoints";
 import { createRequest } from "../../../../../utils/api";
 import { Dropdown } from "primereact/dropdown";
-import { Calendar } from "primereact/calendar";
-import { Nullable } from "primereact/ts-helpers";
 import { CenterTask } from "../../../../../redux/slices/types/manufacturing/CenterTask";
 import useWorkCenterOrders from "../../../../../hooks/manufacturing/workCenter/useWorkCentersOrders";
 import { InputText } from "primereact/inputtext";
+import useEmployees from "../../../../../hooks/hr/useEmployees";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -54,37 +54,32 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     // @ts-expect-error
     const formatDate = (date: Date): Date => date.toISOString().slice(0, 10);
 
-    // Basic validation
-    if (
-      !formState.task_name ||
-      !formState.work_order_id ||
-      !formState.planned_end_time ||
-      !formState.planned_start_time
-    ) {
-      setIsSubmitting(false);
-      return; // Handle validation error here
-    }
-
     const data = {
       work_order_id: Number(formState.work_order_id),
       task_name: formState.task_name,
-      assigned_to: 10,
+      assigned_to: formState.employee_id,
       status: formState.status,
     };
     console.log(data, "data");
 
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
+<<<<<<< HEAD
       ? MANUFACTURING_ENDPOINTS.CENTER_TASKS.UPDATE(item.id.toString())
       : "";
+=======
+      ? MANUFACTURING_ENDPOINTS.CENTER_TASKS.UPDATE(
+          centerId,
+          item.id.toString()
+        )
+      : MANUFACTURING_ENDPOINTS.CENTER_TASKS.ADD(centerId);
+>>>>>>> 8f14ab57ad2ca16821052e80bada6ddc29b1ed18
 
     await createRequest(
       endpoint,
       token.access_token,
       {
         ...data,
-        planned_start_time: formatDate(formState.planned_start_time),
-        planned_end_time: formatDate(formState.planned_end_time),
         status: item?.id ? formState.status : undefined,
       },
       onSave,
@@ -96,6 +91,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   };
   const { data: workOrders, loading: workOrdersLoading } =
     useWorkCenterOrders();
+  const { data: employees, loading: employeeLoading } = useEmployees();
 
   const footer = (
     <div className="flex justify-end space-x-2">
@@ -119,12 +115,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     </div>
   );
 
-  const handleDateChange = (name: string, value: Nullable<Date>) => {
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
+  // const handleDateChange = (name: string, value: Nullable<Date>) => {
+  //   setFormState((prevState) => ({
+  //     ...prevState,
+  //     [name]: value,
+  //   }));
+  // };
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -193,30 +189,21 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             className="w-full"
           />
         </div>
-
-        {/* Actual End Date */}
         <div className="p-field">
-          <label htmlFor="planned_start_time">Maintenance Date</label>
-          <Calendar
-            id="planned_start_time"
-            name="planned_start_time"
-            value={formState.planned_start_time || null}
-            onChange={(e) => handleDateChange("planned_start_time", e.value)}
-            dateFormat="yy-mm-dd"
-            className="w-full"
+          <label htmlFor="work_center_id">Assigned To</label>
+          <Dropdown
+            loading={employeeLoading}
+            id="employee_id"
+            name="employee_id"
+            value={formState.employee_id}
+            options={employees.map((order) => ({
+              value: order.id,
+              label: order.first_name + " " + order.last_name,
+            }))}
             required
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="planned_end_time">Mantenance End Date</label>
-          <Calendar
-            id="planned_end_time"
-            name="planned_end_time"
-            value={formState.planned_end_time || null}
-            onChange={(e) => handleDateChange("planned_end_time", e.value)}
-            dateFormat="yy-mm-dd"
+            onChange={(e) => handleSelectChange("employee_id", e.value)}
+            placeholder="Select employee"
             className="w-full"
-            required
           />
         </div>
       </form>

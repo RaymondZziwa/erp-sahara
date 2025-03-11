@@ -9,6 +9,7 @@ export interface CenterTask {
   created_at: string;
   updated_at: string;
   work_center: Workcenter;
+  employee_id: number;
 }
 
 interface Workcenter {

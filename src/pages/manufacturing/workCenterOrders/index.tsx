@@ -13,7 +13,6 @@ import { WorkOrder } from "../../../redux/slices/types/manufacturing/WorkOrder";
 const WorkOrders: React.FC = () => {
   const { data: categories, refresh } = useWorkCenterOrders();
   const tableRef = useRef<any>(null);
-  console.log(categories);
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: WorkOrder | undefined;
@@ -156,7 +155,7 @@ const WorkOrders: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Work Orders Table</h1>
+            <h1 className="text-xl font-bold">Work Orders</h1>
           </div>
           <div className="flex gap-2">
             <button

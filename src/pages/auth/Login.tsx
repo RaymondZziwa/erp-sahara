@@ -5,11 +5,13 @@ import { InputText } from "primereact/inputtext";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { handleGenericError } from "../../utils/errorHandling";
-//import Logo from '../../assets/images/sahara.jpeg'
+import { useTranslation } from "react-i18next";
+//import Logo from '../../assets/images/logos/ltcu.jpeg';
 
 export default function LoginPage() {
   const { loginHandler, isLoading } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -55,14 +57,14 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="flex items-center gap-2">
             {/* <div className="w-8 h-8 rounded bg-gradient-to-r from-purple-500 to-teal-500" /> */}
-            {/* <img src={Logo} alt="" className="w-48 h-48" /> */}
+            {/* <img src={Logo} alt="" className="w-42 h-48" /> */}
             {/* <span className="text-xl font-semibold">ERP</span> */}
           </div>
 
           {/* Header */}
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold tracking-tight">
-              Welcome back!
+              {t("welcome")}
             </h1>
             {/* <p className="text-sm text-muted-foreground">
               Your Admin Dashboard

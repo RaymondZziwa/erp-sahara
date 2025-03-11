@@ -1,17 +1,32 @@
-import React, { useRef, useState } from "react";
-import { ColDef, ICellRendererParams } from "ag-grid-community";
+import React, { useEffect, useRef, useState } from "react";
+import { ColDef } from "ag-grid-community";
 import { Icon } from "@iconify/react";
 
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import Table from "../../../components/table";
 import BreadCrump from "../../../components/layout/bread_crump";
-import useInventories from "../../../hooks/inventory/useInventories";
 import { Inventory } from "../../../redux/slices/types/inventory/Inventory";
 import TransferStock from "./transfer_stock_modal";
+import useInventoryRecords from "../../../hooks/inventory/useInventoryRecords";
+import { Dropdown } from "primereact/dropdown";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux/store";
+import { useNavigate } from "react-router-dom";
+// import { useSelector } from "react-redux";
+// import { RootState } from "../../../redux/store";
 
 const StockOut: React.FC = () => {
-  const { data, refresh } = useInventories();
+  const { data, refresh } = useInventoryRecords();
+  //const token = useSelector((state: RootState) => state.userAuth.token.access_token)
   const tableRef = useRef<any>(null);
+  const [storeId, setStoreId] = useState(1)
+  const [storeData, setStoreData] = useState([])
+  const stores = useSelector((state: RootState) => state.warehouses.data)
+  const navigate = useNavigate()
+  const warehouses = stores?.map(warehouse => ({
+    label: warehouse.name, 
+    value: warehouse.id, 
+  })) || [];
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: Inventory | undefined;
@@ -24,19 +39,32 @@ const StockOut: React.FC = () => {
     }
   };
 
-  const columnDefinitions: ColDef<Inventory>[] = [
-    {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
+  useEffect(()=> {
+    if(!data) {
+      refresh();
+    }else{
+      const dat = data.filter((store) => store.warehouse_id === storeId);
+      setStoreData(dat[0]?.stock_movements?.stock_out)
+    }
+  }, [storeId])
+
+  const columnDefinitions: ColDef<any>[] = [
+    // {
+    //   headerName: "ID",
+    //   field: "id",
+    //   sortable: true,
+    //   filter: true,
+    //   width: 100,
+    // },
     {
       headerName: "Name",
-      field: "item.name",
+      field: "item_name",
       sortable: true,
       filter: true,
+      cellClass: 'cursor-pointer hover:underline',
+      onCellClicked: (event) => {
+        navigate(`/inventory/item/${event.data.item_id}/${event.data.item_name}`);
+      },
     },
     {
       headerName: "Quantity",
@@ -47,67 +75,19 @@ const StockOut: React.FC = () => {
     },
 
     {
-      headerName: "Source",
-      field: "warehouse.name",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Destination",
-      field: "ref_id",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
       headerName: "Date",
-      field: "received_date",
+      field: "movement_date",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
     },
+    
     {
-        headerName: "Picked By",
-        field: "received_date",
-        sortable: true,
-        filter: true,
-        suppressSizeToFit: true,
-      },
-    {
-      headerName: "Actions",
-      field: "id",
-      sortable: false,
-      filter: false,
-      //@ts-expect-error --ignore
-      cellRenderer: (params: ICellRendererParams<Inventory>) => (
-        <div className="flex items-center gap-2">
-          {/* <button
-            className="bg-shade px-2 py-1 rounded text-white"
-            onClick={() =>
-              setDialogState({
-                ...dialogState,
-                currentAction: "edit",
-                selectedItem: params.data,
-              })
-            }
-          >
-            View
-          </button> */}
-          {/* <Icon
-            onClick={() =>
-              setDialogState({
-                ...dialogState,
-                currentAction: "delete",
-                selectedItem: params.data,
-              })
-            }
-            icon="solar:trash-bin-trash-bold"
-            className="text-red-500 cursor-pointer"
-            fontSize={20}
-          /> */}
-        </div>
-      ),
+      headerName: "Status",
+      field: "status",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
     },
   ];
 
@@ -139,9 +119,23 @@ const StockOut: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Inventory transactions Table</h1>
+            <h1 className="text-xl font-bold">Inventory transactions</h1>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 h-[50px] mb-10 mt-4">
+             <div className="p-field">
+                      <Dropdown
+                        required
+                        name="type"
+                        value={storeId}
+                        onChange={(e) => setStoreId(e.target.value)}
+                        options={warehouses}
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Select type"
+                        filter
+                        className="w-full md:w-14rem"
+                      />
+                    </div>
             <button
               onClick={() =>
                 setDialogState({
@@ -152,7 +146,7 @@ const StockOut: React.FC = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              New Stock
+              Stock Out
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
@@ -163,7 +157,7 @@ const StockOut: React.FC = () => {
             </button>
           </div>
         </div>
-        <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />
+        <Table columnDefs={columnDefinitions} data={storeData} ref={tableRef} />
       </div>
     </div>
   );
