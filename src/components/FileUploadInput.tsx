@@ -101,7 +101,6 @@ export default function FileUploadInput({
           <img
             alt={file.name}
             role="presentation"
-            // @ts-expect-error
             src={file.objectURL}
             width={100}
           />
@@ -127,21 +126,12 @@ export default function FileUploadInput({
 
   const emptyTemplate = () => {
     return (
-      <div className="flex justify-center flex-col items-center">
-        <i
-          className="pi pi-image mt-3 p-5"
-          style={{
-            fontSize: "5em",
-            borderRadius: "50%",
-            backgroundColor: "var(--surface-b)",
-            color: "var(--surface-d)",
-          }}
-        ></i>
+      <div className="flex justify-center flex-col items-center h-14">
         <span
           style={{ fontSize: "1.2em", color: "var(--text-color-secondary)" }}
           className="my-5"
         >
-          Drag and Drop Image Here
+          Drag and drop support files here
         </span>
       </div>
     );
@@ -150,19 +140,19 @@ export default function FileUploadInput({
   const chooseOptions = {
     icon: "pi pi-fw pi-images",
     iconOnly: false,
-    className: "custom-choose-btn p-button-rounded p-button-outlined",
+    className: "custom-choose-btn p-button-rounded p-button-outlined h-8",
   };
   const uploadOptions = {
     icon: "pi pi-fw pi-cloud-upload",
     iconOnly: false,
     className:
-      "custom-upload-btn p-button-success p-button-rounded p-button-outlined",
+      "custom-upload-btn p-button-success p-button-rounded p-button-outlined h-8",
   };
   const cancelOptions = {
     icon: "pi pi-fw pi-times",
     iconOnly: false,
     className:
-      "custom-cancel-btn p-button-danger p-button-rounded p-button-outlined !bg-red-500",
+      "custom-cancel-btn p-button-danger p-button-rounded p-button-outlined !bg-red-500 h-8",
   };
 
   return (

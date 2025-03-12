@@ -1,117 +1,147 @@
-import { useRef } from "react";
-import Table from "../BalanceSheetTable"; // Adjust path if needed
 import { Icon } from "@iconify/react";
+import useBalanceSheet from "../../../hooks/reports/useBalanceSheet";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+interface Account {
+  account_code: string;
+  account_name: string;
+  balance: number;
+}
+
+interface Subcategory {
+  subcategory_name: string;
+  subcategory_total: number;
+  accounts: Account[];
+}
 
 function BalanceSheetReport() {
-  const tableRef = useRef<any>(null);
+  const { data } = useBalanceSheet();
 
-  const assets = [
-    {
-      subcategory_name: "Goodwill",
-      accounts: [
-        {
-          account_id: 21,
-          account_name: "Gleason, Pollich and Quitzon",
-          account_code: "3444",
-          balance: 105,
-        },
-      ],
-      subcategory_total: 105,
-    },
-    {
-      subcategory_name: "Security Deposits",
-      accounts: [
-        {
-          account_id: 19,
-          account_name: "Howell, Sauer and Sawayn",
-          account_code: "5682",
-          balance: 636,
-        },
-      ],
-      subcategory_total: 636,
-    },
-  ];
-
-  const liabilities = [
-    {
-      subcategory_name: "Short-term Debt",
-      accounts: [
-        {
-          account_id: 56,
-          account_name: "Klein Group",
-          account_code: "5899",
-          balance: 3244,
-        },
-        {
-          account_id: 18,
-          account_name: "Koepp-Schneider",
-          account_code: "3881",
-          balance: 1612,
-        },
-      ],
-      subcategory_total: 4856,
-    },
-    {
-      subcategory_name: "Dividends Payable",
-      accounts: [
-        {
-          account_id: 9,
-          account_name: "Olson Group",
-          account_code: "8882",
-          balance: 5160,
-        },
-        {
-          account_id: 27,
-          account_name: "Towne-Yost",
-          account_code: "1441",
-          balance: 482,
-        },
-        {
-          account_id: 48,
-          account_name: "Schaefer, Wehner and Reynolds",
-          account_code: "7016",
-          balance: 2449,
-        },
-      ],
-      subcategory_total: 8091,
-    },
-  ];
-
-  // Column definitions
-  const columnDefs = [
-    { headerName: "Account ID", field: "account_id" },
-    { headerName: "Account Code", field: "account_code" },
-    { headerName: "Account Name", field: "account_name" },
-    { headerName: "Balance", field: "balance" },
-  ];
-
-  // Combine assets and liabilities into a flat table structure
-  const tableData = [...assets, ...liabilities].flatMap((category) => [
-    {
-      subcategory_name: category.subcategory_name,
-      isGroup: true, // Ensure it's recognized as a group row
-    },
-    ...category.accounts.map((account) => ({
-      ...account,
-      subcategory_name: category.subcategory_name, // Ensure name is carried down
-      isGroup: false,
-    })),
-    {
-      total: category.subcategory_total,
-      isTotalRow: true, // Ensure the total row is recognized
-    },
-  ]);
+  const { assets, equity, liabilities } = data;
+  console.log(data);
 
   const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
+    const doc = new jsPDF();
+    doc.setFillColor(255, 255, 255);
+    doc.text("Balance Sheet", 20, 10);
+
+    const generateSection = (title: string, items: Subcategory[]) => {
+      const tableBody: any[] = [];
+
+      // Section header
+      tableBody.push([
+        {
+          content: title,
+          colSpan: 3,
+          styles: {
+            fillColor: [222, 226, 230],
+            fontStyle: "bold",
+            halign: "left",
+            cellPadding: 3, // Adds padding
+          },
+        },
+      ]);
+
+      items.forEach((item) => {
+        // Subcategory title
+        tableBody.push([
+          {
+            content: item.subcategory_name,
+            colSpan: 3,
+            styles: {
+              fillColor: [246, 249, 252],
+              fontStyle: "bold",
+              halign: "left",
+              cellPadding: 3,
+            },
+          },
+        ]);
+
+        // Account details
+        item.accounts.forEach((account) => {
+          tableBody.push([
+            account.account_code,
+            account.account_name,
+            {
+              content: account.balance.toLocaleString(),
+              styles: {
+                halign: "right",
+              },
+            },
+          ]);
+        });
+      });
+
+      // Total row
+      const total = items.reduce(
+        (acc, item) => acc + item.subcategory_total,
+        0
+      );
+      tableBody.push([
+        {
+          content: `TOTAL ${title}`,
+          colSpan: 2,
+          styles: {
+            fontStyle: "bold",
+            fillColor: [246, 249, 252],
+            halign: "left",
+            cellPadding: 3,
+          },
+        },
+        {
+          content: total.toLocaleString(),
+          styles: { fontStyle: "bold", halign: "right" },
+        },
+      ]);
+
+      autoTable(doc, {
+        body: tableBody,
+        theme: "grid",
+        styles: {
+          textColor: "black",
+          cellPadding: 2,
+          lineWidth: 0.2, // Ensures borders are visible
+        },
+        margin: { top: 5 },
+        tableLineWidth: 0, // Removes outer table borders
+        tableLineColor: [255, 255, 255], // Makes sure no table outline
+        didParseCell: function (data) {
+          if (data.section === "body") {
+            data.cell.styles.lineWidth = {
+              top: 0.2,
+              right: 0,
+              bottom: 0.2,
+              left: 0,
+            }; // [top, right, bottom, left]
+          }
+        },
+      });
+    };
+
+    generateSection("ASSETS", assets);
+    generateSection("EQUITY", equity);
+    generateSection("LIABILITIES", liabilities);
+
+    doc.save("BalanceSheet.pdf");
   };
+
+  let totalLiability: number = liabilities?.reduce(
+    (acc, item) => acc + item.subcategory_total,
+    0
+  );
+  let totalEquity: number = equity?.reduce(
+    (acc, item) => acc + item.subcategory_total,
+    0
+  );
+  let currentProfitOrLoss = data?.current_profit_or_loss;
+
+  let totalLiabilityAndEquityAndProfitLoss =
+    totalLiability + totalEquity + currentProfitOrLoss;
 
   return (
     <div className="bg-white p-3">
       <div className="flex justify-between items-center mb-4">
-        <p className="font-bold text-xl">Balance Sheet Report</p>
+        <p className="font-bold text-xl">Balance Sheet</p>
         <button
           className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
           onClick={handleExportPDF}
@@ -120,21 +150,156 @@ function BalanceSheetReport() {
           Print
         </button>
       </div>
-
-      {/* Custom Table Component */}
-      <Table
-        columnDefs={columnDefs}
-        data={tableData}
-        ref={tableRef}
-        customHeader={
-          <tr className="bg-gray-200">
-            <td className="text-center font-bold py-4 px-4" colSpan={4}>
-              <p className="text-center font-bold">Sample Company</p>
-              <p className="text-center text-sm">31 Dec 2023</p>
+      <table className="w-full">
+        <tbody>
+          <tr className="font-bold bg-gray-300">
+            <td className="p-3 " colSpan={3}>
+              ASSETS
             </td>
           </tr>
-        }
-      />
+
+          {assets?.map((item) => {
+            return (
+              <>
+                <tr className="font-bold bg-gray-100">
+                  <td className="p-3 " colSpan={3}>
+                    {item.subcategory_name}
+                  </td>
+                </tr>
+                {item.accounts.map((account: any) => {
+                  return (
+                    <tr>
+                      <td className="px-3 py-2 border-gray-200 border-b w-[100px]">
+                        {account.account_code}
+                      </td>
+                      <td className="px-3 py-2 border-gray-200 border-b">
+                        {account.account_name}
+                      </td>
+                      <td className="px-3 py-2 border-gray-200 border-b">
+                        {account.balance.toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </>
+            );
+          })}
+
+          <tr className="font-bold bg-gray-300">
+            <td className="p-3 " colSpan={3}>
+              LIABILITIES
+            </td>
+          </tr>
+          {liabilities?.map((item) => {
+            return (
+              <>
+                <tr className="font-bold bg-gray-100">
+                  <td className="p-3 " colSpan={3}>
+                    {item.subcategory_name}
+                  </td>
+                </tr>
+                {item.accounts.map((account: any) => {
+                  return (
+                    <tr>
+                      <td className="px-3 py-2 border-gray-200 border-b w-[100px]">
+                        {account.account_code}
+                      </td>
+                      <td className="px-3 py-2 border-gray-200 border-b">
+                        {account.account_name}
+                      </td>
+                      <td className="px-3 py-2 border-gray-200 border-b">
+                        {account.balance.toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </>
+            );
+          })}
+          <tr className="font-bold bg-gray-200">
+            <td className="p-3 " colSpan={2}>
+              TOTAL LIABILITIES
+            </td>
+            <td className="p-3 ">
+              {liabilities
+                ?.reduce((acc, item) => acc + item.subcategory_total, 0)
+                .toLocaleString()}
+            </td>
+          </tr>
+          <tr className="font-bold bg-gray-300">
+            <td className="p-3 " colSpan={3}>
+              EQUITY
+            </td>
+          </tr>
+          {equity?.map((item) => {
+            return (
+              <>
+                <tr className="font-bold bg-gray-100">
+                  <td className="p-3 " colSpan={3}>
+                    {item.subcategory_name}
+                  </td>
+                </tr>
+                {item.accounts.map((account: any) => {
+                  return (
+                    <tr>
+                      <td className="px-3 py-2 border-gray-200 border-b w-[100px]">
+                        {account.account_code}
+                      </td>
+                      <td className="px-3 py-2 border-gray-200 border-b">
+                        {account.account_name}
+                      </td>
+                      <td className="px-3 py-2 border-gray-200 border-b">
+                        {account.balance.toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </>
+            );
+          })}
+          <tr className="font-bold bg-gray-200">
+            <td className="p-3 " colSpan={2}>
+              TOTAL EQUITY
+            </td>
+            <td className="p-3 ">
+              {equity
+                ?.reduce((acc, item) => acc + item.subcategory_total, 0)
+                .toLocaleString()}
+            </td>
+          </tr>
+          <tr className="font-bold bg-gray-200">
+            <td className="p-3 " colSpan={2}>
+              PROFIT/LOSS
+            </td>
+            <td className="p-3 ">
+              {data.current_profit_or_loss
+                ? data?.current_profit_or_loss.toLocaleString()
+                : 0}
+            </td>
+          </tr>
+          <tr className="font-bold bg-gray-400 border-b border-white">
+            <td className="p-3 " colSpan={2}>
+              TOTAL ASSETS
+            </td>
+            <td className="p-3 ">
+              {assets
+                ?.reduce((acc, item) => acc + item.subcategory_total, 0)
+                .toLocaleString()}
+            </td>
+          </tr>
+
+          <tr className="font-bold bg-gray-400">
+            <td className="p-3 " colSpan={2}>
+              TOTAL LIABILITIES AND SHAREHOLDER'S EQUITY
+            </td>
+            <td className="p-3 ">
+              {totalLiabilityAndEquityAndProfitLoss
+                ? totalLiabilityAndEquityAndProfitLoss.toLocaleString()
+                : ""}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }

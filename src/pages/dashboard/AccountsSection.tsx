@@ -4,11 +4,16 @@ import { formatCurrency } from "../../utils/formatCurrency";
 import useLedgerChartOfAccounts from "../../hooks/accounts/useLedgerChartOfAccounts";
 import { AccountType } from "../../redux/slices/types/accounts/accountTypes";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 
 const AccountsSection = () => {
-  const { data: chartOfAccounts } = useLedgerChartOfAccounts({
+  const { balances: chartOfAccounts } = useLedgerChartOfAccounts({
     accountType: AccountType.CASH,
   });
+
+  useEffect(() => {
+    console.log("balances", chartOfAccounts);
+  }, [chartOfAccounts]);
   return (
     <Card
       className="bg-white shadow-md rounded-lg p-6 col-span-full xl:col-span-1"

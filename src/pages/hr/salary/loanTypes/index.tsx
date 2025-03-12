@@ -29,13 +29,6 @@ const LoanTypes: React.FC = () => {
 
   const columnDefinitions: ColDef<LoanType>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "Name",
       field: "loan_type_name",
       sortable: true,

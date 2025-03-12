@@ -1,49 +1,102 @@
-import { useRef } from "react";
-import { ColDef } from "ag-grid-community";
-import Table from "./../ReportTable"; // Adjust path if needed
+import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import useTrialBalances from "../../../hooks/reports/useTrialBalances";
 import { TrialBalance } from "../../../redux/slices/types/reports/TrialBalance";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import useAuth from "../../../hooks/useAuth";
+import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
+import { apiRequest } from "../../../utils/api";
+import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 
 function TrialBalanceReport() {
-  const { data = [] } = useTrialBalances();
+  const { token, isFetchingLocalToken } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [trialBalanceData, setTrialBalanceData] = useState<TrialBalance | null>(
+    null
+  );
 
-  const trialBalanceData: TrialBalance[] = Array.isArray(data) ? data : [data];
+  const fetchDataFromApi = async () => {
+    if (isFetchingLocalToken || !token.access_token) return;
+    setIsLoading(true);
+    try {
+      const response = await apiRequest<ServerResponse<TrialBalance>>(
+        REPORTS_ENDPOINTS.TRIAL_BALANCES.GET_ALL,
+        "GET",
+        token.access_token
+      );
+      setTrialBalanceData(response.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const tableRef = useRef<any>(null);
+  useEffect(() => {
+    fetchDataFromApi();
+  }, [isFetchingLocalToken, token.access_token]);
 
-  const columnDefs: ColDef<TrialBalance>[] = [
-    {
-      headerName: "Account ID",
-      field: "account_id",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Account Name",
-      field: "account_name",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Account Code",
-      field: "account_code",
-      sortable: true,
-      filter: true,
-    },
-    { headerName: "Debit", field: "debit", sortable: true, filter: true },
-    {
-      headerName: "Credit",
-      field: "credit",
-      sortable: true,
-      filter: true,
-    },
-  ];
+  // const trialBalanceData: TrialBalance[] = Array.isArray(data) ? data : [];
+
+  console.log("tbal", trialBalanceData);
 
   const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
+    const doc = new jsPDF();
+    doc.setFillColor(255, 255, 255);
+    doc.text("Trial Balance Report", 20, 10);
+
+    // Table Headers
+    const tableHeaders = ["Account Code", "Account Name", "Debit", "Credit"];
+
+    // Table Data
+    const tableBody = Array.isArray(trialBalanceData)
+      ? trialBalanceData.map((item) => [
+          item.account_code,
+          item.account_name,
+          item.debit ? item.debit.toLocaleString() : "",
+          item.credit ? item.credit.toLocaleString() : "",
+        ])
+      : [];
+
+    // Add Total Row (Fix: Convert objects to simple strings)
+    const totalDebit = Array.isArray(trialBalanceData)
+      ? trialBalanceData
+          .reduce((acc, item) => acc + item.debit, 0)
+          .toLocaleString()
+      : "0";
+    const totalCredit = Array.isArray(trialBalanceData)
+      ? trialBalanceData
+          .reduce((acc, item) => acc + item.credit, 0)
+          .toLocaleString()
+      : "0";
+
+    tableBody.push([
+      "TOTAL", // Text-only value instead of { content: "TOTAL", styles: ... }
+      "",
+      totalDebit,
+      totalCredit,
+    ]);
+
+    // Generate PDF Table
+    autoTable(doc, {
+      head: [tableHeaders],
+      body: tableBody,
+      theme: "grid",
+      styles: { fontSize: 10, cellPadding: 2 },
+      headStyles: {
+        fillColor: [222, 226, 230],
+        textColor: "black",
+        fontStyle: "bold",
+      },
+      columnStyles: {
+        2: { halign: "right" }, // Aligns "Debit" column to the right
+        3: { halign: "right" }, // Aligns "Credit" column to the right
+      },
+      margin: { top: 20 },
+    });
+
+    doc.save("TrialBalance.pdf");
   };
 
   return (
@@ -60,20 +113,56 @@ function TrialBalanceReport() {
       </div>
 
       {/* Pass customHeader inside the Table component */}
-      <Table
-        columnDefs={columnDefs}
-        data={trialBalanceData}
-        ref={tableRef}
-        customHeader={
-          <tr className="bg-gray-200">
-            <td className="text-center font-bold py-4 px-4" colSpan={5}>
-              <p className="text-center font-bold">Trial Balance</p>
-              <p className="text-center font-bold">FY Ended 31 Dec 2023</p>
-              <p className="text-center text-sm">All Figures in UGX</p>
-            </td>
-          </tr>
-        }
-      />
+      {isLoading && trialBalanceData == null ? (
+        "Loading..."
+      ) : (
+        <table className="w-full">
+          <tbody>
+            {Array.isArray(trialBalanceData) &&
+              trialBalanceData.map((item) => {
+                return (
+                  <tr>
+                    <td className="px-5 py-2 w-[30px] border-gray-300 border">
+                      {item.account_code}
+                    </td>
+                    <td className="px-5 py-2 border-gray-300 border">
+                      {item.account_name}
+                    </td>
+                    <td className="px-5 py-2 border-gray-300 border">
+                      {item.debit ? item.debit.toLocaleString() : ""}
+                    </td>
+                    <td className="px-5 py-2 border-gray-300 border">
+                      {item.credit ? item.credit.toLocaleString() : ""}
+                    </td>
+                  </tr>
+                );
+              })}
+            <tr className="bg-gray-200">
+              <td
+                className="px-5 py-2 border-gray-300 border-b font-bold"
+                colSpan={2}
+              >
+                Total
+              </td>
+              <td className="px-5 py-2 border-gray-300 border-b  font-bold">
+                {Array.isArray(trialBalanceData)
+                  ? trialBalanceData
+                      .reduce((acc, item) => acc + item.debit, 0)
+                      .toLocaleString()
+                  : "0"}
+              </td>
+              <td className="px-5 py-2 border-gray-300 border-b  font-bold">
+                {Array.isArray(trialBalanceData)
+                  ? trialBalanceData
+                      .reduce((acc, item) => acc + item.credit, 0)
+                      .toLocaleString()
+                  : "0"}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      )}
+      {!isLoading && trialBalanceData === null && "No data present"}
     </div>
   );
 }

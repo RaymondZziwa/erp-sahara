@@ -28,13 +28,6 @@ const LeaveTypes: React.FC = () => {
 
   const columnDefinitions: ColDef<LeaveType>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "Name",
       field: "leave_name",
       sortable: true,
@@ -134,7 +127,7 @@ const LeaveTypes: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Leave Types Table</h1>
+            <h1 className="text-xl font-bold">Leave Types</h1>
           </div>
           <div className="flex gap-2">
             <button

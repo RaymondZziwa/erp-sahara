@@ -15,7 +15,7 @@ const AddRoleModal: React.FC<AddRoleModalProps> = ({
   isOpen,
   setIsOpen,
   refreshRoles,
-  selectedRole, // currently unused, but available for future use
+  // selectedRole, // currently unused, but available for future use
 }) => {
   const token = useSelector(
     (state: RootState) => state.userAuth.token.access_token

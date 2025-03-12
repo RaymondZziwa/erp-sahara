@@ -135,53 +135,59 @@ const AddOrModifyAccountSubCategory: React.FC<
       onHide={onClose}
     >
       <form id="sub-category-form" onSubmit={handleSave} className="p-fluid">
-        <div className="p-field">
-          <label htmlFor="baseAccountId">Base Account</label>
-          <Dropdown
-            placeholder="Select Account"
-            id="baseAccountId"
-            name="baseAccountId"
-            optionLabel="name"
-            optionValue="id"
-            value={formState.baseAccountId}
-            options={accountCategories}
-            onChange={(e) =>
-              setFormState({ ...formState, baseAccountId: e.value })
-            }
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="parent_id">Parent Account</label>
-          <Dropdown
-            placeholder="Select Account"
-            id="parent_id"
-            name="parent_id"
-            optionLabel="name"
-            optionValue="id"
-            value={formState.parent_id}
-            options={selectedParentAccount?.account_sub_categories || []}
-            onChange={(e) => setFormState({ ...formState, parent_id: e.value })}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="account_category_id">Account Category</label>
-          <Dropdown
-            placeholder="Select Account"
-            id="account_category_id"
-            name="account_category_id"
-            optionLabel="name"
-            optionValue="id"
-            filter
-            value={formState.account_category_id}
-            options={selectedAccountCategory?.children || []}
-            onChange={(e) =>
-              setFormState({ ...formState, account_category_id: e.value })
-            }
-            className="w-full"
-          />
-        </div>
+        {((item?.id && item.is_system_created === 0) || !item?.id) && (
+          <>
+            <div className="p-field">
+              <label htmlFor="baseAccountId">Base Account</label>
+              <Dropdown
+                placeholder="Select Account"
+                id="baseAccountId"
+                name="baseAccountId"
+                optionLabel="name"
+                optionValue="id"
+                value={formState.baseAccountId}
+                options={accountCategories}
+                onChange={(e) =>
+                  setFormState({ ...formState, baseAccountId: e.value })
+                }
+                className="w-full"
+              />
+            </div>
+            <div className="p-field">
+              <label htmlFor="parent_id">Parent Account</label>
+              <Dropdown
+                placeholder="Select Account"
+                id="parent_id"
+                name="parent_id"
+                optionLabel="name"
+                optionValue="id"
+                value={formState.parent_id}
+                options={selectedParentAccount?.account_sub_categories || []}
+                onChange={(e) =>
+                  setFormState({ ...formState, parent_id: e.value })
+                }
+                className="w-full"
+              />
+            </div>
+            <div className="p-field">
+              <label htmlFor="account_category_id">Account Category</label>
+              <Dropdown
+                placeholder="Select Account"
+                id="account_category_id"
+                name="account_category_id"
+                optionLabel="name"
+                optionValue="id"
+                filter
+                value={formState.account_category_id}
+                options={selectedAccountCategory?.children || []}
+                onChange={(e) =>
+                  setFormState({ ...formState, account_category_id: e.value })
+                }
+                className="w-full"
+              />
+            </div>
+          </>
+        )}
         <div className="p-field">
           <label htmlFor="name">Name</label>
           <InputText

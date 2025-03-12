@@ -12,7 +12,7 @@ const EqupmentDetails: React.FC = () => {
   }
 
   return (
-    <div className="my-4">
+    <div className="my-4 text-teal-500">
       <TabView>
         <TabPanel header="Capacity Logs">
           <CenterCapacityLogs centerId={id} />

@@ -7,7 +7,10 @@ const reportsData = [
     category: "Accounting",
     reports: [
       { name: "Trial Balance", link: "/trial-balance" },
-      { name: "Trial Balance Comparison", link: "/trial-balance-comparisons" },
+      {
+        name: "Trial Balance Comparison",
+        link: "/trial-balance-comparisons",
+      },
       { name: "Income Statement", link: "/income-statement-report" },
       {
         name: "Income Statement Comparisons",

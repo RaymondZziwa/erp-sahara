@@ -1,7 +1,7 @@
 export interface SalaryStructure {
   id: number;
   organisation_id: number;
-  strucure_name: string;
+  structure_name: string;
   basic_salary: string;
   overtime_rate: number;
   bonus_percentage: number;

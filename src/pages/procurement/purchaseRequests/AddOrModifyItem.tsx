@@ -197,7 +197,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                     >
                     <option value=" ">Select level</option>
                     {
-                        levels.map((level) => (
+                        levels && levels.map((level) => (
                             <option value={level.id}>{level.name}</option>
                         ))
                     }

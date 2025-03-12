@@ -3,6 +3,7 @@ export interface IncomeStatement {
   sub_category_name: string;
   total: number;
   ledgers: ledger[];
+  data: [];
 }
 
 interface ledger {

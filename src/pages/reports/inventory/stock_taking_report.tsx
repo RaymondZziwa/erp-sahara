@@ -3,6 +3,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
+import { baseURL } from "../../../utils/api";
 //import { baseURL } from "../../../utils/api";
 
 const StockTakingReport = () => {
@@ -13,7 +14,7 @@ const StockTakingReport = () => {
     const fetchData = async () => {
       try {
         const response = await axios.post(
-          `https://merp.efinanci.co.tz/api/erp/inventories/reports/stocktakingreport`,
+          `${baseURL}/erp/inventories/reports/stocktakingreport`,
           {
             "start_date":"2024-08-01",
             "end_date":"2024-08-24"

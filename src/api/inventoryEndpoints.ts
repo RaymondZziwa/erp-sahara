@@ -2,10 +2,11 @@ export const INVENTORY_ENDPOINTS = {
   INVENTORIES: {
     GET_ALL: "/erp/inventories",
     GET_BY_ID: (id: string) => `/erp/inventories/${id}`,
-    ADD: "/erp/inventories/create",
+    ADD: "/erp",
     STOCK_OUT: "/erp/inventories/sendtomilling",
     UPDATE: (id: string) => `/erp/inventories/${id}/update`,
     DELETE: (id: string) => `/erp/inventories/${id}/delete`,
+    STOCK_MVT: "/erp/inventories"
   },
   UOM: {
     GET_ALL: "/erp/inventories/uom",
@@ -92,20 +93,20 @@ export const INVENTORY_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/erp/people/customers/${id}`,
     ADD: "/erp/people/customers/create",
     UPDATE: (id: string) => `/erp/people/customers/${id}/update`,
-    DELETE: (id: string) => `/erp/people/customers/${id}`,
+    DELETE: (id: string) => `/erp/people/customers/${id}/delete`,
   },
   TRUCKS: {
     GET_ALL: "/erp/people/trucks",
     GET_BY_ID: (id: string) => `/erp/people/trucks/${id}`,
     ADD: "/erp/people/trucks/create",
     UPDATE: (id: string) => `/erp/people/trucks/${id}/update`,
-    DELETE: (id: string) => `/erp/people/trucks/${id}`,
+    DELETE: (id: string) => `/erp/people/trucks/${id}/delete`,
   },
   DRIVERS: {
     GET_ALL: "/erp/people/drivers",
     GET_BY_ID: (id: string) => `/erp/people/drivers/${id}`,
     ADD: "/erp/people/drivers/create",
     UPDATE: (id: string) => `/erp/people/drivers/${id}/update`,
-    DELETE: (id: string) => `/erp/people/drivers/${id}`,
+    DELETE: (id: string) => `/erp/people/drivers/${id}/delete`,
   },
 };

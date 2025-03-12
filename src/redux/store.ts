@@ -47,14 +47,19 @@ import  PermissionReducer from './slices/permissions/permissionSlice'
 //users
 import UsersReducer from "./slices/user/usersSlice";
 //approval levels
+import ApprovalLevelsReducer from './slices/approval_levels/levelSlice'
 // import ApprovalLevelsReducer from './slices/approval_levels/levelSlice'
 //farm groups
 import cropsReducer from '../redux/slices/crops/cropsSlice';
 import farmGroupsReducer from "../redux/slices/farmGroups/farmGroupsSlice";
+import AssetsCategoriesReducer from "./slices/assets/assetCategoriesSlice";
+import AssetsAccountsReducer from "./slices/accounts/assetsAccountsSlice";
 import ApprovalLevelsReducer from "./slices/approval_levels/levelSlice";
 
 const store = configureStore({
   reducer: {
+    assetsAccounts: AssetsAccountsReducer,
+    assetCategories: AssetsCategoriesReducer,
     paymentMethods: paymentMethodReducer,
     levels: ApprovalLevelsReducer,
     usersList: UsersReducer,

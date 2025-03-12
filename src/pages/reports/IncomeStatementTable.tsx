@@ -90,7 +90,7 @@ const Table = forwardRef(
                     className="border-t border-black font-bold"
                   >
                     <td colSpan={columnDefs.length - 1} className="p-3">
-                      Subcategory Total
+                      {row.sub_category_name} Total
                     </td>
                     <td className="p-3 text-right">{row.total}</td>
                   </tr>

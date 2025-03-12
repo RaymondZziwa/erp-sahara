@@ -1,6 +1,6 @@
 export const REPORTS_ENDPOINTS = {
   GENERAL_LEDGERS: {
-    GET_ALL: "/erp/reports/accounting/general-ledger",
+    GET_ALL: "/erp/accounts/general-ledger",
   },
   TRIAL_BALANCES: {
     GET_ALL: "/erp/reports/accounting/false/detail-trial-balance",
@@ -22,6 +22,12 @@ export const REPORTS_ENDPOINTS = {
   },
   JOURNAL_TYPES: {
     GET_ALL: "/erp/accounts/journal-types",
+  },
+  CASH_FLOW_STATEMENT: {
+    GET_ALL: "/erp/reports/accounting/false/cash-flow-statement-indirect",
+  },
+  DETAILED_CASH_BOOK: {
+    GET_ALL: "/erp/reports/accounting/cashbook/2024-01-01/2024-12-01",
   },
   DASHBOARD: {
     SALES: "/erp/reports/dashboard/sales-comparison-current-vs-previous-fy",

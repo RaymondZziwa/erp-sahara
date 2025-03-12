@@ -15,7 +15,6 @@ import useBudgets from "../../../hooks/budgets/useBudgets";
 import useLedgerChartOfAccounts from "../../../hooks/accounts/useLedgerChartOfAccounts";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import { InputNumber } from "primereact/inputnumber";
-import useItems from "../../../hooks/inventory/useItems";
 
 interface AddBudget {
   name: string;

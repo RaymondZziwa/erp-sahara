@@ -1,8 +1,15 @@
+import { Department } from "./Departments";
+import { Designation } from "./Designation";
+import { SalaryStructure } from "./SalaryStructure";
+
 export interface Employee {
   id: number;
   department_id: number;
+  department: Department;
   salary_structure_id: number;
+  salary_structure: SalaryStructure;
   designation_id: number;
+  designation: Designation;
   employee_code: string;
   first_name: string;
   last_name: string;

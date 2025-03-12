@@ -1,50 +1,112 @@
-import { useRef } from "react";
-import Table from "../IncomeStatementTable";
+import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import useAuth from "../../../hooks/useAuth";
+import { apiRequest } from "../../../utils/api";
+import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
+import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
+
+interface LedgerDataType {
+  summaries: summaries[];
+  total_credit: number;
+  total_debit: number;
+}
+interface summaries {
+  account_name: string;
+  total_debits: number;
+  total_credits: number;
+}
 
 const GeneralLedgerReport = () => {
-  const tableRef = useRef<any>(null);
+  const [ledgerData, setLedgerData] = useState<LedgerDataType | null>();
+  const [isLoading, setIsLoading] = useState(false);
+  const { token, isFetchingLocalToken } = useAuth();
 
-  // Define table columns
-  const columnDefs = [
-    { headerName: "NO.", field: "id" },
-    { headerName: "DATE", field: "date" },
-    { headerName: "DESCRIPTION", field: "description" },
-    { headerName: "INCOME", field: "income" },
-    { headerName: "EXPENSE", field: "expense" },
-  ];
+  const fetchDataFromApi = async () => {
+    if (isFetchingLocalToken || !token.access_token) return;
+    setIsLoading(true);
+    try {
+      const response = await apiRequest<ServerResponse<LedgerDataType>>(
+        REPORTS_ENDPOINTS.GENERAL_LEDGERS.GET_ALL,
+        "GET",
+        token.access_token
+      );
 
-  // Define table data
-  const data = [
-    {
-      id: 1,
-      date: "14/02/2024",
-      description: "Your record from sales transactions",
-      income: "5,000",
-      expense: "6,000",
-    },
-    {
-      id: 2,
-      date: "14/02/2024",
-      description: "Your record from sales transactions",
-      income: "5,000",
-      expense: "6,000",
-    },
-    {
-      id: 3,
-      date: "14/02/2024",
-      description: "Your record from sales transactions",
-      income: "5,000",
-      expense: "6,000",
-    },
-    { isTotalRow: true, total: "5,000", sub_category_name: "Totals" },
-    { isTotalRow: true, total: "5,000", sub_category_name: "Balances" },
-  ];
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
+      setLedgerData(response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchDataFromApi();
+  }, [isFetchingLocalToken, token.access_token]);
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text("General Ledger Report", 14, 10);
+
+    autoTable(doc, {
+      startY: 20,
+      head: [["Account Name", "Total Debits", "Total Credits"]],
+      body: ledgerData?.summaries.map((item) => [
+        item.account_name,
+        item?.total_debits.toLocaleString(),
+        item?.total_credits.toLocaleString(),
+      ]),
+      theme: "grid",
+      headStyles: {
+        fillColor: [222, 226, 230], // Set to white or desired color
+        textColor: "black", // Set text color to black
+        fontStyle: "bold",
+      },
+      tableLineWidth: 0, // Removes outer table borders
+      tableLineColor: [255, 255, 255], // Makes sure no table outline
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          data.cell.styles.lineWidth = {
+            top: 0.2,
+            right: 0,
+            bottom: 0.2,
+            left: 0,
+          }; // [top, right, bottom, left]
+        }
+      },
+    });
+
+    // Add totals row
+    autoTable(doc, {
+      startY: (doc as any).previousAutoTable.finalY + 5,
+      body: [
+        ["Total Credits", "", ledgerData?.total_credit.toLocaleString() ?? 0],
+        ["Total Debits", "", ledgerData?.total_debit.toLocaleString() ?? 0],
+      ],
+      theme: "grid",
+      styles: {
+        fillColor: [222, 226, 230], // Set to white or desired color
+        textColor: "black", // Set text color to black
+        fontStyle: "bold",
+      },
+      tableLineWidth: 0, // Removes outer table borders
+      tableLineColor: [255, 255, 255], // Makes sure no table outline
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          data.cell.styles.lineWidth = {
+            top: 0.2,
+            right: 0,
+            bottom: 0.2,
+            left: 0,
+          }; // [top, right, bottom, left]
+        }
+      },
+    });
+
+    doc.save("General_Ledger_Report.pdf");
+  };
+
   return (
     <div className="bg-white p-3">
       <div className="flex justify-between items-center mb-4">
@@ -58,7 +120,47 @@ const GeneralLedgerReport = () => {
         </button>
       </div>
 
-      <Table ref={tableRef} columnDefs={columnDefs} data={data} />
+      {isLoading ? (
+        "Loading..."
+      ) : (
+        <table className="w-full">
+          <tbody>
+            {ledgerData?.summaries.map((item) => {
+              return (
+                <>
+                  <tr>
+                    <td className="px-3 py-2 border-gray-200 border-b">
+                      {item.account_name}
+                    </td>
+                    <td className="px-3 py-2 border-gray-200 border-b">
+                      {item.total_credits.toLocaleString()}
+                    </td>
+                    <td className="px-3 py-2 border-gray-200 border-b">
+                      {item.total_debits.toLocaleString()}
+                    </td>
+                  </tr>
+                </>
+              );
+            })}
+            <tr className="font-bold bg-gray-200 ">
+              <td className="px-3 py-2 " colSpan={2}>
+                Total Credits
+              </td>
+              <td className="px-3 py-2">
+                {ledgerData?.total_credit.toLocaleString()}
+              </td>
+            </tr>
+            <tr className="font-bold bg-gray-200">
+              <td className="px-3 py-2" colSpan={2}>
+                Total Debits
+              </td>
+              <td className="px-3 py-2">
+                {ledgerData?.total_debit.toLocaleString()}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      )}
     </div>
   );
 };

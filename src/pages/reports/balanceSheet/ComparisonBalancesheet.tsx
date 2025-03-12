@@ -1,24 +1,22 @@
-import React, { useState, useRef, useEffect } from "react";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
-import { formatCurrency } from "../../../utils/formatCurrency";
-import { IconField } from "primereact/iconfield";
-import { InputIcon } from "primereact/inputicon";
-import { useReactToPrint } from "react-to-print";
-
+import React, { useState, useEffect } from "react";
+import { Icon } from "@iconify/react";
 import useAuth from "../../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import { apiRequest } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface ComparisonBalanceSheet {
   balance_sheet: Balancesheet;
   totals: Totals;
   subcategory_totals: SubcategoryTotals;
   current_fiscal_year: CurrentFiscalYear;
-  previous_fiscal_year: null; // If there are no fields, you can define this as null or create an interface if needed.
+  previous_fiscal_year: null;
+  data: {};
+  assets: [];
+  equity: [];
+  liabilities: [];
 }
 
 interface CurrentFiscalYear {
@@ -38,10 +36,20 @@ interface SubcategoryTotals {
   equity: SubcategoryDetail[];
 }
 
+interface Account {
+  code: string;
+  account_name: string;
+  balance: number;
+  previous_amount: number;
+  difference: number;
+}
+
 interface SubcategoryDetail {
   subcategory_name: string;
-  current_total: number;
+  total: number;
   previous_total: number;
+  difference: number;
+  accounts: Account[];
 }
 
 interface Totals {
@@ -68,19 +76,16 @@ interface Equity {
   account_id: number;
   account_name: string;
   account_code: string;
-  current_balance: string; // If this is a string, otherwise, change to number.
-  previous_balance: number; // Assuming equity also has previous balance.
+  current_balance: string;
+  previous_balance: number;
 }
 
 const ComparisonBalanceSheet: React.FC = () => {
-  const [globalFilter, setGlobalFilter] = useState<string | null>(null);
   const [incomeStatement, setIncomeStatement] =
     useState<ComparisonBalanceSheet | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const printDivRef = useRef<HTMLDivElement>(null);
-  const { token, isFetchingLocalToken } = useAuth();
 
-  const reactToPrintFn = useReactToPrint({ contentRef: printDivRef });
+  const { token, isFetchingLocalToken } = useAuth();
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken || !token.access_token) return;
@@ -91,7 +96,10 @@ const ComparisonBalanceSheet: React.FC = () => {
         "GET",
         token.access_token
       );
-      setIncomeStatement(response.data);
+      console.log("resp", response.data);
+
+      setIncomeStatement(response.data.data as ComparisonBalanceSheet);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -99,196 +107,464 @@ const ComparisonBalanceSheet: React.FC = () => {
     }
   };
 
+  console.log("is", incomeStatement);
   useEffect(() => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-  // Helper functions to calculate totals
-  const calculateTotal = (data: Array<Asset | Equity>, field: keyof Asset) => {
-    return data.reduce(
-      (sum, item) => sum + parseFloat(String(item[field]) || "0"),
-      0
-    );
+  const { assets, equity, liabilities } = incomeStatement || {
+    assets: [],
+    equity: [],
+    liabilities: [],
   };
 
-  const header = (
-    <div className="table-header print:hidden flex justify-between items-center">
-      <h1 className="text-xl font-semibold">Comparison Balance Sheet</h1>
-      <IconField iconPosition="left">
-        <InputIcon className="pi pi-search"></InputIcon>
-        <InputText
-          placeholder="Search"
-          onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setGlobalFilter(e.target.value)
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Balance Sheet", 20, 10);
+
+    const generateSection = (title: string, items: SubcategoryDetail[]) => {
+      if (!items) return;
+      const tableBody: any[] = [];
+
+      tableBody.push([
+        {
+          content: title,
+          colSpan: 5, // Updated to match column count
+          styles: {
+            fontStyle: "bold" as "bold",
+            halign: "left",
+            fillColor: [222, 226, 230],
+          },
+        },
+      ]);
+
+      // Add subcategory rows and data
+      items.forEach((item) => {
+        tableBody.push([
+          {
+            content: item.subcategory_name,
+            colSpan: 5, // Updated to match column count
+            styles: {
+              fontStyle: "bold" as "bold",
+              halign: "left",
+              fillColor: [246, 249, 252],
+            },
+          },
+        ]);
+
+        tableBody.push([
+          {
+            content: "Code",
+            styles: { halign: "left", fontStyle: "bold" },
+          },
+          {
+            content: "Account Name",
+            styles: { halign: "left", fontStyle: "bold" },
+          },
+          {
+            content: "Current Amount",
+            styles: { halign: "center", fontStyle: "bold" },
+          },
+          {
+            content: "Previous Amount",
+            styles: { halign: "center", fontStyle: "bold" },
+          },
+          {
+            content: "Difference",
+            styles: { halign: "center", fontStyle: "bold" },
+          },
+        ]);
+
+        item.accounts.forEach((account) => {
+          tableBody.push([
+            account.code,
+            account.account_name,
+            {
+              content: account.balance.toLocaleString(),
+              styles: { halign: "center" },
+            },
+            {
+              content: account.previous_amount.toLocaleString(),
+              styles: { halign: "center" },
+            },
+            {
+              content: account.difference.toLocaleString(),
+              styles: { halign: "center" },
+            },
+          ]);
+        });
+      });
+
+      const total = items.reduce((acc, item) => acc + item.total, 0);
+      const previousTotal = items.reduce(
+        (acc, item) => acc + item.previous_total,
+        0
+      );
+      const differenceTotal = items.reduce(
+        (acc, item) => acc + item.difference,
+        0
+      );
+
+      tableBody.push([
+        {
+          content: `TOTAL ${title}`,
+          colSpan: 2,
+          styles: { fontStyle: "bold", halign: "left" },
+        },
+        {
+          content: total.toLocaleString(),
+          styles: { fontStyle: "bold", halign: "right" },
+        },
+        {
+          content: previousTotal.toLocaleString(),
+          styles: { fontStyle: "bold", halign: "right" },
+        },
+        {
+          content: differenceTotal.toLocaleString(),
+          styles: { fontStyle: "bold", halign: "right" },
+        },
+      ]);
+
+      autoTable(doc, {
+        body: tableBody,
+        theme: "grid",
+        margin: { top: 5 },
+        tableLineWidth: 0, // Removes outer table borders
+        tableLineColor: [255, 255, 255], // Makes sure no table outline
+        didParseCell: function (data) {
+          if (data.section === "body") {
+            data.cell.styles.lineWidth = {
+              top: 0.2,
+              right: 0,
+              bottom: 0.2,
+              left: 0,
+            }; // [top, right, bottom, left]
           }
-        />
-      </IconField>
-      <Button
-        label="Print"
-        icon="pi pi-print"
-        className="p-button-primary"
-        onClick={() => reactToPrintFn()}
-      />
-    </div>
+        },
+      });
+    };
+
+    generateSection("ASSETS", incomeStatement?.assets || []);
+    generateSection("EQUITY", incomeStatement?.equity || []);
+    generateSection("LIABILITIES", incomeStatement?.liabilities || []);
+
+    doc.save("BalanceSheet.pdf");
+  };
+
+  let totalCurrentAssetAmount = assets?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.total,
+    0
+  );
+
+  let totalPreviousAssetAmount = assets?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.previous_total,
+    0
+  );
+
+  let totalAssetDifference = assets?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.difference,
+    0
+  );
+
+  let totalCurrentEquityAmount = equity?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.total,
+    0
+  );
+
+  let totalPreviousEquityAmount = equity?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.previous_total,
+    0
+  );
+
+  let totalEquityDifference = equity?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.difference,
+    0
+  );
+
+  let totalLiabilitiesCurrentAmount = liabilities?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.total,
+    0
+  );
+
+  let totalLiabilitiesPreviousAmount = liabilities?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.previous_total,
+    0
+  );
+
+  let totalLiabilitiesDifference = liabilities?.reduce(
+    (acc, item: SubcategoryDetail) => acc + item.difference,
+    0
   );
 
   return (
-    <div>
-      <div className="print:p-2" ref={printDivRef}>
-        {/* Assets Section */}
-        <h2 className="text-lg font-semibold mt-4">Assets</h2>
-        <DataTable
-          loading={isLoading}
-          value={incomeStatement?.balance_sheet.assets || []}
-          globalFilter={globalFilter}
-          scrollable
-          footer={
-            <div className="flex bg-teal-200 p-2">
-              <strong className="w-1/3">Total Assets </strong>
-              <div className="w-1/3">
-                {formatCurrency(
-                  calculateTotal(
-                    incomeStatement?.balance_sheet.assets || [],
-                    "current_balance"
-                  )
-                )}
-              </div>
-              <div>
-                {formatCurrency(
-                  calculateTotal(
-                    incomeStatement?.balance_sheet.assets || [],
-                    "previous_balance"
-                  )
-                )}
-              </div>
-            </div>
-          }
-          header={header}
+    <div className="bg-white p-3">
+      <div className="flex justify-between items-center mb-4">
+        <p className="font-bold text-xl">Balance Comparison Sheet </p>
+        <button
+          className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
+          onClick={handleExportPDF}
         >
-          <Column
-            className="w-1/3"
-            field="account_name"
-            header="Account Name"
-          />
-          <Column
-            className="w-1/3"
-            field="current_balance"
-            header="Current Balance"
-            body={(rowData) => parseFloat(rowData.current_balance)}
-          />
-          <Column
-            field="previous_balance"
-            header="Previous Balance"
-            body={(rowData: Asset) => rowData.previous_balance}
-          />
-        </DataTable>
-
-        {/* Liabilities Section */}
-        <h2 className="text-lg font-semibold mt-4">Liabilities</h2>
-        <DataTable
-          loading={isLoading}
-          value={incomeStatement?.balance_sheet.liabilities || []}
-          scrollable
-          footer={
-            <div className="flex bg-teal-200 p-2">
-              <strong className="w-1/3">Total Liabilities</strong>
-              <div className="w-1/3">
-                {formatCurrency(
-                  calculateTotal(
-                    incomeStatement?.balance_sheet.liabilities || [],
-                    "current_balance"
-                  )
-                )}
-              </div>
-              <div>
-                {formatCurrency(
-                  calculateTotal(
-                    incomeStatement?.balance_sheet.liabilities || [],
-                    "previous_balance"
-                  )
-                )}
-              </div>
-            </div>
-          }
-        >
-          <Column
-            className="w-1/3"
-            field="account_name"
-            header="Account Name"
-          />
-          <Column
-            field="current_balance"
-            header="Current Balance"
-            body={(rowData) => parseFloat(rowData.current_balance)}
-          />
-          <Column
-            field="previous_balance"
-            header="Previous Balance"
-            body={(rowData: Equity) => rowData.previous_balance}
-          />
-        </DataTable>
-
-        {/* Equity Section */}
-        <h2 className="text-lg font-semibold mt-4">Equity</h2>
-        <DataTable
-          loading={isLoading}
-          value={incomeStatement?.balance_sheet.equity || []}
-          scrollable
-          footer={
-            <div className="flex bg-teal-200 p-2">
-              <strong className="w-1/3">Total Equity</strong>
-              <div className="w-1/3">
-                {formatCurrency(
-                  calculateTotal(
-                    incomeStatement?.balance_sheet.equity || [],
-                    "current_balance"
-                  )
-                )}
-              </div>
-              <div>
-                {formatCurrency(
-                  calculateTotal(
-                    incomeStatement?.balance_sheet.equity || [],
-                    "previous_balance"
-                  )
-                )}
-              </div>
-            </div>
-          }
-        >
-          <Column
-            className="w-1/3"
-            field="account_name"
-            header="Account Name"
-          />
-          <Column
-            field="current_balance"
-            header="Current Balance"
-            body={(rowData) =>
-              formatCurrency(parseFloat(rowData.current_balance))
-            }
-          />
-          <Column
-            field="previous_balance"
-            header="Previous Balance"
-            body={(rowData) => formatCurrency(rowData.previous_balance)}
-          />
-        </DataTable>
-
-        {/* Additional Calculations and Totals */}
-        <div className="flex justify-end mt-4">
-          <div className="grid grid-cols-1 gap-2">
-            <strong>
-              Grand Total:{" "}
-              {formatCurrency(
-                (incomeStatement?.totals.total_assets ?? 0) +
-                  (incomeStatement?.totals.total_liabilities ?? 0) +
-                  (incomeStatement?.totals.total_equity ?? 0)
-              )}
-            </strong>
-          </div>
-        </div>
+          <Icon icon="solar:printer-bold" fontSize={20} />
+          Print
+        </button>
       </div>
+
+      {/* Custom Table Component */}
+
+      {isLoading && incomeStatement == null ? (
+        "Loading..."
+      ) : (
+        <table className="w-full">
+          <tbody>
+            <tr className="font-bold bg-gray-300">
+              <td className="p-3 " colSpan={5}>
+                ASSETS
+              </td>
+            </tr>
+
+            {assets?.map((item: SubcategoryDetail) => {
+              return (
+                <>
+                  <tr className="font-bold bg-gray-100">
+                    <td className="p-3 " colSpan={5}>
+                      {item.subcategory_name}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 font-semibold py-2 border-gray-200 border-b w-[100px]">
+                      Code
+                    </td>
+                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
+                      Account Name
+                    </td>
+                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
+                      Current Amount
+                    </td>
+                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
+                      Previous Amount
+                    </td>
+                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
+                      Difference
+                    </td>
+                  </tr>
+
+                  {item.accounts.map((account: any) => {
+                    return (
+                      <tr>
+                        <td className="px-3 py-2 border-gray-200 border-b w-[100px]">
+                          {account.code}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {account.account_name}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {account.balance
+                            ? account.balance.toLocaleString()
+                            : ""}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {account.previous_amount
+                            ? account.previous_amount.toLocaleString()
+                            : ""}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {account.difference
+                            ? account.difference.toLocaleString()
+                            : ""}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </>
+              );
+            })}
+            <tr className="font-bold bg-gray-200">
+              <td className="p-3 " colSpan={2}>
+                TOTAL ASSETS
+              </td>
+              <td className="p-3 ">
+                {Number(totalCurrentAssetAmount) > 0
+                  ? totalCurrentAssetAmount.toLocaleString()
+                  : ""}
+              </td>
+              <td className="p-3 ">
+                {Number(totalPreviousAssetAmount) > 0
+                  ? totalPreviousAssetAmount.toLocaleString()
+                  : ""}
+              </td>
+              <td className="p-3 ">
+                {Number(totalAssetDifference) > 0
+                  ? totalAssetDifference.toLocaleString()
+                  : ""}
+              </td>
+            </tr>
+
+            <tr className="font-bold bg-gray-300">
+              <td className="p-3 " colSpan={5}>
+                EQUITY
+              </td>
+            </tr>
+            {equity?.map((item: SubcategoryDetail) => {
+              return (
+                <>
+                  <tr className="font-bold bg-gray-100">
+                    <td className="p-3 " colSpan={5}>
+                      {item.subcategory_name}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 font-semibold py-2 border-gray-200 border-b w-[100px]">
+                      Code
+                    </td>
+                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
+                      Account Name
+                    </td>
+                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
+                      Current Amount
+                    </td>
+                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
+                      Previous Amount
+                    </td>
+                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
+                      Difference
+                    </td>
+                  </tr>
+
+                  {item.accounts.map((account: any) => {
+                    return (
+                      <tr>
+                        <td className="px-3 py-2 border-gray-200 border-b w-[100px]">
+                          {account.code}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {account.account_name}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {account.balance
+                            ? account.balance.toLocaleString()
+                            : ""}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {account.previous_amount
+                            ? account.previous_amount.toLocaleString()
+                            : ""}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {account.difference
+                            ? account.difference.toLocaleString()
+                            : ""}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </>
+              );
+            })}
+            <tr className="font-bold bg-gray-200">
+              <td className="p-3 " colSpan={2}>
+                TOTAL EQUITY
+              </td>
+              <td className="p-3 ">
+                {Number(totalCurrentEquityAmount) > 0
+                  ? totalCurrentEquityAmount.toLocaleString()
+                  : ""}
+              </td>
+              <td className="p-3 ">
+                {Number(totalPreviousEquityAmount) > 0
+                  ? totalPreviousEquityAmount.toLocaleString()
+                  : ""}
+              </td>
+              <td className="p-3 ">
+                {Number(totalEquityDifference) > 0
+                  ? totalEquityDifference.toLocaleString()
+                  : ""}
+              </td>
+            </tr>
+            <tr className="font-bold bg-gray-300">
+              <td className="p-3 " colSpan={5}>
+                LIABILITIES
+              </td>
+            </tr>
+            {liabilities?.map((item: SubcategoryDetail) => {
+              return (
+                <>
+                  <tr className="font-bold bg-gray-100">
+                    <td className="p-3 " colSpan={5}>
+                      {item.subcategory_name}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 font-semibold py-2 border-gray-200 border-b w-[100px]">
+                      Code
+                    </td>
+                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
+                      Account Name
+                    </td>
+                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
+                      Current Amount
+                    </td>
+                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
+                      Previous Amount
+                    </td>
+                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
+                      Difference
+                    </td>
+                  </tr>
+
+                  {item.accounts.map((account: any) => {
+                    return (
+                      <tr>
+                        <td className="px-3 py-2 border-gray-200 border-b w-[100px]">
+                          {account.code}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {account.account_name}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {account.balance
+                            ? account.balance.toLocaleString()
+                            : ""}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {account.previous_amount
+                            ? account.previous_amount.toLocaleString()
+                            : ""}
+                        </td>
+                        <td className="px-3 py-2 border-gray-200 border-b">
+                          {account.difference
+                            ? account.difference.toLocaleString()
+                            : ""}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </>
+              );
+            })}
+            <tr className="font-bold bg-gray-200">
+              <td className="p-3 " colSpan={2}>
+                TOTAL LIABILITIES
+              </td>
+              <td className="p-3 ">
+                {Number(totalLiabilitiesCurrentAmount) > 0
+                  ? totalLiabilitiesCurrentAmount.toLocaleString()
+                  : ""}
+              </td>
+              <td className="p-3 ">
+                {Number(totalLiabilitiesPreviousAmount) > 0
+                  ? totalLiabilitiesPreviousAmount.toLocaleString()
+                  : ""}
+              </td>
+              <td className="p-3 ">
+                {Number(totalLiabilitiesDifference) > 0
+                  ? totalLiabilitiesDifference.toLocaleString()
+                  : ""}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      )}
+      {/* {isLoading && incomeStatement == null ? "Loading...." : ""} */}
     </div>
   );
 };

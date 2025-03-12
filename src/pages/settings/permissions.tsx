@@ -66,7 +66,7 @@ const RoleManagement = () => {
         <h1 className="text-2xl font-bold mb-4">Role Management</h1>
         <button
           onClick={() => setIsAddRoleModalOpen(true)}
-          className="mt-4 px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg shadow-md hover:from-teal-600 hover:to-teal-700 transition-all transform hover:scale-105"
+          className="mt-4 px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-300"
         >
           + Add Role
         </button>

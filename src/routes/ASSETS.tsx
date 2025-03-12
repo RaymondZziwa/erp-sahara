@@ -1,5 +1,7 @@
 import { Icon } from "@iconify/react";
-import ToBeUpdated from "../pages/ToBeUpdated";
+import AssetsManagement from "../pages/assets/manage_assets";
+//import ToBeUpdated from "../pages/ToBeUpdated";
+import AssetsCategories from "../pages/assets/categories/manage_categories";
 
 const ASSETS = [
   {
@@ -8,17 +10,41 @@ const ASSETS = [
     path: "/",
     items: [
       {
-        name: "Asset Inventory",
+        name: "Asset Management",
         icon: <Icon icon="solar:card-2-bold-duotone" fontSize={20} />,
-        path: "/",
-        element: <ToBeUpdated />,
+        path: "",
+        element: <AssetsManagement />,
       },
       {
-        name: "Maintainance management",
+        name: "Asset Categories",
         icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-        path: "/userroles",
-        element: <ToBeUpdated />,
+        path: "asset_categories",
+        element: <AssetsCategories />,
       },
+      // {
+      //   name: "Depreciation",
+      //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+      //   path: "asset_depreciation",
+      //   element: <ToBeUpdated />,
+      // },
+      // {
+      //   name: "Asset Payment",
+      //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+      //   path: "asset_depreciation",
+      //   element: <ToBeUpdated />,
+      // },
+      // {
+      //   name: "Asset Income",
+      //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+      //   path: "asset_depreciation",
+      //   element: <ToBeUpdated />,
+      // },
+      // {
+      //   name: "Asset Expenses",
+      //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+      //   path: "asset_depreciation",
+      //   element: <ToBeUpdated />,
+      // },
     ],
   },
 ];

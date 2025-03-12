@@ -13,7 +13,7 @@ const OutOfStockReport = () => {
     const fetchData = async () => {
       try {
         const response = await axios.post(
-          `https://merp.efinanci.co.tz/api/erp/inventories/reports/stockagingreport`,
+          `${baseURL}/erp/inventories/reports/stockagingreport`,
           {}, 
           {
             headers: {

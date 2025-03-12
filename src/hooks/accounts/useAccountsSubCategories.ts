@@ -33,7 +33,6 @@ const useAccountSubCategories = () => {
         "GET",
         token.access_token
       );
-      const logging =  console.log(response);
 
       response.data && dispatch(fetchDataSuccess(response.data)); // Dispatch action with fetched data on success
     } catch (error) {
