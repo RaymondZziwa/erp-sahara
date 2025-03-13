@@ -54,7 +54,8 @@ import cropsReducer from '../redux/slices/crops/cropsSlice';
 import farmGroupsReducer from "../redux/slices/farmGroups/farmGroupsSlice";
 import AssetsCategoriesReducer from "./slices/assets/assetCategoriesSlice";
 import AssetsAccountsReducer from "./slices/accounts/assetsAccountsSlice";
-import ApprovalLevelsReducer from "./slices/approval_levels/levelSlice";
+import assetsReducer from "./slices/assets/assetsSlice";
+// import ApprovalLevelsReducer from "./slices/approval_levels/levelSlice";
 
 const store = configureStore({
   reducer: {
@@ -92,6 +93,7 @@ const store = configureStore({
     itemsAttributes: itemsAttributesReducer,
     itemsAttributesValues: itemsAttributesValuesReducer,
     crops: cropsReducer,
+    assets: assetsReducer,
     farmGroups: farmGroupsReducer,
     stockMovements: stockMovementSlice,
     ...MOSS_APP_REDUCERS,

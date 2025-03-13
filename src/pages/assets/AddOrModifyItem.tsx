@@ -1,18 +1,16 @@
-//@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import useAuth from "../../hooks/useAuth";
-import { baseURL, createRequest } from "../../utils/api";
 import { Dropdown } from "primereact/dropdown";
-import { Asset } from "../../redux/slices/types/mossApp/assets/asset";
+import axios from "axios";
+import useAuth from "../../hooks/useAuth";
 import useAssetCategories from "../../hooks/assets/useAssetCategories";
 import useSuppliers from "../../hooks/inventory/useSuppliers";
-import { Supplier } from "../../redux/slices/types/inventory/Suppliers";
 import useChartOfAccounts from "../../hooks/accounts/useChartOfAccounts";
-import axios from "axios";
+import { baseURL, createRequest } from "../../utils/api";
 import { ASSETSENDPOINTS } from "../../api/assetEndpoints";
+import { Asset } from "../../redux/slices/types/mossApp/assets/asset";
 
 interface AddOrModifyAssetProps {
   visible: boolean;
@@ -27,216 +25,248 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   item,
   onSave,
 }) => {
-const [formState, setFormState] = useState<Partial<Asset>>({
-  name: "",
-  supplier: "",
-  asset_type: "",
-  asset_account_id: 0,
-  asset_category_id: 0,
-  identity_no: "",
-  purchase_date: "",
-  date_put_to_use: "",
-  purchase_cost: 0,
-  current_value: 0,
-  date_when: "",
-  depreciation_account_id: 0,
-  depreciation_loss_account_id: 0,
-  depreciation_gain_account_id: 0,
-  expense_account_id: 0,
-  depreciation_method: "straight_line",
-  depreciation_rate: 0,
-  income_account_id: 0,
-  appreciation_account_id: 0,
-  appreciation_loss_account_id: 0,
-  appreciation_gain_account_id: 0,
-  appreciation_rate: undefined, // Nullable
-  salvage_value: 0,
-  useful_life: 0,
-  description: "",
-});
+  const { token } = useAuth();
+  const { data: accounts } = useChartOfAccounts();
+  const { data: suppliers } = useSuppliers();
+  const { data: assetCats } = useAssetCategories();
 
+  const [formState, setFormState] = useState<Partial<Asset>>({
+    name: "",
+    supplier: "",
+    asset_type: "",
+    asset_account_id: 0,
+    asset_category_id: 0,
+    identity_no: "",
+    purchase_date: "",
+    date_put_to_use: "",
+    purchase_cost: 0,
+    current_value: 0,
+    date_when: "",
+    depreciation_account_id: 0,
+    depreciation_loss_account_id: 0,
+    depreciation_gain_account_id: 0,
+    expense_account_id: 0,
+    depreciation_method: "straight_line",
+    depreciation_rate: 0,
+    income_account_id: 0,
+    appreciation_account_id: 0,
+    appreciation_loss_account_id: 0,
+    appreciation_gain_account_id: 0,
+    appreciation_rate: undefined,
+    salvage_value: 0,
+    useful_life: 0,
+    description: "",
+  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [supplierOptions, setSupplierOptions] = useState<Supplier[]>([])
-  const [acctOptions, setAcctOptions] = useState([]);
-  const [acps, setAcps] = useState<{name: string, accounts: []}[]>([])
+  const [supplierOptions, setSupplierOptions] = useState<{ value: number | string; name: string }[]>([]);
+  const [assetLedgers, setAssetLedgers] = useState<{ value: number; name: string }[]>([]);
+  const [acctOptions, setAcctOptions] = useState<{ value: number; name: string }[]>([]);
 
-  const [assetLedgers, setAssetLedgers] = useState([])
-  const { token } = useAuth();
+  // Map asset categories to dropdown options
+  const assetCatOptions = assetCats ? assetCats.map((cat: any) => ({ value: cat.id, name: cat.name })) : [];
 
+  // Fetch asset ledgers for asset account dropdown
   const getAssetLedgers = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}/erp/accounts/get-asset-accounts`,
+        "https://latcu-api.efinanci.co.tz/api/erp/accounts/get-asset-accounts",
         {
-          headers: {
-            Authorization: `Bearer ${token.access_token}`,
-          },
+          headers: { Authorization: `Bearer ${token.access_token}` },
         }
       );
-      if(res.data) {
-        const opts = res.data?.map((acc: any) => ({
+      if (res.data && res.data.data) {
+        const opts = res.data.data.map((acc: any) => ({
           value: acc.id,
           name: acc.name,
         }));
-        console.log(res.data);
         setAssetLedgers(opts);
       }
     } catch (error) {
-      console.log(error)
+      console.error("Error fetching asset ledgers:", error);
     }
-  }
-
-  useEffect(()=> {
-    getAssetLedgers();
-  },[])
-
-  const {data: accounts} = useChartOfAccounts()
-  const {data: suppliers} = useSuppliers()
-  const {data: assetCats} = useAssetCategories()
-
-  useEffect(()=> {
-    const options = suppliers.map((supplier) => ({
-      value: supplier.id,
-      name: supplier.supplier_name,
-    }));
-
-    const opts = accounts.map((acc) => ({
-      value: acc.id,
-      name: acc.name,
-    }));
-
-    setSupplierOptions(options);
-    setAcctOptions(opts);
-  }, [accounts, suppliers])
+  };
+  
 
   const getAccountsData = async () => {
     try {
-      const [incomeResponse, expenseResponse, assetResponse] =
-        await Promise.all([
-          axios.get(`${baseURL}/erp/accounts/get-income-accounts`, {
-            headers: {
-              Authorization: `Bearer ${token.access_token}`,
-            },
-          }),
-          axios.get(`${baseURL}/erp/accounts/get-expense-accounts`, {
-            headers: {
-              Authorization: `Bearer ${token.access_token}`,
-            },
-          }),
-          axios.get(`${baseURL}/erp/accounts/get-asset-accounts`, {
-            headers: {
-              Authorization: `Bearer ${token.access_token}`,
-            },
-          }),
-        ]);
-
-      // Combine the results into an array of objects
+      const [incomeResponse, expenseResponse, assetResponse] = await Promise.all([
+        axios.get(`${baseURL}/erp/accounts/get-income-accounts`, {
+          headers: { Authorization: `Bearer ${token?.access_token}` },
+        }),
+        axios.get(`${baseURL}/erp/accounts/get-expense-accounts`, {
+          headers: { Authorization: `Bearer ${token?.access_token}` },
+        }),
+        axios.get(`${baseURL}/erp/accounts/get-asset-accounts`, {
+          headers: { Authorization: `Bearer ${token?.access_token}` },
+        }),
+      ]);
+  
+      console.log("Income Accounts:", incomeResponse.data);
+      console.log("Expense Accounts:", expenseResponse.data);
+      console.log("Asset Accounts:", assetResponse.data);
+  
       const result = [
-        {
-          name: "Income Accounts",
-          accounts: incomeResponse.data, // assuming the response data contains the accounts
-        },
-        {
-          name: "Expense Accounts",
-          accounts: expenseResponse.data,
-        },
-        {
-          name: "Asset Accounts",
-          accounts: assetResponse.data,
-        },
-      ];
-
-      setAcps(result)
+        ...(incomeResponse.data?.data || []), // Ensure it handles undefined gracefully
+        ...(expenseResponse.data?.data || []),
+        ...(assetResponse.data?.data || []),
+      ].map((acc: any) => ({ value: acc.id, name: acc.name }));
+  
+      setAcctOptions(result);
     } catch (error) {
       console.error("Error fetching account data:", error);
     }
   };
+  
 
-  useEffect(()=> {
-      getAccountsData();
-  }, [])
+  // Update supplier options when supplier data is available
+  useEffect(() => {
+    if (suppliers) {
+      const options = suppliers.map((supplier: any) => ({
+        value: supplier.id,
+        name: supplier.supplier_name,
+      }));
+      setSupplierOptions(options);
+    }
+  }, [suppliers]);
 
-useEffect(() => {
-  if (item) {
-    setFormState({
-      name: item.name || "",
-      supplier: item.supplier || "",
-      asset_account_id: item.asset_account_id || 0,
-      asset_category_id: item.asset_category_id || 0,
-      identity_no: item.identity_no || "",
-      purchase_date: item.purchase_date || "",
-      date_put_to_use: item.date_put_to_use || "",
-      purchase_cost: item.purchase_cost || 0,
-      current_value: item.current_value || 0,
-      date_when: item.date_when || "",
-      depreciation_account_id: item.depreciation_account_id || 0,
-      depreciation_loss_account_id: item.depreciation_loss_account_id || 0,
-      depreciation_gain_account_id: item.depreciation_gain_account_id || 0,
-      expense_account_id: item.expense_account_id || 0,
-      depreciation_method: item.depreciation_method || "straight_line",
-      depreciation_rate: item.depreciation_rate || 0,
-      income_account_id: item.income_account_id || 0,
-      appreciation_account_id: item.appreciation_account_id || 0,
-      appreciation_loss_account_id: item.appreciation_loss_account_id || 0,
-      appreciation_gain_account_id: item.appreciation_gain_account_id || 0,
-      appreciation_rate: item.appreciation_rate ?? undefined, // Nullable
-      salvage_value: item.salvage_value || 0,
-      useful_life: item.useful_life || 0,
-      description: item.description || "",
-    });
-  } else {
-    setFormState({
-      name: "",
-      supplier: "",
-      asset_account_id: 0,
-      asset_category_id: 0,
-      identity_no: "",
-      purchase_date: "",
-      date_put_to_use: "",
-      purchase_cost: 0,
-      current_value: 0,
-      depreciation_account_id: 0,
-      depreciation_loss_account_id: 0,
-      depreciation_gain_account_id: 0,
-      expense_account_id: 0,
-      depreciation_method: "straight_line",
-      depreciation_rate: 0,
-      income_account_id: 0,
-      appreciation_account_id: 0,
-      appreciation_loss_account_id: 0,
-      appreciation_gain_account_id: 0,
-      appreciation_rate: undefined, // Nullable
-      salvage_value: 0,
-      useful_life: 0,
-      description: "",
-    });
-  }
-}, [item]);
+  // Initialize form state when editing an existing asset
+  useEffect(() => {
+    if (item) {
+      setFormState({
+        name: item.name || "",
+        supplier: item.supplier || "",
+        asset_type: item.asset_type || "",
+        asset_account_id: item.asset_account_id || 0,
+        asset_category_id: item.asset_category_id || 0,
+        identity_no: item.identity_no || "",
+        purchase_date: item.purchase_date || "",
+        date_put_to_use: item.date_put_to_use || "",
+        purchase_cost: item.purchase_cost || 0,
+        current_value: item.current_value || 0,
+        date_when: item.date_when || "",
+        depreciation_account_id: item.depreciation_account_id || 0,
+        depreciation_loss_account_id: item.depreciation_loss_account_id || 0,
+        depreciation_gain_account_id: item.depreciation_gain_account_id || 0,
+        expense_account_id: item.expense_account_id || 0,
+        depreciation_method: item.depreciation_method || "straight_line",
+        depreciation_rate: item.depreciation_rate || 0,
+        income_account_id: item.income_account_id || 0,
+        appreciation_account_id: item.appreciation_account_id || 0,
+        appreciation_loss_account_id: item.appreciation_loss_account_id || 0,
+        appreciation_gain_account_id: item.appreciation_gain_account_id || 0,
+        appreciation_rate: item.appreciation_rate ?? undefined,
+        salvage_value: item.salvage_value || 0,
+        useful_life: item.useful_life || 0,
+        description: item.description || "",
+      });
+    } else {
+      setFormState({
+        name: "",
+        supplier: "",
+        asset_type: "",
+        asset_account_id: 0,
+        asset_category_id: 0,
+        identity_no: "",
+        purchase_date: "",
+        date_put_to_use: "",
+        purchase_cost: 0,
+        current_value: 0,
+        date_when: "",
+        depreciation_account_id: 0,
+        depreciation_loss_account_id: 0,
+        depreciation_gain_account_id: 0,
+        expense_account_id: 0,
+        depreciation_method: "straight_line",
+        depreciation_rate: 0,
+        income_account_id: 0,
+        appreciation_account_id: 0,
+        appreciation_loss_account_id: 0,
+        appreciation_gain_account_id: 0,
+        appreciation_rate: undefined,
+        salvage_value: 0,
+        useful_life: 0,
+        description: "",
+      });
+    }
+  }, [item]);
 
+  // Fetch asset ledgers and account data on mount
+  useEffect(() => {
+    getAssetLedgers();
+    getAccountsData();
+  }, []);
 
-
-  const handleInputChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormState({ ...formState, [name]: value });
+  // Generic change handler for text/number inputs
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
+    const parsedValue = type === "number" ? Number(value) : value;
+    setFormState((prev) => ({ ...prev, [name]: parsedValue }));
   };
+
+  // Handler for dropdowns
+  const handleDropdownChange = (name: string, value: any) => {
+    setFormState((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Always visible fields (matching payload structure)
+  const alwaysVisibleFields = [
+    { key: "name", label: "Name", type: "text" },
+    { key: "supplier", label: "Supplier", type: "dropdown", options: supplierOptions },
+    { key: "identity_no", label: "Serial Number", type: "text" },
+    { key: "asset_category_id", label: "Asset Category", type: "dropdown", options: assetCatOptions },
+    { key: "purchase_date", label: "Purchase Date", type: "date" },
+    { key: "purchase_cost", label: "Purchase Cost", type: "number" },
+    { key: "current_value", label: "Current Value", type: "number" },
+    { key: "date_put_to_use", label: "Date Put To Use", type: "date" },
+    { key: "date_when", label: "Date When", type: "date" },
+    { key: "salvage_value", label: "Salvage Value", type: "number" },
+    { key: "useful_life", label: "Useful Life", type: "number" },
+    { key: "asset_account_id", label: "Asset Account", type: "dropdown", options: assetLedgers },
+    { key: "description", label: "Description", type: "text" },
+  ];
+
+  // Fields specific to depreciating assets
+  const depreciatingFields = [
+    {
+      key: "depreciation_method",
+      label: "Depreciation Method",
+      type: "dropdown",
+      options: [
+        { value: "straight_line", name: "Straight Line" },
+        { value: "declining_balance", name: "Declining Balance" },
+      ],
+    },
+    { key: "depreciation_rate", label: "Depreciation Rate", type: "number" },
+    { key: "depreciation_account_id", label: "Depreciation Account", type: "dropdown", options: acctOptions },
+    { key: "expense_account_id", label: "Expense Account", type: "dropdown", options: acctOptions },
+    { key: "depreciation_loss_account_id", label: "Depreciation Loss Account", type: "dropdown", options: acctOptions },
+    { key: "depreciation_gain_account_id", label: "Depreciation Gain Account", type: "dropdown", options: acctOptions },
+  ];
+
+  // Fields specific to appreciating assets
+  const appreciatingFields = [
+    { key: "appreciation_rate", label: "Appreciation Rate", type: "number" },
+    { key: "appreciation_account_id", label: "Appreciation Account", type: "dropdown", options: acctOptions },
+    { key: "income_account_id", label: "Income Account", type: "dropdown", options: acctOptions },
+    { key: "appreciation_loss_account_id", label: "Appreciation Loss Account", type: "dropdown", options: acctOptions },
+    { key: "appreciation_gain_account_id", label: "Appreciation Gain Account", type: "dropdown", options: acctOptions },
+  ];
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(formState)
     setIsSubmitting(true);
-    // Basic validation
-   
     const data = { ...formState };
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? ASSETSENDPOINTS.ASSETS.UPDATE(item.id.toString())
       : ASSETSENDPOINTS.ASSETS.ADD;
+
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     setFormState({});
     onSave();
-    onClose(); // Close the modal after saving
+    onClose();
   };
 
   const footer = (
@@ -255,9 +285,8 @@ useEffect(() => {
         label={item?.id ? "Update" : "Submit"}
         icon="pi pi-check"
         type="submit"
-        form="truck-form"
+        form="asset-form"
         size="small"
-        onClick={handleSave}
       />
     </div>
   );
@@ -273,16 +302,15 @@ useEffect(() => {
       <form id="asset-form" onSubmit={handleSave}>
         <div className="p-fluid grid grid-cols-2 gap-4">
           {/* Asset Type Dropdown */}
-          <div className="p-field">
+          <div className="p-field col-span-2">
             <label htmlFor="asset_type">
               Asset Type <span className="text-red-500">*</span>
             </label>
             <Dropdown
+              id="asset_type"
               name="asset_type"
               value={formState.asset_type || ""}
-              onChange={(e) =>
-                setFormState({ ...formState, asset_type: e.value })
-              }
+              onChange={(e) => handleDropdownChange("asset_type", e.value)}
               options={[
                 { value: "appreciating", name: "Appreciating" },
                 { value: "depreciating", name: "Depreciating" },
@@ -294,41 +322,30 @@ useEffect(() => {
             />
           </div>
 
-          {/* Always Visible Fields */}
-          {[
-            "name",
-            "serial_number",
-            "purchase_date",
-            "purchase_cost",
-            "date_put_to_use",
-            "salvage_value",
-            "useful_life",
-            "asset_account_id",
-          ].map((key) => (
-            <div className="p-field" key={key}>
-              <label htmlFor={key}>
-                {key.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase())}{" "}
-                <span className="text-red-500">*</span>
+          {/* Always visible fields */}
+          {alwaysVisibleFields.map((field) => (
+            <div className="p-field" key={field.key}>
+              <label htmlFor={field.key}>
+                {field.label} {field.type !== "dropdown" && <span className="text-red-500">*</span>}
               </label>
-              {key === "asset_account_id" ? (
+              {field.type === "dropdown" ? (
                 <Dropdown
-                  name={key}
-                  value={formState[key] || ""}
-                  onChange={(e) =>
-                    setFormState({ ...formState, [key]: e.value })
-                  }
-                  options={assetLedgers.length > 0 ? assetLedgers : []}
+                  id={field.key}
+                  name={field.key}
+                  value={formState[field.key as keyof Asset] || ""}
+                  onChange={(e) => handleDropdownChange(field.key, e.value)}
+                  options={field.options}
                   optionLabel="name"
-                  optionValue="id"
-                  placeholder="Select Asset Account"
+                  optionValue="value"
+                  placeholder={`Select ${field.label}`}
                   className="w-full"
                 />
               ) : (
                 <InputText
-                  id={key}
-                  name={key}
-                  type={key.includes("date") ? "date" : "text"}
-                  value={formState[key] || ""}
+                  id={field.key}
+                  name={field.key}
+                  type={field.type}
+                  value={formState[field.key as keyof Asset]?.toString() || ""}
                   onChange={handleInputChange}
                   required
                   className="w-full"
@@ -337,104 +354,64 @@ useEffect(() => {
             </div>
           ))}
 
-          {/* Conditionally Rendered Fields (ONLY after asset type is selected) */}
-          {formState.asset_type &&
-            Object.keys(formState).map((key) => {
-              if (
-                [
-                  "name",
-                  "serial_number",
-                  "purchase_date",
-                  "purchase_cost",
-                  "date_put_to_use",
-                  "salvage_value",
-                  "useful_life",
-                  "asset_account_id",
-                  "asset_type",
-                ].includes(key)
-              )
-                return null; // Skip always visible fields
+          {/* Conditionally rendered fields based on asset type */}
+          {formState.asset_type === "depreciating" &&
+            depreciatingFields.map((field) => (
+              <div className="p-field" key={field.key}>
+                <label htmlFor={field.key}>{field.label}</label>
+                {field.type === "dropdown" ? (
+                  <Dropdown
+                    id={field.key}
+                    name={field.key}
+                    value={formState[field.key as keyof Asset] || ""}
+                    onChange={(e) => handleDropdownChange(field.key, e.value)}
+                    options={field.options}
+                    optionLabel="name"
+                    optionValue="value"
+                    placeholder={`Select ${field.label}`}
+                    className="w-full"
+                  />
+                ) : (
+                  <InputText
+                    id={field.key}
+                    name={field.key}
+                    type={field.type}
+                    value={formState[field.key as keyof Asset]?.toString() || ""}
+                    onChange={handleInputChange}
+                    className="w-full"
+                  />
+                )}
+              </div>
+            ))}
 
-              const isDropdown = [
-                "depreciation_method",
-                "appreciation_account_id",
-                "appreciation_loss_account_id",
-                "appreciation_gain_account_id",
-                "depreciation_account_id",
-                "expense_account_id",
-                "depreciation_loss_account_id",
-                "depreciation_gain_account_id",
-              ].includes(key);
-
-              // Handle Dropdown Options
-              const options = key.includes("depreciation_method")
-                ? [
-                    { value: "straight_line", name: "Straight line" },
-                    { value: "declining_balance", name: "Declining balance" },
-                  ]
-                : acctOptions;
-
-              // Conditionally Render Fields Based on Asset Type
-              if (
-                formState.asset_type === "appreciating" &&
-                ![
-                  "appreciation_rate",
-                  "appreciation_account_id",
-                  "income_account_id",
-                  "appreciation_loss_account_id",
-                  "appreciation_gain_account_id",
-                ].includes(key)
-              ) {
-                return null;
-              }
-
-              if (
-                formState.asset_type === "depreciating" &&
-                ![
-                  "depreciation_method",
-                  "depreciation_rate",
-                  "depreciation_account_id",
-                  "expense_account_id",
-                  "depreciation_loss_account_id",
-                  "depreciation_gain_account_id",
-                ].includes(key)
-              ) {
-                return null;
-              }
-
-              return (
-                <div className="p-field" key={key}>
-                  <label htmlFor={key}>
-                    {key
-                      .replace(/_/g, " ")
-                      .replace(/^\w/, (c) => c.toUpperCase())}{" "}
-                  </label>
-                  {isDropdown ? (
-                    <Dropdown
-                      name={key}
-                      value={formState[key] || ""}
-                      onChange={(e) =>
-                        setFormState({ ...formState, [key]: e.value })
-                      }
-                      options={options}
-                      optionLabel="name"
-                      optionValue="id"
-                      placeholder={`Select ${key.replace(/_/g, " ")}`}
-                      className="w-full"
-                    />
-                  ) : (
-                    <InputText
-                      id={key}
-                      name={key}
-                      type={key.includes("date") ? "date" : "text"}
-                      value={formState[key] || ""}
-                      onChange={handleInputChange}
-                      className="w-full"
-                    />
-                  )}
-                </div>
-              );
-            })}
+          {formState.asset_type === "appreciating" &&
+            appreciatingFields.map((field) => (
+              <div className="p-field" key={field.key}>
+                <label htmlFor={field.key}>{field.label}</label>
+                {field.type === "dropdown" ? (
+                  <Dropdown
+                    id={field.key}
+                    name={field.key}
+                    value={formState[field.key as keyof Asset] || ""}
+                    onChange={(e) => handleDropdownChange(field.key, e.value)}
+                    options={field.options}
+                    optionLabel="name"
+                    optionValue="value"
+                    placeholder={`Select ${field.label}`}
+                    className="w-full"
+                  />
+                ) : (
+                  <InputText
+                    id={field.key}
+                    name={field.key}
+                    type={field.type}
+                    value={formState[field.key as keyof Asset]?.toString() || ""}
+                    onChange={handleInputChange}
+                    className="w-full"
+                  />
+                )}
+              </div>
+            ))}
         </div>
       </form>
     </Dialog>

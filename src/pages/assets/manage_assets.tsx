@@ -8,10 +8,12 @@ import BreadCrump from "../../components/layout/bread_crump";
 import useTrucks from "../../hooks/inventory/useTrucks";
 import AddOrModifyItem from "./AddOrModifyItem";
 import { Asset } from "../../redux/slices/types/mossApp/assets/asset";
+import Table from "../../components/table";
+import useAssets from "../../hooks/assets/useAssets";
+import { ASSETSENDPOINTS } from "../../api/assetEndpoints";
 
-
-const AssetsManagement: React.FC = () => {
-  const { refresh } = useTrucks();
+const Assets: React.FC = () => {
+  const { data: assets, refresh } = useAssets();
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
@@ -25,45 +27,40 @@ const AssetsManagement: React.FC = () => {
     }
   };
 
-  //@ts-expect-error --ignore
   const columnDefinitions: ColDef<Asset>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
-      headerName: "Plate",
-      field: "license_plate",
+      headerName: "Name",
+      field: "name",
       sortable: true,
       filter: true,
     },
     {
-      headerName: "Capacity",
-      field: "capacity",
+      headerName: "Identity No",
+      field: "identity_no",
       sortable: true,
       filter: true,
-      suppressSizeToFit: true,
     },
     {
-      headerName: "Model",
-      field: "model",
+      headerName: "Purchase Date",
+      field: "purchase_date",
       sortable: true,
       filter: true,
-      suppressSizeToFit: true,
+    },
+    {
+      headerName: "Purchase Cost",
+      field: "purchase_cost",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Current Value",
+      field: "current_value",
+      sortable: true,
+      filter: true,
     },
     {
       headerName: "Status",
       field: "status",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Created",
-      field: "created_at",
       sortable: true,
       filter: true,
     },
@@ -110,8 +107,7 @@ const AssetsManagement: React.FC = () => {
         item={dialogState.selectedItem}
         visible={
           dialogState.currentAction == "add" ||
-          (dialogState.currentAction == "edit" &&
-            !!dialogState.selectedItem?.id)
+          (dialogState.currentAction == "edit" && !!dialogState.selectedItem?.id)
         }
         onClose={() =>
           setDialogState({ currentAction: "", selectedItem: undefined })
@@ -119,7 +115,7 @@ const AssetsManagement: React.FC = () => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={INVENTORY_ENDPOINTS.TRUCKS.DELETE(
+          apiPath={ASSETSENDPOINTS.ASSETS.DELETE(
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>
@@ -160,14 +156,14 @@ const AssetsManagement: React.FC = () => {
             </button>
           </div>
         </div>
-        {/* <Table
+        <Table
           columnDefs={columnDefinitions}
-          data={categories}
+          data={assets}
           ref={tableRef}
-        /> */}
+        />
       </div>
     </div>
   );
 };
 
-export default AssetsManagement;
+export default Assets;
