@@ -59,12 +59,20 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [supplierOptions, setSupplierOptions] = useState<{ value: number | string; name: string }[]>([]);
-  const [assetLedgers, setAssetLedgers] = useState<{ value: number; name: string }[]>([]);
-  const [acctOptions, setAcctOptions] = useState<{ value: number; name: string }[]>([]);
+  const [supplierOptions, setSupplierOptions] = useState<
+    { value: number | string; name: string }[]
+  >([]);
+  const [assetLedgers, setAssetLedgers] = useState<
+    { value: number; name: string }[]
+  >([]);
+  const [acctOptions, setAcctOptions] = useState<
+    { value: number; name: string }[]
+  >([]);
 
   // Map asset categories to dropdown options
-  const assetCatOptions = assetCats ? assetCats.map((cat: any) => ({ value: cat.id, name: cat.name })) : [];
+  const assetCatOptions = assetCats
+    ? assetCats.map((cat: any) => ({ value: cat.id, name: cat.name }))
+    : [];
 
   // Fetch asset ledgers for asset account dropdown
   const getAssetLedgers = async () => {
@@ -72,9 +80,11 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       const res = await axios.get(
         "https://latcu-api.efinanci.co.tz/api/erp/accounts/get-asset-accounts",
         {
-          headers: { Authorization: `Bearer ${token.access_token}` },
+          headers: { Authorization: `Bearer ${token.access_token}`, "Content-Type": "application/json" }, 
         }
       );
+      // console.log("This is the response data: ", res.data);
+      console.log("This is the response data: ", res.data);
       if (res.data && res.data.data) {
         const opts = res.data.data.map((acc: any) => ({
           value: acc.id,
@@ -86,38 +96,40 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       console.error("Error fetching asset ledgers:", error);
     }
   };
-  
+
 
   const getAccountsData = async () => {
     try {
-      const [incomeResponse, expenseResponse, assetResponse] = await Promise.all([
-        axios.get(`${baseURL}/erp/accounts/get-income-accounts`, {
-          headers: { Authorization: `Bearer ${token?.access_token}` },
-        }),
-        axios.get(`${baseURL}/erp/accounts/get-expense-accounts`, {
-          headers: { Authorization: `Bearer ${token?.access_token}` },
-        }),
-        axios.get(`${baseURL}/erp/accounts/get-asset-accounts`, {
-          headers: { Authorization: `Bearer ${token?.access_token}` },
-        }),
-      ]);
-  
+      const [incomeResponse, expenseResponse, assetResponse] =
+        await Promise.all([
+          axios.get(`${baseURL}/erp/accounts/get-income-accounts`, {
+            headers: { Authorization: `Bearer ${token?.access_token}` },
+          }),
+          axios.get(`${baseURL}/erp/accounts/get-expense-accounts`, {
+            headers: { Authorization: `Bearer ${token?.access_token}` },
+          }),
+          axios.get(`${baseURL}/erp/accounts/get-asset-accounts`, {
+            headers: { Authorization: `Bearer ${token?.access_token}` },
+          }),
+        ]);
+
       console.log("Income Accounts:", incomeResponse.data);
       console.log("Expense Accounts:", expenseResponse.data);
       console.log("Asset Accounts:", assetResponse.data);
-  
+
       const result = [
         ...(incomeResponse.data?.data || []), // Ensure it handles undefined gracefully
         ...(expenseResponse.data?.data || []),
         ...(assetResponse.data?.data || []),
       ].map((acc: any) => ({ value: acc.id, name: acc.name }));
-  
+
       setAcctOptions(result);
     } catch (error) {
       console.error("Error fetching account data:", error);
     }
   };
-  
+
+  // console.log("Asset Ledgers testt:", getAccountsData());
 
   // Update supplier options when supplier data is available
   useEffect(() => {
@@ -212,9 +224,19 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   // Always visible fields (matching payload structure)
   const alwaysVisibleFields = [
     { key: "name", label: "Name", type: "text" },
-    { key: "supplier", label: "Supplier", type: "dropdown", options: supplierOptions },
+    {
+      key: "supplier",
+      label: "Supplier",
+      type: "dropdown",
+      options: supplierOptions,
+    },
     { key: "identity_no", label: "Serial Number", type: "text" },
-    { key: "asset_category_id", label: "Asset Category", type: "dropdown", options: assetCatOptions },
+    {
+      key: "asset_category_id",
+      label: "Asset Category",
+      type: "dropdown",
+      options: assetCatOptions,
+    },
     { key: "purchase_date", label: "Purchase Date", type: "date" },
     { key: "purchase_cost", label: "Purchase Cost", type: "number" },
     { key: "current_value", label: "Current Value", type: "number" },
@@ -222,7 +244,12 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
     { key: "date_when", label: "Date When", type: "date" },
     { key: "salvage_value", label: "Salvage Value", type: "number" },
     { key: "useful_life", label: "Useful Life", type: "number" },
-    { key: "asset_account_id", label: "Asset Account", type: "dropdown", options: assetLedgers },
+    {
+      key: "asset_account_id",
+      label: "Asset Account",
+      type: "dropdown",
+      options: assetLedgers,
+    },
     { key: "description", label: "Description", type: "text" },
   ];
 
@@ -238,19 +265,59 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       ],
     },
     { key: "depreciation_rate", label: "Depreciation Rate", type: "number" },
-    { key: "depreciation_account_id", label: "Depreciation Account", type: "dropdown", options: acctOptions },
-    { key: "expense_account_id", label: "Expense Account", type: "dropdown", options: acctOptions },
-    { key: "depreciation_loss_account_id", label: "Depreciation Loss Account", type: "dropdown", options: acctOptions },
-    { key: "depreciation_gain_account_id", label: "Depreciation Gain Account", type: "dropdown", options: acctOptions },
+    {
+      key: "depreciation_account_id",
+      label: "Depreciation Account",
+      type: "dropdown",
+      options: acctOptions,
+    },
+    {
+      key: "expense_account_id",
+      label: "Expense Account",
+      type: "dropdown",
+      options: acctOptions,
+    },
+    {
+      key: "depreciation_loss_account_id",
+      label: "Depreciation Loss Account",
+      type: "dropdown",
+      options: acctOptions,
+    },
+    {
+      key: "depreciation_gain_account_id",
+      label: "Depreciation Gain Account",
+      type: "dropdown",
+      options: acctOptions,
+    },
   ];
 
   // Fields specific to appreciating assets
   const appreciatingFields = [
     { key: "appreciation_rate", label: "Appreciation Rate", type: "number" },
-    { key: "appreciation_account_id", label: "Appreciation Account", type: "dropdown", options: acctOptions },
-    { key: "income_account_id", label: "Income Account", type: "dropdown", options: acctOptions },
-    { key: "appreciation_loss_account_id", label: "Appreciation Loss Account", type: "dropdown", options: acctOptions },
-    { key: "appreciation_gain_account_id", label: "Appreciation Gain Account", type: "dropdown", options: acctOptions },
+    {
+      key: "appreciation_account_id",
+      label: "Appreciation Account",
+      type: "dropdown",
+      options: acctOptions,
+    },
+    {
+      key: "income_account_id",
+      label: "Income Account",
+      type: "dropdown",
+      options: acctOptions,
+    },
+    {
+      key: "appreciation_loss_account_id",
+      label: "Appreciation Loss Account",
+      type: "dropdown",
+      options: acctOptions,
+    },
+    {
+      key: "appreciation_gain_account_id",
+      label: "Appreciation Gain Account",
+      type: "dropdown",
+      options: acctOptions,
+    },
   ];
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -326,7 +393,10 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
           {alwaysVisibleFields.map((field) => (
             <div className="p-field" key={field.key}>
               <label htmlFor={field.key}>
-                {field.label} {field.type !== "dropdown" && <span className="text-red-500">*</span>}
+                {field.label}{" "}
+                {field.type !== "dropdown" && (
+                  <span className="text-red-500">*</span>
+                )}
               </label>
               {field.type === "dropdown" ? (
                 <Dropdown
@@ -376,7 +446,9 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
                     id={field.key}
                     name={field.key}
                     type={field.type}
-                    value={formState[field.key as keyof Asset]?.toString() || ""}
+                    value={
+                      formState[field.key as keyof Asset]?.toString() || ""
+                    }
                     onChange={handleInputChange}
                     className="w-full"
                   />
@@ -405,7 +477,9 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
                     id={field.key}
                     name={field.key}
                     type={field.type}
-                    value={formState[field.key as keyof Asset]?.toString() || ""}
+                    value={
+                      formState[field.key as keyof Asset]?.toString() || ""
+                    }
                     onChange={handleInputChange}
                     className="w-full"
                   />
