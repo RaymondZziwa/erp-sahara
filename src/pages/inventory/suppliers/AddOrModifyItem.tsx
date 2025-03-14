@@ -31,7 +31,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const [formState, setFormState] = useState<{
     supplier_name: string;
     email: string;
-    address: string;
+    supplier_address: string;
     supplier_type: string;
     contact_person: string;
     contact_person_title: string;
@@ -43,7 +43,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   }>({
     supplier_name: "",
     email: "",
-    address: "",
+    supplier_address: "",
     supplier_type: "Local",
     contact_person: "",
     contact_person_title: "",
@@ -62,7 +62,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       setFormState({
         supplier_name: item.supplier_name || "",
         email: item.email || "",
-        address: item.address || "",
+        supplier_address: item.supplier_address || "",
         supplier_type: item.supplier_type || "Local",
         contact_person: item.contact_person || "",
         contact_person_title: item.contact_person_title || "",
@@ -76,7 +76,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       setFormState({
         supplier_name: "",
         email: "",
-        address: "",
+        supplier_address: "",
         supplier_type: "Local",
         contact_person: "",
         contact_person_title: "",
@@ -184,11 +184,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           />
         </div>
         <div className="p-field">
-          <label htmlFor="address">Address<span className="text-red-500">*</span></label>
+          <label htmlFor="supplier_address">Supplier Address<span className="text-red-500">*</span></label>
           <InputText
-            id="address"
-            name="address"
-            value={formState.address}
+            id="supplier_address"
+            name="supplier_address"
+            value={formState.supplier_address}
             onChange={handleInputChange}
             className="w-full"
             required

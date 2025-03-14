@@ -2,7 +2,7 @@ export interface Supplier {
   id: number;
   organisation_id: number;
   supplier_name: string;
-  address: string;
+  supplier_address: string;
   email: string;
   contact_person: string;
   contact_person_title: string;
