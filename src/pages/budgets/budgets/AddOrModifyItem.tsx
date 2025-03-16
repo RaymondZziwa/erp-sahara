@@ -135,8 +135,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       !formState.name ||
       !formState.allocated_amount ||
       !formState.currency_id ||
-      !formState.fiscal_year_id ||
-      !formState.description
+      !formState.fiscal_year_id
     ) {
       console.log("Missing required fields");
 
@@ -314,7 +313,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         {/* Budget Items */}
-        <div className="space-y-4 col-span-full">
+        {/* <div className="space-y-4 col-span-full">
           <h4 className="text-xl font-bold">Budget Items</h4>
           {formState.items?.map((item, index: number) => (
             <div
@@ -392,7 +391,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             className="w-max"
             onClick={addBudgetItem}
           />
-        </div>
+        </div> */}
       </form>
     </Dialog>
   );

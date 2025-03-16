@@ -2,16 +2,16 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { createRequest } from "../../../utils/api";
-import useAuth from "../../../hooks/useAuth";
-import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
-import { Warehouse } from "../../../redux/slices/types/inventory/Warehouse";
 import { Dropdown } from "primereact/dropdown";
+import { INVENTORY_ENDPOINTS } from "../../../../api/inventoryEndpoints";
+import useAuth from "../../../../hooks/useAuth";
+import { WarehouseType } from "../../../../redux/slices/types/inventory/Warehouse";
+import { createRequest } from "../../../../utils/api";
 
 interface AddOrModifyItemProps {
   visible: boolean;
   onClose: () => void;
-  item?: Warehouse;
+  item?: WarehouseType;
   onSave: () => void;
 }
 
@@ -21,29 +21,19 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   item,
   onSave,
 }) => {
-  const [formState, setFormState] = useState<Partial<Warehouse>>({
-    warehouse_type: 0,
+  const [formState, setFormState] = useState<Partial<WarehouseType>>({
     name: "",
-    location: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const warehouseTypes = [
-    { label: "Warehouse only", value: 1 },
-    { label: "Store only", value: 2 },
-    { label: "Store and Shop only", value: 3 },
-  ];
 
   const { token } = useAuth();
   useEffect(() => {
     if (item) {
       setFormState({
         name: item.name || "",
-        location: item.location,
-        warehouse_type: 0,
       });
     } else {
-      setFormState({ warehouse_type: 0, name: "", location: "" });
+      setFormState({ name: "" });
     }
   }, [item]);
 
@@ -55,30 +45,21 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
 
-    const handleDropdownChange = (e: { value: number }) => {
-      setFormState((prevState) => ({
-        ...prevState,
-        warehouse_type: e.value,
-      }));
-    };
-
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     // Basic validation
-    if (!formState.name || !formState.location) {
+    if (!formState.name) {
       return; // You can handle validation error here
     }
-    const data: Partial<Warehouse> = {
-      warehouse_type: formState.warehouse_type,
+    const data: Partial<WarehouseType> = {
       name: formState.name,
-      location: formState?.location,
       id: formState?.id,
     };
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? INVENTORY_ENDPOINTS.WARE_HOUSES.UPDATE(item.id.toString())
-      : INVENTORY_ENDPOINTS.WARE_HOUSES.ADD;
+      : INVENTORY_ENDPOINTS.WAREHOUSE_TYPES.ADD;
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();
@@ -107,7 +88,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
   return (
     <Dialog
-      header={item?.id ? "Edit Warehouse" : "Add Warehouse"}
+      header={item?.id ? "Edit Warehouse Type" : "Add Warehouse Type"}
       visible={visible}
       style={{ width: "400px" }}
       footer={footer}
@@ -120,20 +101,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       <form id="item-form" onSubmit={handleSave}>
         <div className="p-fluid">
           <div className="p-field">
-            <label htmlFor="warehouse_type">
-              Warehouse Type<span className="text-red-500">*</span>
-            </label>
-            <Dropdown
-              id="warehouse_type"
-              name="warehouse_type"
-              value={formState.warehouse_type}
-              options={warehouseTypes}
-              onChange={handleDropdownChange}
-              className="w-full"
-              required
-            />
-          </div>
-          <div className="p-field">
             <label htmlFor="name">
               Name<span className="text-red-500">*</span>
             </label>
@@ -141,19 +108,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               id="name"
               name="name"
               value={formState.name}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className="p-field">
-            <label htmlFor="location">
-              Address<span className="text-red-500">*</span>
-            </label>
-            <InputText
-              id="location"
-              name="location"
-              value={formState.location}
               onChange={handleInputChange}
               required
             />

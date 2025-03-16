@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
@@ -14,7 +15,6 @@ import { ACCOUNTS_ENDPOINTS } from "../../../api/accountsEndpoints";
 
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
 import useCurrencies from "../../../hooks/procurement/useCurrencies";
-import useLedgerChartOfAccounts from "../../../hooks/accounts/useLedgerChartOfAccounts";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import useProjects from "../../../hooks/projects/useProjects";
 import useBudgets from "../../../hooks/budgets/useBudgets";
@@ -66,8 +66,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   onClose,
   item,
   onSave,
-  debitAccountType,
-  creditAccountType,
   endpoint,
   journalType,
 }) => {

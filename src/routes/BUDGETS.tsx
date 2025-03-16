@@ -48,7 +48,7 @@ const BUDGETS_ROUTES = [
         hidden: true,
         name: "Budget Details",
         icon: <Icon icon="hugeicons:folder-details" fontSize={20} />,
-        path: "/budgets/:id",
+        path: "/budget-details/:id",
         element: (
           <Suspense fallback={<Loading />}>
             <BudgetDetails />
