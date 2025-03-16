@@ -8,13 +8,13 @@ import axios from "axios";
 import useAuth from "../../hooks/useAuth";
 import useAssetCategories from "../../hooks/assets/useAssetCategories";
 import useSuppliers from "../../hooks/inventory/useSuppliers";
-import { baseURL } from "../../utils/api"; // Import baseURL
-import { ASSETSENDPOINTS } from "../../api/assetEndpoints"; // Import endpoints
+import { baseURL } from "../../utils/api";
+import { ASSETSENDPOINTS } from "../../api/assetEndpoints";
 import { Asset } from "../../redux/slices/types/mossApp/assets/asset";
 
 // Centralized API configuration
 const api = axios.create({
-  baseURL: baseURL, // Use imported baseURL
+  baseURL: baseURL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -39,28 +39,29 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
 
   const [formState, setFormState] = useState<Partial<Asset>>({
     name: "",
-    supplier: "", // Nullable
-    asset_account_id: 0,
-    asset_category_id: 0,
+    supplier: "",
+    asset_type: "",
+    asset_account_id: undefined,
+    asset_category_id: undefined,
     identity_no: "",
     purchase_date: "",
     date_put_to_use: "",
-    purchase_cost: 0,
-    current_value: 0,
+    purchase_cost: undefined,
+    current_value: undefined,
     date_when: "",
-    depreciation_account_id: 0,
-    depreciation_loss_account_id: 0,
-    depreciation_gain_account_id: 0,
-    expense_account_id: 0,
+    depreciation_account_id: undefined,
+    depreciation_loss_account_id: undefined,
+    depreciation_gain_account_id: undefined,
+    expense_account_id: undefined,
     depreciation_method: "straight_line",
-    depreciation_rate: 0,
-    income_account_id: 0,
-    appreciation_account_id: 0,
-    appreciation_loss_account_id: 0,
-    appreciation_gain_account_id: 0,
-    appreciation_rate: undefined, // Nullable
-    salvage_value: 0,
-    useful_life: 0,
+    depreciation_rate: undefined,
+    income_account_id: undefined,
+    appreciation_account_id: undefined,
+    appreciation_loss_account_id: undefined,
+    appreciation_gain_account_id: undefined,
+    appreciation_rate: undefined,
+    salvage_value: undefined,
+    useful_life: undefined,
     description: "",
   });
 
@@ -68,8 +69,9 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [supplierOptions, setSupplierOptions] = useState<{ value: number | string; name: string }[]>([]);
-  const [assetLedgers, setAssetLedgers] = useState<{ value: number; name: string }[]>([]);
-  const [acctOptions, setAcctOptions] = useState<{ value: number; name: string }[]>([]);
+  const [incomeAccounts, setIncomeAccounts] = useState<{ value: number; name: string }[]>([]);
+  const [expenseAccounts, setExpenseAccounts] = useState<{ value: number; name: string }[]>([]);
+  const [assetAccounts, setAssetAccounts] = useState<{ value: number; name: string }[]>([]);
 
   // Axios interceptors for token injection
   useEffect(() => {
@@ -99,80 +101,67 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
     };
   }, [token]);
 
-  // Fetch asset ledgers and account data
-  const fetchData = async (endpoint: string) => {
+  // Fetch income accounts
+  const getIncomeAccounts = async () => {
     try {
-      const response = await api.get(endpoint);
-      return response.data.data;
-    } catch (error) {
-      console.error(`Error fetching ${endpoint}:`, error);
-      setError(`Failed to load ${endpoint.split('/').pop()}`);
-      return [];
-    }
-  };
+      const response = await api.get("/erp/accounts/get-income-accounts");
+      console.log("Income Accounts Response:", response.data);
 
-  const getAssetLedgers = async () => {
-    try {
-      const response = await api.get("/erp/accounts/get-asset-accounts");
-      console.log("API Response:", response);
-  
-      // Check if the response contains the expected data
-      if (response.data?.success && Array.isArray(response.data.data)) {
-        const opts = response.data.data.map((acc: any) => ({
-          value: acc.id,
-          name: acc.name,
-        }));
-        setAssetLedgers(opts);
-      } else {
-        console.error("Unexpected response structure:", response.data);
-        setError("Failed to load asset ledgers: Unexpected response structure");
-      }
-    } catch (error) {
-      console.error("Error fetching asset ledgers:", error);
-      setError("Failed to load asset ledgers");
-    }
-  };
-  
-  const getAccountsData = async () => {
-    try {
-      const [incomeResponse, expenseResponse, assetResponse] = await Promise.all([
-        api.get("/erp/accounts/get-income-accounts"),
-        api.get("/erp/accounts/get-expense-accounts"),
-        api.get("/erp/accounts/get-asset-accounts"),
-      ]);
-
-
-      // Extract data from responses
-      const incomeData = incomeResponse.data?.data || [];
-      const expenseData = expenseResponse.data?.data || [];
-      const assetData = assetResponse.data?.data || [];
-
-      console.log("Income Response:", incomeResponse);
-      console.log("Expense Response:", expenseResponse);
-      console.log("Asset Response:", assetResponse);
-  
-      // Combine data and map to options
-      const result = [...incomeData, ...expenseData, ...assetData].map((acc: any) => ({
+      const incomeData = response.data?.data || [];
+      setIncomeAccounts(incomeData.map((acc: any) => ({
         value: acc.id,
         name: acc.name,
-      }));
-  
-      setAcctOptions(result);
+      })));
     } catch (error) {
-      console.error("Error fetching account data:", error);
-      setError("Failed to load account data");
-    } finally {
-      setLoading(false);
+      console.error("Error fetching income accounts:", error);
+      setError("Failed to load income accounts");
+    }
+  };
+
+  // Fetch expense accounts
+  const getExpenseAccounts = async () => {
+    try {
+      const response = await api.get("/erp/accounts/get-expense-accounts");
+      console.log("Expense Accounts Response:", response.data);
+
+      const expenseData = response.data?.data || [];
+      setExpenseAccounts(expenseData.map((acc: any) => ({
+        value: acc.id,
+        name: acc.name,
+      })));
+    } catch (error) {
+      console.error("Error fetching expense accounts:", error);
+      setError("Failed to load expense accounts");
+    }
+  };
+
+  // Fetch asset accounts
+  const getAssetAccounts = async () => {
+    try {
+      const response = await api.get("/erp/accounts/get-asset-accounts");
+      console.log("Asset Accounts Response:", response.data);
+
+      const assetData = response.data?.data || [];
+      setAssetAccounts(assetData.map((acc: any) => ({
+        value: acc.id,
+        name: acc.name,
+      })));
+    } catch (error) {
+      console.error("Error fetching asset accounts:", error);
+      setError("Failed to load asset accounts");
     }
   };
 
   // Initialize data fetching
   useEffect(() => {
     if (token?.access_token) {
-      Promise.all([getAssetLedgers(), getAccountsData()]).catch((error) => {
-        console.error("Initialization error:", error);
-        setError("Failed to initialize component");
-      });
+      Promise.all([getIncomeAccounts(), getExpenseAccounts(), getAssetAccounts()])
+        .then(() => setLoading(false))
+        .catch((error) => {
+          console.error("Initialization error:", error);
+          setError("Failed to initialize component");
+          setLoading(false);
+        });
     }
   }, [token]);
 
@@ -194,27 +183,28 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       setFormState({
         name: "",
         supplier: "",
-        asset_account_id: 0,
-        asset_category_id: 0,
+        asset_type: "",
+        asset_account_id: undefined,
+        asset_category_id: undefined,
         identity_no: "",
         purchase_date: "",
         date_put_to_use: "",
-        purchase_cost: 0,
-        current_value: 0,
+        purchase_cost: undefined,
+        current_value: undefined,
         date_when: "",
-        depreciation_account_id: 0,
-        depreciation_loss_account_id: 0,
-        depreciation_gain_account_id: 0,
-        expense_account_id: 0,
+        depreciation_account_id: undefined,
+        depreciation_loss_account_id: undefined,
+        depreciation_gain_account_id: undefined,
+        expense_account_id: undefined,
         depreciation_method: "straight_line",
-        depreciation_rate: 0,
-        income_account_id: 0,
-        appreciation_account_id: 0,
-        appreciation_loss_account_id: 0,
-        appreciation_gain_account_id: 0,
+        depreciation_rate: undefined,
+        income_account_id: undefined,
+        appreciation_account_id: undefined,
+        appreciation_loss_account_id: undefined,
+        appreciation_gain_account_id: undefined,
         appreciation_rate: undefined,
-        salvage_value: 0,
-        useful_life: 0,
+        salvage_value: undefined,
+        useful_life: undefined,
         description: "",
       });
     }
@@ -232,17 +222,65 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle asset type change
+  const handleAssetTypeChange = (value: string) => {
+    setFormState((prev) => {
+      const newState = { ...prev, asset_type: value };
+
+      // Reset fields based on asset type
+      if (value === "appreciating") {
+        newState.depreciation_account_id = undefined;
+        newState.depreciation_loss_account_id = undefined;
+        newState.depreciation_gain_account_id = undefined;
+        newState.expense_account_id = undefined;
+        newState.depreciation_rate = undefined;
+        newState.depreciation_method = undefined;
+      } else if (value === "depreciating") {
+        newState.appreciation_account_id = undefined;
+        newState.appreciation_loss_account_id = undefined;
+        newState.appreciation_gain_account_id = undefined;
+        newState.income_account_id = undefined;
+        newState.appreciation_rate = undefined;
+      }
+
+      return newState;
+    });
+  };
+
   // Save or update asset
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    // Validate form data
+    const requiredFields = [
+      "name",
+      "asset_account_id",
+      "asset_category_id",
+      "purchase_date",
+      "purchase_cost",
+      "current_value",
+      "date_put_to_use",
+      "date_when",
+      "salvage_value",
+      "useful_life",
+      "description",
+    ];
+
+    for (const field of requiredFields) {
+      if (!formState[field as keyof Asset]) {
+        setError(`Field ${field} is required.`);
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     try {
       const method = item?.id ? "PUT" : "POST";
       const endpoint = item?.id
-        ? ASSETSENDPOINTS.ASSETS.UPDATE(item.id.toString()) // Use correct update endpoint
-        : ASSETSENDPOINTS.ASSETS.ADD; // Use correct create endpoint
+        ? ASSETSENDPOINTS.ASSETS.UPDATE(item.id.toString())
+        : ASSETSENDPOINTS.ASSETS.ADD;
 
-      // Log request details for debugging
       console.log("Sending request:", {
         method,
         url: endpoint,
@@ -255,20 +293,24 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
         data: formState,
       });
 
-      // Log successful response
       console.log("Save successful:", response.data);
 
       onSave();
       onClose();
     } catch (error) {
-      // Log detailed error information
       console.error("Save error:", {
         message: (error as any).message,
         status: (error as any).response?.status,
         data: (error as any).response?.data,
         config: (error as any).config,
       });
-      setError("Failed to save asset. Please try again.");
+
+      if (axios.isAxiosError(error) && error.response?.data?.errors) {
+        const errorMessages = Object.values(error.response.data.errors).flat();
+        setError(`Validation errors: ${errorMessages.join(", ")}`);
+      } else {
+        setError("Failed to save asset. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -292,30 +334,75 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
     { key: "date_when", label: "Date When", type: "date" },
     { key: "salvage_value", label: "Salvage Value", type: "number" },
     { key: "useful_life", label: "Useful Life", type: "number" },
-    { key: "asset_account_id", label: "Asset Account", type: "dropdown", options: assetLedgers },
+    { key: "asset_account_id", label: "Asset Account", type: "dropdown", options: assetAccounts },
     { key: "description", label: "Description", type: "text" },
   ];
 
   // Fields for depreciating assets
   const depreciatingFields = [
-    { key: "depreciation_method", label: "Depreciation Method", type: "dropdown", options: [
-      { value: "straight_line", name: "Straight Line" },
-      { value: "declining_balance", name: "Declining Balance" },
-    ]},
+    {
+      key: "depreciation_method",
+      label: "Depreciation Method",
+      type: "dropdown",
+      options: [
+        { value: "straight_line", name: "Straight Line" },
+        { value: "declining_balance", name: "Declining Balance" },
+      ],
+    },
     { key: "depreciation_rate", label: "Depreciation Rate", type: "number" },
-    { key: "depreciation_account_id", label: "Depreciation Account", type: "dropdown", options: acctOptions },
-    { key: "expense_account_id", label: "Expense Account", type: "dropdown", options: acctOptions },
-    { key: "depreciation_loss_account_id", label: "Depreciation Loss Account", type: "dropdown", options: acctOptions },
-    { key: "depreciation_gain_account_id", label: "Depreciation Gain Account", type: "dropdown", options: acctOptions },
+    {
+      key: "depreciation_account_id",
+      label: "Depreciation Account",
+      type: "dropdown",
+      options: assetAccounts,
+    },
+    {
+      key: "expense_account_id",
+      label: "Expense Account",
+      type: "dropdown",
+      options: expenseAccounts,
+    },
+    {
+      key: "depreciation_loss_account_id",
+      label: "Depreciation Loss Account",
+      type: "dropdown",
+      options: expenseAccounts,
+    },
+    {
+      key: "depreciation_gain_account_id",
+      label: "Depreciation Gain Account",
+      type: "dropdown",
+      options: incomeAccounts,
+    },
   ];
 
   // Fields for appreciating assets
   const appreciatingFields = [
     { key: "appreciation_rate", label: "Appreciation Rate", type: "number" },
-    { key: "appreciation_account_id", label: "Appreciation Account", type: "dropdown", options: acctOptions },
-    { key: "income_account_id", label: "Income Account", type: "dropdown", options: acctOptions },
-    { key: "appreciation_loss_account_id", label: "Appreciation Loss Account", type: "dropdown", options: acctOptions },
-    { key: "appreciation_gain_account_id", label: "Appreciation Gain Account", type: "dropdown", options: acctOptions },
+    {
+      key: "appreciation_account_id",
+      label: "Appreciation Account",
+      type: "dropdown",
+      options: assetAccounts,
+    },
+    {
+      key: "income_account_id",
+      label: "Income Account",
+      type: "dropdown",
+      options: incomeAccounts,
+    },
+    {
+      key: "appreciation_loss_account_id",
+      label: "Appreciation Loss Account",
+      type: "dropdown",
+      options: expenseAccounts,
+    },
+    {
+      key: "appreciation_gain_account_id",
+      label: "Appreciation Gain Account",
+      type: "dropdown",
+      options: incomeAccounts,
+    },
   ];
 
   // Dialog footer
@@ -384,7 +471,7 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
               id="asset_type"
               name="asset_type"
               value={formState.asset_type || ""}
-              onChange={(e) => handleDropdownChange("asset_type", e.value)}
+              onChange={(e) => handleAssetTypeChange(e.value)}
               options={[
                 { value: "appreciating", name: "Appreciating" },
                 { value: "depreciating", name: "Depreciating" },
