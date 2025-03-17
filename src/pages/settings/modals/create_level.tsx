@@ -35,15 +35,23 @@ const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
     }
     try {
       setIsSubmitting(true);
+      const tempdata = {
+        ...formData,
+        level: Number(formData.level),
+        mandate: Number(formData.mandate),
+      };
+      console.log(tempdata);
+      console.log(baseURL);
+
       const response = await fetch(
-        `${baseURL}/accounts/requisitions-approval-level/create`,
+        `${baseURL}/erp/accounts/requisitions-approval-level/create`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(tempdata),
         }
       );
 
@@ -59,6 +67,8 @@ const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
         setIsSubmitting(false);
       }
     } catch (error) {
+      console.log(error);
+
       toast.error("An error occurred while adding the approval level.");
       setIsSubmitting(false);
     }
@@ -83,9 +93,7 @@ const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
           <div>
             <label className="block text-gray-700 mb-1">Approval Type</label>
             <input
-              type="number"
-              min="1"
-              max="4"
+              type="text"
               name="approval_type"
               value={formData.approval_type}
               onChange={handleInputChange}

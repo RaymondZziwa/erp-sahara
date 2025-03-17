@@ -4,8 +4,6 @@ import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Dropdown, DropdownChangeEvent } from "primereact/dropdown";
-
-import useCurrencies from "../../../hooks/procurement/useCurrencies";
 import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import { API_ENDPOINTS } from "../../../api/apiEndpoints";
@@ -13,19 +11,29 @@ import useItems from "../../../hooks/inventory/useItems";
 import { Icon } from "@iconify/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
+// import { UserAuthType } from "../../../redux/slices/types/user/userAuth";
+import useDepartments from "../../../hooks/hr/useDepartments";
+import useCurrencies from "../../../hooks/procurement/useCurrencies";
+import useEmployees from "../../../hooks/hr/useEmployees";
 
 interface PurchaseRequestItem {
   item_id: number;
   quantity: string;
-  unit_price_estimate: string;
-  currency_id: number;
-  notes: string;
+  specification: string;
+  purpose: string;
+  cost_estimate: number;
+  currency: string;
 }
 
 interface PurchaseRequest {
   id: number;
   name: string;
   request_comment: string;
+  project_id: null;
+  department_id: number;
+  request_date: string;
+  requested_by: number;
+  approval_level: string;
   items: PurchaseRequestItem[];
 }
 
@@ -45,31 +53,45 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const initialItem: PurchaseRequestItem = {
     item_id: 0,
     quantity: "",
-    unit_price_estimate: "",
-    currency_id: 0,
-    notes: "",
+    specification: "",
+    purpose: "",
+    cost_estimate: 0,
+    currency: "",
   };
 
   const initialState: PurchaseRequest = {
     id: 0,
     name: "",
     request_comment: "",
+    project_id: null,
+    department_id: 0,
+    request_date: "",
+    requested_by: 0,
+    approval_level: "",
     items: [initialItem],
   };
 
   const [formState, setFormState] = useState<PurchaseRequest>(initialState);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const levels = useSelector((state: RootState) => state.levels.data)
+  const levels = useSelector((state: RootState) => state.levels.data);
   const { data: currencies } = useCurrencies();
+  const { data: departments } = useDepartments();
   const { token } = useAuth();
   const { data: items } = useItems();
+  const { data: employees } = useEmployees();
+
+  console.log("l", levels);
+
   useEffect(() => {
     if (purchaseRequest) {
-      setFormState({
-        id: purchaseRequest.id ?? 0,
-        items: purchaseRequest.items ?? [],
-        name: purchaseRequest.name ?? "",
-        request_comment: purchaseRequest.request_comment ?? "",
+      setFormState((prev) => {
+        return {
+          ...prev,
+          requested_by: prev.requested_by,
+          department_id: prev.department_id ?? null,
+          project_id: null,
+          request_comment: prev.request_comment ?? null,
+        };
       });
     } else {
       setFormState(initialState);
@@ -127,6 +149,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    console.log(formState);
     const method = formState.id ? "PUT" : "POST";
     const endpoint = formState.id
       ? API_ENDPOINTS.PURCHASE_REQUESTS.UPDATE(formState.id.toString())
@@ -141,7 +164,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
     onSave();
     setIsSubmitting(false);
-    onClose(); // Close the modal after saving
+    onClose();
   };
 
   const footer = (
@@ -187,22 +210,89 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               className="w-full"
             />
           </div>
+          <div className="p-field">
+            <label htmlFor="name">Request Date</label>
+            <InputText
+              id="name"
+              name="request_date"
+              type="date"
+              value={formState.request_date}
+              onChange={handleInputChange}
+              required
+              className="w-full"
+            />
+          </div>
+
           <div>
-                <label className="block text-gray-700 mb-1">Add approval level</label>
-                <select
-                    name='user_id'
-                    // value={formData.user_id}
-                    // onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded"
-                    >
-                    <option value=" ">Select level</option>
-                    {
-                        levels && levels.map((level) => (
-                            <option value={level.id}>{level.name}</option>
-                        ))
-                    }
-                </select>
-            </div>
+            <label className="block text-gray-700 mb-1">
+              Add approval level
+            </label>
+            <select
+              name="approval_level"
+              value={formState.approval_level}
+              onChange={(e) =>
+                setFormState((prevState) => ({
+                  ...prevState,
+                  approval_level: e.target.value,
+                }))
+              }
+              className="w-full px-3 py-2 border rounded"
+            >
+              <option value="">Select Approval Level</option>
+              {levels &&
+                levels.map((level) => (
+                  <option key={level.id} value={level.id}>
+                    {level.name}
+                  </option>
+                ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-gray-700 mb-1">Department</label>
+            <select
+              name="department_id"
+              value={formState.department_id}
+              onChange={(e) =>
+                setFormState((prevState) => ({
+                  ...prevState,
+                  department_id: Number(e.target.value),
+                }))
+              }
+              className="w-full px-3 py-2 border rounded"
+            >
+              <option value="">Select Department</option>
+              {departments &&
+                departments.map((department) => (
+                  <option key={department.id} value={department.id}>
+                    {department.name}
+                  </option>
+                ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-1">Requested By</label>
+            <select
+              name="requested_by"
+              value={formState.requested_by}
+              onChange={(e) =>
+                setFormState((prevState) => ({
+                  ...prevState,
+                  requested_by: Number(e.target.value),
+                }))
+              }
+              className="w-full px-3 py-2 border rounded"
+            >
+              <option value="">Select Employee</option>
+              {employees &&
+                employees.map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.first_name} {employee.last_name}
+                  </option>
+                ))}
+            </select>
+          </div>
+
           <div className="p-field sm:col-span-2">
             <label htmlFor="request_comment">Request Comment</label>
             <InputTextarea
@@ -222,10 +312,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               <tr>
                 <th className="border px-4 py-2">Item </th>
                 <th className="border px-4 py-2">Quantity</th>
-                <th className="border px-4 py-2">Unit Price Estimate</th>
+                <th className="border px-4 py-2">Specification</th>
+                <th className="border px-4 py-2">Purpose</th>
+                <th className="border px-4 py-2">Cost Estimate</th>
                 <th className="border px-4 py-2">Currency</th>
-                <th className="border px-4 py-2">Notes</th>
-                <th className="border px-4 py-2">Actions</th>
+                <th className="border px-4 py-2">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -259,38 +350,51 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   <td className="border px-4 py-2">
                     <InputText
                       id={`unit_price_estimate_${index}`}
-                      name="unit_price_estimate"
-                      type="number"
-                      value={item.unit_price_estimate}
+                      name="specification"
+                      type="text"
+                      value={item.specification}
                       onChange={(e) => handleInputChange(e, index)}
                       className="w-full"
                     />
                   </td>
-                  <td className="border px-4 py-2">
-                    <Dropdown
-                      id={`currency_id_${index}`}
-                      value={item.currency_id}
-                      onChange={(e) =>
-                        handleDropdownChange(e, index, "currency_id")
-                      }
-                      options={currencies}
-                      optionLabel="name"
-                      optionValue="id"
-                      placeholder="Select a currency"
-                      filter
-                      className="w-full"
-                    />
-                  </td>
+
                   <td className="border px-4 py-2">
                     <InputTextarea
                       id={`notes_${index}`}
-                      name="notes"
-                      value={item.notes}
+                      name="purpose"
+                      value={item.purpose}
                       onChange={(e) => handleInputChange(e, index)}
                       rows={1}
                       className="w-full"
                     />
                   </td>
+                  <td className="border px-4 py-2">
+                    <InputText
+                      id={`quantity_${index}`}
+                      name="cost_estimate"
+                      type="number"
+                      value={item.cost_estimate.toString()}
+                      onChange={(e) => handleInputChange(e, index)}
+                      className="w-full"
+                    />
+                  </td>
+
+                  <td className="border px-4 py-2">
+                    <Dropdown
+                      id={`item_id${index}`}
+                      value={item.item_id}
+                      onChange={(e) =>
+                        handleDropdownChange(e, index, "currency")
+                      }
+                      options={currencies}
+                      optionLabel="name"
+                      optionValue="id"
+                      placeholder="Select currency"
+                      filter
+                      className="w-full"
+                    />
+                  </td>
+
                   <td className="border px-4 py-2 text-center">
                     <Icon
                       icon="solar:trash-bin-trash-bold"
