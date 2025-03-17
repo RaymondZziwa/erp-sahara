@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
@@ -8,13 +9,9 @@ import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import useCurrencies from "../../../hooks/procurement/useCurrencies";
 import useFiscalYears from "../../../hooks/budgets/useFiscalYears";
-import useChartOfAccounts from "../../../hooks/accounts/useChartOfAccounts";
 import { BUDGETS_ENDPOINTS } from "../../../api/budgetsEndpoints";
 import { Budget } from "../../../redux/slices/types/budgets/Budget";
 import useBudgets from "../../../hooks/budgets/useBudgets";
-import useLedgerChartOfAccounts from "../../../hooks/accounts/useLedgerChartOfAccounts";
-import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
-import { InputNumber } from "primereact/inputnumber";
 
 interface AddBudget {
   name: string;
@@ -58,10 +55,10 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const { token } = useAuth();
   const { data: currencies } = useCurrencies();
   const { data: fiscalYears } = useFiscalYears();
-  const { data: chartOfAccounts } = useChartOfAccounts();
-  const { data: incomeChartOfAccounts } = useLedgerChartOfAccounts({
-    accountType: AccountType.INCOME,
-  });
+  // const { data: chartOfAccounts } = useChartOfAccounts();
+  // const { data: incomeChartOfAccounts } = useLedgerChartOfAccounts({
+  //   accountType: AccountType.INCOME,
+  // });
   const { data: budgets } = useBudgets();
   
   useEffect(() => {
@@ -93,37 +90,37 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
 
-  const handleItemChange = (
-    index: number,
-    field: keyof BudgetItem,
-    value: string | number
-  ) => {
-    const updatedItems = [...(formState.items ?? [])];
-    updatedItems[index] = { ...updatedItems[index], [field]: value };
-    setFormState((prevState) => ({
-      ...prevState,
-      items: updatedItems,
-    }));
-  };
+  // const handleItemChange = (
+  //   index: number,
+  //   field: keyof BudgetItem,
+  //   value: string | number
+  // ) => {
+  //   const updatedItems = [...(formState.items ?? [])];
+  //   updatedItems[index] = { ...updatedItems[index], [field]: value };
+  //   setFormState((prevState) => ({
+  //     ...prevState,
+  //     items: updatedItems,
+  //   }));
+  // };
 
-  const addBudgetItem = () => {
-    setFormState((prevState) => ({
-      ...prevState,
-      items: [
-        ...(prevState?.items ?? []),
-        { name: "", type: "expense", chart_of_account_id: 0 },
-      ],
-    }));
-  };
+  // const addBudgetItem = () => {
+  //   setFormState((prevState) => ({
+  //     ...prevState,
+  //     items: [
+  //       ...(prevState?.items ?? []),
+  //       { name: "", type: "expense", chart_of_account_id: 0 },
+  //     ],
+  //   }));
+  // };
 
-  const removeBudgetItem = (index: number) => {
-    const updatedItems = [...(formState.items ?? [])];
-    updatedItems.splice(index, 1);
-    setFormState((prevState) => ({
-      ...prevState,
-      items: updatedItems,
-    }));
-  };
+  // const removeBudgetItem = (index: number) => {
+  //   const updatedItems = [...(formState.items ?? [])];
+  //   updatedItems.splice(index, 1);
+  //   setFormState((prevState) => ({
+  //     ...prevState,
+  //     items: updatedItems,
+  //   }));
+  // };
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -152,7 +149,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       allocated_amount: Number(formState.allocated_amount),
       currency_id: formState.currency_id,
       fiscal_year_id: formState.fiscal_year_id,
-      description: formState.description?.toString(),
+      description: formState?.description?.toString(),
       parent_id: formState.parent_id ?? null,
       project_id: formState.project_id ?? null,
       activity_id: formState.activity_id ?? null,
@@ -298,7 +295,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             id="parent_id"
             name="parent_id"
             value={formState.parent_id || ""}
-            options={budgets.map((budget) => ({
+            options={budgets.length > 0 && budgets.map((budget) => ({
               label: budget.name,
               value: budget.id,
             }))} // Example options

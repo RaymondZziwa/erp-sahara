@@ -1,8 +1,7 @@
 import { Icon } from "@iconify/react";
 //import ToBeUpdated from "../pages/ToBeUpdated";
 import RoleManagement from "../pages/settings/permissions";
-import UserSettings from "../pages/settings/users";
-import ApprovalLevels from "../pages/settings/approval_levels";
+import ApprovalLevels from "../pages/accounts/approvalLevels";
 
 const SETTINGS_ROUTES = [
   {
@@ -10,16 +9,10 @@ const SETTINGS_ROUTES = [
     icon: <Icon icon="solar:layers-line-duotone" fontSize={24} />,
     path: "/",
     items: [
-      // {
-      //   name: "Users",
-      //   icon: <Icon icon="solar:user-line-duotone" fontSize={20} />,
-      //   path: "users",
-      //   element: <UserSettings />,
-      // },
       {
         name: "User Roles",
         icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-        path: "userroles",
+        path: "/",
         element: <RoleManagement />,
       },
       {
@@ -27,12 +20,6 @@ const SETTINGS_ROUTES = [
         icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
         path: "approvallevels",
         element: <ApprovalLevels />,
-      },
-      {
-        // name: "Setting",
-        // icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-        path: "/",
-        element: <UserSettings />,
       },
     ],
   },

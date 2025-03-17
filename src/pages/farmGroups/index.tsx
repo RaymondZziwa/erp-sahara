@@ -140,10 +140,10 @@ const FarmGroups: React.FC = () => {
         />
       )}
 
-      <BreadCrump name="Farm Groups" pageName="All" />
+      <BreadCrump name="Membership" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold">Farm Groups Table</h1>
+          <h1 className="text-xl font-bold">Membership</h1>
           <div className="flex gap-2">
             <button
               onClick={() => setDialogState({ currentAction: "add", selectedItem: undefined })}

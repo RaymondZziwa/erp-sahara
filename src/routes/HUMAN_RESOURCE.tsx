@@ -1,6 +1,6 @@
 import { Icon } from "@iconify/react";
 import { lazy, Suspense } from "react";
-
+import PayrollPage from "../pages/hr/payroll";
 // Dynamic imports for components
 const Departments = lazy(() => import("../pages/hr/departments"));
 const Designations = lazy(() => import("../pages/hr/designations"));
@@ -58,44 +58,6 @@ const HUMAN_RESOURCE_ROUTES = [
           </Suspense>
         ),
       },
-    ],
-  },
-
-  {
-    name: "Salary Management",
-    icon: <Icon icon="mdi:currency-usd-circle-outline" fontSize={24} />,
-    path: "/salary",
-    items: [
-      {
-        name: "Salary Structures",
-        icon: <Icon icon="mdi:cash-multiple" fontSize={20} />,
-        path: "/salarystructures",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <SalaryStructures />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Payroll Periods",
-        icon: <Icon icon="mdi:calendar-multiselect-outline" fontSize={20} />,
-        path: "/payrollperiods",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <PayrollPeriods />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Bonus Types",
-        icon: <Icon icon="mdi:gift-outline" fontSize={20} />,
-        path: "/bonustypes",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <BonusTypes />
-          </Suspense>
-        ),
-      },
       {
         name: "Allowances",
         icon: <Icon icon="mdi:cash-check" fontSize={20} />,
@@ -113,6 +75,64 @@ const HUMAN_RESOURCE_ROUTES = [
         element: (
           <Suspense fallback={<Loading />}>
             <Deductions />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Leave Applications",
+        icon: <Icon icon="mdi:clipboard-text-outline" fontSize={20} />,
+        path: "/leaveapplications",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <LeaveApplications />
+          </Suspense>
+        ),
+      },
+    ],
+  },
+
+  {
+    name: "Salary Management",
+    icon: <Icon icon="mdi:currency-usd-circle-outline" fontSize={24} />,
+    path: "/salary",
+    items: [
+      {
+        name: "Generate Payroll",
+        icon: <Icon icon="mdi:currency-usd-circle-outline" fontSize={20} />,
+        path: "/payroll",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <PayrollPage />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Payroll Periods",
+        icon: <Icon icon="mdi:calendar-multiselect-outline" fontSize={20} />,
+        path: "/payrollperiods",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <PayrollPeriods />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Salary Structures",
+        icon: <Icon icon="mdi:cash-multiple" fontSize={20} />,
+        path: "/salarystructures",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <SalaryStructures />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Bonus Types",
+        icon: <Icon icon="mdi:gift-outline" fontSize={20} />,
+        path: "/bonustypes",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <BonusTypes />
           </Suspense>
         ),
       },
@@ -160,16 +180,6 @@ const HUMAN_RESOURCE_ROUTES = [
         element: (
           <Suspense fallback={<Loading />}>
             <LeaveTypes />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Leave Applications --",
-        icon: <Icon icon="mdi:clipboard-text-outline" fontSize={20} />,
-        path: "/leaveapplications",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <LeaveApplications />
           </Suspense>
         ),
       },

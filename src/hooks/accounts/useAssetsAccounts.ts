@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
   fetchDataStart,
@@ -18,6 +18,9 @@ const useAssetsAccounts = () => {
   const dispatch = useAppDispatch();
 
   const { token, isFetchingLocalToken } = useAuth();
+  const [expenseAccounts, setExpenseAccounts] = useState<any[]>([])
+  const [cashAccounts, setCashAccounts] = useState<any[]>([])
+  const [incomeAccounts, setIncomeAccounts] = useState<any[]>([])
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken) return;
@@ -32,6 +35,31 @@ const useAssetsAccounts = () => {
         "GET",
         token.access_token
       );
+
+      const resOne = await apiRequest<ServerResponse<ChartofAccount[]>>(
+        "/erp/accounts/get-expense-accounts",
+        //ACCOUNTS_ENDPOINTS.GET_ALL_ACCOUNTS,
+        "GET",
+        token.access_token
+      );
+
+      const resTwo = await apiRequest<ServerResponse<ChartofAccount[]>>(
+        "/erp/accounts/get-cash-accounts",
+        //ACCOUNTS_ENDPOINTS.GET_ALL_ACCOUNTS,
+        "GET",
+        token.access_token
+      );
+
+      const resThree = await apiRequest<ServerResponse<ChartofAccount[]>>(
+        "/erp/accounts/get-income-accounts",
+        //ACCOUNTS_ENDPOINTS.GET_ALL_ACCOUNTS,
+        "GET",
+        token.access_token
+      );
+
+      setIncomeAccounts(resThree.data)
+      setExpenseAccounts(resOne.data)
+      setCashAccounts(resTwo.data)
 
       dispatch(fetchDataSuccess(response.data)); // Dispatch action with fetched data on success
     } catch (error) {
@@ -48,7 +76,7 @@ const useAssetsAccounts = () => {
 
   const data = useAppSelector((state) => state.assetsAccounts.data);
 
-  return { data, refresh: fetchDataFromApi };
+  return { cashAccounts, expenseAccounts, incomeAccounts, data, refresh: fetchDataFromApi };
 };
 
 export default useAssetsAccounts;

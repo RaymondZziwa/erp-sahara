@@ -6,7 +6,7 @@ export interface Budget {
   spent_amount: string;
   remaining_amount: string;
   currency_id: number;
-  description: string;
+  description: string | undefined;
   parent_id: null;
   fiscal_year_id: number;
   project_id: null;

@@ -1,3 +1,4 @@
+
 //@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
@@ -12,7 +13,6 @@ import { Column } from "primereact/column";
 import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import { ACCOUNTS_ENDPOINTS } from "../../../api/accountsEndpoints";
-
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
 import useCurrencies from "../../../hooks/procurement/useCurrencies";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
@@ -21,7 +21,6 @@ import useBudgets from "../../../hooks/budgets/useBudgets";
 import FileUploadInput from "../../../components/FileUploadInput";
 import { toast } from "react-toastify";
 import useAssetsAccounts from "../../../hooks/accounts/useAssetsAccounts";
-//import CustomDropdown from "../../../components/custom/customDropdown";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -34,8 +33,8 @@ interface AddOrModifyItemProps {
   journalType: string;
   creditAccountsHeader: string;
   debitAccountsHeader: string;
-  //journalId: number
 }
+
 interface AddLedger {
   transaction_date: Date;
   reference: string;
@@ -92,7 +91,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const { data: currenciesData, loading: currenciesLoading } = useCurrencies();
   const { data: projects, loading: projectsLoading } = useProjects();
   const { data: budgets, loading: budgetsLoading } = useBudgets();
-  const { data: accounts, refresh } = useAssetsAccounts();
+  const {
+    expenseAccounts,
+    cashAccounts,
+    data: accounts,
+    refresh,
+  } = useAssetsAccounts();
 
   useEffect(() => {
     if (!accounts) {
@@ -104,11 +108,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     label: curr.code,
     value: curr.id,
   }));
-
-  // useEffect(() => {
-  //   console.log("jt", journalType);
-  //   console.log("item", item);
-  // }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -124,18 +123,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Validate required fields
-    // if (
-    //   !formState.journal_type_id ||
-    //   !formState.currency_id ||
-    //   formState?.lines.length === 0
-    // ) {
-    //   toast.warn("Please fill in all required fields.");
-    //   setIsSubmitting(false);
-    //   return;
-    // }
-
-    // Prepare the payload
     const data = {
       ...formState,
       transaction_date:
@@ -161,7 +148,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       setIsSubmitting(false);
 
       onSave();
-      onClose(); // Close the modal after saving
+      onClose();
     } catch (error) {
       console.error("Error saving transaction:", error);
       toast.error("An error occurred while saving the transaction.");
@@ -213,6 +200,27 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       ...prevState,
       lines: updatedLines,
     }));
+  };
+
+  const getDebitAccountOptions = () => {
+    if (journalType.toLowerCase().includes("expense")) {
+      return expenseAccounts;
+    } else if (journalType.toLowerCase().includes("income")) {
+      return cashAccounts;
+    } else if (journalType.toLowerCase().includes("bank")) {
+      return cashAccounts;
+    }
+  };
+
+  const getCreditAccountOptions = () => {
+    if (journalType.toLowerCase().includes("expense")) {
+      return cashAccounts;
+    } else if (journalType.toLowerCase().includes("income")) {
+      return expenseAccounts;
+    } else if (journalType.toLowerCase().includes("bank")) {
+      return cashAccounts;
+    }
+    return [];
   };
 
   return (
@@ -365,7 +373,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   className="p-inputtext-sm"
                   loading={false}
                   value={line.debit_account_id}
-                  options={accounts.map((account) => ({
+                  options={getDebitAccountOptions().map((account) => ({
                     value: account.id,
                     label: account.name,
                   }))}
@@ -387,7 +395,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   className="p-inputtext-sm"
                   loading={false}
                   value={line.credit_account_id}
-                  options={accounts.map((account) => ({
+                  options={getCreditAccountOptions().map((account) => ({
                     value: account.id,
                     label: account.name,
                   }))}

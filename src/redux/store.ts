@@ -53,9 +53,13 @@ import farmGroupsReducer from "../redux/slices/farmGroups/farmGroupsSlice";
 import AssetsCategoriesReducer from "./slices/assets/assetCategoriesSlice";
 import AssetsAccountsReducer from "./slices/accounts/assetsAccountsSlice";
 import WarehouseTypesReducer from "./slices/inventory/warehouseTypesSlice";
+import ExpensesAccountsReducer from "./slices/accounts/expenseAccountsSlice"
+import payrollReducer from "./slices/hr/payrollSlice"
 
 const store = configureStore({
   reducer: {
+    payroll: payrollReducer,
+    expensesAccounts: ExpensesAccountsReducer,
     warehouseTypes: WarehouseTypesReducer,
     assetsAccounts: AssetsAccountsReducer,
     assetCategories: AssetsCategoriesReducer,

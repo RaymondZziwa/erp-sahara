@@ -1,572 +1,210 @@
-import React, { useState, useEffect } from "react";
+//@ts-nocheck
+import React, { useState, useRef, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import useAuth from "../../../hooks/useAuth";
+import Logo from "../../../assets/images/logos/ltcu.jpeg";
+import { useReactToPrint } from "react-to-print";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
-import { apiRequest } from "../../../utils/api";
+import useAuth from "../../../hooks/useAuth";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-
-interface ComparisonBalanceSheet {
-  balance_sheet: Balancesheet;
-  totals: Totals;
-  subcategory_totals: SubcategoryTotals;
-  current_fiscal_year: CurrentFiscalYear;
-  previous_fiscal_year: null;
-  data: {};
-  assets: [];
-  equity: [];
-  liabilities: [];
-}
-
-interface CurrentFiscalYear {
-  id: number;
-  financial_year: string;
-  start_date: string;
-  end_date: string;
-  organisation_id: number;
-  status: number;
-  remaining_days: number;
-  should_alert: boolean;
-}
-
-interface SubcategoryTotals {
-  assets: { [key: string]: SubcategoryDetail };
-  liabilities: { [key: string]: SubcategoryDetail };
-  equity: SubcategoryDetail[];
-}
+import { apiRequest } from "../../../utils/api";
 
 interface Account {
-  code: string;
+  account_code: string;
   account_name: string;
   balance: number;
-  previous_amount: number;
-  difference: number;
 }
 
-interface SubcategoryDetail {
+interface Subcategory {
   subcategory_name: string;
-  total: number;
-  previous_total: number;
-  difference: number;
+  subcategory_total: number;
   accounts: Account[];
 }
 
-interface Totals {
-  total_assets: number;
-  total_liabilities: number;
-  total_equity: number;
-}
+function ComparisonBalanceSheet() {
+    const [incomeStatement, setIncomeStatement] =
+      useState<ComparisonBalanceSheet | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-interface Balancesheet {
-  assets: Asset[];
-  liabilities: Asset[];
-  equity: Equity[];
-}
+    const { token, isFetchingLocalToken } = useAuth();
 
-interface Asset {
-  account_id: number;
-  account_name: string;
-  account_code: string;
-  current_balance: string;
-  previous_balance: number;
-}
+    const fetchDataFromApi = async () => {
+      if (isFetchingLocalToken || !token.access_token) return;
+      setIsLoading(true);
+      try {
+        const response = await apiRequest<
+          ServerResponse<ComparisonBalanceSheet>
+        >(
+          REPORTS_ENDPOINTS.COMPARISON_BALANCE_SHEET.GET_ALL,
+          "GET",
+          token.access_token
+        );
+        console.log("resp", response.data);
 
-interface Equity {
-  account_id: number;
-  account_name: string;
-  account_code: string;
-  current_balance: string;
-  previous_balance: number;
-}
-
-const ComparisonBalanceSheet: React.FC = () => {
-  const [incomeStatement, setIncomeStatement] =
-    useState<ComparisonBalanceSheet | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const { token, isFetchingLocalToken } = useAuth();
-
-  const fetchDataFromApi = async () => {
-    if (isFetchingLocalToken || !token.access_token) return;
-    setIsLoading(true);
-    try {
-      const response = await apiRequest<ServerResponse<ComparisonBalanceSheet>>(
-        REPORTS_ENDPOINTS.COMPARISON_BALANCE_SHEET.GET_ALL,
-        "GET",
-        token.access_token
-      );
-      console.log("resp", response.data);
-
-      setIncomeStatement(response.data.data as ComparisonBalanceSheet);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  console.log("is", incomeStatement);
-  useEffect(() => {
-    fetchDataFromApi();
-  }, [isFetchingLocalToken, token.access_token]);
-
-  const { assets, equity, liabilities } = incomeStatement || {
-    assets: [],
-    equity: [],
-    liabilities: [],
-  };
-
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Balance Sheet", 20, 10);
-
-    const generateSection = (title: string, items: SubcategoryDetail[]) => {
-      if (!items) return;
-      const tableBody: any[] = [];
-
-      tableBody.push([
-        {
-          content: title,
-          colSpan: 5, // Updated to match column count
-          styles: {
-            fontStyle: "bold" as "bold",
-            halign: "left",
-            fillColor: [222, 226, 230],
-          },
-        },
-      ]);
-
-      // Add subcategory rows and data
-      items.forEach((item) => {
-        tableBody.push([
-          {
-            content: item.subcategory_name,
-            colSpan: 5, // Updated to match column count
-            styles: {
-              fontStyle: "bold" as "bold",
-              halign: "left",
-              fillColor: [246, 249, 252],
-            },
-          },
-        ]);
-
-        tableBody.push([
-          {
-            content: "Code",
-            styles: { halign: "left", fontStyle: "bold" },
-          },
-          {
-            content: "Account Name",
-            styles: { halign: "left", fontStyle: "bold" },
-          },
-          {
-            content: "Current Amount",
-            styles: { halign: "center", fontStyle: "bold" },
-          },
-          {
-            content: "Previous Amount",
-            styles: { halign: "center", fontStyle: "bold" },
-          },
-          {
-            content: "Difference",
-            styles: { halign: "center", fontStyle: "bold" },
-          },
-        ]);
-
-        item.accounts.forEach((account) => {
-          tableBody.push([
-            account.code,
-            account.account_name,
-            {
-              content: account.balance.toLocaleString(),
-              styles: { halign: "center" },
-            },
-            {
-              content: account.previous_amount.toLocaleString(),
-              styles: { halign: "center" },
-            },
-            {
-              content: account.difference.toLocaleString(),
-              styles: { halign: "center" },
-            },
-          ]);
-        });
-      });
-
-      const total = items.reduce((acc, item) => acc + item.total, 0);
-      const previousTotal = items.reduce(
-        (acc, item) => acc + item.previous_total,
-        0
-      );
-      const differenceTotal = items.reduce(
-        (acc, item) => acc + item.difference,
-        0
-      );
-
-      tableBody.push([
-        {
-          content: `TOTAL ${title}`,
-          colSpan: 2,
-          styles: { fontStyle: "bold", halign: "left" },
-        },
-        {
-          content: total.toLocaleString(),
-          styles: { fontStyle: "bold", halign: "right" },
-        },
-        {
-          content: previousTotal.toLocaleString(),
-          styles: { fontStyle: "bold", halign: "right" },
-        },
-        {
-          content: differenceTotal.toLocaleString(),
-          styles: { fontStyle: "bold", halign: "right" },
-        },
-      ]);
-
-      autoTable(doc, {
-        body: tableBody,
-        theme: "grid",
-        margin: { top: 5 },
-        tableLineWidth: 0, // Removes outer table borders
-        tableLineColor: [255, 255, 255], // Makes sure no table outline
-        didParseCell: function (data) {
-          if (data.section === "body") {
-            data.cell.styles.lineWidth = {
-              top: 0.2,
-              right: 0,
-              bottom: 0.2,
-              left: 0,
-            }; // [top, right, bottom, left]
-          }
-        },
-      });
+        setIncomeStatement(response.data.data as ComparisonBalanceSheet);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    generateSection("ASSETS", incomeStatement?.assets || []);
-    generateSection("EQUITY", incomeStatement?.equity || []);
-    generateSection("LIABILITIES", incomeStatement?.liabilities || []);
+    console.log("is", incomeStatement);
+    useEffect(() => {
+      fetchDataFromApi();
+    }, [isFetchingLocalToken, token.access_token]);
 
-    doc.save("BalanceSheet.pdf");
+    const { assets, equity, liabilities } = incomeStatement || {
+      assets: [],
+      equity: [],
+      liabilities: [],
+    };
+
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactToPrintFn = useReactToPrint({ contentRef });
+
+  // Function to open the modal
+  const handleRowClick = (accounts: Account[]) => {
+    setOpenModalData(accounts);
   };
 
-  let totalCurrentAssetAmount = assets?.reduce(
-    (acc, item: SubcategoryDetail) => acc + item.total,
-    0
-  );
-
-  let totalPreviousAssetAmount = assets?.reduce(
-    (acc, item: SubcategoryDetail) => acc + item.previous_total,
-    0
-  );
-
-  let totalAssetDifference = assets?.reduce(
-    (acc, item: SubcategoryDetail) => acc + item.difference,
-    0
-  );
-
-  let totalCurrentEquityAmount = equity?.reduce(
-    (acc, item: SubcategoryDetail) => acc + item.total,
-    0
-  );
-
-  let totalPreviousEquityAmount = equity?.reduce(
-    (acc, item: SubcategoryDetail) => acc + item.previous_total,
-    0
-  );
-
-  let totalEquityDifference = equity?.reduce(
-    (acc, item: SubcategoryDetail) => acc + item.difference,
-    0
-  );
-
-  let totalLiabilitiesCurrentAmount = liabilities?.reduce(
-    (acc, item: SubcategoryDetail) => acc + item.total,
-    0
-  );
-
-  let totalLiabilitiesPreviousAmount = liabilities?.reduce(
-    (acc, item: SubcategoryDetail) => acc + item.previous_total,
-    0
-  );
-
-  let totalLiabilitiesDifference = liabilities?.reduce(
-    (acc, item: SubcategoryDetail) => acc + item.difference,
-    0
-  );
+  // Function to close the modal
+  const closeModal = () => {
+    setOpenModalData(null);
+  };
 
   return (
     <div className="bg-white p-3">
-      <div className="flex justify-between items-center mb-4">
-        <p className="font-bold text-xl">Balance Comparison Sheet </p>
+      <div className="flex justify-end items-center mb-4">
         <button
           className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-          onClick={handleExportPDF}
+          onClick={() => reactToPrintFn()}
         >
           <Icon icon="solar:printer-bold" fontSize={20} />
           Print
         </button>
       </div>
+      <div className="flex flex-row justify-between items-center">
+        <img src={Logo} alt="" className="w-20 h-18 mb-4" />
+        <p className="font-bold text-2xl">Comparison Balance Sheet Report</p>
+      </div>
+      <table className="w-full">
+        <tbody>
+          {/* Assets Section */}
+          <tr className="font-bold bg-gray-300">
+            <td className="p-3" colSpan={2}>
+              ASSETS
+            </td>
+          </tr>
+          {assets?.map((item) => (
+            <React.Fragment key={item.subcategory_name}>
+              <tr
+                className="bg-gray-100 cursor-pointer hover:bg-gray-200"
+                onClick={() => handleRowClick(item.accounts)}
+              >
+                <td className="p-3">{item.subcategory_name}</td>
+                <td className="p-3 text-right">
+                  {item.subcategory_total.toLocaleString()}
+                </td>
+              </tr>
+            </React.Fragment>
+          ))}
+          <tr className="font-bold bg-gray-200">
+            <td className="p-3">TOTAL ASSETS</td>
+            <td className="p-3 text-right border-t-2 border-black">
+              {assets
+                ?.reduce((acc, item) => acc + item.subcategory_total, 0)
+                .toLocaleString()}
+            </td>
+          </tr>
 
-      {/* Custom Table Component */}
+          {/* Equity Section */}
+          <tr className="font-bold bg-gray-300">
+            <td className="p-3" colSpan={2}>
+              EQUITY
+            </td>
+          </tr>
+          {equity?.map((item) => (
+            <React.Fragment key={item.subcategory_name}>
+              <tr
+                className="bg-gray-100 cursor-pointer hover:bg-gray-200"
+                onClick={() => handleRowClick(item.accounts)}
+              >
+                <td className="p-3">{item.subcategory_name}</td>
+                <td className="p-3 text-right">
+                  {item.subcategory_total.toLocaleString()}
+                </td>
+              </tr>
+            </React.Fragment>
+          ))}
+          <tr className="font-bold bg-gray-200">
+            <td className="p-3">TOTAL EQUITY</td>
+            <td className="p-3 text-right border-t-2 border-black">
+              {equity
+                ?.reduce((acc, item) => acc + item.subcategory_total, 0)
+                .toLocaleString()}
+            </td>
+          </tr>
 
-      {isLoading && incomeStatement == null ? (
-        "Loading..."
-      ) : (
-        <table className="w-full">
-          <tbody>
-            <tr className="font-bold bg-gray-300">
-              <td className="p-3 " colSpan={5}>
-                ASSETS
-              </td>
-            </tr>
+          {/* Liabilities Section */}
+          <tr className="font-bold bg-gray-300">
+            <td className="p-3" colSpan={2}>
+              LIABILITIES
+            </td>
+          </tr>
+          {liabilities?.map((item) => (
+            <React.Fragment key={item.subcategory_name}>
+              <tr
+                className="bg-gray-100 cursor-pointer hover:bg-gray-200"
+                onClick={() => handleRowClick(item.accounts)}
+              >
+                <td className="p-3">{item.subcategory_name}</td>
+                <td className="p-3 text-right">
+                  {item.subcategory_total.toLocaleString()}
+                </td>
+              </tr>
+            </React.Fragment>
+          ))}
+          <tr className="font-bold bg-gray-200">
+            <td className="p-3">TOTAL LIABILITIES</td>
+            <td className="p-3 text-right border-t-2 border-black">
+              {liabilities
+                ?.reduce((acc, item) => acc + item.subcategory_total, 0)
+                .toLocaleString()}
+            </td>
+          </tr>
 
-            {assets?.map((item: SubcategoryDetail) => {
-              return (
-                <>
-                  <tr className="font-bold bg-gray-100">
-                    <td className="p-3 " colSpan={5}>
-                      {item.subcategory_name}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-3 font-semibold py-2 border-gray-200 border-b w-[100px]">
-                      Code
-                    </td>
-                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
-                      Account Name
-                    </td>
-                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
-                      Current Amount
-                    </td>
-                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
-                      Previous Amount
-                    </td>
-                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
-                      Difference
-                    </td>
-                  </tr>
+          {/* Profit/Loss Section */}
+          <tr className="font-bold bg-gray-200">
+            <td className="p-3">PROFIT/LOSS</td>
+            <td className="p-3 text-right">
+              {/* {data.current_profit_or_loss
+                ? data?.current_profit_or_loss.toLocaleString()
+                : 0} */}
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-                  {item.accounts.map((account: any) => {
-                    return (
-                      <tr>
-                        <td className="px-3 py-2 border-gray-200 border-b w-[100px]">
-                          {account.code}
-                        </td>
-                        <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.account_name}
-                        </td>
-                        <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.balance
-                            ? account.balance.toLocaleString()
-                            : ""}
-                        </td>
-                        <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.previous_amount
-                            ? account.previous_amount.toLocaleString()
-                            : ""}
-                        </td>
-                        <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.difference
-                            ? account.difference.toLocaleString()
-                            : ""}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </>
-              );
-            })}
-            <tr className="font-bold bg-gray-200">
-              <td className="p-3 " colSpan={2}>
-                TOTAL ASSETS
-              </td>
-              <td className="p-3 ">
-                {Number(totalCurrentAssetAmount) > 0
-                  ? totalCurrentAssetAmount.toLocaleString()
-                  : ""}
-              </td>
-              <td className="p-3 ">
-                {Number(totalPreviousAssetAmount) > 0
-                  ? totalPreviousAssetAmount.toLocaleString()
-                  : ""}
-              </td>
-              <td className="p-3 ">
-                {Number(totalAssetDifference) > 0
-                  ? totalAssetDifference.toLocaleString()
-                  : ""}
-              </td>
-            </tr>
+     
 
-            <tr className="font-bold bg-gray-300">
-              <td className="p-3 " colSpan={5}>
-                EQUITY
-              </td>
-            </tr>
-            {equity?.map((item: SubcategoryDetail) => {
-              return (
-                <>
-                  <tr className="font-bold bg-gray-100">
-                    <td className="p-3 " colSpan={5}>
-                      {item.subcategory_name}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-3 font-semibold py-2 border-gray-200 border-b w-[100px]">
-                      Code
-                    </td>
-                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
-                      Account Name
-                    </td>
-                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
-                      Current Amount
-                    </td>
-                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
-                      Previous Amount
-                    </td>
-                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
-                      Difference
-                    </td>
-                  </tr>
-
-                  {item.accounts.map((account: any) => {
-                    return (
-                      <tr>
-                        <td className="px-3 py-2 border-gray-200 border-b w-[100px]">
-                          {account.code}
-                        </td>
-                        <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.account_name}
-                        </td>
-                        <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.balance
-                            ? account.balance.toLocaleString()
-                            : ""}
-                        </td>
-                        <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.previous_amount
-                            ? account.previous_amount.toLocaleString()
-                            : ""}
-                        </td>
-                        <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.difference
-                            ? account.difference.toLocaleString()
-                            : ""}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </>
-              );
-            })}
-            <tr className="font-bold bg-gray-200">
-              <td className="p-3 " colSpan={2}>
-                TOTAL EQUITY
-              </td>
-              <td className="p-3 ">
-                {Number(totalCurrentEquityAmount) > 0
-                  ? totalCurrentEquityAmount.toLocaleString()
-                  : ""}
-              </td>
-              <td className="p-3 ">
-                {Number(totalPreviousEquityAmount) > 0
-                  ? totalPreviousEquityAmount.toLocaleString()
-                  : ""}
-              </td>
-              <td className="p-3 ">
-                {Number(totalEquityDifference) > 0
-                  ? totalEquityDifference.toLocaleString()
-                  : ""}
-              </td>
-            </tr>
-            <tr className="font-bold bg-gray-300">
-              <td className="p-3 " colSpan={5}>
-                LIABILITIES
-              </td>
-            </tr>
-            {liabilities?.map((item: SubcategoryDetail) => {
-              return (
-                <>
-                  <tr className="font-bold bg-gray-100">
-                    <td className="p-3 " colSpan={5}>
-                      {item.subcategory_name}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-3 font-semibold py-2 border-gray-200 border-b w-[100px]">
-                      Code
-                    </td>
-                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
-                      Account Name
-                    </td>
-                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
-                      Current Amount
-                    </td>
-                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
-                      Previous Amount
-                    </td>
-                    <td className="px-3 py-2 font-semibold border-gray-200 border-b">
-                      Difference
-                    </td>
-                  </tr>
-
-                  {item.accounts.map((account: any) => {
-                    return (
-                      <tr>
-                        <td className="px-3 py-2 border-gray-200 border-b w-[100px]">
-                          {account.code}
-                        </td>
-                        <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.account_name}
-                        </td>
-                        <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.balance
-                            ? account.balance.toLocaleString()
-                            : ""}
-                        </td>
-                        <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.previous_amount
-                            ? account.previous_amount.toLocaleString()
-                            : ""}
-                        </td>
-                        <td className="px-3 py-2 border-gray-200 border-b">
-                          {account.difference
-                            ? account.difference.toLocaleString()
-                            : ""}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </>
-              );
-            })}
-            <tr className="font-bold bg-gray-200">
-              <td className="p-3 " colSpan={2}>
-                TOTAL LIABILITIES
-              </td>
-              <td className="p-3 ">
-                {Number(totalLiabilitiesCurrentAmount) > 0
-                  ? totalLiabilitiesCurrentAmount.toLocaleString()
-                  : ""}
-              </td>
-              <td className="p-3 ">
-                {Number(totalLiabilitiesPreviousAmount) > 0
-                  ? totalLiabilitiesPreviousAmount.toLocaleString()
-                  : ""}
-              </td>
-              <td className="p-3 ">
-                {Number(totalLiabilitiesDifference) > 0
-                  ? totalLiabilitiesDifference.toLocaleString()
-                  : ""}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      )}
-      {/* {isLoading && incomeStatement == null ? "Loading...." : ""} */}
+      <div ref={contentRef} className="print-content">
+        {/* <PrintableContent reportName={"Balance Report"} />
+        <style>
+          {`
+                   @media print {
+                      .print-content {
+                        display: block !important;
+                      }
+                    }
+                    .print-content {
+                      display: none;
+                    }
+                `}
+        </style> */}
+      </div>
     </div>
   );
-};
+}
 
 export default ComparisonBalanceSheet;

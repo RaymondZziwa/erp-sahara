@@ -97,4 +97,11 @@ export const HUMAN_RESOURCE_ENDPOINTS = {
     UPDATE: (id: string) => `/erp/hr/deductions/${id}/update`,
     DELETE: (id: string) => `/erp/hr/deductions/${id}/delete`,
   },
+  PAYROLL: {
+    GET_ALL: "/erp/hr/payroll",
+    GET_BY_ID: (id: string) => `/erp/hr/payroll/${id}`,
+    ADD: "/erp/hr/payroll/create",
+    UPDATE: (id: string) => `/erp/hr/payroll/${id}/update`,
+    DELETE: (id: string) => `/erp/hr/payroll/${id}/delete`,
+  },
 };

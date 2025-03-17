@@ -6,7 +6,6 @@ import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog"
 
 import BreadCrump from "../../../components/layout/bread_crump";
 import { PROJECTS_ENDPOINTS } from "../../../api/projectsEndpoints";
-import { formatCurrency } from "../../../utils/formatCurrency";
 import { CashRequisition } from "../../../redux/slices/types/accounts/cash_requisitions/CashRequisition";
 import useCashRequisitions from "../../../hooks/accounts/cash_requisitions/useCashRequsitions";
 import { Button } from "primereact/button";
@@ -323,7 +322,7 @@ const CashRequisitions: React.FC = () => {
             filter
             style={{ width: "150px" }}
             body={(rowData: CashRequisition) =>
-              formatCurrency(rowData.total_amount)
+              rowData.total_amount
             }
           />
           <Column

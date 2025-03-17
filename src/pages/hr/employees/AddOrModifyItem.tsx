@@ -11,9 +11,8 @@ import useEmployees from "../../../hooks/hr/useEmployees";
 import useDepartments from "../../../hooks/hr/useDepartments";
 import useDesignations from "../../../hooks/hr/useDesignations";
 import useSalaryStructures from "../../../hooks/hr/useSalaryStructures";
-import { useSelector } from "react-redux";
-import { RootState } from "../../../redux/store";
 import { toast } from "react-toastify";
+import useRoles from "../../../hooks/roles/useRoles";
 
 interface AddOrModifyEmployeeProps {
   visible: boolean;
@@ -56,6 +55,13 @@ const GENDER_OPTIONS = [
 const SALUTATIONS_OPTIONS = [
   { label: "Mr", value: "Mr" },
   { label: "Mrs", value: "Mrs" },
+  { label: "Ms", value: "Ms" },
+  { label: "Mx", value: "Mx" },
+  { label: "Dr", value: "Dr" },
+  { label: "Prof", value: "Prof" },
+  { label: "Rev", value: "Rev" },
+  { label: "Hon", value: "Hon" },
+  { label: "Eng", value: "Eng" },
 ];
 
 const MARITAL_STATUS_OPTIONS = [
@@ -105,7 +111,14 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
     useDesignations();
   const { data: salaryStructures, loading: salaryStructuresLoading } =
     useSalaryStructures();
-  const roles = useSelector((state: RootState) => state.roles.data);
+  //const roles = useSelector((state: RootState) => state.roles.data);
+  const {data: roles, refresh: fetchRoles} = useRoles()
+
+  useEffect(()=> {
+    if(!roles) {
+      fetchRoles()
+    }
+  },[])
 
   useEffect(() => {
     if (item) {

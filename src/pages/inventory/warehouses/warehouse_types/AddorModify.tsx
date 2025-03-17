@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
 import { INVENTORY_ENDPOINTS } from "../../../../api/inventoryEndpoints";
 import useAuth from "../../../../hooks/useAuth";
 import { WarehouseType } from "../../../../redux/slices/types/inventory/Warehouse";

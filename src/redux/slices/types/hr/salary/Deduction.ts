@@ -2,6 +2,7 @@ export interface Deduction {
   id: number;
   organisation_id: number;
   employee_id: number;
+  employee: number;
   deduction_type_id: number;
   amount: string;
   frequency: string;
@@ -9,7 +10,7 @@ export interface Deduction {
   end_date: string;
   created_at: string;
   updated_at: string;
-  employee: Employee;
+  //employee: Employee;
   deduction_type: DeductionType;
 }
 
@@ -22,6 +23,7 @@ interface DeductionType {
   updated_at: string;
 }
 
+//@ts-expect-error --ignore
 interface Employee {
   id: number;
   organisation_id: number;

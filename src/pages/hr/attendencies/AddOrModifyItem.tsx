@@ -50,7 +50,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       });
     } else {
       setFormState({
-        attendance_date: "",
+        attendance_date: new Date().toISOString().split("T")[0],
         check_in_time: "",
         check_out_time: "",
         employee_id: undefined,
