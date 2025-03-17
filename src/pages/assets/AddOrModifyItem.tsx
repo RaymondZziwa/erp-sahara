@@ -239,7 +239,6 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
         newState.appreciation_account_id = undefined;
         newState.appreciation_loss_account_id = undefined;
         newState.appreciation_gain_account_id = undefined;
-        newState.income_account_id = undefined;
         newState.appreciation_rate = undefined;
       }
 
