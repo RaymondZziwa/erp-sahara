@@ -27,9 +27,11 @@ interface PaymentForm {
   fund_source_account_id: number | null;
 }
 
-interface Account {
-  value: number;
+interface PaymentMethod {
+  id: number;
   name: string;
+  chart_of_account_id: number;
+  description: string | null;
 }
 
 interface AddOrModifyPaymentModalProps {
@@ -53,7 +55,7 @@ const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
     fund_source_account_id: null,
   });
 
-  const [fundSourceAccounts, setFundSourceAccounts] = useState<Account[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,33 +88,27 @@ const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
     };
   }, [token]);
 
-  // Fetch fund source accounts
-  const fetchFundSourceAccounts = async () => {
+  // Fetch payment methods
+  const fetchPaymentMethods = async () => {
     try {
-      const response = await api.get("/erp/accounts/get-receivable-accounts");
-      const fundSourceData = response.data?.data || [];
-      setFundSourceAccounts(
-        fundSourceData.map((acc: any) => ({
-          value: acc.id,
-          name: acc.name,
-        }))
-      );
+      const response = await api.get("/erp/accounts/paymentmethod");
+      if (!response.data?.success) {
+        throw new Error("Failed to fetch payment methods.");
+      }
+      const paymentMethodsData = response.data.data || [];
+      setPaymentMethods(paymentMethodsData);
     } catch (error) {
-      console.error("Error fetching fund source accounts:", error);
-      setError("Failed to load fund source accounts.");
+      console.error("Error fetching payment methods:", error);
+      setError("Failed to load payment methods.");
+    } finally {
+      setLoading(false);
     }
   };
 
   // Initialize data fetching
   useEffect(() => {
     if (token?.access_token) {
-      fetchFundSourceAccounts()
-        .then(() => setLoading(false))
-        .catch((error) => {
-          console.error("Initialization error:", error);
-          setError("Failed to initialize component.");
-          setLoading(false);
-        });
+      fetchPaymentMethods();
     }
   }, [token]);
 
@@ -258,17 +254,20 @@ const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
           </div>
           <div className="p-field">
             <label htmlFor="fund_source_account_id">
-              Fund Source Account<span className="text-red-500">*</span>
+              Payment Method<span className="text-red-500">*</span>
             </label>
             <Dropdown
               id="fund_source_account_id"
               name="fund_source_account_id"
               value={paymentForm.fund_source_account_id}
-              options={fundSourceAccounts}
+              options={paymentMethods.map((method) => ({
+                value: method.chart_of_account_id, // Use chart_of_account_id as the value
+                name: method.name, // Use payment method name for display
+              }))}
               onChange={(e) => handleDropdownChange("fund_source_account_id", e.value)}
               optionLabel="name"
               optionValue="value"
-              placeholder="Select Fund Source Account"
+              placeholder="Select Payment Method"
               required
             />
           </div>
