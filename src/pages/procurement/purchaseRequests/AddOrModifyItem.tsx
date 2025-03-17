@@ -79,8 +79,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const { token } = useAuth();
   const { data: items } = useItems();
   const { data: employees } = useEmployees();
-
-  console.log("l", levels);
+  console.log("dp", departments);
 
   useEffect(() => {
     if (purchaseRequest) {
