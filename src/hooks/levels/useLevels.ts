@@ -7,7 +7,7 @@ import {
 } from "../../redux/slices/approval_levels/levelSlice.ts";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks.ts";
 import useAuth from "../useAuth.ts";
-
+import { baseURL } from "../../utils/api.ts";
 
 const useLevels = () => {
   const dispatch = useAppDispatch();
@@ -21,14 +21,19 @@ const useLevels = () => {
     }
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
-      const response = await fetch('https://tfc-api.efinanci.co.tz/api/erp/accounts/requisitions-approval-level', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token.access_token}`
-        },
-      });
+      const response = await fetch(
+        `${baseURL}/erp/accounts/requisitions-approval-level`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token.access_token}`,
+          },
+        }
+      );
       const data = await response.json();
+      console.log("data", data);
+
       dispatch(fetchDataSuccess(data.data));
     } catch (error) {
       dispatch(

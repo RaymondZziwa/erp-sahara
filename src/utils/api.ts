@@ -39,6 +39,7 @@ export const apiRequest = async <T>(
 
     return response.data;
   } catch (error) {
+    console.log("login err", error.response);
     if (axios.isAxiosError(error)) {
       const data = error.response?.data;
       if (error.response?.status === 401) {

@@ -41,6 +41,10 @@ interface Purchaserequestapproveditem {
 }
 
 interface Purchaserequestitem {
+  currency: string;
+  cost_estimate: number;
+  purpose: any;
+  specification: string;
   id: number;
   purchase_request_id: number;
   item_id: number;
