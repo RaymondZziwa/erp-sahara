@@ -44,7 +44,7 @@ const PurchaseRequests: React.FC = () => {
     },
     {
       headerName: "Name",
-      field: "name",
+      field: "title",
       sortable: true,
       filter: true,
     },
@@ -173,14 +173,16 @@ const PurchaseRequests: React.FC = () => {
             items: dialogState.selectedItem?.purchase_request_items.map(
               (item) => ({
                 item_id: item.item_id,
-                quantity: item.quantity ?? "0", // Ensure quantity is provided
+                quantity: item.quantity ?? "0",
                 specification: item.specification ?? "",
+                specifications: item.specifications ?? "",
                 purpose: item.purpose ?? "",
                 cost_estimate: item.cost_estimate ?? 0,
-                currency: item.currency ?? "",
+                currency_id: String(item.currency_id ?? 0),
+                budget_item_id: String(item.budget_item_id ?? 0),
               })
             ),
-            name: dialogState.selectedItem?.name,
+            title: dialogState.selectedItem?.title, // Type assertion to bypass the error
             request_comment: dialogState.selectedItem?.request_comment,
           }}
           visible={
