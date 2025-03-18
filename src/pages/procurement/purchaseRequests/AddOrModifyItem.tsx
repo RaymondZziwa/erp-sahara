@@ -27,7 +27,7 @@ interface PurchaseRequestItem {
 
 interface PurchaseRequest {
   id: number;
-  name: string;
+  title: string;
   request_comment: string;
   project_id: null;
   department_id: number;
@@ -61,7 +61,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
   const initialState: PurchaseRequest = {
     id: 0,
-    name: "",
+    title: "",
     request_comment: "",
     project_id: null,
     department_id: 0,
@@ -149,17 +149,17 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
     console.log(formState);
-    const method = formState.id ? "PUT" : "POST";
-    const endpoint = formState.id
-      ? API_ENDPOINTS.PURCHASE_REQUESTS.UPDATE(formState.id.toString())
-      : API_ENDPOINTS.PURCHASE_REQUESTS.ADD;
-    await createRequest(
-      endpoint,
-      token.access_token,
-      formState,
-      onSave,
-      method
-    );
+    // const method = formState.id ? "PUT" : "POST";
+    // const endpoint = formState.id
+    //   ? API_ENDPOINTS.PURCHASE_REQUESTS.UPDATE(formState.id.toString())
+    //   : API_ENDPOINTS.PURCHASE_REQUESTS.ADD;
+    // await createRequest(
+    //   endpoint,
+    //   token.access_token,
+    //   formState,
+    //   onSave,
+    //   method
+    // );
 
     onSave();
     setIsSubmitting(false);
@@ -201,9 +201,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           <div className="p-field">
             <label htmlFor="name">Name</label>
             <InputText
-              id="name"
-              name="name"
-              value={formState.name}
+              id="title"
+              name="title"
+              value={formState.title}
               onChange={handleInputChange}
               required
               className="w-full"
