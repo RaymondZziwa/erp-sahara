@@ -73,6 +73,7 @@ const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
       setIsSubmitting(false);
     }
   };
+  const appType: string[] = ["Cash", "Fuel", "Repair", "Store", "Order"];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-auto z-50">
@@ -92,40 +93,53 @@ const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
           </div>
           <div>
             <label className="block text-gray-700 mb-1">Approval Type</label>
-            <input
-              type="text"
+            <select
               name="approval_type"
               value={formData.approval_type}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
-              placeholder="Enter level"
-            />
+            >
+              <option value="" disabled>
+                Select approval type
+              </option>
+              {appType.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-gray-700 mb-1">Rank</label>
-            <input
-              type="number"
-              min="1"
-              max="4"
+            <select
               name="level"
               value={formData.level}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
-              placeholder="Enter level"
-            />
+            >
+              <option value="" disabled>
+                Select rank
+              </option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
           </div>
           <div>
             <label className="block text-gray-700 mb-1">Mandate</label>
-            <input
-              type="number"
-              min="1"
-              max="2"
+            <select
               name="mandate"
               value={formData.mandate}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
-              placeholder="Enter mandate"
-            />
+            >
+              <option value="" disabled>
+                Select mandate
+              </option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
           </div>
         </form>
         <div className="flex justify-end space-x-2 mt-4">
