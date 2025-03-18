@@ -25,6 +25,7 @@ export interface Asset {
   salvage_value: number;
   useful_life: number;
   description: string;
+  status: string; 
 }
 
 export interface AssetCategory {

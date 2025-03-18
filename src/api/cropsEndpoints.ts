@@ -4,6 +4,6 @@ export const CROPS_ENDPOINTS = {
       GET_BY_ID: (id: string) => `/erp/farm/crops/${id}`,
       ADD: "/erp/farm/crops/create",
       UPDATE: (id: string) => `/erp/farm/crops/${id}/update`,
-      DELETE: (id: string) => `/erp/farm/crops${id}/delete`,
+      DELETE: (id: string) => `/erp/farm/crops/${id}/delete`,
     },
 }

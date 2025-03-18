@@ -21,6 +21,7 @@ import useBudgets from "../../../hooks/budgets/useBudgets";
 import FileUploadInput from "../../../components/FileUploadInput";
 import { toast } from "react-toastify";
 import useAssetsAccounts from "../../../hooks/accounts/useAssetsAccounts";
+import useChartOfAccounts from "../../../hooks/accounts/useChartOfAccounts";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -91,6 +92,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const { data: currenciesData, loading: currenciesLoading } = useCurrencies();
   const { data: projects, loading: projectsLoading } = useProjects();
   const { data: budgets, loading: budgetsLoading } = useBudgets();
+  const { data, refresh: getCOA } = useChartOfAccounts();
   const {
     expenseAccounts,
     cashAccounts,
@@ -103,6 +105,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       refresh();
     }
   }, [accounts]);
+
+  useEffect(()=> {
+    if(!data){
+      getCOA();
+    }
+  }, [])
 
   const currencies = currenciesData.map((curr) => ({
     label: curr.code,
@@ -373,10 +381,23 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   className="p-inputtext-sm"
                   loading={false}
                   value={line.debit_account_id}
-                  options={getDebitAccountOptions().map((account) => ({
-                    value: account.id,
-                    label: account.name,
-                  }))}
+                  options={
+                    journalType.toLowerCase().includes("expense")
+                      ? data
+                          .filter(
+                            (acc) =>
+                              acc.account_sub_category.account_category.name ==
+                              "Expenses"
+                          )
+                          .map((account) => ({
+                            value: account.id,
+                            label: account.name,
+                          }))
+                      : getDebitAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                  }
                   onChange={(e) =>
                     handleItemChange(
                       options.rowIndex,
@@ -395,10 +416,23 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   className="p-inputtext-sm"
                   loading={false}
                   value={line.credit_account_id}
-                  options={getCreditAccountOptions().map((account) => ({
-                    value: account.id,
-                    label: account.name,
-                  }))}
+                  options={
+                    journalType.toLowerCase().includes("expense")
+                      ? data
+                          .filter(
+                            (acc) =>
+                              acc.account_sub_category.account_category.name ==
+                              "Income"
+                          )
+                          .map((account) => ({
+                            value: account.id,
+                            label: account.name,
+                          }))
+                      : getDebitAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                  }
                   onChange={(e) =>
                     handleItemChange(
                       options.rowIndex,

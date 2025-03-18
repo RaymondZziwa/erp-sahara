@@ -28,7 +28,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   onSave,
 }) => {
   const [formState, setFormState] = useState<Partial<Payroll>>({
-    employee_id: 0,
+    payroll_employee: 0,
     payroll_period_id: 0,
     gross_salary: 0,
     total_deductions: 0,
@@ -55,7 +55,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       });
     } else {
       setFormState({
-        employee_id: 0,
+        payroll_employee: 0,
         payroll_period_id: 0,
         gross_salary: 0,
         total_deductions: 0,
@@ -102,7 +102,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       [name]: value,
     }));
 
-    if (name === "employee_id") {
+    if (name === "payroll_employee") {
       const selectedEmployee = employees.find((emp) => emp.id === value);
       if (selectedEmployee) {
         setFormState((prevState) => ({
@@ -184,8 +184,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           <Dropdown
             filter
             id="employee_id"
-            name="employee_id"
-            value={formState.employee_id}
+            name="payroll_employee"
+            value={formState.payroll_employee}
             options={employees.map((employee) => ({
               value: employee.id,
               label: `${employee.first_name} ${employee.last_name}`,

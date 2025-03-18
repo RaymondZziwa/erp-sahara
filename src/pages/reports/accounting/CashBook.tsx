@@ -37,6 +37,8 @@ const CashBook = () => {
     }
   };
 
+  console.log("cashBookData", cashBookData);
+
   useEffect(() => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);

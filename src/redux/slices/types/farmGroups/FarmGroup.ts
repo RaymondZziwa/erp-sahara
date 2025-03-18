@@ -4,7 +4,7 @@ export interface Customer {
   organization_name: string;
   email?: string;
   organization_type?: string;
-  industry?: string;
+  industry: string;
   primary_contact_person?: string;
   contact_person_title?: string;
   phone_number?: string;
@@ -12,10 +12,10 @@ export interface Customer {
   billing_address?: string;
   shipping_address?: string;
   payment_terms?: string;
-  bank_details?: string;
-  tax_identification_number?: string;
-  credit_limit?: number;
-  description?: string;
+  bank_details?: string | null;
+  tax_identification_number?: string | null;
+  credit_limit?: string;
+  status?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -25,10 +25,8 @@ export interface FarmGroup {
   organisation_id: number;
   customer_id: number;
   number_of_members: number;
-  description?: string;
-  customer?: Customer; 
+  description?: string | null;
+  customer: Customer;
   created_at?: string;
   updated_at?: string;
 }
-
-  

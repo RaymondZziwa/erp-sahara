@@ -1,9 +1,67 @@
 import React from "react";
 import Logo from "../../../assets/images/logos/ltcu.jpeg";
 
-export class PrintableContent extends React.Component {
+interface PayrollData {
+  id: number;
+  organisation_id: string;
+  employee_id: number;
+  payroll_period_id: number;
+  gross_salary: string;
+  total_deductions: string;
+  net_salary: string;
+  tax_amount: string;
+  payment_status: string;
+  created_at: string;
+  updated_at: string;
+  payslips: null;
+  payroll_period: {
+    id: number;
+    organisation_id: string;
+    period_name: string;
+    start_date: string;
+    end_date: string;
+    is_closed: number;
+    created_at: string;
+    updated_at: string;
+  };
+  employee: {
+    id: number;
+    organisation_id: string;
+    employee_code: null;
+    first_name: string;
+    last_name: string;
+    other_name: null;
+    email: string;
+    phone: string;
+    gender: string;
+    date_of_birth: string;
+    marital_status: string;
+    salutation: string;
+    address: string;
+    city: null;
+    state: string;
+    postal_code: null;
+    country: string;
+    photo: null;
+    hire_date: string;
+    tax_identification_number: null;
+    department_id: number;
+    designation_id: number;
+    salary_structure_id: number;
+    supervisor_id: null;
+    status: string;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
+interface Props {
+  reportName: string;
+  data: PayrollData[];
+}
+
+export class PrintableContent extends React.Component<Props> {
   render() {
-    //@ts-expect-error --ignore
     const { reportName, data } = this.props;
     const today = new Date();
 
@@ -34,7 +92,44 @@ export class PrintableContent extends React.Component {
           <p className="font-bold text-2xl">{reportName}</p>
         </div>
 
-       </div>
+        {/* Payroll Data Table */}
+        <table className="w-full mt-8 border-collapse border border-gray-200">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-200 p-2">Employee Name</th>
+              <th className="border border-gray-200 p-2">Payroll Period</th>
+              <th className="border border-gray-200 p-2">Gross Salary</th>
+              <th className="border border-gray-200 p-2">Total Deductions</th>
+              <th className="border border-gray-200 p-2">Tax Amount</th>
+              <th className="border border-gray-200 p-2">Net Salary</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((item) => (
+              <tr key={item.id} className="text-center">
+                <td className="border border-gray-200 p-2">
+                  {item.employee.first_name} {item.employee.last_name}
+                </td>
+                <td className="border border-gray-200 p-2">
+                  {item.payroll_period.period_name}
+                </td>
+                <td className="border border-gray-200 p-2">
+                  {item.gross_salary}
+                </td>
+                <td className="border border-gray-200 p-2">
+                  {item.total_deductions}
+                </td>
+                <td className="border border-gray-200 p-2">
+                  {item.tax_amount}
+                </td>
+                <td className="border border-gray-200 p-2">
+                  {item.net_salary}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     );
   }
 }

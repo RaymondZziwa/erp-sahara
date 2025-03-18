@@ -43,10 +43,12 @@ import { MANUFACTURING_REDUCERS } from "./reducers/manufacturingReducers";
 import  RoleReducer from './slices/roles/roleSlice'
 //permissions
 import  PermissionReducer from './slices/permissions/permissionSlice'
+// import RoleReducer from "./slices/roles/roleSlice";
 //users
 import UsersReducer from "./slices/user/usersSlice";
 //approval levels
 import ApprovalLevelsReducer from './slices/approval_levels/levelSlice'
+// import ApprovalLevelsReducer from './slices/approval_levels/levelSlice'
 //farm groups
 import cropsReducer from '../redux/slices/crops/cropsSlice';
 import farmGroupsReducer from "../redux/slices/farmGroups/farmGroupsSlice";
@@ -55,6 +57,8 @@ import AssetsAccountsReducer from "./slices/accounts/assetsAccountsSlice";
 import WarehouseTypesReducer from "./slices/inventory/warehouseTypesSlice";
 import ExpensesAccountsReducer from "./slices/accounts/expenseAccountsSlice"
 import payrollReducer from "./slices/hr/payrollSlice"
+import assetsReducer from "./slices/assets/assetsSlice";
+// import ApprovalLevelsReducer from "./slices/approval_levels/levelSlice";
 
 const store = configureStore({
   reducer: {
@@ -95,6 +99,7 @@ const store = configureStore({
     itemsAttributes: itemsAttributesReducer,
     itemsAttributesValues: itemsAttributesValuesReducer,
     crops: cropsReducer,
+    assets: assetsReducer,
     farmGroups: farmGroupsReducer,
     stockMovements: stockMovementSlice,
     ...MOSS_APP_REDUCERS,
