@@ -107,6 +107,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   }, [accounts]);
 
   useEffect(()=> {
+    console.log('coa', data)
     if(!data){
       getCOA();
     }
@@ -216,6 +217,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     } else if (journalType.toLowerCase().includes("income")) {
       return cashAccounts;
     } else if (journalType.toLowerCase().includes("bank")) {
+      return cashAccounts;
+    }else {
       return cashAccounts;
     }
   };
@@ -381,6 +384,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   className="p-inputtext-sm"
                   loading={false}
                   value={line.debit_account_id}
+                  filter
                   options={
                     journalType.toLowerCase().includes("expense")
                       ? data
@@ -388,6 +392,34 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                             (acc) =>
                               acc.account_sub_category.account_category.name ==
                               "Expenses"
+                          )
+                          .map((account) => ({
+                            value: account.id,
+                            label: account.name,
+                          }))
+                      : journalType.toLowerCase().includes("income") ||
+                        journalType.toLowerCase().includes("clear")
+                      ? data
+                          .filter(
+                            (acc) =>
+                              acc.account_sub_category.account_category.name ==
+                              "Assets"
+                          )
+                          .map((account) => ({
+                            value: account.id,
+                            label: account.name,
+                          }))
+                      : journalType.toLowerCase().includes("general")
+                      ? data.map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("payable")
+                      ? data
+                          .filter(
+                            (acc) =>
+                              acc.account_sub_category.account_category.name ==
+                              "Liabilities"
                           )
                           .map((account) => ({
                             value: account.id,
@@ -415,9 +447,22 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                 <Dropdown
                   className="p-inputtext-sm"
                   loading={false}
+                  filter
                   value={line.credit_account_id}
                   options={
-                    journalType.toLowerCase().includes("expense")
+                    journalType.toLowerCase().includes("expense") ||
+                    journalType.toLowerCase().includes("clear")
+                      ? data
+                          .filter(
+                            (acc) =>
+                              acc.account_sub_category.account_category.name ==
+                              "Assets"
+                          )
+                          .map((account) => ({
+                            value: account.id,
+                            label: account.name,
+                          }))
+                      : journalType.toLowerCase().includes("sales")
                       ? data
                           .filter(
                             (acc) =>
@@ -428,7 +473,23 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                             value: account.id,
                             label: account.name,
                           }))
-                      : getDebitAccountOptions().map((account) => ({
+                      : journalType.toLowerCase().includes("general")
+                      ? data.map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("payable")
+                      ? data
+                          .filter(
+                            (acc) =>
+                              acc.account_sub_category.account_category.name ==
+                              "Liabilities"
+                          )
+                          .map((account) => ({
+                            value: account.id,
+                            label: account.name,
+                          }))
+                      : getCreditAccountOptions().map((account) => ({
                           value: account.id,
                           label: account.name,
                         }))
