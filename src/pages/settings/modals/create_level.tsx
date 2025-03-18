@@ -92,7 +92,7 @@ const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
             />
           </div>
           <div>
-            <label className="block text-gray-700 mb-1">Approval Type</label>
+            <label className="block text-gray-700 mb-1">Approval Type </label>
             <select
               name="approval_type"
               value={formData.approval_type}
