@@ -25,6 +25,7 @@ export interface PurchaseRequest {
   purchase_request_items: Purchaserequestitem[];
   purchase_request_approved_items: Purchaserequestapproveditem[];
   currency: Currency | null;
+  title: string;
 }
 
 interface Purchaserequestapproveditem {
@@ -41,6 +42,8 @@ interface Purchaserequestapproveditem {
 }
 
 interface Purchaserequestitem {
+  budget_item_id: number;
+  specifications: string;
   currency: string;
   cost_estimate: number;
   purpose: any;

@@ -5,13 +5,50 @@ import { RootState } from "../../redux/store";
 import AddLevelModal from "./modals/create_level";
 import useLevels from "../../hooks/levels/useLevels";
 import AddStaffToApprovalLevelModal from "./modals/add_staff_to_level";
+import ApprovalMembers from "./modals/members";
+
+interface RequisitionApprovalMember {
+  id: string;
+  requisition_approval_level_id: string;
+  approver_id: number;
+  approver_names: string;
+  approver_email: string;
+  rank: number;
+  approver_title: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
 
 const ApprovalLevels = () => {
   const levels = useSelector((state: RootState) => state.levels.data);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isApprovalMemebersModalOpen, setIsApprovalMemebersModalOpen] =
+    useState<boolean>(false);
   const [levelId, setLevelId] = useState(0);
   const [modalId, setModalId] = useState(0);
   const { refresh } = useLevels();
+  const [selectedAprovalMemebers, setSelectedAprovalMemebers] = useState<
+    RequisitionApprovalMember[]
+  >([]);
+
+  console.log(levels);
+
+  const handleMembersState = () => {
+    setIsApprovalMemebersModalOpen((prev) => !prev);
+  };
+
+  const handleApprovalMembers = (id: number) => {
+    if (id) {
+      const filteredLevel = levels.filter(
+        (level) => level.id.toString() === id.toString()
+      )[0];
+      setSelectedAprovalMemebers(filteredLevel.approvers);
+    }
+
+    setIsApprovalMemebersModalOpen((prev) => !prev);
+  };
 
   useEffect(() => {
     if (!levels) {
@@ -62,7 +99,10 @@ const ApprovalLevels = () => {
                     >
                       + Add member
                     </button>
-                    <button className="px-4 py-2 bg-teal-500 ml-2 text-white rounded hover:bg-teal-300">
+                    <button
+                      onClick={() => handleApprovalMembers(level.id)}
+                      className="px-4 py-2 bg-teal-500 ml-2 text-white rounded hover:bg-teal-300"
+                    >
                       View members
                     </button>
                   </td>
@@ -88,6 +128,14 @@ const ApprovalLevels = () => {
           refresh={refresh}
           levelId={levelId}
         />
+      )}
+      {isApprovalMemebersModalOpen ? (
+        <ApprovalMembers
+          handleMembersState={handleMembersState}
+          selectedAprovalMemebers={selectedAprovalMemebers}
+        />
+      ) : (
+        ""
       )}
     </div>
   );

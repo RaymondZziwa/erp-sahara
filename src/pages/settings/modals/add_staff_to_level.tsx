@@ -26,9 +26,10 @@ const AddStaffToApprovalLevelModal: React.FC<props> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     user_id: "",
-    role: "",
     approver_names: "",
-    approver_email: "",
+    rank: "",
+    approver_title: "",
+    description: "",
   });
 
   const handleInputChange = (e: any) => {
@@ -43,11 +44,6 @@ const AddStaffToApprovalLevelModal: React.FC<props> = ({
       return;
     }
 
-    if (!formData.role) {
-      toast.error("Role is required!");
-      return;
-    }
-
     try {
       setIsSubmitting(true);
 
@@ -55,12 +51,15 @@ const AddStaffToApprovalLevelModal: React.FC<props> = ({
       let selectedEmp = emp.filter(
         (emp) => Number(emp.id) === Number(approverId)
       )[0];
+
       const tempData = {
         ...formData,
-        approver_email: selectedEmp.email,
         approver_names: `${selectedEmp.first_name} ${selectedEmp.last_name}`,
       };
-      console.log("as", tempData);
+
+      const finalParams = { approvers: [tempData] };
+      console.log("fp", finalParams);
+
       const response = await fetch(
         `${baseURL}/erp/accounts/requisitions-approval-level/${levelId}/add_approver`,
         {
@@ -69,7 +68,7 @@ const AddStaffToApprovalLevelModal: React.FC<props> = ({
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(tempData),
+          body: JSON.stringify(finalParams),
         }
       );
 
@@ -79,9 +78,10 @@ const AddStaffToApprovalLevelModal: React.FC<props> = ({
         toast.success("Staff added successfully!");
         setFormData({
           user_id: "",
-          role: "",
           approver_names: "",
-          approver_email: "",
+          rank: "",
+          approver_title: "",
+          description: "",
         });
         setIsModalOpen(false);
         setIsSubmitting(false);
@@ -97,7 +97,7 @@ const AddStaffToApprovalLevelModal: React.FC<props> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-auto z-50">
-      <div className="bg-white p-6 rounded mt-12 shadow-md w-[500]">
+      <div className="bg-white p-6 rounded mt-12 shadow-md w-[800px]">
         <h2 className="text-xl font-bold mb-4">Add staff to approval level</h2>
         <form>
           <div>
@@ -116,18 +116,42 @@ const AddStaffToApprovalLevelModal: React.FC<props> = ({
               ))}
             </select>
           </div>
+
           <div>
-            <label className="block text-gray-700 mb-1">Select role</label>
+            <label className="block text-gray-700 mb-1">Select rank</label>
             <select
-              name="role"
-              value={formData.role}
+              name="rank"
+              value={formData.rank}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
             >
-              <option value=" ">Select role</option>
-              <option value="approver">Approver</option>
-              <option value="reviewer">Reviewer</option>
+              <option value=" ">Select rank</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="2">3</option>
             </select>
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-1  mt-2">
+              Enter Approver title
+            </label>
+            <input
+              type="text"
+              className="p-2 border border-gray-200 w-full"
+              name="approver_title"
+              onChange={(e) => handleInputChange(e)}
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-1  mt-2">
+              Description
+            </label>
+            <input
+              type="text"
+              className="p-2 border border-gray-200 w-full"
+              name="description"
+              onChange={(e) => handleInputChange(e)}
+            />
           </div>
         </form>
         <div className="flex justify-end space-x-2 mt-4">
