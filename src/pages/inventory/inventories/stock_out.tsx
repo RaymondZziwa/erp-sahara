@@ -44,9 +44,9 @@ const StockOut: React.FC = () => {
       refresh();
     }else{
       const dat = data.filter((store) => store.warehouse_id === storeId);
-      setStoreData(dat[0]?.stock_movements?.stock_out)
+      setStoreData(dat[0]?.stock_movements?.stock_out.transactions)
     }
-  }, [storeId])
+  }, [storeId, data])
 
   const columnDefinitions: ColDef<any>[] = [
     // {

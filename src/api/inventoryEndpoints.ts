@@ -2,11 +2,12 @@ export const INVENTORY_ENDPOINTS = {
   INVENTORIES: {
     GET_ALL: "/erp/inventories",
     GET_BY_ID: (id: string) => `/erp/inventories/${id}`,
-    ADD: "/erp",
+    ADD: "/erp/inventories/create",
     STOCK_OUT: "/erp/inventories/sendtomilling",
     UPDATE: (id: string) => `/erp/inventories/${id}/update`,
     DELETE: (id: string) => `/erp/inventories/${id}/delete`,
-    STOCK_MVT: "/erp/inventories"
+    STOCK_MVT: "/erp/inventories",
+    REVERSE: "/erp/inventories/reverse"
   },
   UOM: {
     GET_ALL: "/erp/inventories/uom",

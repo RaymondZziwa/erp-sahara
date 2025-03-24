@@ -1,7 +1,7 @@
 import { Icon } from "@iconify/react";
 //import ToBeUpdated from "../pages/ToBeUpdated";
 import RoleManagement from "../pages/settings/permissions";
-import ApprovalLevels from "../pages/accounts/approvalLevels";
+import ApprovalLevels from "../pages/settings/approval_levels";
 
 const SETTINGS_ROUTES = [
   {

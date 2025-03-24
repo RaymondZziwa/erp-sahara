@@ -58,10 +58,12 @@ import WarehouseTypesReducer from "./slices/inventory/warehouseTypesSlice";
 import ExpensesAccountsReducer from "./slices/accounts/expenseAccountsSlice"
 import payrollReducer from "./slices/hr/payrollSlice"
 import assetsReducer from "./slices/assets/assetsSlice";
+import balanceSheetReducer from "./slices/reports/ledgers/balanceSheetComparisonSlice"
 // import ApprovalLevelsReducer from "./slices/approval_levels/levelSlice";
 
 const store = configureStore({
   reducer: {
+    balanceSheetComparison: balanceSheetReducer,
     payroll: payrollReducer,
     expensesAccounts: ExpensesAccountsReducer,
     warehouseTypes: WarehouseTypesReducer,

@@ -6,8 +6,7 @@ import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 import useAuth from "../../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import { useReactToPrint } from "react-to-print";
-import { PrintableContent } from "../accounting/IS_print_template";
-import Logo from "../../../assets/images/logos/ltcu.jpeg";
+import Header from "../../../components/custom/print_header";
 
 interface IncomeStatementData {
   group_name: string;
@@ -111,220 +110,225 @@ function ComparisonIncomeStatementReport() {
         </button>
       </div>
 
-      <div className="flex flex-row justify-between items-center">
-        <img src={Logo} alt="" className="w-20 h-18 mb-4" />
-        <p className="font-bold text-2xl">Income Statement Comparison Report</p>
+      <div ref={contentRef} className="p-4">
+        <div className="flex flex-row justify-centeritems-center">
+          <Header title={"Income Statement Comparison Report"} />
+        </div>
+        {incomeStatementData ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white border border-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                  <th
+                    colSpan={1}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    2025
+                  </th>
+                  <th
+                    colSpan={1}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    2024
+                  </th>
+                </tr>
+                <tr>
+                  <th
+                    colSpan={3}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    {incomeStatementData[0].group_name}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {/* Map through categories */}
+                {incomeStatementData[0].categories.map((category, index) => (
+                  <React.Fragment key={index}>
+                    {/* Parent Category */}
+                    <tr>
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        <strong>{category.category_name}</strong>
+                      </td>
+                    </tr>
+
+                    {/* Map through children */}
+                    {category.children.map((child, childIndex) => (
+                      <React.Fragment key={childIndex}>
+                        {/* Child Category */}
+
+                        {/* Map through nested children (category.children.children) */}
+                        {child.children &&
+                          child.children.map(
+                            (nestedChild, nestedChildIndex) => (
+                              <React.Fragment key={nestedChildIndex}>
+                                {/* Nested Child Category */}
+                                <tr
+                                  onClick={() => handleRowClick(nestedChild)}
+                                  className={`${
+                                    nestedChild.ledgers &&
+                                    nestedChild.ledgers.length > 0
+                                      ? "cursor-pointer hover:bg-gray-50"
+                                      : "cursor-default"
+                                  }`}
+                                >
+                                  <td className="px-14 py-4 text-gray-700">
+                                    {nestedChild.child_name}
+                                  </td>
+
+                                  <td className="px-6 py-4 text-gray-500">
+                                    {nestedChild.current_total}
+                                  </td>
+                                  <td className="px-6 py-4 text-gray-500">
+                                    {nestedChild.previous_total}
+                                  </td>
+                                </tr>
+                              </React.Fragment>
+                            )
+                          )}
+                        <tr
+                          onClick={() => handleRowClick(child)}
+                          className={`${
+                            child.ledgers && child.ledgers.length > 0
+                              ? "cursor-pointer hover:bg-gray-50"
+                              : "cursor-default"
+                          }`}
+                        >
+                          <td className="px-10 py-4 text-gray-700">
+                            Total {child.category_name}
+                          </td>
+                          <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
+                            {child.current_total}
+                          </td>
+                          <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
+                            {child.previous_total}
+                          </td>
+                        </tr>
+                      </React.Fragment>
+                    ))}
+                  </React.Fragment>
+                ))}
+
+                {/* Gross Profit */}
+                <tr>
+                  <td className="px-6 py-4 font-medium text-gray-900">
+                    Gross Profit/Loss
+                  </td>
+                  <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
+                    {calculateGrossProfit(incomeStatementData[0].categories) ||
+                      "XXXXX"}
+                  </td>
+                  <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
+                    {calculateGrossProfit(incomeStatementData[0].categories) ||
+                      "XXXXX"}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <table className="min-w-full bg-white border border-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th
+                    colSpan={3}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    {incomeStatementData[1].group_name}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {/* Map through categories */}
+                {incomeStatementData[1].categories.map((category, index) => (
+                  <React.Fragment key={index}>
+                    {/* Parent Category */}
+                    <tr>
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        <strong>{category.category_name}</strong>
+                      </td>
+                    </tr>
+
+                    {/* Map through children */}
+                    {category.children.map((child, childIndex) => (
+                      <React.Fragment key={childIndex}>
+                        {/* Child Category */}
+
+                        {/* Map through nested children (category.children.children) */}
+                        {child.children &&
+                          child.children.map(
+                            (nestedChild, nestedChildIndex) => (
+                              <React.Fragment key={nestedChildIndex}>
+                                {/* Nested Child Category */}
+                                <tr
+                                  onClick={() => handleRowClick(nestedChild)}
+                                  className={`${
+                                    nestedChild.ledgers &&
+                                    nestedChild.ledgers.length > 0
+                                      ? "cursor-pointer hover:bg-gray-50"
+                                      : "cursor-default"
+                                  }`}
+                                >
+                                  <td className="px-14 py-4 text-gray-700">
+                                    {nestedChild.child_name}
+                                  </td>
+
+                                  <td className="px-6 py-4 text-gray-500">
+                                    {nestedChild.current_total}
+                                  </td>
+                                  <td className="px-6 py-4 text-gray-500">
+                                    {nestedChild.previous_total}
+                                  </td>
+                                </tr>
+                              </React.Fragment>
+                            )
+                          )}
+                        <tr
+                          onClick={() => handleRowClick(child)}
+                          className={`${
+                            child.ledgers && child.ledgers.length > 0
+                              ? "cursor-pointer hover:bg-gray-50"
+                              : "cursor-default"
+                          }`}
+                        >
+                          <td className="px-10 py-4 text-gray-700">
+                            Total {child.category_name}
+                          </td>
+
+                          <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
+                            {child.current_total}
+                          </td>
+                          <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
+                            {child.previous_total}
+                          </td>
+                        </tr>
+                      </React.Fragment>
+                    ))}
+                  </React.Fragment>
+                ))}
+
+                {/* Gross Profit */}
+                <tr>
+                  <td className="px-6 py-4 font-medium text-gray-900">
+                    NET Profit/Loss
+                  </td>
+                  <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
+                    {calculateGrossProfit(incomeStatementData[0].categories) ||
+                      "XXXXX"}
+                  </td>
+                  <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
+                    {calculateGrossProfit(incomeStatementData[0].categories) ||
+                      "XXXXX"}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="flex justify-center items-center bg-red">
+            <p>Initializing report. Please be patient....</p>
+          </div>
+        )}
       </div>
-
-      {incomeStatementData ? (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                ></th>
-                <th
-                  colSpan={1}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  2024
-                </th>
-                <th
-                  colSpan={1}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  2025
-                </th>
-              </tr>
-              <tr>
-                <th
-                  colSpan={3}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  {incomeStatementData[0].group_name}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {/* Map through categories */}
-              {incomeStatementData[0].categories.map((category, index) => (
-                <React.Fragment key={index}>
-                  {/* Parent Category */}
-                  <tr>
-                    <td className="px-6 py-4 font-medium text-gray-900">
-                      <strong>{category.category_name}</strong>
-                    </td>
-                  </tr>
-
-                  {/* Map through children */}
-                  {category.children.map((child, childIndex) => (
-                    <React.Fragment key={childIndex}>
-                      {/* Child Category */}
-
-                      {/* Map through nested children (category.children.children) */}
-                      {child.children &&
-                        child.children.map((nestedChild, nestedChildIndex) => (
-                          <React.Fragment key={nestedChildIndex}>
-                            {/* Nested Child Category */}
-                            <tr
-                              onClick={() => handleRowClick(nestedChild)}
-                              className={`${
-                                nestedChild.ledgers &&
-                                nestedChild.ledgers.length > 0
-                                  ? "cursor-pointer hover:bg-gray-50"
-                                  : "cursor-default"
-                              }`}
-                            >
-                              <td className="px-14 py-4 text-gray-700">
-                                {nestedChild.child_name}
-                              </td>
-                              <td className="px-6 py-4 text-gray-500">
-                                {nestedChild.previous_total}
-                              </td>
-                              <td className="px-6 py-4 text-gray-500">
-                                {nestedChild.current_total}
-                              </td>
-                            </tr>
-                          </React.Fragment>
-                        ))}
-                      <tr
-                        onClick={() => handleRowClick(child)}
-                        className={`${
-                          child.ledgers && child.ledgers.length > 0
-                            ? "cursor-pointer hover:bg-gray-50"
-                            : "cursor-default"
-                        }`}
-                      >
-                        <td className="px-10 py-4 text-gray-700">
-                          Total {child.category_name}
-                        </td>
-                        <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
-                          {child.previous_total}
-                        </td>
-                        <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
-                          {child.current_total}
-                        </td>
-                      </tr>
-                    </React.Fragment>
-                  ))}
-                </React.Fragment>
-              ))}
-
-              {/* Gross Profit */}
-              <tr>
-                <td className="px-6 py-4 font-medium text-gray-900">
-                  Gross Profit/Loss
-                </td>
-                <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
-                  {calculateGrossProfit(incomeStatementData[0].categories) ||
-                    "XXXXX"}
-                </td>
-                <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
-                  {calculateGrossProfit(incomeStatementData[0].categories) ||
-                    "XXXXX"}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <table className="min-w-full bg-white border border-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  colSpan={3}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  {incomeStatementData[1].group_name}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {/* Map through categories */}
-              {incomeStatementData[1].categories.map((category, index) => (
-                <React.Fragment key={index}>
-                  {/* Parent Category */}
-                  <tr>
-                    <td className="px-6 py-4 font-medium text-gray-900">
-                      <strong>{category.category_name}</strong>
-                    </td>
-                  </tr>
-
-                  {/* Map through children */}
-                  {category.children.map((child, childIndex) => (
-                    <React.Fragment key={childIndex}>
-                      {/* Child Category */}
-
-                      {/* Map through nested children (category.children.children) */}
-                      {child.children &&
-                        child.children.map((nestedChild, nestedChildIndex) => (
-                          <React.Fragment key={nestedChildIndex}>
-                            {/* Nested Child Category */}
-                            <tr
-                              onClick={() => handleRowClick(nestedChild)}
-                              className={`${
-                                nestedChild.ledgers &&
-                                nestedChild.ledgers.length > 0
-                                  ? "cursor-pointer hover:bg-gray-50"
-                                  : "cursor-default"
-                              }`}
-                            >
-                              <td className="px-14 py-4 text-gray-700">
-                                {nestedChild.child_name}
-                              </td>
-                              <td className="px-6 py-4 text-gray-500">
-                                {nestedChild.previous_total}
-                              </td>
-                              <td className="px-6 py-4 text-gray-500">
-                                {nestedChild.current_total}
-                              </td>
-                            </tr>
-                          </React.Fragment>
-                        ))}
-                      <tr
-                        onClick={() => handleRowClick(child)}
-                        className={`${
-                          child.ledgers && child.ledgers.length > 0
-                            ? "cursor-pointer hover:bg-gray-50"
-                            : "cursor-default"
-                        }`}
-                      >
-                        <td className="px-10 py-4 text-gray-700">
-                          Total {child.category_name}
-                        </td>
-                        <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
-                          {child.previous_total}
-                        </td>
-                        <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
-                          {child.current_total}
-                        </td>
-                      </tr>
-                    </React.Fragment>
-                  ))}
-                </React.Fragment>
-              ))}
-
-              {/* Gross Profit */}
-              <tr>
-                <td className="px-6 py-4 font-medium text-gray-900">
-                  NET Profit/Loss
-                </td>
-                <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
-                  {calculateGrossProfit(incomeStatementData[0].categories) ||
-                    "XXXXX"}
-                </td>
-                <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
-                  {calculateGrossProfit(incomeStatementData[0].categories) ||
-                    "XXXXX"}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="flex justify-center items-center bg-red">
-          <p>Initializing report. Please be patient....</p>
-        </div>
-      )}
 
       {/* Modal for Ledgers */}
       {openModalData && (
@@ -381,26 +385,6 @@ function ComparisonIncomeStatementReport() {
           </div>
         </div>
       )}
-
-      <div ref={contentRef} className="print-content">
-        <PrintableContent
-          reportName={"Income Statement Report"}
-          incomeStatementData={incomeStatementData}
-        />
-        <style>
-          {`
-             @media print {
-                .print-content {
-                  display: block !important;
-                }
-              }
-              .print-content {
-                display: none;
-              }
-          `}
-        </style>
-      </div>
-
       {!isLoading && incomeStatementData === null && "No data present"}
     </div>
   );

@@ -1,9 +1,9 @@
-//@ts-nocheck
-import React, { useState, useRef, useEffect } from "react";
+
+import React, { useState, useRef } from "react";
 import { Icon } from "@iconify/react";
+import useBalanceSheet from "../../../hooks/reports/useBalanceSheet";
 import { useReactToPrint } from "react-to-print";
 import Header from "../../../components/custom/print_header";
-import useBalanceSheetComparison from "../../../hooks/reports/useBalanceSheetComparison";
 
 interface Account {
   account_code: string;
@@ -11,8 +11,9 @@ interface Account {
   balance: number;
 }
 
-function ComparisonBalanceSheet() {
-  const { data, refresh } = useBalanceSheetComparison();
+const BalanceSheetReport = () => {
+  const { data } = useBalanceSheet();
+  const { assets, equity, liabilities } = data;
   const [openModalData, setOpenModalData] = useState<Account[] | null>(null);
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -22,13 +23,6 @@ function ComparisonBalanceSheet() {
   const handleRowClick = (accounts: Account[]) => {
     setOpenModalData(accounts);
   };
-
-  useEffect(()=> {
-  if(!data || data.length === 0) {
-    refresh()
-  }
-    console.log('dts', data)
-  }, [])
 
   // Function to close the modal
   const closeModal = () => {
@@ -48,111 +42,102 @@ function ComparisonBalanceSheet() {
       </div>
       <div ref={contentRef} className="p-4">
         <div className="flex flex-row justify-centeritems-center">
-          <Header title={"Balance Sheet Comparison Report"} />
+          <Header title={"Balance Sheet Report"} />
         </div>
         <table className="w-full">
           <tbody>
             {/* Assets Section */}
             <tr className="font-bold bg-gray-300">
-              <td className="p-3" colSpan={4}>
+              <td className="p-3" colSpan={2}>
                 ASSETS
               </td>
             </tr>
-            {data[0].assets?.map((item) => (
+            {assets?.map((item) => (
               <React.Fragment key={item.subcategory_name}>
                 <tr
                   className="bg-gray-100 cursor-pointer hover:bg-gray-200"
                   onClick={() => handleRowClick(item.accounts)}
                 >
                   <td className="p-3">{item.subcategory_name}</td>
-                  <td className="p-3 text-right">{item.total}</td>
-                  <td className="p-3 text-right">{item.previous_total}</td>
+                  <td className="p-3 text-right">
+                    {item.subcategory_total.toLocaleString()}
+                  </td>
                 </tr>
               </React.Fragment>
             ))}
             <tr className="font-bold bg-gray-400">
               <td className="p-3">TOTAL ASSETS</td>
               <td className="p-3 text-right border-t-2 border-black">
-                {data[0].assets
-                  ?.reduce((acc, item) => acc + item.total, 0)
-                  .toLocaleString()}
-              </td>
-              <td className="p-3 text-right border-t-2 border-black">
-                {data[0].assets
-                  ?.reduce((acc, item) => acc + item.previous_total, 0)
+                {assets
+                  ?.reduce((acc, item) => acc + item.subcategory_total, 0)
                   .toLocaleString()}
               </td>
             </tr>
 
             {/* Equity Section */}
             <tr className="font-bold bg-gray-300">
-              <td className="p-3" colSpan={4}>
+              <td className="p-3" colSpan={2}>
                 EQUITY
               </td>
             </tr>
-            {data[0].equity?.map((item) => (
+            {equity?.map((item) => (
               <React.Fragment key={item.subcategory_name}>
                 <tr
                   className="bg-gray-100 cursor-pointer hover:bg-gray-200"
                   onClick={() => handleRowClick(item.accounts)}
                 >
                   <td className="p-3">{item.subcategory_name}</td>
-                  <td className="p-3 text-right">{item.total}</td>
-                  <td className="p-3 text-right">{item.previous_total}</td>
+                  <td className="p-3 text-right">
+                    {item.subcategory_total.toLocaleString()}
+                  </td>
                 </tr>
               </React.Fragment>
             ))}
             <tr className="font-bold bg-gray-200">
               <td className="p-3">TOTAL EQUITY</td>
               <td className="p-3 text-right border-t-2 border-black">
-                {data[0].equity
-                  ?.reduce((acc, item) => acc + item.total, 0)
-                  .toLocaleString()}
-              </td>
-              <td className="p-3 text-right border-t-2 border-black">
-                {data[0].equity
-                  ?.reduce((acc, item) => acc + item.previous_total, 0)
+                {equity
+                  ?.reduce((acc, item) => acc + item.subcategory_total, 0)
                   .toLocaleString()}
               </td>
             </tr>
 
             {/* Liabilities Section */}
             <tr className="font-bold bg-gray-300">
-              <td className="p-3" colSpan={4}>
+              <td className="p-3" colSpan={2}>
                 LIABILITIES
               </td>
             </tr>
-            {data[0].liabilities?.map((item) => (
+            {liabilities?.map((item) => (
               <React.Fragment key={item.subcategory_name}>
                 <tr
                   className="bg-gray-100 cursor-pointer hover:bg-gray-200"
                   onClick={() => handleRowClick(item.accounts)}
                 >
                   <td className="p-3">{item.subcategory_name}</td>
-                  <td className="p-3 text-right">{item.total}</td>
-                  <td className="p-3 text-right">{item.previous_total}</td>
+                  <td className="p-3 text-right">
+                    {item.subcategory_total.toLocaleString()}
+                  </td>
                 </tr>
               </React.Fragment>
             ))}
             <tr className="font-bold bg-gray-200">
               <td className="p-3">TOTAL LIABILITIES</td>
               <td className="p-3 text-right border-t-2 border-black">
-                {data[0].liabilities
-                  ?.reduce((acc, item) => acc + item.total, 0)
-                  .toLocaleString()}
-              </td>
-              <td className="p-3 text-right border-t-2 border-black">
-                {data[0].liabilities
-                  ?.reduce((acc, item) => acc + item.previous_total, 0)
+                {liabilities
+                  ?.reduce((acc, item) => acc + item.subcategory_total, 0)
                   .toLocaleString()}
               </td>
             </tr>
 
             {/* Profit/Loss Section */}
             <tr className="font-bold bg-gray-200">
-              <td className="p-3 ">PROFIT/LOSS</td>
-              <td className="p-3 text-right border-t-2 border-black">0</td>
-              <td className="p-3 text-right border-t-2 border-black">0</td>
+              <td className="p-3">PROFIT/LOSS</td>
+              <td className="p-3 text-right">
+                {data.current_profit_or_loss
+                  ? data?.current_profit_or_loss.toLocaleString()
+                  : 0}
+              </td>
             </tr>
             {/* <tr className="font-bold bg-gray-400 border-b border-white">
             <td className="p-3 " colSpan={2}>
@@ -170,23 +155,15 @@ function ComparisonBalanceSheet() {
                 TOTAL LIABILITIES AND SHAREHOLDER'S EQUITY
               </td>
               <td className="p-3 text-right border-t-2 border-black">
-                {data[0].liabilities?.reduce(
-                  (acc, item) => acc + item.total,
+                {liabilities?.reduce(
+                  (acc, item) => acc + item.subcategory_total,
                   0
                 ) +
-                  data[0].equity?.reduce((acc, item) => acc + item.total, 0) +
-                  data[0].current_profit_or_loss || 0}
-              </td>
-              <td className="p-3 text-right border-t-2 border-black">
-                {data[0].liabilities?.reduce(
-                  (acc, item) => acc + item.previous_total,
-                  0
-                ) +
-                  data[0].equity?.reduce(
-                    (acc, item) => acc + item.previous_total,
+                  equity?.reduce(
+                    (acc, item) => acc + item.subcategory_total,
                     0
                   ) +
-                  data[0].current_profit_or_loss || 0}
+                  data.current_profit_or_loss}
               </td>
             </tr>
           </tbody>
@@ -209,10 +186,7 @@ function ComparisonBalanceSheet() {
                       Account Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Current Total
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Previous Total
+                      Balance
                     </th>
                   </tr>
                 </thead>
@@ -220,16 +194,13 @@ function ComparisonBalanceSheet() {
                   {openModalData.map((account) => (
                     <tr key={account.account_code}>
                       <td className="px-6 py-4 text-gray-700">
-                        {account.code}
+                        {account.account_code}
                       </td>
                       <td className="px-6 py-4 text-gray-700">
                         {account.account_name}
                       </td>
                       <td className="px-6 py-4 text-gray-500">
                         {account.balance.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 text-gray-500">
-                        {account.previous_amount.toLocaleString()}
                       </td>
                     </tr>
                   ))}
@@ -251,4 +222,4 @@ function ComparisonBalanceSheet() {
   );
 }
 
-export default ComparisonBalanceSheet;
+export default BalanceSheetReport;

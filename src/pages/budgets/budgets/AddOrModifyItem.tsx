@@ -295,10 +295,10 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             id="parent_id"
             name="parent_id"
             value={formState.parent_id || ""}
-            options={budgets.length > 0 && budgets.map((budget) => ({
+            options={budgets.length > 0 ? budgets.map((budget) => ({
               label: budget.name,
               value: budget.id,
-            }))} // Example options
+            })): []}
             onChange={(e) =>
               setFormState((prevState) => ({
                 ...prevState,
@@ -309,86 +309,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           />
         </div>
 
-        {/* Budget Items */}
-        {/* <div className="space-y-4 col-span-full">
-          <h4 className="text-xl font-bold">Budget Items</h4>
-          {formState.items?.map((item, index: number) => (
-            <div
-              key={index}
-              className="p-field flex justify-between py-2 gap-2"
-            >
-              <div className="grid grid-cols-4 gap-4 items-center">
-                {item.type == "expense" ? (
-                  <div className="p-field">
-                    <InputText
-                      placeholder="Select Item"
-                      id="item_id"
-                      name="item_id"
-                      value={item.name || ""}
-                      onChange={(e) => handleItemChange(index, "name", e.target.value)}
-                      // required
-                      className="w-full"
-                    />
-                  </div>
-                ) : (
-                  <InputText
-                    placeholder="Name"
-                    value={item.name || ""}
-                    onChange={(e) =>
-                      handleItemChange(index, "name", e.target.value)
-                    }
-                  />
-                )}
-                <Dropdown
-                  placeholder="Type"
-                  value={item.type}
-                  options={[
-                    { label: "Expense", value: "expense" },
-                    { label: "Revenue", value: "revenue" },
-                  ]}
-                  onChange={(e) => handleItemChange(index, "type", e.value)}
-                />
-                <InputNumber
-                  placeholder="Amount"
-                  value={item.amount}
-                  onChange={(e) =>
-                    handleItemChange(index, "amount", e.value ? e.value : "")
-                  }
-                />
-                <Dropdown
-                  filter
-                  placeholder="Chart of Account"
-                  value={item.chart_of_account_id || ""}
-                  options={(item.type == "revenue"
-                    ? incomeChartOfAccounts
-                    : chartOfAccounts
-                  ).map((coa) => ({
-                    label: coa.name,
-                    value: coa.id,
-                  }))} // Example options
-                  onChange={(e) =>
-                    handleItemChange(index, "chart_of_account_id", e.value)
-                  }
-                />
-              </div>
-              <Button
-                type="button"
-                icon="pi pi-trash"
-                className="p-button-danger p-button-outlined !bg-red-500"
-                onClick={() => removeBudgetItem(index)}
-                size="small"
-              />
-            </div>
-          ))}
-          <Button
-            size="small"
-            type="button"
-            label="Add Item"
-            icon="pi pi-plus"
-            className="w-max"
-            onClick={addBudgetItem}
-          />
-        </div> */}
+       
       </form>
     </Dialog>
   );
