@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { useParams } from "react-router-dom";
 import useBudgets from "../../../hooks/budgets/useBudgets";
 import BudgetTable from "./budget_details_table";
@@ -27,13 +28,13 @@ const BudgetDetails: React.FC = () => {
             <h3 className="text-lg font-semibold">{budget.name}</h3>
             <div className="flex space-x-2">
               <button
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-800"
                 onClick={() => setShowAllocationModal(true)}
               >
                 Add Budget Allocation
               </button>
               <button
-                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-800"
                 onClick={() => setShowItemsModal(true)}
               >
                 Add Budget Items

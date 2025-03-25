@@ -9,7 +9,6 @@ import Table from "../../components/table";
 import useCrops from "../../hooks/crops/useCrops";
 import { Crop } from "../../redux/slices/types/crops/Crop";
 import { CROPS_ENDPOINTS } from "../../api/cropsEndpoints";
-import { Link } from "react-router-dom";
 
 const Crops: React.FC = () => {
   const { data: crops, refresh } = useCrops();
@@ -34,22 +33,12 @@ const Crops: React.FC = () => {
       filter: true,
       width: 100,
       sort: "asc", 
-      cellRenderer: (params: ICellRendererParams<Crop>) => (
-        <Link className="text-teal-500" to={`/crops/${params.data?.id}`}>
-          {params?.data?.id.toString()}
-        </Link>
-      ),
     },
     {
       headerName: "Crop Name",
       field: "name",
       sortable: true,
       filter: true,
-      cellRenderer: (params: ICellRendererParams<Crop>) => (
-        <Link className="text-teal-500" to={`/crops/${params.data?.id}`}>
-          {params?.data?.name.toString()}
-        </Link>
-      ),
     },
     {
       headerName: "Growth Period",

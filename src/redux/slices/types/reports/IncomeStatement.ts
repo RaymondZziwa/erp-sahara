@@ -12,3 +12,7 @@ interface ledger {
   ledger_code: string;
   amount: number;
 }
+
+export interface newIncomeStatement {
+  
+}

@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import useBudgets from "../../../hooks/budgets/useBudgets";
 
+//@ts-expect-error --ignore
 export default function BudgetTable({ budget }) {
   const [activeTab, setActiveTab] = useState("allocations");
   const {refresh} = useBudgets()
@@ -26,9 +27,9 @@ const deleteHandler = async (id:any) => {
       }
     );
 
+    refresh();
     if (response.data.success) {
       toast.success("Budget allocation deleted successfully!");
-      refresh()
     } else {
       toast.error("Failed to delete budget allocation.");
     }
@@ -119,7 +120,7 @@ const deleteHandler = async (id:any) => {
               </tr>
             </thead>
             <tbody>
-              {budget?.items.map((item) => (
+              {budget?.items.map((item: any) => (
                 <tr key={item.id} className="text-center">
                   <td className="border border-gray-200 px-4 py-2">
                     {item.name}
@@ -142,7 +143,7 @@ const deleteHandler = async (id:any) => {
                         className="text-red-500 cursor-pointer"
                         fontSize={20}
                         onClick={() => {
-                          deleteHandler(allocation.id);
+                          deleteHandler(item.id);
                         }}
                       />
                     </div>

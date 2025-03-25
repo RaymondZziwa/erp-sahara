@@ -1,3 +1,4 @@
+
 //@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
@@ -12,7 +13,6 @@ import { Column } from "primereact/column";
 import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import { ACCOUNTS_ENDPOINTS } from "../../../api/accountsEndpoints";
-
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
 import useCurrencies from "../../../hooks/procurement/useCurrencies";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
@@ -21,7 +21,7 @@ import useBudgets from "../../../hooks/budgets/useBudgets";
 import FileUploadInput from "../../../components/FileUploadInput";
 import { toast } from "react-toastify";
 import useAssetsAccounts from "../../../hooks/accounts/useAssetsAccounts";
-//import CustomDropdown from "../../../components/custom/customDropdown";
+import useChartOfAccounts from "../../../hooks/accounts/useChartOfAccounts";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -34,8 +34,8 @@ interface AddOrModifyItemProps {
   journalType: string;
   creditAccountsHeader: string;
   debitAccountsHeader: string;
-  //journalId: number
 }
+
 interface AddLedger {
   transaction_date: Date;
   reference: string;
@@ -92,7 +92,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const { data: currenciesData, loading: currenciesLoading } = useCurrencies();
   const { data: projects, loading: projectsLoading } = useProjects();
   const { data: budgets, loading: budgetsLoading } = useBudgets();
-  const { data: accounts, refresh } = useAssetsAccounts();
+  const { data, refresh: getCOA } = useChartOfAccounts();
+  const {
+    expenseAccounts,
+    cashAccounts,
+    data: accounts,
+    refresh,
+  } = useAssetsAccounts();
 
   useEffect(() => {
     if (!accounts) {
@@ -100,15 +106,17 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }
   }, [accounts]);
 
+  useEffect(()=> {
+    console.log('coa', data)
+    if(!data){
+      getCOA();
+    }
+  }, [])
+
   const currencies = currenciesData.map((curr) => ({
     label: curr.code,
     value: curr.id,
   }));
-
-  // useEffect(() => {
-  //   console.log("jt", journalType);
-  //   console.log("item", item);
-  // }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -124,18 +132,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Validate required fields
-    // if (
-    //   !formState.journal_type_id ||
-    //   !formState.currency_id ||
-    //   formState?.lines.length === 0
-    // ) {
-    //   toast.warn("Please fill in all required fields.");
-    //   setIsSubmitting(false);
-    //   return;
-    // }
-
-    // Prepare the payload
     const data = {
       ...formState,
       transaction_date:
@@ -161,7 +157,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       setIsSubmitting(false);
 
       onSave();
-      onClose(); // Close the modal after saving
+      onClose();
     } catch (error) {
       console.error("Error saving transaction:", error);
       toast.error("An error occurred while saving the transaction.");
@@ -213,6 +209,29 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       ...prevState,
       lines: updatedLines,
     }));
+  };
+
+  const getDebitAccountOptions = () => {
+    if (journalType.toLowerCase().includes("expense")) {
+      return expenseAccounts;
+    } else if (journalType.toLowerCase().includes("income")) {
+      return cashAccounts;
+    } else if (journalType.toLowerCase().includes("bank")) {
+      return cashAccounts;
+    }else {
+      return cashAccounts;
+    }
+  };
+
+  const getCreditAccountOptions = () => {
+    if (journalType.toLowerCase().includes("expense")) {
+      return cashAccounts;
+    } else if (journalType.toLowerCase().includes("income")) {
+      return expenseAccounts;
+    } else if (journalType.toLowerCase().includes("bank")) {
+      return cashAccounts;
+    }
+    return [];
   };
 
   return (
@@ -365,10 +384,52 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   className="p-inputtext-sm"
                   loading={false}
                   value={line.debit_account_id}
-                  options={accounts.map((account) => ({
-                    value: account.id,
-                    label: account.name,
-                  }))}
+                  filter
+                  options={
+                    journalType.toLowerCase().includes("expense")
+                      ? data
+                          .filter(
+                            (acc) =>
+                              acc.account_sub_category.account_category.name ==
+                              "Expenses"
+                          )
+                          .map((account) => ({
+                            value: account.id,
+                            label: account.name,
+                          }))
+                      : journalType.toLowerCase().includes("income") ||
+                        journalType.toLowerCase().includes("clear")
+                      ? data
+                          .filter(
+                            (acc) =>
+                              acc.account_sub_category.account_category.name ==
+                              "Assets"
+                          )
+                          .map((account) => ({
+                            value: account.id,
+                            label: account.name,
+                          }))
+                      : journalType.toLowerCase().includes("general")
+                      ? data.map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("payable")
+                      ? data
+                          .filter(
+                            (acc) =>
+                              acc.account_sub_category.account_category.name ==
+                              "Liabilities"
+                          )
+                          .map((account) => ({
+                            value: account.id,
+                            label: account.name,
+                          }))
+                      : getDebitAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                  }
                   onChange={(e) =>
                     handleItemChange(
                       options.rowIndex,
@@ -386,11 +447,53 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                 <Dropdown
                   className="p-inputtext-sm"
                   loading={false}
+                  filter
                   value={line.credit_account_id}
-                  options={accounts.map((account) => ({
-                    value: account.id,
-                    label: account.name,
-                  }))}
+                  options={
+                    journalType.toLowerCase().includes("expense") ||
+                    journalType.toLowerCase().includes("clear")
+                      ? data
+                          .filter(
+                            (acc) =>
+                              acc.account_sub_category.account_category.name ==
+                              "Assets"
+                          )
+                          .map((account) => ({
+                            value: account.id,
+                            label: account.name,
+                          }))
+                      : journalType.toLowerCase().includes("sales")
+                      ? data
+                          .filter(
+                            (acc) =>
+                              acc.account_sub_category.account_category.name ==
+                              "Income"
+                          )
+                          .map((account) => ({
+                            value: account.id,
+                            label: account.name,
+                          }))
+                      : journalType.toLowerCase().includes("general")
+                      ? data.map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("payable")
+                      ? data
+                          .filter(
+                            (acc) =>
+                              acc.account_sub_category.account_category.name ==
+                              "Liabilities"
+                          )
+                          .map((account) => ({
+                            value: account.id,
+                            label: account.name,
+                          }))
+                      : getCreditAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                  }
                   onChange={(e) =>
                     handleItemChange(
                       options.rowIndex,

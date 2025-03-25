@@ -1,16 +1,8 @@
 import { Icon } from "@iconify/react";
 
 import Reports from "../pages/reports";
-//import TrialBalances from "../pages/reports/trialBalances";
-//import ReportsSummary from "../pages/reports/reportsSummary";
-// import BalanceSheet from "../pages/reports/balanceSheet";
-import IncomeStatement from "../pages/reports/incomeStatement";
-import CashBook from "../pages/reports/cashBook";
-//import TrialBalances from "../pages/reports/trialBalances";
-// import ReportsSummary from "../pages/reports/reportsSummary";
-import BalanceSheet from "../pages/reports/balanceSheet";
-// import OutOfStockReport from "../pages/reports/inventory/out_of_stock_report";
-// import StockTakingReport from "../pages/reports/inventory/stock_taking_report";
+import IncomeStatementReport from "../pages/reports/accounting/IncomeStatementReport";
+import BalanceSheetReport from "../pages/reports/accounting/BSReport";
 
 const REPORTS_ROUTES = [
   {
@@ -34,7 +26,7 @@ const REPORTS_ROUTES = [
         name: "Income Statement",
         icon: <Icon icon="solar:chart-line-duotone" fontSize={20} />, // Icon for Income Statement
         path: "/reports/income-statement",
-        element: <IncomeStatement />,
+        element: <IncomeStatementReport />,
       },
       // {
       //   name: "Balance Sheet",
@@ -70,14 +62,14 @@ const REPORTS_ROUTES = [
         name: "Balance Sheet",
         icon: <Icon icon="solar:wallet-line-duotone" fontSize={20} />, // Icon for Balance Sheet
         path: "/balance-sheet",
-        element: <BalanceSheet />,
+        element: <BalanceSheetReport />,
       },
-      {
-        name: "Cash Book",
-        icon: <Icon icon="solar:wallet-line-duotone" fontSize={20} />, // Icon for Balance Sheet
-        path: "/cash-book",
-        element: <CashBook />,
-      },
+      // {
+      //   name: "Cash Book",
+      //   icon: <Icon icon="solar:wallet-line-duotone" fontSize={20} />, // Icon for Balance Sheet
+      //   path: "/cash-book",
+      //   element: <CashBook />,
+      // },
       // {
       //   name: "Reports Summary",
       //   icon: <Icon icon="solar:book-line-duotone" fontSize={20} />, // Icon for Reports Summary

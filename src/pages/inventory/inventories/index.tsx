@@ -11,6 +11,10 @@ import useWarehouses from "../../../hooks/inventory/useWarehouses";
 import { Dropdown } from "primereact/dropdown";
 import ConfirmModal from "./confirm_modal";
 import { useNavigate } from "react-router-dom";
+import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
+import { createRequest } from "../../../utils/api";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux/store";
 
 const Inventories: React.FC = () => {
   const { data, refresh } = useInventoryRecords();
@@ -18,6 +22,7 @@ const Inventories: React.FC = () => {
   const navigate = useNavigate()
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
+  const token = useSelector((state: RootState)=> state.userAuth.token);
   const [storeId, setStoreId] = useState(1);
   const [storeData, setStoreData] = useState([]);
   const [selectedStore, setSelectedStore] = useState(0);
@@ -34,10 +39,10 @@ const Inventories: React.FC = () => {
     if (!data) {
       refresh();
     } else {
-      const dat = data.filter((store) => store.warehouse_id === storeId);
-      setStoreData(dat[0]?.stock_movements?.stock_in);
+      const dat = data && data.filter((store) => store.warehouse_id === storeId);
+      setStoreData(dat[0]?.stock_movements?.stock_in.transactions);
     }
-  }, [storeId]);
+  }, [storeId, data]);
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: Inventory | undefined;
@@ -50,15 +55,36 @@ const Inventories: React.FC = () => {
     }
   };
 
+  const reverseTransaction = async (id: number) => {
+    try {
+      console.log("Reversing transaction for ID:", id); // Debugging log
+
+      await createRequest(
+        INVENTORY_ENDPOINTS.INVENTORIES.REVERSE,
+        token.access_token,
+        { unique_id: id },
+        refresh,
+        "POST"
+      );
+
+      refresh();
+    } catch (error) {
+      console.log("Failed to reverse transaction", error);
+    }
+  };
+
+
   const columnDefinitions: ColDef<any>[] = [
     {
       headerName: "Name",
-      field: "item_name",
+      field: "item.name",
       sortable: true,
       filter: true,
-      cellClass: 'cursor-pointer hover:underline',
+      cellClass: "cursor-pointer hover:underline",
       onCellClicked: (event) => {
-        navigate(`/inventory/item/${event.data.item_id}/${event.data.item_name}`);
+        navigate(
+          `/inventory/item/${event.data.item_id}/${event.data.item_name}`
+        );
       },
     },
     {
@@ -84,22 +110,41 @@ const Inventories: React.FC = () => {
     },
     {
       headerName: "Action",
-      cellClass: "flex justify-center",
+      cellClass: "flex justify-center space-x-2",
       //@ts-expect-error --ignore
       cellRenderer: (params) => {
         const status = params.data.status;
-        return status === "pending" ? (
-          <button
-            onClick={() => {
-              setSelectedStore(params.data.warehouse_id); // Use params.data.warehouse_id
-              setIsConfirmModalOpen(true);
-              setRecordId(params.data.id)
-            }}
-            className="rounded-md text-white bg-orange-500 h-8 w-16 -p-5 flex ite"
-          >
-            Confirm
-          </button>
-        ) : null;
+
+        return (
+          <div className="flex gap-2">
+            {/* Confirm Button - Only visible when status is 'pending' */}
+            {status === "pending" && (
+              <button
+                onClick={() => {
+                  setSelectedStore(params.data.warehouse_id);
+                  setIsConfirmModalOpen(true);
+                  setRecordId(params.data.id);
+                }}
+                className="rounded-md text-white bg-orange-500 h-8 w-20 flex items-center justify-center"
+              >
+                Confirm
+              </button>
+            )}
+
+            {/* Reverse Transaction Button - Always Visible */}
+            <button
+              onClick={() => {
+                // Handle reverse transaction logic
+                setRecordId(params.data.id);
+                //setIsReverseModalOpen(true);
+              }}
+              className="rounded-md text-white bg-red-500 pb-2 pr-2 pl-2 flex items-center justify-center"
+              onClickCapture={() => reverseTransaction(params.data.id)}
+            >
+              Undo
+            </button>
+          </div>
+        );
       },
     },
   ];
@@ -111,7 +156,7 @@ const Inventories: React.FC = () => {
         warehouse_id={selectedStore} // Pass selectedStore directly
         onClose={() => setIsConfirmModalOpen(false)}
         visible={isConfirmModalOpen}
-        onSave={() => {}}
+        onSave={refresh}
         refresh={refresh}
       />
       <AddOrModifyItem
@@ -178,7 +223,7 @@ const Inventories: React.FC = () => {
             </button>
           </div>
         </div>
-        <Table columnDefs={columnDefinitions} data={storeData} ref={tableRef} />
+        <Table columnDefs={columnDefinitions} data={storeData ? storeData : []} ref={tableRef} />
       </div>
     </div>
   );

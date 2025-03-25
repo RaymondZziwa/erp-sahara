@@ -1,13 +1,11 @@
+//@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Dropdown, DropdownChangeEvent } from "primereact/dropdown";
-import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
-import { API_ENDPOINTS } from "../../../api/apiEndpoints";
-import useItems from "../../../hooks/inventory/useItems";
 import { Icon } from "@iconify/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";

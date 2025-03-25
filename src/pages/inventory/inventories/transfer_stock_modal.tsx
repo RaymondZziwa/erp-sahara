@@ -48,7 +48,7 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
     quantity: 0,
     type: "",
     movement_date: "",
-    warehouse_id:1,
+    warehouse_id: 0,
     to_warehouse_id: 0,
     movement_reason:"",
     picked_by:"",
@@ -204,7 +204,7 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
           </label>
           <Dropdown
             required
-            name="from_warehouse_id"
+            name="warehouse_id"
             value={stockOutForm.warehouse_id}
             onChange={handleStockOutDropdownChange}
             options={warehouses}

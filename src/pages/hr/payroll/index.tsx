@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
@@ -7,26 +8,27 @@ import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog"
 import BreadCrump from "../../../components/layout/bread_crump";
 import Table from "../../../components/table";
 
-import useFiscalYears from "../../../hooks/budgets/useFiscalYears";
-import { FiscalYear } from "../../../redux/slices/types/budgets/FiscalYear";
-import { BUDGETS_ENDPOINTS } from "../../../api/budgetsEndpoints";
+import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
+import usePayroll from "../../../hooks/hr/usePayroll";
+import {
+  Payroll,
+  PayRollPeriod,
+} from "../../../redux/slices/types/hr/salary/PayRollPeriod";
+import { useReactToPrint } from "react-to-print";
+import { PrintableContent } from "./payroll_print";
 
-const FiscalYears: React.FC = () => {
-  const { data, refresh } = useFiscalYears();
+const PayrollPage: React.FC = () => {
+  const { data, refresh } = usePayroll();
   const tableRef = useRef<any>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactToPrintFn = useReactToPrint({ contentRef });
 
   const [dialogState, setDialogState] = useState<{
-    selectedItem: FiscalYear | undefined;
+    selectedItem: Payroll | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
-
-  const columnDefinitions: ColDef<FiscalYear>[] = [
+  const columnDefinitions: ColDef<Payroll>[] = [
     {
       headerName: "ID",
       field: "id",
@@ -35,73 +37,71 @@ const FiscalYears: React.FC = () => {
       width: 100,
     },
     {
+      headerName: "Name",
+      field: "employee",
+      sortable: true,
+      filter: true,
+      cellRenderer: (params: ICellRendererParams<Payroll>) => (
+        <div>
+          {params.data?.employee?.first_name} {params.data?.employee?.last_name}
+        </div>
+      ),
+    },
+    {
       headerName: "Start Date",
       field: "start_date",
       sortable: true,
       filter: true,
+      cellRenderer: (params: ICellRendererParams<PayRollPeriod>) => (
+        <div>{params.data?.payroll_period.start_date}</div>
+      ),
     },
     {
       headerName: "End Date",
       field: "end_date",
       sortable: true,
       filter: true,
-      suppressSizeToFit: true,
+      cellRenderer: (params: ICellRendererParams<PayRollPeriod>) => (
+        <div>{params.data?.payroll_period.end_date}</div>
+      ),
     },
     {
-      headerName: "Financial Year",
-      field: "financial_year",
+      headerName: "Created",
+      field: "created_at",
       sortable: true,
       filter: true,
-      suppressSizeToFit: true,
+      cellRenderer: (params: ICellRendererParams<Payroll>) => (
+        <div>
+          {new Date(params.data?.created_at ?? new Date()).toLocaleString()}
+        </div>
+      ),
     },
-    {
-      headerName: "Remaining days",
-      field: "remaining_days",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Should alert",
-      field: "should_alert",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Status",
-      field: "status",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-
     {
       headerName: "Actions",
       field: "id",
       sortable: false,
       filter: false,
-      cellRenderer: (params: ICellRendererParams<FiscalYear>) => (
+      cellRenderer: (params: ICellRendererParams<Payroll>) => (
         <div className="flex items-center gap-2">
           <button
             className="bg-shade px-2 py-1 rounded text-white"
             onClick={() =>
-              setDialogState({
-                ...dialogState,
+              setDialogState((prev) => ({
+                ...prev,
                 currentAction: "edit",
                 selectedItem: params.data,
-              })
+              }))
             }
           >
             Edit
           </button>
           <Icon
             onClick={() =>
-              setDialogState({
-                ...dialogState,
+              setDialogState((prev) => ({
+                ...prev,
                 currentAction: "delete",
                 selectedItem: params.data,
-              })
+              }))
             }
             icon="solar:trash-bin-trash-bold"
             className="text-red-500 cursor-pointer"
@@ -118,8 +118,8 @@ const FiscalYears: React.FC = () => {
         onSave={refresh}
         item={dialogState.selectedItem}
         visible={
-          dialogState.currentAction == "add" ||
-          (dialogState.currentAction == "edit" &&
+          dialogState.currentAction === "add" ||
+          (dialogState.currentAction === "edit" &&
             !!dialogState.selectedItem?.id)
         }
         onClose={() =>
@@ -128,7 +128,7 @@ const FiscalYears: React.FC = () => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={BUDGETS_ENDPOINTS.FISCAL_YEARS.DELETE(
+          apiPath={HUMAN_RESOURCE_ENDPOINTS.PAYROLL_PERIODS.DELETE(
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>
@@ -141,11 +141,11 @@ const FiscalYears: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Fiscal Years" pageName="All" />
+      <BreadCrump name="Payroll" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Fiscal Years Table</h1>
+            <h1 className="text-xl font-bold">Payroll</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -158,11 +158,11 @@ const FiscalYears: React.FC = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add Year
+              Add Payroll
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
+              onClick={reactToPrintFn}
             >
               <Icon icon="solar:printer-bold" fontSize={20} />
               Print
@@ -171,8 +171,23 @@ const FiscalYears: React.FC = () => {
         </div>
         <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />
       </div>
+      <div ref={contentRef} className="print-content">
+        <PrintableContent reportName={"Payroll"} data={data} />
+        <style>
+          {`
+                         @media print {
+                            .print-content {
+                              display: block !important;
+                            }
+                          }
+                          .print-content {
+                            display: none;
+                          }
+                      `}
+        </style>
+      </div>
     </div>
   );
 };
 
-export default FiscalYears;
+export default PayrollPage;

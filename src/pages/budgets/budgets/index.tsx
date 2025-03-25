@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useEffect, useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
@@ -12,12 +13,12 @@ import useBudgets from "../../../hooks/budgets/useBudgets";
 import { Budget } from "../../../redux/slices/types/budgets/Budget";
 import { formatDate } from "../../../utils/dateUtils";
 import { formatCurrency } from "../../../utils/formatCurrency";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Budgets: React.FC = () => {
   const { data, refresh } = useBudgets();
   const tableRef = useRef<any>(null);
-
+  const navigate = useNavigate()
   const [dialogState, setDialogState] = useState<{
     selectedItem: Budget | undefined;
     currentAction: "delete" | "edit" | "add" | "";
@@ -35,18 +36,15 @@ const Budgets: React.FC = () => {
 
   const columnDefinitions: ColDef<Budget>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "Name",
       field: "name",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
+      cellClass: "cursor-pointer hover:underline",
+      onCellClicked: (event) => {
+        navigate(`budget-details/${event?.data.id}`);
+      },
     },
     {
       headerName: "Allocated Amount",
@@ -70,38 +68,6 @@ const Budgets: React.FC = () => {
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
-    },
-    {
-      headerName: "Total Revenue",
-      field: "totalRevenue",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-      valueFormatter: (params) => formatCurrency(params.value), // Format as currency if required
-    },
-    {
-      headerName: "Total Expense",
-      field: "totalExpense",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-      valueFormatter: (params) => formatCurrency(params.value), // Format as currency if required
-    },
-    {
-      headerName: "Net Income",
-      field: "netIncome",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-      valueFormatter: (params) => formatCurrency(params.value), // Format as currency if required
-    },
-    {
-      headerName: "Net Cash Flow",
-      field: "netCashFlow",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-      valueFormatter: (params) => formatCurrency(params.value), // Format as currency if required
     },
     {
       headerName: "Created At",
@@ -201,7 +167,7 @@ const Budgets: React.FC = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add Budgets
+              Add Budget
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
