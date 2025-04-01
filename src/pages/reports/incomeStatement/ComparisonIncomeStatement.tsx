@@ -1,53 +1,55 @@
-import React, { useState, useEffect } from "react";
-import useAuth from "../../../hooks/useAuth";
-import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
+//@ts-nocheck
+import React, { useState, useEffect, useRef } from "react";
+import { Icon } from "@iconify/react";
 import { apiRequest } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
-import { Icon } from "@iconify/react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import useAuth from "../../../hooks/useAuth";
+import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
+import { useReactToPrint } from "react-to-print";
+import Header from "../../../components/custom/print_header";
 
-interface ComparisonIncomeStatementData {
-  income_statement: Incomestatement;
-  start_date: string;
-  end_date: string;
-  data: [];
+interface IncomeStatementData {
+  group_name: string;
+  categories: {
+    category_name: string;
+    current_total: number;
+    children: {
+      category_name: string;
+      current_total: number;
+      ledgers: {
+        ledger_name: string;
+        current_amount: number;
+      }[];
+    }[];
+  }[];
 }
 
-interface Ledger {
-  ledger_id: number;
-  ledger_name: string;
-  ledger_code: string;
-  amount: number;
-  previous_amount: number;
-  difference: number;
-}
-
-interface Incomestatement {
-  sub_category_id: number;
-  sub_category_name: string;
-  total: number;
-  ledgers: Ledger[];
-}
-
-const ComparisonIncomeStatement: React.FC = () => {
-  const [incomeStatement, setIncomeStatement] = useState<Incomestatement[]>([]);
+function ComparisonIncomeStatementReport() {
   const [isLoading, setIsLoading] = useState(false);
+  const [incomeStatementData, setIncomeStatementData] = useState<
+    IncomeStatementData[] | null
+  >(null);
+  const [openModalData, setOpenModalData] = useState<{
+    category_name: string;
+    ledgers: { ledger_name: string; current_amount: number }[];
+  } | null>(null);
+
   const { token, isFetchingLocalToken } = useAuth();
+
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactToPrintFn = useReactToPrint({ contentRef });
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken || !token.access_token) return;
     setIsLoading(true);
     try {
-      const response = await apiRequest<
-        ServerResponse<ComparisonIncomeStatementData>
-      >(
+      const response = await apiRequest<ServerResponse<any[]>>(
         REPORTS_ENDPOINTS.COMPARISON_INCOME_STATEMENT.GET_ALL,
         "GET",
         token.access_token
       );
-
-      setIncomeStatement(response.data.data);
+      console.log("isreport", response.data);
+      setIncomeStatementData(response.data); // Set the data property of the response
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -55,192 +57,337 @@ const ComparisonIncomeStatement: React.FC = () => {
     }
   };
 
+  const calculateGrossProfit = (categories) => {
+    // Find Total Income (Sales Revenue)
+    const salesRevenueCategory = categories.find(
+      (category) => category.category_name === "Sales Revenue"
+    );
+    const totalIncome = salesRevenueCategory
+      ? salesRevenueCategory.current_total
+      : 0;
+
+    // Find Total Direct Costs
+    const directCostsCategory = categories.find(
+      (category) => category.category_name === "Direct Costs"
+    );
+    const totalDirectCosts = directCostsCategory
+      ? directCostsCategory.current_total
+      : 0;
+
+    // Gross Profit = Total Income - Total Direct Costs
+    return totalIncome - totalDirectCosts;
+  };
+
   useEffect(() => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-  const handleExportPDF = (data: Incomestatement[]) => {
-    const doc = new jsPDF();
-    doc.setFillColor(255, 255, 255);
-    doc.text("Income Statement Comparison Report", 20, 10);
+  // Function to open the modal
+  const handleRowClick = (child: {
+    category_name: string;
+    ledgers: { ledger_name: string; current_amount: number }[];
+  }) => {
+    // Check if the child has ledgers
+    if (child.ledgers && child.ledgers.length > 0) {
+      setOpenModalData(child);
+    }
+  };
 
-    const tableBody: any[] = [];
-
-    data.forEach((category) => {
-      const categoryTotal = category.total ?? "";
-      tableBody.push([
-        {
-          content: category.sub_category_name,
-          colSpan: 4,
-          styles: {
-            fillColor: [222, 226, 230], // Light Gray Background
-            fontStyle: "bold",
-            halign: "left",
-            cellPadding: 3,
-          },
-        },
-      ]);
-
-      tableBody.push([
-        {
-          content: "Name",
-          styles: { halign: "left", fontStyle: "bold" },
-        },
-        {
-          content: "Current Amount",
-          styles: { halign: "center", fontStyle: "bold" },
-        },
-        {
-          content: "Previous Amount",
-          styles: { halign: "center", fontStyle: "bold" },
-        },
-        {
-          content: "Difference",
-          styles: { halign: "center", fontStyle: "bold" },
-        },
-      ]);
-
-      category.ledgers.forEach((ledger) => {
-        tableBody.push([
-          ledger.ledger_name,
-          {
-            content: ledger.amount.toLocaleString(),
-            styles: { halign: "center" },
-          },
-          {
-            content: ledger.previous_amount.toLocaleString(),
-            styles: { halign: "center" },
-          },
-          {
-            content: ledger.difference.toLocaleString(),
-            styles: { halign: "center" },
-          },
-        ]);
-      });
-
-      tableBody.push([
-        {
-          content: "SubCategory Total",
-          colSpan: 3,
-          styles: {
-            fontStyle: "bold",
-            fillColor: [246, 249, 252],
-            halign: "left",
-          },
-        },
-        {
-          content: categoryTotal.toLocaleString(), // Use safe value
-          styles: { fontStyle: "bold", halign: "right" },
-        },
-      ]);
-    });
-
-    autoTable(doc, {
-      body: tableBody,
-      theme: "grid",
-      styles: { textColor: "black", cellPadding: 2, lineWidth: 0.2 },
-      margin: { top: 20 },
-      tableLineWidth: 0, // Removes outer table borders
-      tableLineColor: [255, 255, 255], // Makes sure no table outline
-      didParseCell: function (data) {
-        if (data.section === "body") {
-          data.cell.styles.lineWidth = {
-            top: 0.2,
-            right: 0,
-            bottom: 0.2,
-            left: 0,
-          }; // [top, right, bottom, left]
-        }
-      },
-    });
-
-    doc.save("IncomeStatementComparison.pdf");
+  // Function to close the modal
+  const closeModal = () => {
+    setOpenModalData(null);
   };
 
   return (
-    <div>
-      <div className="bg-white p-3">
-        <div className="flex justify-between items-center mb-4">
-          <p className="font-bold text-2xl">Income Statement Comparison</p>
-          <button
-            className="bg-shade p-3 rounded text-white flex gap-2 items-center"
-            onClick={() =>
-              incomeStatement.length > 0 && handleExportPDF(incomeStatement)
-            }
-          >
-            <Icon icon="solar:printer-bold" fontSize={20} />
-            Print
-          </button>
-        </div>
+    <div className="bg-white p-3">
+      <div className="flex justify-end items-center mb-4">
+        <button
+          className="bg-shade p-3 rounded text-white flex gap-2 items-center"
+          onClick={() => reactToPrintFn()}
+        >
+          <Icon icon="solar:printer-bold" fontSize={20} />
+          Print
+        </button>
+      </div>
 
-        {/* Custom Table Component */}
-        {isLoading ? (
-          "Loading..."
-        ) : (
-          <table className="w-full">
-            <tbody>
-              {incomeStatement?.map((category) => {
-                return (
-                  <>
-                    <tr className="font-bold bg-gray-200">
-                      <td className="p-3 " colSpan={4}>
-                        {category.sub_category_name}
-                      </td>
-                    </tr>
+      <div ref={contentRef} className="p-4">
+        <div className="flex flex-row justify-centeritems-center">
+          <Header title={"Income Statement Comparison Report"} />
+        </div>
+        {incomeStatementData ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white border border-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                  <th
+                    colSpan={1}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    2025
+                  </th>
+                  <th
+                    colSpan={1}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    2024
+                  </th>
+                </tr>
+                <tr>
+                  <th
+                    colSpan={3}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    {incomeStatementData[0].group_name}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {/* Map through categories */}
+                {incomeStatementData[0].categories.map((category, index) => (
+                  <React.Fragment key={index}>
+                    {/* Parent Category */}
                     <tr>
-                      <td className="px-3 py-2 border-gray-200 border-b">
-                        Name
-                      </td>
-                      <td className="px-3 py-2 border-gray-200 border-b">
-                        Current Amount
-                      </td>
-                      <td className="px-3 py-2 border-gray-200 border-b">
-                        Previous Amount
-                      </td>
-                      <td className="px-3 py-2 border-gray-200 border-b">
-                        Difference
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        <strong>{category.category_name}</strong>
                       </td>
                     </tr>
-                    {category.ledgers.map((ledger: any) => {
-                      return (
-                        <tr>
-                          <td className="px-3 py-2 border-gray-200 border-b">
-                            {ledger.ledger_name}
+
+                    {/* Map through children */}
+                    {category.children.map((child, childIndex) => (
+                      <React.Fragment key={childIndex}>
+                        {/* Child Category */}
+
+                        {/* Map through nested children (category.children.children) */}
+                        {child.children &&
+                          child.children.map(
+                            (nestedChild, nestedChildIndex) => (
+                              <React.Fragment key={nestedChildIndex}>
+                                {/* Nested Child Category */}
+                                <tr
+                                  onClick={() => handleRowClick(nestedChild)}
+                                  className={`${
+                                    nestedChild.ledgers &&
+                                    nestedChild.ledgers.length > 0
+                                      ? "cursor-pointer hover:bg-gray-50"
+                                      : "cursor-default"
+                                  }`}
+                                >
+                                  <td className="px-14 py-4 text-gray-700">
+                                    {nestedChild.child_name}
+                                  </td>
+
+                                  <td className="px-6 py-4 text-gray-500">
+                                    {nestedChild.current_total}
+                                  </td>
+                                  <td className="px-6 py-4 text-gray-500">
+                                    {nestedChild.previous_total}
+                                  </td>
+                                </tr>
+                              </React.Fragment>
+                            )
+                          )}
+                        <tr
+                          onClick={() => handleRowClick(child)}
+                          className={`${
+                            child.ledgers && child.ledgers.length > 0
+                              ? "cursor-pointer hover:bg-gray-50"
+                              : "cursor-default"
+                          }`}
+                        >
+                          <td className="px-10 py-4 text-gray-700">
+                            Total {child.category_name}
                           </td>
-                          <td className="px-3 py-2 border-gray-200 border-b">
-                            {ledger.amount.toLocaleString()}
+                          <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
+                            {child.current_total}
                           </td>
-                          <td className="px-3 py-2 border-gray-200 border-b">
-                            {ledger.previous_amount.toLocaleString()}
-                          </td>
-                          <td className="px-3 py-2 border-gray-200 border-b">
-                            {ledger.difference.toLocaleString()}
+                          <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
+                            {child.previous_total}
                           </td>
                         </tr>
-                      );
-                    })}
-                    <tr className="font-bold bg-gray-100">
-                      <td className="p-3 " colSpan={3}>
-                        SubCategory Total
-                      </td>
-                      <td className="p-3 ">
-                        {Number(category.total)
-                          ? category.total.toLocaleString()
-                          : ""}
+                      </React.Fragment>
+                    ))}
+                  </React.Fragment>
+                ))}
+
+                {/* Gross Profit */}
+                <tr>
+                  <td className="px-6 py-4 font-medium text-gray-900">
+                    Gross Profit/Loss
+                  </td>
+                  <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
+                    {calculateGrossProfit(incomeStatementData[0].categories) ||
+                      "XXXXX"}
+                  </td>
+                  <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
+                    {calculateGrossProfit(incomeStatementData[0].categories) ||
+                      "XXXXX"}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <table className="min-w-full bg-white border border-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th
+                    colSpan={3}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    {incomeStatementData[1].group_name}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {/* Map through categories */}
+                {incomeStatementData[1].categories.map((category, index) => (
+                  <React.Fragment key={index}>
+                    {/* Parent Category */}
+                    <tr>
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        <strong>{category.category_name}</strong>
                       </td>
                     </tr>
-                  </>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-        {isLoading === false && incomeStatement.length === 0 && (
-          <p className="text-left">No data available</p>
+
+                    {/* Map through children */}
+                    {category.children.map((child, childIndex) => (
+                      <React.Fragment key={childIndex}>
+                        {/* Child Category */}
+
+                        {/* Map through nested children (category.children.children) */}
+                        {child.children &&
+                          child.children.map(
+                            (nestedChild, nestedChildIndex) => (
+                              <React.Fragment key={nestedChildIndex}>
+                                {/* Nested Child Category */}
+                                <tr
+                                  onClick={() => handleRowClick(nestedChild)}
+                                  className={`${
+                                    nestedChild.ledgers &&
+                                    nestedChild.ledgers.length > 0
+                                      ? "cursor-pointer hover:bg-gray-50"
+                                      : "cursor-default"
+                                  }`}
+                                >
+                                  <td className="px-14 py-4 text-gray-700">
+                                    {nestedChild.child_name}
+                                  </td>
+
+                                  <td className="px-6 py-4 text-gray-500">
+                                    {nestedChild.current_total}
+                                  </td>
+                                  <td className="px-6 py-4 text-gray-500">
+                                    {nestedChild.previous_total}
+                                  </td>
+                                </tr>
+                              </React.Fragment>
+                            )
+                          )}
+                        <tr
+                          onClick={() => handleRowClick(child)}
+                          className={`${
+                            child.ledgers && child.ledgers.length > 0
+                              ? "cursor-pointer hover:bg-gray-50"
+                              : "cursor-default"
+                          }`}
+                        >
+                          <td className="px-10 py-4 text-gray-700">
+                            Total {child.category_name}
+                          </td>
+
+                          <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
+                            {child.current_total}
+                          </td>
+                          <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
+                            {child.previous_total}
+                          </td>
+                        </tr>
+                      </React.Fragment>
+                    ))}
+                  </React.Fragment>
+                ))}
+
+                {/* Gross Profit */}
+                <tr>
+                  <td className="px-6 py-4 font-medium text-gray-900">
+                    NET Profit/Loss
+                  </td>
+                  <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
+                    {calculateGrossProfit(incomeStatementData[0].categories) ||
+                      "XXXXX"}
+                  </td>
+                  <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
+                    {calculateGrossProfit(incomeStatementData[0].categories) ||
+                      "XXXXX"}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="flex justify-center items-center bg-red">
+            <p>Initializing report. Please be patient....</p>
+          </div>
         )}
       </div>
+
+      {/* Modal for Ledgers */}
+      {openModalData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-lg font-medium text-gray-900">
+                Ledgers for {openModalData.child_name}
+              </h2>
+              <table className="min-w-full mt-4">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ledger Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Amount
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {openModalData.ledgers && openModalData.ledgers.length > 0 ? (
+                    openModalData.ledgers.map((ledger, ledgerIndex) => (
+                      <tr key={ledgerIndex}>
+                        <td className="px-6 py-4 text-gray-700">
+                          {ledger.ledger_name}
+                        </td>
+                        <td className="px-6 py-4 text-gray-500">
+                          {ledger.current_amount}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={2}
+                        className="px-6 py-4 text-gray-500 italic"
+                      >
+                        No ledgers available
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex justify-end p-6">
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {!isLoading && incomeStatementData === null && "No data present"}
     </div>
   );
-};
+}
 
-export default ComparisonIncomeStatement;
+export default ComparisonIncomeStatementReport;

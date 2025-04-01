@@ -71,6 +71,7 @@ export interface User {
   is_first_login: boolean;
   full_name: string;
   roles: Role[];
+  employee_id: number;
 }
 
 interface Role {

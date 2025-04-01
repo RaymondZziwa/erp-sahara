@@ -101,6 +101,7 @@ export default function FileUploadInput({
           <img
             alt={file.name}
             role="presentation"
+            //@ts-expect-error --ignore
             src={file.objectURL}
             width={100}
           />

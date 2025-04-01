@@ -64,9 +64,7 @@ const AddOrModifyAccountSubCategory: React.FC<
     setIsSubmitting(true);
 
     if (
-      !formState.name ||
-      !formState.account_category_id ||
-      !formState.parent_id
+      !formState.name
     ) {
       setIsSubmitting(false);
       return; // Handle validation error here
@@ -211,16 +209,6 @@ const AddOrModifyAccountSubCategory: React.FC<
             required
           />
         </div>
-        {/* <div className="p-field">
-          <label htmlFor="code">Code</label>
-          <InputText
-            id="code"
-            name="code"
-            value={formState.code || ""}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div> */}
       </form>
     </Dialog>
   );

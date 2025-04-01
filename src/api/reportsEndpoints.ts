@@ -1,6 +1,6 @@
 export const REPORTS_ENDPOINTS = {
   GENERAL_LEDGERS: {
-    GET_ALL: "/erp/accounts/general-ledger",
+    GET_ALL: "/erp/reports/accounting/general-ledger?start_date=2025-01-01&end_date=2025-02-16",
   },
   TRIAL_BALANCES: {
     GET_ALL: "/erp/reports/accounting/false/detail-trial-balance",

@@ -21,6 +21,8 @@ import useEmployees from "../../../../hooks/hr/useEmployees";
 import { createRequest } from "../../../../utils/api";
 import { formatCurrency } from "../../../../utils/formatCurrency";
 import { Card } from "primereact/card";
+import useLedgers from "../../../../hooks/accounts/useLedgers";
+import { toast } from "react-toastify";
 
 interface AddCashRequisition {
   title: string;
@@ -45,7 +47,8 @@ interface ReqItem {
   quantity: number;
   unit_cost: number;
   price: number;
-  budget_item_id?: number; //When a budget is selected on a requisition an added item must be compared to its budgeted value
+  chart_of_account_id: any;
+  budget_item_id?: any; //When a budget is selected on a requisition an added item must be compared to its budgeted value
 }
 
 // interface AddOrModifyItemProps {
@@ -58,46 +61,16 @@ interface ReqItem {
 const AddCashRequisition: React.FC = () => {
   const [formState, setFormState] = useState<Partial<AddCashRequisition>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedItemType, setSelectedItemType] = useState("All");
+  const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
 
   const { token } = useAuth();
+  const { data: expenseAccounts } = useLedgers();
   const { data: currencies } = useCurrencies();
   const { data: inventoryItems } = useItems();
   const { data: projects } = useProjects();
   const { data: budgets } = useBudgets();
   const { data: employees } = useEmployees();
   const { data: departments } = useDepartments();
-
-  //   useEffect(() => {
-  //     if (item) {
-  //       setFormState({
-  //         title: item.title,
-  //         total_amount: +item.total_amount,
-  //         currency_id: item.currency_id,
-  //         date_expected: item.date_expected,
-  //         requester_id: item.requester_id,
-  //         department_id: item.department_id,
-  //         purpose: item.purpose,
-  //         segment_id: item.segment_id,
-  //         budget_id: item?.budget_id ?? undefined,
-  //         project_id: item.project_id,
-  //         branch_id: item.branch_id,
-  //         items: item.cash_requisition_items.map((it) => ({
-  //           uuid: uuidv4(),
-  //           item_id: it.id,
-  //           item_name: it.item_name,
-  //           quantity: +it.quantity,
-  //           price: +it.item.cost_price,
-  //           budget_item_id: item.budget_id == null ? undefined : +item.budget_id,
-  //           item_type:
-  //             inventoryItems.find((reqIt) => reqIt.id == it.item_id)?.item_type ??
-  //             "Product",
-  //         })),
-  //       });
-  //     } else {
-  //       setFormState({});
-  //     }
-  //   }, [item]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -110,10 +83,20 @@ const AddCashRequisition: React.FC = () => {
   };
 
   const handleSelectChange = (name: keyof AddCashRequisition, value: any) => {
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    if (name === "budget_id") {
+      setFormState((prevState) => ({
+        ...prevState,
+        [name]: value,
+      }));
+      const selected = budgets.find((budget) => budget.id === value);
+      console.log("selected budget:", selected);
+      setSelectedBudget(selected);
+    } else {
+      setFormState((prevState) => ({
+        ...prevState,
+        [name]: value,
+      }));
+    }
   };
 
   const handleItemChange = (
@@ -130,10 +113,10 @@ const AddCashRequisition: React.FC = () => {
     }));
   };
 
-  const handleItemSelectChange = (index: number, value: string) => {
-    const selectedItem = allItems.find((item) => item.uuid == value);
-
+  const handleItemSelectChange = (index: number, value: number) => {
+    const selectedItem = allItems.find((item) => item.item_id === value);
     if (selectedItem) {
+      console.log('selectedItem', selectedItem)
       const updatedItems = [...(formState.items ?? [])];
       updatedItems[index] = {
         ...updatedItems[index],
@@ -141,7 +124,8 @@ const AddCashRequisition: React.FC = () => {
         item_name: selectedItem.item_name,
         price: +selectedItem.price,
         unit_cost: +selectedItem.price,
-        budget_item_id: selectedItem?.budget_item_id,
+        budget_item_id: selectedItem.budget_item_id,
+        chart_of_account_id: selectedItem.chart_of_account_id,
       };
 
       setFormState((prevState) => ({
@@ -174,6 +158,7 @@ const AddCashRequisition: React.FC = () => {
           quantity: 0,
           uuid: uuidv4(),
           item_type: "",
+          chart_of_account_id: 0
         },
       ],
     }));
@@ -189,19 +174,24 @@ const AddCashRequisition: React.FC = () => {
     // }
     const onSave = () => {};
     const method = "POST";
-     const data = {
-       ...formState,
-       date_expected: new Date(formState.date_expected ?? new Date())
-         .toISOString()
-         .slice(0, 10),
-       items: formState.items?.map((item) => ({
-         ...item,
-         unit_cost: item.unit_cost ?? 0, // Explicitly include `unit_cost`
-       })),
-     };
+    const data = {
+      ...formState,
+      date_expected: new Date(formState.date_expected ?? new Date())
+        .toISOString()
+        .slice(0, 10),
+      items: formState.items?.map((item) => ({
+        ...item,
+        unit_cost: item.unit_cost ?? 0, // Explicitly include `unit_cost`
+        chart_of_account_id: item.chart_of_account_id ?? 0, // Ensure chart_of_accounts_id is included
+      })),
+    };
+
+    //console.log('data', data)
     const endpoint = ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.ADD;
 
-    await createRequest(endpoint, token.access_token, data, onSave, method);
+    const res = await createRequest(endpoint, token.access_token, data, onSave, method);
+
+    toast.success(res.data.message)
     setIsSubmitting(false);
     onSave();
   };
@@ -219,7 +209,8 @@ const AddCashRequisition: React.FC = () => {
         item_name: item.name,
         quantity: 0,
         price: +item.amount_in_base_currency,
-        budget_item_id: item.budget_id,
+        chart_of_account_id: item.chart_of_account_id,
+        budget_item_id: item.id,
         uuid: uuidv4(),
         item_type:
           inventoryItems.find((reqIt) => reqIt.id == item.id)?.item_type ??
@@ -395,22 +386,7 @@ const AddCashRequisition: React.FC = () => {
         {/* Items Section */}
         <div className="col-span-1 md:col-span-2 xl:col-span-3">
           <h4 className="text-xl font-semibold">Items</h4>
-          <div className="my-2 flex w-max">
-            <Dropdown
-              className="p-inputtext-sm"
-              value={selectedItemType}
-              onChange={(e) => setSelectedItemType(e.value)}
-              options={[
-                { value: "All", label: "All" },
-                { value: "Products", label: "Products" },
-                { value: "Services", label: "Services" },
-              ].map((it) => ({
-                value: it.value,
-                label: it.label,
-              }))}
-              placeholder="Select an Item Type"
-            />
-          </div>
+          <div className="my-2 flex w-max"></div>
           <DataTable
             value={formState.items}
             emptyMessage="No items added yet."
@@ -436,18 +412,18 @@ const AddCashRequisition: React.FC = () => {
                   item.item_name
                 ) : (
                   <Dropdown
-                    value={item.uuid}
-                    options={(selectedItemType?.toLowerCase() == "all"
-                      ? allItems
-                      : allItems.filter(
-                          (item) =>
-                            item?.item_type?.toLowerCase() ==
-                            selectedItemType?.toLowerCase()
-                        )
-                    )?.map((it) => ({
-                      value: it.uuid,
-                      label: it.item_name,
-                    }))}
+                    value={formState.items}
+                    options={
+                      selectedBudget
+                        ? selectedBudget?.items.map((it) => ({
+                            value: it.id,
+                            label: it.name,
+                          }))
+                        : expenseAccounts.map((acc) => ({
+                            value: acc.id,
+                            label: acc.name,
+                          }))
+                    }
                     onChange={(e) =>
                       handleItemSelectChange(options.rowIndex, e.value)
                     }

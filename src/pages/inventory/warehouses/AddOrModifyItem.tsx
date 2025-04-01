@@ -6,6 +6,8 @@ import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import { Warehouse } from "../../../redux/slices/types/inventory/Warehouse";
+import { Dropdown } from "primereact/dropdown";
+import useWarehouseTypes from "../../../hooks/inventory/useWarehouseTypes";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -21,10 +23,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   onSave,
 }) => {
   const [formState, setFormState] = useState<Partial<Warehouse>>({
+    warehouse_type: 0,
     name: "",
     location: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+   const { data } = useWarehouseTypes();
 
   const { token } = useAuth();
   useEffect(() => {
@@ -32,10 +36,10 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       setFormState({
         name: item.name || "",
         location: item.location,
-        warehouse_type_id: 0,
+        warehouse_type: 0,
       });
     } else {
-      setFormState({ warehouse_type_id: 0, name: "", location: "" });
+      setFormState({ warehouse_type: 0, name: "", location: "" });
     }
   }, [item]);
 
@@ -47,6 +51,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
 
+    const handleDropdownChange = (e: { value: number }) => {
+      setFormState((prevState) => ({
+        ...prevState,
+        warehouse_type: e.value,
+      }));
+    };
+
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -55,6 +66,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       return; // You can handle validation error here
     }
     const data: Partial<Warehouse> = {
+      warehouse_type: formState.warehouse_type,
       name: formState.name,
       location: formState?.location,
       id: formState?.id,
@@ -98,12 +110,32 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       onHide={onClose}
     >
       <p className="mb-6">
-          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+        Fields marked with a red asterik (
+        <span className="text-red-500">*</span>) are mandatory.
       </p>
       <form id="item-form" onSubmit={handleSave}>
         <div className="p-fluid">
           <div className="p-field">
-            <label htmlFor="name">Name<span className="text-red-500">*</span></label>
+            <label htmlFor="warehouse_type">
+              Warehouse Type<span className="text-red-500">*</span>
+            </label>
+            <Dropdown
+              id="warehouse_type"
+              name="warehouse_type"
+              value={formState.warehouse_type}
+              options={data.map((storeType) => ({
+                value: storeType.id,
+                label: storeType.name,
+              }))}
+              onChange={handleDropdownChange}
+              className="w-full"
+              required
+            />
+          </div>
+          <div className="p-field">
+            <label htmlFor="name">
+              Name<span className="text-red-500">*</span>
+            </label>
             <InputText
               id="name"
               name="name"
@@ -114,7 +146,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           </div>
 
           <div className="p-field">
-            <label htmlFor="location">Address<span className="text-red-500">*</span></label>
+            <label htmlFor="location">
+              Address<span className="text-red-500">*</span>
+            </label>
             <InputText
               id="location"
               name="location"

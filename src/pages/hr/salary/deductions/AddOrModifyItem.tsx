@@ -37,6 +37,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     start_date: "",
     end_date: "",
     frequency: "One-Time",
+    employee: 0,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dateError, setDateError] = useState<string | null>(null);
@@ -54,6 +55,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         start_date: "",
         end_date: "",
         frequency: "One-Time",
+        employee: 0,
       });
     }
   }, [item]);
@@ -162,7 +164,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           <Dropdown
             id="employee_id"
             name="employee_id"
-            value={formState.employee_id || null}
+            value={formState.employee || null}
             options={employees?.map((employee) => ({
               label: `${employee.first_name} ${employee.last_name}`,
               value: employee.id,
@@ -187,7 +189,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             onChange={(e) => handleDropdownChange("deduction_type_id", e.value)}
             required
             className="w-full"
-            placeholder="Select an Allowance Type"
+            placeholder="Select a deduction type"
           />
         </div>
         <div className="p-field">

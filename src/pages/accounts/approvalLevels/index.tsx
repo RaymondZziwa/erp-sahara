@@ -27,13 +27,6 @@ const ApprovalLevels: React.FC = () => {
 
   const columnDefinitions: ColDef<ApprovalLevel>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "Name",
       field: "name",
       sortable: true,

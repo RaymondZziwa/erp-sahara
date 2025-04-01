@@ -12,13 +12,16 @@ const LowStockSummary = () => {
     useEffect(() => {
         const fetchData = async () => {
           try {
-            const response = await axios.get(`${baseURL}/erp/reports/dashboard/getlowstocksummary`, {
-                    headers: {
-                      "Content-Type": "application/json",
-                      Accept: "application/json",
-                      "Authorization": `Bearer ${token.access_token}`,
-                    },    
-            }); 
+            const response = await axios.get(
+              `${baseURL}/erp/reports/dashboard/getlowstockitemsummary`,
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                  Authorization: `Bearer ${token.access_token}`,
+                },
+              }
+            ); 
             setData(response.data.data); // Update the state with the API data
           } catch (error) {
             console.error("Error fetching data:", error);

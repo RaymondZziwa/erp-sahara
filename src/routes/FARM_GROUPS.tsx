@@ -14,9 +14,29 @@ const FARM_GROUP_ROUTES = [
     path: "",
     items: [
       {
-        name: "Farm Groups",
+        name: "Membership",
         icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
         path: "/",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <FarmGroups />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Registration",
+        icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
+        path: "#",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <FarmGroups />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Profiles",
+        icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
+        path: "#",
         element: (
           <Suspense fallback={<Loading />}>
             <FarmGroups />
@@ -26,14 +46,44 @@ const FARM_GROUP_ROUTES = [
     ],
   },
   {
-    name: "Crops Management",
+    name: "Others",
     icon: <Icon icon="mdi:view-dashboard-outline" fontSize={24} />,
     path: "",
     items: [
       {
-        name: "Crops",
+        name: "Economic Activities",
         icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
-        path: "/crops",
+        path: "#",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Crops />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Marketting",
+        icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
+        path: "#",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Crops />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Warehouses",
+        icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
+        path: "#",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Crops />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Grading Prices",
+        icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
+        path: "#",
         element: (
           <Suspense fallback={<Loading />}>
             <Crops />

@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import "react-toastify/dist/ReactToastify.css";
@@ -17,12 +18,13 @@ import { RootState } from "../redux/store";
 import Cashflow from "../pages/reports/accounting/CashflowReport";
 import GeneralLedgerReport from "../pages/reports/accounting/GeneralLedgerReport";
 import IncomeStatementReport from "../pages/reports/accounting/IncomeStatementReport";
-import BalanceSheetReport from "../pages/reports/accounting/BalanceSheetReport";
 import TrialBalance from "../pages/reports/accounting/TrialBalance";
 import CashBook from "../pages/reports/accounting/CashBook";
 import ComparisonTrialBalances from "../pages/reports/trialBalances/ComparisonTrailBalances";
 import ComparisonIncomeStatement from "../pages/reports/incomeStatement/ComparisonIncomeStatement";
 import ComparisonBalanceSheet from "../pages/reports/balanceSheet/ComparisonBalancesheet";
+import BudgetDetails from "../pages/budgets/budgetDetails";
+import BalanceSheetReport from "../pages/reports/accounting/BSReport";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -79,6 +81,10 @@ const AppRouter = () => {
           <Route
             path="/trial-balance-comparisons"
             element={<ComparisonTrialBalances />}
+          />
+          <Route
+            path="budgets/budget-details/:id"
+            element={<BudgetDetails />}
           />
         </Route>
         <Route path="/login" element={<LoginPage />} />

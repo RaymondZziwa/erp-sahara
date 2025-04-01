@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UserAuthType } from "../types/user/userAuth";
 

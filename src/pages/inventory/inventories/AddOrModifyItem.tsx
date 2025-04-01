@@ -11,6 +11,7 @@ import { Inventory } from "../../../redux/slices/types/inventory/Inventory";
 import { createRequest } from "../../../utils/api";
 import useWarehouses from "../../../hooks/inventory/useWarehouses";
 import useSuppliers from "../../../hooks/inventory/useSuppliers";
+import useInventoryRecords from "../../../hooks/inventory/useInventoryRecords";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -30,7 +31,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     ref_id: undefined,
     quantity: undefined,
     warehouse_id: undefined,
-    type:"",
+    type: "",
     received_date: "",
     organisation_id: undefined,
     updated_at: "",
@@ -41,6 +42,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   interface NewInventory extends Partial<Inventory> {}
   const [formState, setFormState] = useState<NewInventory>(initialItem);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { refresh } = useInventoryRecords();
 
   const { token } = useAuth();
   const { data: items } = useItems(); // Fetching items for dropdown
@@ -48,10 +50,10 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const { data: suppliers } = useSuppliers();
 
   const sources = [
-    {label: "Donations", value: 'donations'},
-    {label: "Return", value: 'return'},
-    {label: "Purchase", value: 'purchase'},
-  ]
+    { label: "Donations", value: "donations" },
+    { label: "Return", value: "return" },
+    { label: "Purchase", value: "purchase" },
+  ];
 
   useEffect(() => {
     if (item) {
@@ -107,6 +109,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         onSave,
         method
       );
+      refresh()
       setIsSubmitting(false);
 
       onSave();
@@ -200,7 +203,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             onChange={handleInputChange}
             required
             className="w-full"
-            min='1'
+            min="1"
           />
         </div>
 
@@ -242,7 +245,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             value={formState.supplier_id}
             onChange={handleDropdownChange}
             options={[
-              { label: "Select Supplier", value: null }, 
+              { label: "Select Supplier", value: null },
               ...suppliers.map((supplier) => ({
                 label: supplier.supplier_name,
                 value: supplier.id,
@@ -267,7 +270,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             }
             onChange={handleInputChange}
             className="w-full"
-            required   
+            required
           />
         </div>
       </form>

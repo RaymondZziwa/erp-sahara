@@ -15,7 +15,7 @@ import { Route } from "./routeTypes";
 import REPORTS_ROUTES from "./REPORTS";
 //import CROPS_ROUTES from "./CROPS";
 import CASHREQUISITION_ROUTES from "./CASH_REQUISITIONS";
-import MANUFACTURING_ROUTES from "./MANUFACTURING";
+//import MANUFACTURING_ROUTES from "./MANUFACTURING";
 import ASSETS from "./ASSETS";
 import FARM_GROUP_ROUTES from "./FARM_GROUPS";
 // import INVESTMENT_FINANCING from "./INVESTMENT_FINANCING";
@@ -40,16 +40,22 @@ const ROUTES: Route[] = [
     sidebarItems: INVENTORY_ROUTES,
   },
   {
+    name: "Expense Requisitions",
+    icon: <Icon icon="mdi:book-outline" fontSize={24} />, // More specific to project management
+    path: "/cash-requsuitions",
+    sidebarItems: CASHREQUISITION_ROUTES,
+  },
+  {
     name: "Accounts",
     icon: <Icon icon="mdi:finance" fontSize={24} />,
     path: "/accounts",
     sidebarItems: ACCOUNTS_ROUTES,
   },
   {
-    name: "Expense Requisitions",
-    icon: <Icon icon="mdi:book-outline" fontSize={24} />, // More specific to project management
-    path: "/cash-requsuitions",
-    sidebarItems: CASHREQUISITION_ROUTES,
+    name: "Budgets",
+    icon: <Icon icon="mdi:cash-multiple" fontSize={24} />, // Updated for better budget representation
+    path: "/budgets",
+    sidebarItems: BUDGETS_ROUTES,
   },
   {
     name: "Procurement",
@@ -63,19 +69,12 @@ const ROUTES: Route[] = [
     path: "/sales",
     sidebarItems: SALES_ROUTES,
   },
-  {
-    name: "Manufacturing",
-    icon: <Icon icon="mdi:cash-register" fontSize={24} />,
-    path: "/manufacturing",
-    sidebarItems: MANUFACTURING_ROUTES,
-  },
-  {
-    name: "Budgets",
-    icon: <Icon icon="mdi:cash-multiple" fontSize={24} />, // Updated for better budget representation
-    path: "/budgets",
-    sidebarItems: BUDGETS_ROUTES,
-  },
-
+  // {
+  //   name: "Manufacturing",
+  //   icon: <Icon icon="mdi:cash-register" fontSize={24} />,
+  //   path: "/manufacturing",
+  //   sidebarItems: MANUFACTURING_ROUTES,
+  // },
   // {
   //   name: "MOSS App",
   //   icon: <Icon icon="mdi:cellphone" fontSize={24} />,
@@ -98,7 +97,7 @@ const ROUTES: Route[] = [
   },
 
   {
-    name: "Farm Groups",
+    name: "Amcos",
     icon: <Icon icon="mdi:tractor" fontSize={24} />, // Example: Tractor icon for a farm-related look
     path: "/farm_groups",
     sidebarItems: FARM_GROUP_ROUTES,

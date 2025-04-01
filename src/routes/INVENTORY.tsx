@@ -7,6 +7,7 @@ import InventoryDashboard from "../pages/inventory/inventories/InventoryDashboar
 //import Dashboard from "../pages/inventory/inventories/new_dasboard";
 import POS from "../pages/inventory/pos/pos";
 import StockOut from "../pages/inventory/inventories/stock_out";
+import WarehouseTypes from "../pages/inventory/warehouses/warehouse_types";
 
 // Dynamic imports
 //const Dashboard = lazy(() => import("../pages/dashboard"));
@@ -96,6 +97,16 @@ const INVENTORY_ROUTES = [
         element: (
           <Suspense fallback={<Loading />}>
             <Warehouses />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Store types",
+        icon: <Icon icon="ph:house-simple-duotone" fontSize={20} />,
+        path: "/warehousetypes",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <WarehouseTypes />
           </Suspense>
         ),
       },

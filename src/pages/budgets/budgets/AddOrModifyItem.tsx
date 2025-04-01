@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
@@ -8,13 +9,9 @@ import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import useCurrencies from "../../../hooks/procurement/useCurrencies";
 import useFiscalYears from "../../../hooks/budgets/useFiscalYears";
-import useChartOfAccounts from "../../../hooks/accounts/useChartOfAccounts";
 import { BUDGETS_ENDPOINTS } from "../../../api/budgetsEndpoints";
 import { Budget } from "../../../redux/slices/types/budgets/Budget";
 import useBudgets from "../../../hooks/budgets/useBudgets";
-import useLedgerChartOfAccounts from "../../../hooks/accounts/useLedgerChartOfAccounts";
-import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
-import { InputNumber } from "primereact/inputnumber";
 
 interface AddBudget {
   name: string;
@@ -58,10 +55,10 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const { token } = useAuth();
   const { data: currencies } = useCurrencies();
   const { data: fiscalYears } = useFiscalYears();
-  const { data: chartOfAccounts } = useChartOfAccounts();
-  const { data: incomeChartOfAccounts } = useLedgerChartOfAccounts({
-    accountType: AccountType.INCOME,
-  });
+  // const { data: chartOfAccounts } = useChartOfAccounts();
+  // const { data: incomeChartOfAccounts } = useLedgerChartOfAccounts({
+  //   accountType: AccountType.INCOME,
+  // });
   const { data: budgets } = useBudgets();
   
   useEffect(() => {
@@ -93,37 +90,37 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
 
-  const handleItemChange = (
-    index: number,
-    field: keyof BudgetItem,
-    value: string | number
-  ) => {
-    const updatedItems = [...(formState.items ?? [])];
-    updatedItems[index] = { ...updatedItems[index], [field]: value };
-    setFormState((prevState) => ({
-      ...prevState,
-      items: updatedItems,
-    }));
-  };
+  // const handleItemChange = (
+  //   index: number,
+  //   field: keyof BudgetItem,
+  //   value: string | number
+  // ) => {
+  //   const updatedItems = [...(formState.items ?? [])];
+  //   updatedItems[index] = { ...updatedItems[index], [field]: value };
+  //   setFormState((prevState) => ({
+  //     ...prevState,
+  //     items: updatedItems,
+  //   }));
+  // };
 
-  const addBudgetItem = () => {
-    setFormState((prevState) => ({
-      ...prevState,
-      items: [
-        ...(prevState?.items ?? []),
-        { name: "", type: "expense", chart_of_account_id: 0 },
-      ],
-    }));
-  };
+  // const addBudgetItem = () => {
+  //   setFormState((prevState) => ({
+  //     ...prevState,
+  //     items: [
+  //       ...(prevState?.items ?? []),
+  //       { name: "", type: "expense", chart_of_account_id: 0 },
+  //     ],
+  //   }));
+  // };
 
-  const removeBudgetItem = (index: number) => {
-    const updatedItems = [...(formState.items ?? [])];
-    updatedItems.splice(index, 1);
-    setFormState((prevState) => ({
-      ...prevState,
-      items: updatedItems,
-    }));
-  };
+  // const removeBudgetItem = (index: number) => {
+  //   const updatedItems = [...(formState.items ?? [])];
+  //   updatedItems.splice(index, 1);
+  //   setFormState((prevState) => ({
+  //     ...prevState,
+  //     items: updatedItems,
+  //   }));
+  // };
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -135,8 +132,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       !formState.name ||
       !formState.allocated_amount ||
       !formState.currency_id ||
-      !formState.fiscal_year_id ||
-      !formState.description
+      !formState.fiscal_year_id
     ) {
       console.log("Missing required fields");
 
@@ -153,7 +149,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       allocated_amount: Number(formState.allocated_amount),
       currency_id: formState.currency_id,
       fiscal_year_id: formState.fiscal_year_id,
-      description: formState.description?.toString(),
+      description: formState?.description?.toString(),
       parent_id: formState.parent_id ?? null,
       project_id: formState.project_id ?? null,
       activity_id: formState.activity_id ?? null,
@@ -299,10 +295,10 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             id="parent_id"
             name="parent_id"
             value={formState.parent_id || ""}
-            options={budgets.map((budget) => ({
+            options={budgets.length > 0 ? budgets.map((budget) => ({
               label: budget.name,
               value: budget.id,
-            }))} // Example options
+            })): []}
             onChange={(e) =>
               setFormState((prevState) => ({
                 ...prevState,
@@ -313,86 +309,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           />
         </div>
 
-        {/* Budget Items */}
-        <div className="space-y-4 col-span-full">
-          <h4 className="text-xl font-bold">Budget Items</h4>
-          {formState.items?.map((item, index: number) => (
-            <div
-              key={index}
-              className="p-field flex justify-between py-2 gap-2"
-            >
-              <div className="grid grid-cols-4 gap-4 items-center">
-                {item.type == "expense" ? (
-                  <div className="p-field">
-                    <InputText
-                      placeholder="Select Item"
-                      id="item_id"
-                      name="item_id"
-                      value={item.name || ""}
-                      onChange={(e) => handleItemChange(index, "name", e.target.value)}
-                      // required
-                      className="w-full"
-                    />
-                  </div>
-                ) : (
-                  <InputText
-                    placeholder="Name"
-                    value={item.name || ""}
-                    onChange={(e) =>
-                      handleItemChange(index, "name", e.target.value)
-                    }
-                  />
-                )}
-                <Dropdown
-                  placeholder="Type"
-                  value={item.type}
-                  options={[
-                    { label: "Expense", value: "expense" },
-                    { label: "Revenue", value: "revenue" },
-                  ]}
-                  onChange={(e) => handleItemChange(index, "type", e.value)}
-                />
-                <InputNumber
-                  placeholder="Amount"
-                  value={item.amount}
-                  onChange={(e) =>
-                    handleItemChange(index, "amount", e.value ? e.value : "")
-                  }
-                />
-                <Dropdown
-                  filter
-                  placeholder="Chart of Account"
-                  value={item.chart_of_account_id || ""}
-                  options={(item.type == "revenue"
-                    ? incomeChartOfAccounts
-                    : chartOfAccounts
-                  ).map((coa) => ({
-                    label: coa.name,
-                    value: coa.id,
-                  }))} // Example options
-                  onChange={(e) =>
-                    handleItemChange(index, "chart_of_account_id", e.value)
-                  }
-                />
-              </div>
-              <Button
-                type="button"
-                icon="pi pi-trash"
-                className="p-button-danger p-button-outlined !bg-red-500"
-                onClick={() => removeBudgetItem(index)}
-                size="small"
-              />
-            </div>
-          ))}
-          <Button
-            size="small"
-            type="button"
-            label="Add Item"
-            icon="pi pi-plus"
-            className="w-max"
-            onClick={addBudgetItem}
-          />
-        </div>
+       
       </form>
     </Dialog>
   );

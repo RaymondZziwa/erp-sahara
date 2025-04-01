@@ -43,6 +43,7 @@ interface ReqItem {
   uuid: string;
   item_id: number;
   item_name: string;
+  chart_of_accounts_id: any;
   quantity: number;
   unit_cost: number;
   price: number;
@@ -64,13 +65,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 }) => {
   const [formState, setFormState] = useState<Partial<AddCashRequisition>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedItemType, setSelectedItemType] = useState("All");
   const { data: budgets, refresh } = useBudgets();
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const [allItems, setAllItems] = useState<ReqItem[]>([]);
 
   const { token } = useAuth();
   const { data: currencies } = useCurrencies();
+  const {data: expenseAccounts} = useLedgers()
   const { data: inventoryItems } = useItems();
   const { data: projects } = useProjects();
   const { data: employees } = useEmployees();
@@ -193,6 +194,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           price: 0,
           unit_cost: 0,
           budget_item_id: 0,
+          chart_of_accounts_id: 0,
           quantity: 0,
           uuid: uuidv4(),
           item_type: "",
@@ -230,7 +232,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       ? ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.UPDATE(item.id.toString())
       : ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.ADD;
 
-    //await createRequest(endpoint, token.access_token, {test: 'test'}, onSave, method);
+    await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();
     onClose();
@@ -405,25 +407,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           />
         </div>
 
+        This is the second form
+
         {/* Items Section */}
         <div className="col-span-1 md:col-span-2 xl:col-span-3">
           <h4 className="text-xl font-semibold">Items</h4>
-          <div className="my-2 flex w-max">
-            <Dropdown
-              className="p-inputtext-sm"
-              value={selectedItemType}
-              onChange={(e) => setSelectedItemType(e.value)}
-              options={[
-                { value: "All", label: "All" },
-                { value: "Products", label: "Products" },
-                { value: "Services", label: "Services" },
-              ].map((it) => ({
-                value: it.value,
-                label: it.label,
-              }))}
-              placeholder="Select an Item Type"
-            />
-          </div>
           <DataTable
             value={formState.items}
             emptyMessage="No items added yet."
@@ -450,10 +438,17 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                 ) : (
                   <Dropdown
                     value={item.uuid}
-                    options={allItems.map((it) => ({
-                      value: it.uuid,
-                      label: it.item_name,
-                    }))}
+                    options={
+                      selectedBudget
+                        ? selectedBudget?.items.map((it) => ({
+                            value: it.uuid,
+                            label: it.item_name,
+                          }))
+                        : expenseAccounts.map((acc)=> ({
+                          value: acc.id,
+                          label: acc.name
+                        }))
+                    }
                     onChange={(e) =>
                       handleItemSelectChange(options.rowIndex, e.value)
                     }

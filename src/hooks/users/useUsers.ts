@@ -20,7 +20,7 @@ const useUsers = () => {
     }
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
-      const response = await fetch('https://tfc-api.efinanci.co.tz/api/users', {
+      const response = await fetch('https://tfc-api.efinanci.co.tz/api/staff', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

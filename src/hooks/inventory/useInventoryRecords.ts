@@ -30,6 +30,7 @@ const useInventoryRecords = () => {
         "GET",
         token.access_token
       );
+      console.log('inventory_records', response.data)
       response.data?.length && dispatch(fetchDataSuccess(response.data)); // Dispatch action with fetched data on success
     } catch (error) {
       dispatch(
