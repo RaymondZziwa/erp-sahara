@@ -1,10 +1,6 @@
 
 import { Icon } from "@iconify/react";
-<<<<<<< HEAD
-//import { lazy, Suspense } from "react";
-=======
 import { Suspense } from "react";
->>>>>>> 8f14ab57ad2ca16821052e80bada6ddc29b1ed18
 import WorkCenters from "../pages/manufacturing/workCenters";
 import WorkOrders from "../pages/manufacturing/workCenterOrders";
 import EquipmentComp from "../pages/manufacturing/workEquipment";
