@@ -55,6 +55,8 @@ const AddStaffToApprovalLevelModal: React.FC<props> = ({
       const tempData = {
         ...formData,
         approver_names: `${selectedEmp.first_name} ${selectedEmp.last_name}`,
+        approver_id: Number(formData.user_id),
+        rank: Number(formData.rank),
       };
 
       const finalParams = { approvers: [tempData] };

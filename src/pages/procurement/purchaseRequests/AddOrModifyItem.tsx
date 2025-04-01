@@ -25,11 +25,11 @@ interface PurchaseRequestItem {
   purpose: string;
   cost_estimate: number;
   currency_id: string;
-  budget_item_id: string;
+  budget_item_id: string | null;
 }
 
 interface PurchaseRequest {
-  budget: string | number | readonly string[] | undefined;
+  budget: string | null;
   id: number;
   title: string;
   request_comment: string;
@@ -61,7 +61,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     purpose: "",
     cost_estimate: 0,
     currency_id: "",
-    budget_item_id: "",
+    budget_item_id: null,
   };
 
   const initialState: PurchaseRequest = {
@@ -73,7 +73,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     request_date: "",
     requested_by: 0,
     approval_level: "",
-    budget: "",
+    budget: null,
     items: [initialItem],
   };
 
@@ -166,7 +166,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
     setFormState((prevState) => ({
       ...prevState,
-      budget: value,
+      budget: String(value), // Convert value to string
     }));
   };
 
@@ -328,7 +328,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             <label className="block text-gray-700 mb-1">Budget</label>
             <select
               name="budget"
-              value={formState.budget}
+              value={formState.budget ?? ""} // Convert null to an empty string
               onChange={(e) => handleBudget(e)}
               className="w-full px-3 py-2 border rounded"
             >
