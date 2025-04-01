@@ -102,7 +102,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
     if (
       !formState.amount ||
-      !formState.employee_id ||
+      !formState.employee ||
       !formState.allowance_type_id ||
       dateError
     ) {
@@ -158,16 +158,16 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="employee_id">Employee</label>
+          <label htmlFor="employee">Employee</label>
           <Dropdown
-            id="employee_id"
-            name="employee_id"
-            value={formState.employee_id || null}
+            id="employee"
+            name="employee"
+            value={formState.employee || null}
             options={employees?.map((employee) => ({
               label: `${employee.first_name} ${employee.last_name}`,
               value: employee.id,
             }))}
-            onChange={(e) => handleDropdownChange("employee_id", e.value)}
+            onChange={(e) => handleDropdownChange("employee", e.value)}
             required
             className="w-full"
             placeholder="Select an Employee"

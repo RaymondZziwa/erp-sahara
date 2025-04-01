@@ -56,7 +56,7 @@ const SALUTATIONS_OPTIONS = [
   { label: "Mr", value: "Mr" },
   { label: "Mrs", value: "Mrs" },
   { label: "Ms", value: "Ms" },
-  { label: "Mx", value: "Mx" },
+  { label: "Miss", value: "Miss" },
   { label: "Dr", value: "Dr" },
   { label: "Prof", value: "Prof" },
   { label: "Rev", value: "Rev" },
@@ -268,16 +268,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 md:grid-cols-2 gap-4"
       >
-        <div className="p-field">
-          <label htmlFor="employee_code">Employee Code</label>
-          <InputText
-            id="employee_code"
-            name="employee_code"
-            value={formState.employee_code}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
+        
         <div className="p-field">
           <label htmlFor="salutation">Salutation<span className="text-red-500">*</span></label>
           <Dropdown
@@ -287,7 +278,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             options={SALUTATIONS_OPTIONS}
             onChange={handleDropdownChange}
             required
-            className="w-full"
+            className="w-full text-sm"
           />
         </div>
         <div className="p-field">
@@ -298,7 +289,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             value={formState.first_name}
             onChange={handleInputChange}
             required
-            className="w-full"
+            className="w-full px-3 py-2 text-sm"
           />
         </div>
         <div className="p-field">
@@ -309,7 +300,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             value={formState.last_name}
             onChange={handleInputChange}
             required
-            className="w-full"
+            className="w-full px-3 py-2 text-sm"
           />
         </div>
         <div className="p-field">
@@ -319,7 +310,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             name="other_name"
             value={formState.other_name}
             onChange={handleInputChange}
-            className="w-full"
+            className="w-full px-3 py-2 text-sm"
           />
         </div>
         <div className="p-field">
@@ -330,7 +321,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             value={formState.email}
             onChange={handleInputChange}
             required
-            className="w-full"
+            className="w-full px-3 py-2 text-sm"
           />
         </div>
         <div className="p-field">
@@ -341,7 +332,17 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             value={formState.phone}
             onChange={handleInputChange}
             required
-            className="w-full"
+            className="w-full px-3 py-2 text-sm"
+          />
+        </div>
+        <div className="p-field">
+          <label htmlFor="employee_code">Employee Id/Number</label>
+          <InputText
+            id="employee_code"
+            name="employee_code"
+            value={formState.employee_code}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 text-sm"
           />
         </div>
         <div className="p-field">
@@ -353,7 +354,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             options={GENDER_OPTIONS}
             onChange={handleDropdownChange}
             required
-            className="w-full"
+            className="w-full  text-sm"
           />
         </div>
         <div className="p-field">
@@ -365,7 +366,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             options={MARITAL_STATUS_OPTIONS}
             onChange={handleDropdownChange}
             required
-            className="w-full"
+            className="w-full  text-sm"
           />
         </div>
         <div className="p-field">
@@ -377,7 +378,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             value={formState.date_of_birth}
             onChange={handleInputChange}
             required
-            className="w-full"
+            className="w-full px-3 py-2 text-sm"
           />
         </div>
         <div className="p-field">
@@ -387,19 +388,19 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             name="address"
             value={formState.address}
             onChange={handleInputChange}
-            required
-            className="w-full"
+            required 
+            className="w-full px-3 py-2 text-sm"
           />
         </div>
         <div className="p-field">
-          <label htmlFor="state">State<span className="text-red-500">*</span></label>
+          <label htmlFor="state">Region<span className="text-red-500">*</span></label>
           <InputText
             id="state"
             name="state"
             value={formState.state}
             onChange={handleInputChange}
             required
-            className="w-full"
+            className="w-full px-3 py-2 text-sm"
           />
         </div>
         <div className="p-field">
@@ -409,7 +410,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             name="postal_code"
             value={formState.postal_code}
             onChange={handleInputChange}
-            className="w-full"
+            className="w-full px-3 py-2 text-sm"
           />
         </div>
         <div className="p-field">
@@ -420,7 +421,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             value={formState.country}
             onChange={handleInputChange}
             required
-            className="w-full"
+            className="w-full px-3 py-2 text-sm"
           />
         </div>
         <div className="p-field">
@@ -432,7 +433,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             value={formState.hire_date}
             onChange={handleInputChange}
             required
-            className="w-full"
+            className="w-full px-3 py-2 text-sm"
           />
         </div>
         <div className="p-field">
@@ -450,7 +451,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
               label: employee.first_name + " " + employee.last_name,
             }))}
             onChange={handleDropdownChange}
-            className="w-full"
+            className="w-full  text-sm"
           />
         </div>
         <div className="p-field">
@@ -468,7 +469,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
               label: department.name,
             }))}
             onChange={handleDropdownChange}
-            className="w-full"
+            className="w-full  text-sm"
           />
         </div>
         <div className="p-field">
@@ -486,7 +487,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
               label: designation.designation_name,
             }))}
             onChange={handleDropdownChange}
-            className="w-full"
+            className="w-full  text-sm"
           />
         </div>
         <div className="p-field">
@@ -504,7 +505,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
               label: structure.structure_name,
             })) : []}            
             onChange={handleDropdownChange}
-            className="w-full"
+            className="w-full  text-sm"
           />
         </div>
         <div className="p-field">
@@ -522,7 +523,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
               label: role.name,
             }))}
             onChange={handleDropdownChange}
-            className="w-full"
+            className="w-ful  text-sml"
           />
         </div>
         <div className="p-field">
@@ -533,7 +534,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             name="password"
             value={formState.password}
             onChange={handleInputChange}
-            className="w-full"
+            className="w-full px-3 py-2 text-sm"
           />
         </div>
         <div className="p-field">
@@ -544,7 +545,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             name="profile_picture"
             accept="image/*"
             onChange={handleFileChange}
-            className="w-full"
+            className="w-full  py-2 text-sm"
           />
         </div>
         <div className="p-field">
@@ -555,7 +556,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
             name="signature"
             accept="image/*"
             onChange={handleFileChange}
-            className="w-full"
+            className="w-full  py-2 text-sm"
           />
         </div>
       </form>
