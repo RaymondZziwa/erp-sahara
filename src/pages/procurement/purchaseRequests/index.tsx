@@ -12,10 +12,18 @@ import { API_ENDPOINTS } from "../../../api/apiEndpoints";
 import { PurchaseRequest } from "../../../redux/slices/types/procurement/PurchaseRequests";
 import usePurchaseRequests from "../../../hooks/procurement/usePurchaseRequests";
 import ReviewOrApprovePurchaseRequest from "./ReviewOrApprovePurchaseRequest";
+// import { SignUpData, UserAuthType } from "../redux/slices/types/user/userAuth";
+// import { UserAuthType } from "../../../redux/slices/types/user/userAuth";
 
 const PurchaseRequests: React.FC = () => {
   const { data, refresh } = usePurchaseRequests();
   const tableRef = useRef<any>(null);
+
+  // console.log("pr", data);
+  // const localUserJSON = localStorage.getItem("user");
+  // const localUser: UserAuthType = localUserJSON && JSON.parse(localUserJSON);
+  // const loggedUserId = localUser.user.id;
+  // console.log("user--", localUser.user.id);
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: PurchaseRequest | undefined;
@@ -45,7 +53,7 @@ const PurchaseRequests: React.FC = () => {
     },
     {
       headerName: "Name",
-      field: "name",
+      field: "title",
       sortable: true,
       filter: true,
     },
@@ -83,7 +91,7 @@ const PurchaseRequests: React.FC = () => {
       filter: false,
       cellRenderer: (params: ICellRendererParams<PurchaseRequest>) => (
         <div className="flex items-center gap-2 h-10">
-          {params.data?.status == "pending" && (
+          {/* {params.data?.status == "pending" && (
             <div title="Review">
               <Icon
                 onClick={() =>
@@ -98,7 +106,7 @@ const PurchaseRequests: React.FC = () => {
                 fontSize={20}
               />
             </div>
-          )}
+          )} */}
           {params.data?.status == "pending" ? (
             <button title="Edit">
               <Icon
@@ -115,7 +123,7 @@ const PurchaseRequests: React.FC = () => {
               />
             </button>
           ) : null}
-          {params.data?.status == "reviewed" ? (
+          {/* {params.data?.status == "reviewed" ? (
             <button title="Approve">
               <Icon
                 onClick={() =>
@@ -145,7 +153,21 @@ const PurchaseRequests: React.FC = () => {
                 fontSize={20}
               />
             </button>
-          )}
+          )} */}
+          <button title="Approve">
+            <Icon
+              onClick={() =>
+                setDialogState({
+                  ...dialogState,
+                  currentAction: "approve",
+                  selectedItem: params.data,
+                })
+              }
+              icon="solar:check-square-bold-duotone"
+              className="text-green-500 cursor-pointer"
+              fontSize={20}
+            />
+          </button>
           <Icon
             onClick={() =>
               setDialogState({
@@ -174,14 +196,16 @@ const PurchaseRequests: React.FC = () => {
             items: dialogState.selectedItem?.purchase_request_items.map(
               (item) => ({
                 item_id: item.item_id,
-                quantity: item.quantity ?? "0", // Ensure quantity is provided
+                quantity: item.quantity ?? "0",
                 specification: item.specification ?? "",
+                specifications: item.specifications ?? "",
                 purpose: item.purpose ?? "",
                 cost_estimate: item.cost_estimate ?? 0,
-                currency: item.currency ?? "",
+                currency_id: String(item.currency_id ?? 0),
+                budget_item_id: String(item.budget_item_id ?? 0),
               })
             ),
-            name: dialogState.selectedItem?.name,
+            title: dialogState.selectedItem?.title, // Type assertion to bypass the error
             request_comment: dialogState.selectedItem?.request_comment,
           }}
           visible={
