@@ -15,7 +15,7 @@ import { Route } from "./routeTypes";
 import REPORTS_ROUTES from "./REPORTS";
 //import CROPS_ROUTES from "./CROPS";
 import CASHREQUISITION_ROUTES from "./CASH_REQUISITIONS";
-//import MANUFACTURING_ROUTES from "./MANUFACTURING";
+import MANUFACTURING_ROUTES from "./MANUFACTURING";
 import ASSETS from "./ASSETS";
 import FARM_GROUP_ROUTES from "./FARM_GROUPS";
 // import INVESTMENT_FINANCING from "./INVESTMENT_FINANCING";
@@ -69,12 +69,12 @@ const ROUTES: Route[] = [
     path: "/sales",
     sidebarItems: SALES_ROUTES,
   },
-  // {
-  //   name: "Manufacturing",
-  //   icon: <Icon icon="mdi:cash-register" fontSize={24} />,
-  //   path: "/manufacturing",
-  //   sidebarItems: MANUFACTURING_ROUTES,
-  // },
+  {
+    name: "Manufacturing",
+    icon: <Icon icon="mdi:cash-register" fontSize={24} />,
+    path: "/manufacturing",
+    sidebarItems: MANUFACTURING_ROUTES,
+  },
   // {
   //   name: "MOSS App",
   //   icon: <Icon icon="mdi:cellphone" fontSize={24} />,

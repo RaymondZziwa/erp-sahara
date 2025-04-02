@@ -41,9 +41,9 @@ const AccountsAccodions: React.FC<AccountsAccodionsProps> = ({ accounts }) => {
                       </div>
                     }
                   >
-                    {subCategory.children.length > 0 && (
+                    {subCategory.children_recursive.length > 0 && (
                       <Accordion multiple>
-                        {subCategory.children.map((child) => (
+                        {subCategory.children_recursive.map((child) => (
                           <AccordionTab
                             key={child.id}
                             header={

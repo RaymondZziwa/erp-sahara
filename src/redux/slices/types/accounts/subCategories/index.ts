@@ -1,4 +1,5 @@
 export interface AccountSubCategory {
+  sub_parent_id: number;
   id: number;
   name: string;
   description: string;

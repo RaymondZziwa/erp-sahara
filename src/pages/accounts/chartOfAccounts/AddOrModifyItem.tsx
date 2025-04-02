@@ -24,7 +24,7 @@ import {
 import { RadioButton } from "primereact/radiobutton";
 
 interface AddOrModifyItemProps {
-  visible: boolean;
+  visible: boolean; 
   onClose: () => void;
   item?: ChartofAccount;
   onSave: () => void;
@@ -67,17 +67,17 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       label: subCategory.name,
       data: subCategory.description, // Description as additional data
       icon: "pi pi-fw pi-folder", // Icon for sub-categories
-      children: subCategory.children.length
-        ? buildTreeNodesFromChildren(subCategory.children)
+      children: subCategory.children_recursive.length
+        ? buildTreeNodesFromChildren(subCategory.children_recursive)
         : [], // Recursively handle children
     }));
   };
 
   // Recursive function to build TreeNode structure from Child[]
   const buildTreeNodesFromChildren = (
-    children: IAccountChild[]
+    children_recursive: IAccountChild[]
   ): TreeNode[] => {
-    return children.map((child) => ({
+    return children_recursive.map((child) => ({
       key: child.id.toString(),
       label: child.name,
       data: child.description, // Description as additional data

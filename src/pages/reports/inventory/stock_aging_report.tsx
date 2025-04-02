@@ -1,99 +1,197 @@
 //@ts-nocheck
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { baseURL } from "../../../utils/api";
+import Header from "../../../components/custom/print_header";
+import { useReactToPrint } from "react-to-print";
+import { Icon } from "@iconify/react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const StockAgingReport = () => {
-  const token = useSelector((state: RootState) => state.userAuth.token)
-  const [data, setData] = useState([])
+  const token = useSelector((state: RootState) => state.userAuth.token);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactToPrintFn = useReactToPrint({ contentRef });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
         const response = await axios.post(
           `${baseURL}/erp/inventories/reports/stockagingreport`,
-          {}, 
+          {
+            ...(startDate && {
+              start_date: startDate.toISOString().split("T")[0],
+            }),
+            ...(endDate && { end_date: endDate.toISOString().split("T")[0] }),
+          },
           {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
               Authorization: `Bearer ${token.access_token}`,
             },
-          }          
+          }
         );
         setData(response.data.data);
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, []); 
+  }, [startDate, endDate]);
 
-  const formatDaysInStock = (days) => {
-    return days ? `${(days * 1e10).toFixed(2)} days` : "N/A";
+  const formatDaysInStock = (days: number) => {
+    if (days === null || days === undefined) return "N/A";
+    return `${Math.round(days * 100) / 100} days`; // Proper rounding
   };
 
-  const getStockAgeCategory = (days) => {
-    if (!days) return "Unknown";
-    const daysInStock = days * 1e10; // Adjusted for readability
-    if (daysInStock < 10) return "Critical";
-    if (daysInStock < 30) return "Warning";
-    return "Stable";
+  const getStockAgeCategory = (days: number) => {
+    if (days === null || days === undefined)
+      return { label: "Unknown", class: "bg-gray-100 text-gray-700" };
+
+    if (days < 10)
+      return { label: "Fresh", class: "bg-green-100 text-green-700" };
+    if (days < 30)
+      return { label: "Aging", class: "bg-yellow-100 text-yellow-700" };
+    if (days < 90)
+      return { label: "Old", class: "bg-orange-100 text-orange-700" };
+    return { label: "Stale", class: "bg-red-100 text-red-700" };
   };
 
   return (
-    <div className="p-6 bg-gray-100 rounded-lg shadow-md">
-      <h2 className="text-xl font-bold mb-4 text-teal-700">Stock Aging Report</h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="text-left py-2 px-4 border-b">Warehouse Name</th>
-              <th className="text-left py-2 px-4 border-b">Item Name</th>
-              <th className="text-left py-2 px-4 border-b">SKU</th>
-              <th className="text-left py-2 px-4 border-b">Quantity</th>
-              <th className="text-left py-2 px-4 border-b">Days in Stock</th>
-              <th className="text-left py-2 px-4 border-b">Stock Age Category</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.length > 0 ? data.map((item, index) => (
-              <tr
-                key={index}
-                className={`${
-                  index % 2 === 0 ? "bg-gray-50" : "bg-white"
-                } hover:bg-gray-100`}
-              >
-                <td className="py-2 px-4 border-b">{item.warehouse_name || "N/A"}</td>
-                <td className="py-2 px-4 border-b">{item.item_name || "N/A"}</td>
-                <td className="py-2 px-4 border-b">{item.sku || "N/A"}</td>
-                <td className="py-2 px-4 border-b">{item.quantity}</td>
-                <td className="py-2 px-4 border-b">{formatDaysInStock(item.days_in_stock)}</td>
-                <td className="py-2 px-4 border-b">
-                  <span
-                    className={`px-2 py-1 text-sm rounded ${
-                      getStockAgeCategory(item.days_in_stock) === "Critical"
-                        ? "bg-red-100 text-red-700"
-                        : getStockAgeCategory(item.days_in_stock) === "Warning"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-green-100 text-green-700"
-                    }`}
-                  >
-                    {getStockAgeCategory(item.days_in_stock)}
-                  </span>
-                </td>
-              </tr>
-            )):
-            data.length === 0 ? 
-            <tr colSpan={6} className="text-center">No data found</tr>
-            :
-            <tr colSpan={6} className="text-center">Loading...</tr>
-            }
-          </tbody>
-        </table>
+    <div className="bg-white p-6 rounded-lg shadow-sm">
+      <Header title={"Stock Aging Analysis"} />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">From:</label>
+            <DatePicker
+              selected={startDate}
+              onChange={(date) => setStartDate(date)}
+              selectsStart
+              startDate={startDate}
+              endDate={endDate}
+              className="border rounded px-3 py-1 text-sm"
+              placeholderText="Select start date"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">To:</label>
+            <DatePicker
+              selected={endDate}
+              onChange={(date) => setEndDate(date)}
+              selectsEnd
+              startDate={startDate}
+              endDate={endDate}
+              minDate={startDate}
+              className="border rounded px-3 py-1 text-sm"
+              placeholderText="Select end date"
+            />
+          </div>
+
+          <button
+            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white flex gap-2 items-center justify-center"
+            onClick={reactToPrintFn}
+          >
+            <Icon icon="solar:printer-bold" fontSize={20} />
+            Print Report
+          </button>
+        </div>
+      </div>
+
+      <div ref={contentRef} className="p-4 print:p-0">
+        <div className="hidden print:block">
+          <Header title={"Stock Aging Report"} />
+          <div className="text-sm text-gray-600 mb-4">
+            {startDate && endDate
+              ? `Period: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`
+              : "All available data"}
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : data.length === 0 ? (
+            <div className="text-center py-8 bg-gray-50 rounded-lg">
+              <Icon
+                icon="mdi:package-variant-remove"
+                className="text-gray-400 text-5xl mx-auto"
+              />
+              <p className="mt-3 text-gray-500">No stock aging data found</p>
+            </div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Warehouse
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Item
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    SKU
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Qty
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Days in Stock
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Age Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {data.map((item, index) => {
+                  const ageCategory = getStockAgeCategory(item.days_in_stock);
+                  return (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {item.warehouse_name || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {item.item_name || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {item.sku || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {item.quantity}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatDaysInStock(item.days_in_stock)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${ageCategory.class}`}
+                        >
+                          {ageCategory.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   );

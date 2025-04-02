@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { handleGenericError } from "../../utils/errorHandling";
 import { useTranslation } from "react-i18next";
-import Logo from '../../assets/images/sahara.jpeg';
+import Logo from '../../assets/images/logos/ltcu.jpeg';
 
 export default function LoginPage() {
   const { loginHandler, isLoading } = useAuth();
