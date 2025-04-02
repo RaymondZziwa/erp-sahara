@@ -27,7 +27,7 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
   onSave,
 }) => {
   const [formState, setFormState] = useState<Partial<LeaveApplication>>({
-    employee_id: undefined,
+    employee: undefined,
     leave_type_id: undefined,
     start_date: "",
     end_date: "",
@@ -46,7 +46,7 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
       });
     } else {
       setFormState({
-        employee_id: undefined,
+        employee: undefined,
         leave_type_id: undefined,
         start_date: "",
         end_date: "",
@@ -79,7 +79,7 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
 
     // Basic validation
     if (
-      !formState.employee_id ||
+      !formState.employee ||
       !formState.leave_type_id ||
       !formState.start_date ||
       !formState.reason
@@ -136,12 +136,12 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="employee_id">Employee</label>
+          <label htmlFor="employee">Employee</label>
           <Dropdown
             filter
-            id="employee_id"
-            name="employee_id"
-            value={formState.employee_id}
+            id="employee"
+            name="employee"
+            value={formState.employee}
             options={employees.map((emloyee) => ({
               label: emloyee.first_name + " " + emloyee.last_name,
               value: emloyee.id,
