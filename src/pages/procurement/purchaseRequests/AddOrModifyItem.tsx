@@ -13,17 +13,21 @@ import { RootState } from "../../../redux/store";
 import useDepartments from "../../../hooks/hr/useDepartments";
 import useCurrencies from "../../../hooks/procurement/useCurrencies";
 import useEmployees from "../../../hooks/hr/useEmployees";
+import useBudgets from "../../../hooks/budgets/useBudgets";
+import { Budget } from "../../../redux/slices/types/budgets/Budget";
 
 interface PurchaseRequestItem {
   item_id: number;
   quantity: string;
-  specification: string;
+  specifications: string;
   purpose: string;
   cost_estimate: number;
-  currency: string;
+  currency_id: string;
+  budget_item_id: string | null;
 }
 
 interface PurchaseRequest {
+  budget: string | null;
   id: number;
   title: string;
   request_comment: string;
@@ -51,10 +55,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const initialItem: PurchaseRequestItem = {
     item_id: 0,
     quantity: "",
-    specification: "",
+    specifications: "",
     purpose: "",
     cost_estimate: 0,
-    currency: "",
+    currency_id: "",
+    budget_item_id: null,
   };
 
   const initialState: PurchaseRequest = {
@@ -66,6 +71,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     request_date: "",
     requested_by: 0,
     approval_level: "",
+    budget: null,
     items: [initialItem],
   };
 
@@ -77,7 +83,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const { token } = useAuth();
   const { data: items } = useItems();
   const { data: employees } = useEmployees();
-  console.log("dp", departments);
+  const { data: budgets } = useBudgets();
+  const [selectedBudget, setSelectedBudget] = useState<Budget>();
 
   useEffect(() => {
     if (purchaseRequest) {
@@ -143,25 +150,50 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
 
+  interface BudgetChangeEvent {
+    target: {
+      value: string | number;
+    };
+  }
+
+  const handleBudget = (e: BudgetChangeEvent): void => {
+    const { value } = e.target;
+
+    const filteredBudget = budgets.filter((budget) => budget.id === value)[0];
+    setSelectedBudget(filteredBudget);
+
+    setFormState((prevState) => ({
+      ...prevState,
+      budget: String(value), // Convert value to string
+    }));
+  };
+
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     console.log(formState);
-    // const method = formState.id ? "PUT" : "POST";
-    // const endpoint = formState.id
-    //   ? API_ENDPOINTS.PURCHASE_REQUESTS.UPDATE(formState.id.toString())
-    //   : API_ENDPOINTS.PURCHASE_REQUESTS.ADD;
-    // await createRequest(
-    //   endpoint,
-    //   token.access_token,
-    //   formState,
-    //   onSave,
-    //   method
-    // );
+    try {
+      const method = formState.id ? "PUT" : "POST";
+      const endpoint = formState.id
+        ? API_ENDPOINTS.PURCHASE_REQUESTS.UPDATE(formState.id.toString())
+        : API_ENDPOINTS.PURCHASE_REQUESTS.ADD;
 
-    onSave();
-    setIsSubmitting(false);
-    onClose();
+      console.log("method", method);
+
+      await createRequest(
+        endpoint,
+        token.access_token,
+        formState,
+        onSave,
+        method
+      );
+
+      onSave();
+      setIsSubmitting(false);
+      onClose();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const footer = (
@@ -290,6 +322,24 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             </select>
           </div>
 
+          <div>
+            <label className="block text-gray-700 mb-1">Budget</label>
+            <select
+              name="budget"
+              value={formState.budget ?? ""} // Convert null to an empty string
+              onChange={(e) => handleBudget(e)}
+              className="w-full px-3 py-2 border rounded"
+            >
+              <option value="">Select Budget</option>
+              {budgets &&
+                budgets.map((budget) => (
+                  <option key={budget.id} value={budget.id}>
+                    {budget.name}
+                  </option>
+                ))}
+            </select>
+          </div>
+
           <div className="p-field sm:col-span-2">
             <label htmlFor="request_comment">Request Comment</label>
             <InputTextarea
@@ -301,109 +351,129 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             />
           </div>
         </div>
-
         <div className="mt-4">
           <h3>Items</h3>
-          <table className="min-w-full table-auto">
-            <thead>
-              <tr>
-                <th className="border px-4 py-2">Item </th>
-                <th className="border px-4 py-2">Quantity</th>
-                <th className="border px-4 py-2">Specification</th>
-                <th className="border px-4 py-2">Purpose</th>
-                <th className="border px-4 py-2">Cost Estimate</th>
-                <th className="border px-4 py-2">Currency</th>
-                <th className="border px-4 py-2">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {formState.items.map((item, index) => (
-                <tr key={index}>
-                  <td className="border px-4 py-2">
-                    <Dropdown
-                      id={`item_id${index}`}
-                      value={item.item_id}
-                      onChange={(e) =>
-                        handleDropdownChange(e, index, "item_id")
-                      }
-                      options={items}
-                      optionLabel="name"
-                      optionValue="id"
-                      placeholder="Select an item"
-                      filter
-                      className="w-full"
-                    />
-                  </td>
-                  <td className="border px-4 py-2">
-                    <InputText
-                      id={`quantity_${index}`}
-                      name="quantity"
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) => handleInputChange(e, index)}
-                      className="w-full"
-                    />
-                  </td>
-                  <td className="border px-4 py-2">
-                    <InputText
-                      id={`unit_price_estimate_${index}`}
-                      name="specification"
-                      type="text"
-                      value={item.specification}
-                      onChange={(e) => handleInputChange(e, index)}
-                      className="w-full"
-                    />
-                  </td>
-
-                  <td className="border px-4 py-2">
-                    <InputTextarea
-                      id={`notes_${index}`}
-                      name="purpose"
-                      value={item.purpose}
-                      onChange={(e) => handleInputChange(e, index)}
-                      rows={1}
-                      className="w-full"
-                    />
-                  </td>
-                  <td className="border px-4 py-2">
-                    <InputText
-                      id={`quantity_${index}`}
-                      name="cost_estimate"
-                      type="number"
-                      value={item.cost_estimate.toString()}
-                      onChange={(e) => handleInputChange(e, index)}
-                      className="w-full"
-                    />
-                  </td>
-
-                  <td className="border px-4 py-2">
-                    <Dropdown
-                      id={`item_id${index}`}
-                      value={item.item_id}
-                      onChange={(e) =>
-                        handleDropdownChange(e, index, "currency")
-                      }
-                      options={currencies}
-                      optionLabel="name"
-                      optionValue="id"
-                      placeholder="Select currency"
-                      filter
-                      className="w-full"
-                    />
-                  </td>
-
-                  <td className="border px-4 py-2 text-center">
-                    <Icon
-                      icon="solar:trash-bin-trash-bold"
-                      className="text-red-500 cursor-pointer"
-                      fontSize={20}
-                      onClick={() => handleRemoveItem(index)}
-                    />
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-max table-auto">
+              <thead>
+                <tr>
+                  <th className="border px-4 py-2 min-w-[150px]">Item</th>
+                  <th className="border px-4 py-2 min-w-[120px]">Quantity</th>
+                  <th className="border px-4 py-2 min-w-[150px]">
+                    Budget Item
+                  </th>
+                  <th className="border px-4 py-2 min-w-[200px]">
+                    Specifications
+                  </th>
+                  <th className="border px-4 py-2 min-w-[250px]">Purpose</th>
+                  <th className="border px-4 py-2 min-w-[150px]">
+                    Cost Estimate
+                  </th>
+                  <th className="border px-4 py-2 min-w-[120px]">Currency</th>
+                  <th className="border px-4 py-2 min-w-[100px]">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {formState.items.map((item, index) => (
+                  <tr key={index} className="whitespace-nowrap">
+                    <td className="border px-4 py-2 min-w-[150px]">
+                      <Dropdown
+                        id={`item_id${index}`}
+                        value={item.item_id}
+                        onChange={(e) =>
+                          handleDropdownChange(e, index, "item_id")
+                        }
+                        options={items}
+                        optionLabel="name"
+                        optionValue="id"
+                        placeholder="Select an item"
+                        filter
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border px-4 py-2 min-w-[120px]">
+                      <InputText
+                        id={`quantity_${index}`}
+                        name="quantity"
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) => handleInputChange(e, index)}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border px-4 py-2 min-w-[150px]">
+                      <Dropdown
+                        id={`budget_item_id${index}`}
+                        value={item.budget_item_id}
+                        onChange={(e) =>
+                          handleDropdownChange(e, index, "budget_item_id")
+                        }
+                        options={selectedBudget ? selectedBudget.items : []}
+                        optionLabel="name"
+                        optionValue="id"
+                        placeholder="Select an item"
+                        filter
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border px-4 py-2 min-w-[200px]">
+                      <InputText
+                        id={`specification_${index}`}
+                        name="specifications"
+                        type="text"
+                        value={item.specifications}
+                        onChange={(e) => handleInputChange(e, index)}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border px-4 py-2 min-w-[250px]">
+                      <InputTextarea
+                        id={`purpose_${index}`}
+                        name="purpose"
+                        value={item.purpose}
+                        onChange={(e) => handleInputChange(e, index)}
+                        rows={1}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border px-4 py-2 min-w-[150px]">
+                      <InputText
+                        id={`cost_estimate_${index}`}
+                        name="cost_estimate"
+                        type="number"
+                        value={item.cost_estimate.toString()}
+                        onChange={(e) => handleInputChange(e, index)}
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border px-4 py-2 min-w-[120px]">
+                      <Dropdown
+                        id={`currency_${index}`}
+                        value={item.currency_id}
+                        onChange={(e) =>
+                          handleDropdownChange(e, index, "currency_id")
+                        }
+                        options={currencies}
+                        optionLabel="name"
+                        optionValue="id"
+                        placeholder="Select currency"
+                        filter
+                        className="w-full"
+                      />
+                    </td>
+                    <td className="border px-4 py-2 min-w-[100px] text-center">
+                      <Icon
+                        icon="solar:trash-bin-trash-bold"
+                        className="text-red-500 cursor-pointer"
+                        fontSize={20}
+                        onClick={() => handleRemoveItem(index)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <div className="mt-4">
             <Button
               type="button"
