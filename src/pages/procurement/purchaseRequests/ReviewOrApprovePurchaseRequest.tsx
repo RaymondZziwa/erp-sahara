@@ -32,6 +32,8 @@ const ReviewOrApprovePurchaseRequest = ({
   const { data: availableItems } = useItems();
   const { data: currencies } = useCurrencies();
 
+  console.log("token", token);
+  console.log("purr", purchaseRequest);
   useEffect(() => {
     setItems(purchaseRequest?.purchase_request_items || []);
   }, [purchaseRequest]);
@@ -39,25 +41,22 @@ const ReviewOrApprovePurchaseRequest = ({
   const handleAction = async (status: "reviewed" | "rejected") => {
     setLoading(true);
 
+    const approvalData = {
+      comments: comment,
+      purchas_request_item_ids: items.map((item) => item.id),
+    };
+
     const endpoint =
       action === "approve"
-        ? "/erp/procurement/purchase_requests/approve"
+        ? `/erp/procurement/purchase_requests/${purchaseRequest?.id}/approve`
         : "/erp/procurement/purchase_requests/review";
+
+    console.log("endpoint", endpoint);
+    console.log("data", approvalData);
 
     const data =
       action === "approve" && status !== "rejected"
-        ? {
-            purchase_request_id: purchaseRequest?.id,
-            status: "approved",
-            approval_comment: comment,
-            items: items.map((item) => ({
-              item_id: item.item_id,
-              approved_quantity: item.quantity,
-              unit_price_estimate: item.unit_price_estimate,
-              currency_id: item.currency_id,
-              notes: item.notes,
-            })),
-          }
+        ? approvalData
         : {
             purchase_request_id: purchaseRequest?.id,
             status,
@@ -265,6 +264,7 @@ const ReviewOrApprovePurchaseRequest = ({
             />
             <Button
               label={action === "approve" ? "Approve" : "Review"}
+              // label={"Approve"}
               className="p-button-success"
               icon="pi pi-check"
               onClick={() => handleAction("reviewed")}
