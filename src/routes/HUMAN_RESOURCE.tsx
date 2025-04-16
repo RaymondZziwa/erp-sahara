@@ -9,8 +9,8 @@ const Employees = lazy(() => import("../pages/hr/employees"));
 const Attendencies = lazy(() => import("../pages/hr/attendencies"));
 const LeaveTypes = lazy(() => import("../pages/hr/leaveTypes"));
 const LeaveApplications = lazy(() => import("../pages/hr/leaveApllications"));
-const BonusTypes = lazy(() => import("../pages/hr/salary/bonusTypes"));
-const LoanTypes = lazy(() => import("../pages/hr/salary/loanTypes"));
+//const BonusTypes = lazy(() => import("../pages/hr/salary/bonusTypes"));
+//const LoanTypes = lazy(() => import("../pages/hr/salary/loanTypes"));
 const DeductionTypes = lazy(() => import("../pages/hr/salary/deductionTypes"));
 const AllowanceTypes = lazy(() => import("../pages/hr/salary/allowanceTypes"));
 const PayrollPeriods = lazy(() => import("../pages/hr/payrollPeriods"));
@@ -107,7 +107,7 @@ const HUMAN_RESOURCE_ROUTES = [
         ),
       },
       {
-        name: "Payroll Periods",
+        name: "Payroll Schedule",
         icon: <Icon icon="mdi:calendar-multiselect-outline" fontSize={20} />,
         path: "/payrollperiods",
         element: (
@@ -126,26 +126,26 @@ const HUMAN_RESOURCE_ROUTES = [
           </Suspense>
         ),
       },
-      {
-        name: "Bonus Types",
-        icon: <Icon icon="mdi:gift-outline" fontSize={20} />,
-        path: "/bonustypes",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <BonusTypes />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Loan Types",
-        icon: <Icon icon="mdi:bank-outline" fontSize={20} />,
-        path: "/loantypes",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <LoanTypes />
-          </Suspense>
-        ),
-      },
+      // {
+      //   name: "Bonus Types",
+      //   icon: <Icon icon="mdi:gift-outline" fontSize={20} />,
+      //   path: "/bonustypes",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <BonusTypes />
+      //     </Suspense>
+      //   ),
+      // },
+      // {
+      //   name: "Loan Types",
+      //   icon: <Icon icon="mdi:bank-outline" fontSize={20} />,
+      //   path: "/loantypes",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <LoanTypes />
+      //     </Suspense>
+      //   ),
+      // },
       {
         name: "Deduction Types",
         icon: <Icon icon="mdi:percent-outline" fontSize={20} />,

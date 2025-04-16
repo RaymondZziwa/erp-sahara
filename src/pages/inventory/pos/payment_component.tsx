@@ -12,11 +12,11 @@ const PaymentComponent = ({ setPaymentMethod, setClientName }) => {
   const [isRegistered, setIsRegistered] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [clientName, setClientNameState] = useState("");
+  const [contact, setContact] = useState('')
   const [clients, setClients] = useState<any>([])
 
 
   useEffect(()=> {
-    console.log('customers', customers)
     // Format clients for React Select
     const clientOptions = customers?.map(client => ({
       value: client.organization_name,
@@ -44,6 +44,10 @@ const PaymentComponent = ({ setPaymentMethod, setClientName }) => {
     setClientName(e.target.value);
   };
 
+  const contactHandler = (e) => {
+    setContact(e.target.value)
+  }
+
   return (
     <div className="p-4 bg-white shadow-md rounded-lg">
       <h3 className="text-lg font-semibold mb-3">Payment Details</h3>
@@ -62,7 +66,6 @@ const PaymentComponent = ({ setPaymentMethod, setClientName }) => {
           />
           <span>Yes</span>
         </label>
-
         <label className="flex items-center space-x-2">
           <input
             type="radio"
@@ -79,30 +82,48 @@ const PaymentComponent = ({ setPaymentMethod, setClientName }) => {
       {/* Client Selection */}
       {isRegistered ? (
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Select Client (Optional)</label>
+          <label className="block text-sm font-medium mb-1">
+            Select Client (Optional)
+          </label>
           <Select
             options={clients}
-            value={clients?.find(option => option.value === selectedClient?.value)}
+            value={clients?.find(
+              (option) => option.value === selectedClient?.value
+            )}
             onChange={handleClientChange}
             placeholder="Select a client..."
           />
         </div>
       ) : (
-        <div className="mb-4 mt-4">
-          <InputText
-            id="name"
-            name="client_name"
-            value={clientName}
-            onChange={handleClientNameChange}
-            placeholder="Client name"
-            className="w-full"
-          />
-        </div>
+        <>
+          <div className="mb-4 mt-4">
+            <InputText
+              id="name"
+              name="client_name"
+              value={clientName}
+              onChange={handleClientNameChange}
+              placeholder="Client name"
+              className="w-full"
+            />
+          </div>
+          <div className="mb-4 mt-4">
+            <InputText
+              id="contact"
+              name="contact"
+              value={contact}
+              onChange={contactHandler}
+              placeholder="Contact"
+              className="w-full"
+            />
+          </div>
+        </>
       )}
 
       {/* Payment Method Selection */}
       <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">Payment Method (Optional)</label>
+        <label className="block text-sm font-medium mb-1">
+          Payment Method (Optional)
+        </label>
         <Select
           options={paymentOptions}
           onChange={(option) => setPaymentMethod(option.value)}

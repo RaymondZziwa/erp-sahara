@@ -7,6 +7,7 @@ import useAuth from "../../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import { apiRequest } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
+import Header from "../../../components/custom/print_header";
 
 function TrialBalanceReport() {
   const { token, isFetchingLocalToken } = useAuth();
@@ -101,8 +102,9 @@ function TrialBalanceReport() {
 
   return (
     <div className="bg-white p-3">
+      <Header title={"Trial Balance Report"} />
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">Trial Balance</h1>
+        <h1 className="text-xl font-bold"></h1>
         <button
           className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
           onClick={handleExportPDF}

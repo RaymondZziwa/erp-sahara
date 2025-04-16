@@ -1,18 +1,14 @@
-import { useState } from "react";
+
 import { Card } from "primereact/card";
 import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
 import { Dropdown } from "primereact/dropdown";
-import { Checkbox } from "primereact/checkbox";
 import { AddProduct, Attribute, Variant } from ".";
 import useUnitsOfMeasurement from "../../../../hooks/inventory/useUnitsOfMeasurement";
 
-import VariationAttributesModal from "./VariationsAttributesModal";
 
 export default function AdvancedProductForm({
   product,
   handleProductChange,
-  handleAttributeChange,
 }: {
   product: AddProduct;
   handleProductChange: <T extends keyof AddProduct>(
@@ -31,62 +27,8 @@ export default function AdvancedProductForm({
     value: number
   ) => void;
 }) {
-  const [selectedVariation, setSelectedVariation] = useState<{
-    variationIndex: number;
-    variation: AddProduct["variants"][0];
-  } | null>(null);
 
   const { data: uom, loading: uomLoading } = useUnitsOfMeasurement();
-
-  // Function to update variation fields (e.g. price, stock, sku)
-  const handleVariationChange = (
-    index: number,
-    field: string,
-    value: string | any
-  ) => {
-    handleProductChange("variants", [
-      ...product.variants.map((variation, i) => {
-        if (i === index) {
-          return { ...variation, [field]: value };
-        }
-        return variation;
-      }),
-    ]);
-  };
-
-  // Function to add a new variation
-  const addVariation = () => {
-    const newVariation = { sku: "", price: "", stock: "", attributes: [] };
-    handleProductChange("variants", [...product.variants, newVariation]);
-  };
-
-  // Function to remove a variation by index
-  const removeVariation = (index: number) => {
-    handleProductChange(
-      "variants",
-      product.variants.filter((_, i) => i !== index)
-    );
-  };
-
-  // Function to add a new attribute to a specific variation
-  const handleAddAttribute = (variationIndex: number) => {
-    console.log(variationIndex);
-
-    handleProductChange("variants", [
-      ...product.variants.map((variation, idx) => {
-        if (idx === variationIndex) {
-          return {
-            ...variation,
-            attributes: [
-              ...variation.attributes,
-              { attribute_id: "", value_id: "" }, // Add a new empty attribute
-            ],
-          };
-        }
-        return variation;
-      }),
-    ]);
-  };
 
   // useEffect(() => {
   //   if (selectedVariation) {
@@ -103,7 +45,7 @@ export default function AdvancedProductForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="sku" className="block font-medium">
-                  SKU
+                  Standard Store Keeping Unit
                 </label>
                 <InputText
                   name="sku_unit"
@@ -140,7 +82,7 @@ export default function AdvancedProductForm({
                 </small>
               </div>
 
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 <Checkbox
                   checked={product.has_expiry === "1"}
                   inputId="backorders"
@@ -154,7 +96,7 @@ export default function AdvancedProductForm({
                 <label htmlFor="backorders" className="ml-2">
                   Has expiry?
                 </label>
-              </div>
+              </div> */}
               <small className="text-muted block mt-1">
                 Enable this option to allow orders when stock is out.
               </small>
@@ -182,7 +124,7 @@ export default function AdvancedProductForm({
           </Card>
 
           {/* Variations Section */}
-          <Card title="Variations">
+          {/* <Card title="Variations">
             <div className="space-y-4">
               {product.variants.map((variation, index) => (
                 <div key={index} className="flex items-center gap-4">
@@ -239,12 +181,12 @@ export default function AdvancedProductForm({
                 onClick={addVariation}
               />
             </div>
-          </Card>
+          </Card> */}
         </div>
       </div>
 
       {/* Modal for Attribute Selection */}
-      {selectedVariation && (
+      {/* {selectedVariation && (
         <VariationAttributesModal
           onDeleteVariation={(index) => {
             handleProductChange("variants", [
@@ -270,7 +212,7 @@ export default function AdvancedProductForm({
           onAttributeChange={handleAttributeChange}
           onAddAttribute={handleAddAttribute}
         />
-      )}
+      )} */}
     </div>
   );
 }

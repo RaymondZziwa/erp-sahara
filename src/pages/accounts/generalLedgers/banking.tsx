@@ -45,7 +45,7 @@ const BankingLedgers: React.FC = () => {
     const fetchRecords = async () => {
         try {
            const response = await axios.get(
-             `${baseURL}/erp/accounts/general-ledger/20`,{
+             `${baseURL}/accounts/general-ledger/20`,{
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -190,7 +190,7 @@ const BankingLedgers: React.FC = () => {
                 onJournalTypeClick({
                   debitAccountsType: AccountType.ASSETS,
                   creditAccountsType: AccountType.ASSETS,
-                  endpoint: "/erp/accounts/transactions/cash-to-cash-account",
+                  endpoint: "/accounts/transactions/cash-to-cash-account",
                   journalType: "Banking transactions",
                   creditAccountHeader: "Credit A/C",
                   debitAccountHeader: "Debit A/C",

@@ -1,108 +1,134 @@
+//@ts-nocheck
 import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
 import ROUTES from "../../routes/ROUTES";
+import { Icon } from "@iconify/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Sidebar = () => {
   const { pathname } = useLocation();
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+
+  const toggleExpand = (path: string) => {
+    setExpandedItems(prev => ({
+      ...prev,
+      [path]: !prev[path]
+    }));
+  };
+
+  const isActive = (routePath: string) => {
+    return (
+      routePath === pathname ||
+      (pathname.split("/").length > 2 && 
+       pathname.startsWith(routePath + "/"))
+    );
+  };
+
+  const hasSubItems = (item: any) => {
+    return item.sidebarItems.some((subItem: any) => subItem.items.length > 0);
+  };
 
   return (
-    <div className="bg-bg">
-      <div className="flex flex-col lg:flex-row  h-full mt-2 ">
-        <div className="lg:w-fit w-full lg:static flex flex-col lg:flex-col bg-[#F2FCFC] h-full min-h-screen px-2 p-2">
-          <ol
-            role="list"
-            className=" grid grid-cols-3 md:grid-cols-1 max-h-dvh min-w-32"
-          >
-            {ROUTES.filter((r) => !r.hidden).map((sidebarItem) => (
-              <Link
-                to={sidebarItem.path}
-                className={`relative px-2 py-1  flex items-center  transition-colors duration-300 rounded ${
-                  (pathname.split("/").length <= 2
-                    ? ""
-                    : sidebarItem.path.includes(
-                        "/" + pathname.split("/")[1]
-                      )) || sidebarItem.path == pathname
-                    ? "bg-shade text-white my-2 "
-                    : "bg-inherit hover:bg-shade hover:text-white"
-                } `}
-                key={sidebarItem.name}
+    <div className="flex flex-col h-full bg-[#F2FCFC]">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex flex-col w-64 min-h-screen border-r border-gray-200">
+        <nav className="flex-grow overflow-y-auto px-3 py-4 space-y-1">
+          {ROUTES.filter(r => !r.hidden).map((item) => (
+            <div key={item.path} className="relative">
+              <div
+                onClick={() => hasSubItems(item) && toggleExpand(item.path)}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                  hasSubItems(item) ? 'cursor-pointer' : ''
+                } ${
+                  isActive(item.path)
+                    ? "bg-shade text-white"
+                    : "text-gray-600 hover:bg-shade hover:bg-opacity-20 hover:text-shade"
+                }`}
               >
-                <li key={sidebarItem.path}>
-                  <div className="flex items-center gap-1 p-2">
-                    <div
-                      className={` ${
-                        (pathname.split("/").length <= 2
-                          ? ""
-                          : sidebarItem.path.includes(
-                              "/" + pathname.split("/")[1]
-                            )) || sidebarItem.path == pathname
-                          ? "bg-shade text-white"
-                          : ""
-                      } `}
-                    >
-                      {sidebarItem.icon}
-                    </div>
-                    <h4 className="text-sm ">{sidebarItem.name}</h4>
-                  </div>
-                </li>
-              </Link>
-            ))}
-          </ol>
-        </div>
-        <div className="p-2 max-h-[100vh] overflow-y-auto">
-        <div role="list" className="py-2">
-          {ROUTES.filter(
-            (route) => route.path === "/" + pathname.split("/")[1]
-          ).map((sidebarItem) => (
-            <div
-              key={sidebarItem.path}
-              className={`${
-                sidebarItem.sidebarItems.length == 1 &&
-                sidebarItem.sidebarItems[0].items.length == 1 &&
-                "hidden"
-              }`}
-            >
-              {sidebarItem.sidebarItems.map((item) => (
-                <div key={item.path} className="mb-4">
-                  <h4 className="font-semibold text-sm mb-2">{item.name}</h4>
-                  <ol role="list" className="md:pl-4 rounded">
-                    {item.items.map(
-                      (nestedItem) =>
-                        !nestedItem?.hidden && (
-                          <Link
+                <Link
+                  to={item.path}
+                  className={`flex items-center flex-grow ${
+                    hasSubItems(item) ? 'pointer-events-none' : ''
+                  }`}
+                >
+                  <span className="mr-3">{item.icon}</span>
+                  <span className="text-sm font-medium">{item.name}</span>
+                </Link>
+                
+                {hasSubItems(item) && (
+                  <motion.div
+                    animate={{ rotate: expandedItems[item.path] ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Icon 
+                      icon="mdi:chevron-down" 
+                      className="w-5 h-5"
+                    />
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Dropdown items with smooth animation */}
+              <AnimatePresence>
+                {expandedItems[item.path] && hasSubItems(item) && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="ml-6 mt-1 space-y-1">
+                      {item.sidebarItems.map((subItem) => (
+                        subItem.items.filter(nested => !nested.hidden).map((nestedItem) => (
+                          <motion.div
                             key={nestedItem.path}
-                            to={sidebarItem.path + item.path + nestedItem.path}
+                            initial={{ x: -10, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ duration: 0.15 }}
                           >
-                            <li
-                              key={nestedItem.path}
-                              className={`flex items-center gap-2 py-2 md:px-4 px-1 ${
-                                pathname ===
-                                sidebarItem.path + item.path + nestedItem.path
-                                  ? "text-shade "
-                                  : " hover:bg-shade hover:text-white text-gray-600 hover:rounded"
+                            <Link
+                              to={item.path + subItem.path + nestedItem.path}
+                              className={`flex items-center px-3 py-2 rounded text-sm transition-colors ${
+                                pathname === item.path + subItem.path + nestedItem.path
+                                  ? "bg-shade text-white"
+                                  : "text-gray-600 hover:bg-shade hover:bg-opacity-10 hover:text-shade"
                               }`}
                             >
-                              <div
-                                className={` ${
-                                  pathname ===
-                                  sidebarItem.path + item.path + nestedItem.path
-                                    ? "text-shade "
-                                    : " hover:bg-shade hover:text-white hover:rounded"
-                                }`}
-                              >
-                                {nestedItem.icon}
-                              </div>
-                              <span className="text-sm">{nestedItem.name}</span>
-                            </li>
-                          </Link>
-                        )
-                    )}
-                  </ol>
-                </div>
-              ))}
+                              <span className="mr-2">{nestedItem.icon}</span>
+                              {nestedItem.name}
+                            </Link>
+                          </motion.div>
+                        ))
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ))}
-        </div>
+        </nav>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10 shadow-lg">
+        <div className="flex justify-around">
+          {/* //@ts-nocheck */}
+          {ROUTES.filter(r => !r.hidden && r.mobile).map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex flex-col items-center py-3 px-4 text-xs transition-colors ${
+                isActive(item.path) 
+                  ? "text-shade" 
+                  : "text-gray-500 hover:text-shade"
+              }`}
+            >
+              <span className="mb-1 text-lg">{item.icon}</span>
+              <span className="text-[0.7rem]">{item.name}</span>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

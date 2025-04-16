@@ -37,7 +37,7 @@ const DeductionTypes: React.FC = () => {
     },
     {
       headerName: "Name",
-      field: "deduction_name",
+      field: "name",
       sortable: true,
       filter: true,
     },

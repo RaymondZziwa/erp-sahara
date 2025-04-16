@@ -16,6 +16,7 @@ export interface InventoryItem {
   sku_unit: string;
   has_expiry: 1 | 0;
   shell_life: string;
+  item_images: [];
   description: null | string;
   item_category: Itemcategory;
   currency: Currency;

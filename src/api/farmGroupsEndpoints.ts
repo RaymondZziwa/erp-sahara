@@ -1,9 +1,9 @@
 export const FARM_GROUPS_ENDPOINTS = {
     FARM_GROUPS: {
-      GET_ALL: "/erp/farm/farmgroups",
-      GET_BY_ID: (id: string) => `/erp/farm/farmgroups/${id}`,
-      ADD: "/erp/farm/farmgroups/create",
-      UPDATE: (id: string) => `/erp/farm/farmgroups/${id}/update`,
-      DELETE: (id: string) => `/erp/farm/farmgroups/${id}/delete`,
+      GET_ALL: "/farm/farmgroups",
+      GET_BY_ID: (id: string) => `/farm/farmgroups/${id}`,
+      ADD: "/farm/farmgroups/create",
+      UPDATE: (id: string) => `/farm/farmgroups/${id}/update`,
+      DELETE: (id: string) => `/farm/farmgroups/${id}/delete`,
     },
 }

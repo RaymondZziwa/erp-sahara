@@ -27,7 +27,7 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
   onSave,
 }) => {
   const [formState, setFormState] = useState<Partial<LeaveApplication>>({
-    employee_id: undefined,
+    employee: undefined,
     leave_type_id: undefined,
     start_date: "",
     end_date: "",
@@ -46,7 +46,7 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
       });
     } else {
       setFormState({
-        employee_id: undefined,
+        employee: undefined,
         leave_type_id: undefined,
         start_date: "",
         end_date: "",
@@ -79,7 +79,7 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
 
     // Basic validation
     if (
-      !formState.employee_id ||
+      !formState.employee ||
       !formState.leave_type_id ||
       !formState.start_date ||
       !formState.reason
@@ -137,11 +137,12 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
       >
         <div className="p-field">
           <label htmlFor="employee_id">Employee</label>
+          <span className="text-red-500">*</span>
           <Dropdown
             filter
             id="employee_id"
-            name="employee_id"
-            value={formState.employee_id}
+            name="employee"
+            value={formState.employee}
             options={employees.map((emloyee) => ({
               label: emloyee.first_name + " " + emloyee.last_name,
               value: emloyee.id,
@@ -152,7 +153,9 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="leave_type_id">Leave Type</label>
+          <label htmlFor="leave_type_id">
+            Leave Type<span className="text-red-500">*</span>
+          </label>
           <Dropdown
             id="leave_type_id"
             name="leave_type_id"
@@ -168,7 +171,9 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="start_date">Start Date</label>
+          <label htmlFor="start_date">
+            Start Date<span className="text-red-500">*</span>
+          </label>
           <InputText
             id="start_date"
             name="start_date"
@@ -181,7 +186,9 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="end_date">End Date</label>
+          <label htmlFor="end_date">
+            End Date<span className="text-red-500">*</span>
+          </label>
           <InputText
             id="end_date"
             name="end_date"
@@ -194,7 +201,9 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="reason">Reason</label>
+          <label htmlFor="reason">
+            Reason<span className="text-red-500">*</span>
+          </label>
           <InputTextarea
             id="reason"
             name="reason"

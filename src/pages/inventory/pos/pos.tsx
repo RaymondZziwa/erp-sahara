@@ -12,12 +12,15 @@ const POS = () => {
   }
 
   return (
-        <div className="fixed inset-0 flex -mt-12 items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-gray-100 p-6 rounded-lg shadow-lg min-h-screen min-w-full">
-            <PosNavbar onClose={()=> navigate('/inventory')} onSearch={queryHandler} />
-            <PosModal query={searchQuery}/>
-          </div>
-        </div>
+    <div className="fixed inset-0 z-50 flex mt-2 items-center justify-center bg-black overflow-y-auto bg-opacity-50">
+      <div className="bg-gray-100 p-6 rounded-lg shadow-lg min-h-screen min-w-full overflow-auto">
+        <PosNavbar
+          onClose={() => navigate("/inventory")}
+          onSearch={queryHandler}
+        />
+        <PosModal query={searchQuery} />
+      </div>
+    </div>
   );
 };
 

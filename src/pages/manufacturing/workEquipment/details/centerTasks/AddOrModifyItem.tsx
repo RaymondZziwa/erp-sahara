@@ -64,16 +64,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
-<<<<<<< HEAD
-      ? MANUFACTURING_ENDPOINTS.CENTER_TASKS.UPDATE(item.id.toString())
-      : "";
-=======
       ? MANUFACTURING_ENDPOINTS.CENTER_TASKS.UPDATE(
           centerId,
           item.id.toString()
         )
       : MANUFACTURING_ENDPOINTS.CENTER_TASKS.ADD(centerId);
->>>>>>> 8f14ab57ad2ca16821052e80bada6ddc29b1ed18
 
     await createRequest(
       endpoint,

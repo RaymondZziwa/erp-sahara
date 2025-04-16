@@ -7,7 +7,6 @@ import useAuth from "../../../hooks/useAuth";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import { Warehouse } from "../../../redux/slices/types/inventory/Warehouse";
 import { Dropdown } from "primereact/dropdown";
-import useWarehouseTypes from "../../../hooks/inventory/useWarehouseTypes";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -28,7 +27,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     location: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-   const { data } = useWarehouseTypes();
+   //const { data } = useWarehouseTypes();
+   const data = [
+     { label: "Only Store", value: "only_store" },
+     { label: "Sales Store", value: "sales_store" },
+   ];
 
   const { token } = useAuth();
   useEffect(() => {
@@ -124,8 +127,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               name="warehouse_type"
               value={formState.warehouse_type}
               options={data.map((storeType) => ({
-                value: storeType.id,
-                label: storeType.name,
+                value: storeType.value,
+                label: storeType.label,
               }))}
               onChange={handleDropdownChange}
               className="w-full"

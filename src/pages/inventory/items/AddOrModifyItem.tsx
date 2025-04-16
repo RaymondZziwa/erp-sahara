@@ -1,39 +1,31 @@
+//@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
+import { InputNumber } from "primereact/inputnumber";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Dropdown, DropdownChangeEvent } from "primereact/dropdown";
+import { ProgressBar } from "primereact/progressbar";
+import { Card } from "primereact/card";
 
 import useItemCategories from "../../../hooks/inventory/useCategories";
 import useUnitsOfMeasurement from "../../../hooks/inventory/useUnitsOfMeasurement";
-import useCurrencies from "../../../hooks/procurement/useCurrencies";
-import { createRequest } from "../../../utils/api";
+import { baseURL } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
-import { RadioButton } from "primereact/radiobutton";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import { InventoryItem } from "../../../redux/slices/types/inventory/Items";
-import useLedgerChartOfAccounts from "../../../hooks/accounts/useLedgerChartOfAccounts";
-import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
+import { handleGenericError } from "../../../utils/errorHandling";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 interface AddOrModifyItemProps {
   visible: boolean;
   onClose: () => void;
-  item?: Partial<InventoryItem>;
+  item?: InventoryItem;
   onSave: () => void;
 }
 
-const itemTypes = [
-  { label: "Physical", value: "physical" },
-  { label: "Service", value: "service" },
-  { label: "Raw Material", value: "raw_material" },
-  { label: "Semi-Finished", value: "semi_finished" },
-  { label: "Finished Good", value: "finished_good" },
-  { label: "Asset", value: "asset" },
-  { label: "Consumable", value: "consumable" },
-  { label: "Digital Good", value: "digital_good" },
-  { label: "Subscriptions", value: "subscriptions" },
-];
 const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   visible,
   onClose,
@@ -45,37 +37,51 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     description: "",
     item_category_id: undefined,
     unit_of_measure_id: undefined,
-    currency_id: undefined,
-    account_chart_id: undefined,
-    item_type: "Product",
     cost_price: undefined,
     selling_price: undefined,
-    vat: undefined,
-    reference: "",
-    barcode: "",
     stock_alert_level: undefined,
-    sku_unit: undefined,
-    has_expiry: undefined,
-    shell_life: undefined,
+    reference: "",
+    shell_life: "",
+    sku_unit: "",
+    item_images: [],
   };
+
   const [formState, setFormState] =
     useState<Partial<InventoryItem>>(initialItem);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const { data: categories } = useItemCategories();
   const { data: units } = useUnitsOfMeasurement();
-  const { data: currencies } = useCurrencies();
   const { token } = useAuth();
-  const { data: chartOfAccounts, loading: chartOfAccountsLoading } =
-    useLedgerChartOfAccounts({ accountType: AccountType.EXPENSES });
 
   useEffect(() => {
     if (item) {
+      // Convert existing images to the format we expect
+      const existingImages =
+        item.item_images?.map((img) => {
+          if (typeof img === "string") {
+            return {
+              image_url: img,
+              name: img.split("/").pop() || "image",
+            };
+          } else {
+            return {
+              image_url: img.image_url,
+              name: img.image_url.split("/").pop() || "image",
+            };
+          }
+        }) || [];
+
       setFormState({
         ...item,
+        item_images: existingImages,
       });
     } else {
-      setFormState({ ...initialItem, has_expiry: 0 });
+      setFormState(initialItem);
     }
-  }, [item]);
+  }, [item, visible]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -87,43 +93,158 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
 
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleNumberChange = (
+    name: keyof InventoryItem,
+    value: number | null
+  ) => {
+    setFormState((prev) => ({ ...prev, [name]: value?.toString() || "0" }));
+  };
+
+  const handleDropdownChange = (name: keyof InventoryItem, value: string) => {
+    setFormState((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle drag and drop events
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const newFiles = Array.from(e.dataTransfer.files).map((file) => ({
+        name: file.name,
+        image_url: URL.createObjectURL(file),
+        objectURL: URL.createObjectURL(file),
+        file,
+      }));
+
+      setFormState((prev) => ({
+        ...prev,
+        item_images: [...(prev.item_images || []), ...newFiles],
+      }));
+    }
+  };
+
+  // Handle file selection via input
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files).map((file) => ({
+        name: file.name,
+        image_url: URL.createObjectURL(file),
+        objectURL: URL.createObjectURL(file),
+        file,
+      }));
+
+      setFormState((prev) => ({
+        ...prev,
+        item_images: [...(prev.item_images || []), ...newFiles],
+      }));
+    }
+  };
+
+  // Function to remove media by index
+  const removeImage = (index: number) => {
+    setFormState((prev) => {
+      const updatedImages = [...(prev.item_images || [])];
+      const removedImage = updatedImages.splice(index, 1)[0];
+
+      // Revoke the object URL to avoid memory leaks
+      if (removedImage.objectURL) {
+        URL.revokeObjectURL(removedImage.objectURL);
+      }
+
+      return { ...prev, item_images: updatedImages };
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Basic validation
+
     if (!formState.name) {
-      return; // You can handle validation error here
+      setIsSubmitting(false);
+      return;
     }
 
-    const method = item?.id ? "PUT" : "POST";
+    //const method = item?.id ? "PUT" : "POST";
+    const method = "POST";
     const endpoint = item?.id
       ? INVENTORY_ENDPOINTS.ITEMS.UPDATE(item.id.toString())
       : INVENTORY_ENDPOINTS.ITEMS.ADD;
-    const data = item?.id ? { ...item, ...formState } : formState;
-    await createRequest(endpoint, token.access_token, data, onSave, method);
-    setIsSubmitting(false);
-    onSave();
-    onClose(); // Close the modal after saving
+
+    // Prepare form data for submission
+    const formData = new FormData();
+
+    // Append all fields to formData
+    Object.entries(formState).forEach(([key, value]) => {
+      console.log('items', key, value)
+      if (key !== "item_images" && value !== undefined) {
+        // Convert value to string (for non-images fields)
+        formData.append(key, value?.toString());
+      }
+    });
+    // Append images
+    formState.item_images.forEach((image) => {
+      formData.append("item_images[]", image.file);
+    });
+
+    try {
+      const response = await axios({
+        method,
+        url: baseURL + endpoint,
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token.access_token}`,
+        },
+      });
+      if (response.data.success) {
+        toast.success("Product modified successfully!");
+      } else {
+        throw Error(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error saving item", error);
+      handleGenericError(error);
+    } finally {
+      setIsSubmitting(false);
+      setUploadProgress(0); // Reset progress after the upload
+    }
   };
-  const { data: categories } = useItemCategories();
+
   const footer = (
-    <div className="flex justify-end space-x-2">
+    <div className="flex justify-end gap-2">
       <Button
         label="Cancel"
         icon="pi pi-times"
         onClick={onClose}
-        className="p-button-text !bg-red-500 hover:bg-red-400"
-        size="small"
+        className="p-button-text"
         disabled={isSubmitting}
       />
       <Button
-        label={item?.id ? "Update" : "Submit"}
+        label={item?.id ? "Update" : "Save"}
         icon="pi pi-check"
         type="submit"
         form="item-form"
-        size="small"
         loading={isSubmitting}
-        disabled={isSubmitting}
+        disabled={isSubmitting || uploading}
       />
     </div>
   );
@@ -132,271 +253,283 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     <Dialog
       header={item?.id ? "Edit Item" : "Add Item"}
       visible={visible}
-      className="max-w-screen-2xl"
+      className="w-full max-w-4xl"
       footer={footer}
       onHide={onClose}
     >
       <form
         id="item-form"
-        onSubmit={handleSave}
-        className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 "
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4"
       >
-        <div className="p-field">
-          <label htmlFor="name">Name</label>
-          <InputText
-            id="name"
-            name="name"
-            value={formState.name}
-            onChange={handleInputChange}
-            required
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="description">Description</label>
-          <InputTextarea
-            id="description"
-            name="description"
-            value={formState.description ?? ""}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="item_category_id">Category</label>
-          <div className="card flex justify-content-center">
-            <Dropdown
-              value={formState.item_category_id}
-              onChange={(e: DropdownChangeEvent) => {
-                setFormState({ ...formState, item_category_id: e.value });
-              }}
-              options={categories}
-              optionLabel="name"
-              optionValue="id"
-              placeholder="Select a Category"
-              filter
-              className="w-full md:w-14rem"
-            />
-          </div>
-        </div>
-        <div className="p-field">
-          <label htmlFor="item_category_id">Unit of Measure</label>
-          <div className="card flex justify-content-center">
-            <Dropdown
-              value={formState.unit_of_measure_id}
-              onChange={(e: DropdownChangeEvent) => {
-                setFormState({ ...formState, unit_of_measure_id: e.value });
-              }}
-              options={units}
-              optionLabel="name"
-              optionValue="id"
-              placeholder="Select a unit"
-              filter
-              className="w-full md:w-14rem"
-            />
-          </div>
-        </div>
+        {/* Left Column */}
+        <div className="space-y-4">
+          <Card className="p-4">
+            <div className="p-field">
+              <label htmlFor="name" className="block mb-2 font-medium">
+                Name <span className="text-red-500">*</span>
+              </label>
+              <InputText
+                id="name"
+                name="name"
+                value={formState.name}
+                onChange={handleInputChange}
+                required
+                className="w-full"
+              />
+            </div>
 
-        <div className="p-field">
-          <label htmlFor="item_category_id">Chart of Account</label>
-          <div className="card flex justify-content-center">
-            <Dropdown
-              loading={chartOfAccountsLoading}
-              required
-              value={formState.chart_account}
-              onChange={(e: DropdownChangeEvent) => {
-                setFormState({ ...formState, chart_account: e.value });
-              }}
-              options={chartOfAccounts.map((acc) => ({
-                label: acc.name,
-                value: acc.id,
-              }))}
-              placeholder="Select Chart Of Account"
-              filter
-              className="w-full md:w-14rem"
-            />
-          </div>
-        </div>
-        {/* <div className="p-field">
-          <label htmlFor="item_type">Item Type</label>
+            <div className="p-field mt-4">
+              <label htmlFor="description" className="block mb-2 font-medium">
+                Description
+              </label>
+              <InputTextarea
+                id="description"
+                name="description"
+                value={formState.description ?? ""}
+                onChange={handleInputChange}
+                rows={3}
+                className="w-full"
+              />
+            </div>
 
-          {["Service", "Product"].map((type) => {
-            return (
-              <div
-                id="item_type"
-                key={type}
-                className="flex align-items-center"
+            <div className="p-field mt-4">
+              <label
+                htmlFor="item_category_id"
+                className="block mb-2 font-medium"
               >
-                <RadioButton
-                  required
-                  inputId={type}
-                  id="item_type"
-                  name="type"
-                  value={type}
-                  onChange={(e) =>
-                    setFormState({ ...formState, item_type: e.value })
-                  }
-                  checked={formState.item_type === type}
-                />
-                <label htmlFor={type} className="ml-2">
-                  {type}
-                </label>
-              </div>
-            );
-          })}
-        </div> */}
-        <div className="p-field">
-          <label htmlFor="item_category_id">Item Type</label>
-          <div className="card flex justify-content-center">
-            <Dropdown
-              required
-              value={formState.item_type}
-              onChange={(e: DropdownChangeEvent) => {
-                setFormState({ ...formState, item_type: e.value });
-              }}
-              options={itemTypes.map((item) => ({
-                label: item.label,
-                value: item.value,
-              }))}
-              placeholder="Select Item Type"
-              filter
-              className="w-full md:w-14rem"
-            />
-          </div>
-        </div>
-        <div className="p-field">
-          <label htmlFor="cost_price">Cost Price</label>
-          <InputText
-            id="cost_price"
-            name="cost_price"
-            type="number"
-            step="0.01"
-            value={formState.cost_price}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="selling_price">Selling Price</label>
-          <InputText
-            id="selling_price"
-            name="selling_price"
-            type="number"
-            step="0.01"
-            value={formState.selling_price}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="item_category_id">Currency</label>
-          <div className="card flex justify-content-center">
-            <Dropdown
-              required
-              value={formState.currency_id}
-              onChange={(e: DropdownChangeEvent) => {
-                setFormState({ ...formState, currency_id: e.value });
-              }}
-              options={currencies}
-              optionLabel="name"
-              optionValue="id"
-              placeholder="Select a currency"
-              filter
-              className="w-full md:w-14rem"
-            />
-          </div>
-        </div>
-        <div className="p-field">
-          <label htmlFor="vat">VAT</label>
-          <InputText
-            id="vat"
-            name="vat"
-            type="number"
-            value={formState.vat}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="reference">Reference</label>
-          <InputText
-            id="reference"
-            name="reference"
-            value={formState.reference}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="barcode">Barcode</label>
-          <InputText
-            id="barcode"
-            name="barcode"
-            value={formState.barcode}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="stock_alert_level">Stock Alert Level</label>
-          <InputText
-            id="stock_alert_level"
-            name="stock_alert_level"
-            type="number"
-            value={formState.stock_alert_level}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="sku_unit">SKU Unit</label>
-          <InputText
-            id="sku_unit"
-            name="sku_unit"
-            type="number"
-            value={formState.sku_unit}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="has_expiry">Has Expiry</label>
-          {[
-            { label: "Yes", value: 1 },
-            { label: "No", value: 0 },
-          ].map((category) => {
-            return (
-              <div key={category.value} className="flex align-items-center">
-                <RadioButton
-                  inputId={category.value.toString()}
-                  name="expiry"
-                  value={category.value}
-                  onChange={(e) =>
-                    setFormState({
-                      ...formState,
-                      has_expiry: e.value,
-                    })
-                  }
-                  checked={formState.has_expiry === category.value}
-                />
-                <label htmlFor={category.value.toString()} className="ml-2">
-                  {category.label}
-                </label>
-              </div>
-            );
-          })}
+                Category
+              </label>
+              <Dropdown
+                value={formState.item_category_id}
+                onChange={(e: DropdownChangeEvent) =>
+                  handleDropdownChange("item_category_id", e.value)
+                }
+                options={categories}
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Select a Category"
+                filter
+                className="w-full"
+              />
+            </div>
+
+            <div className="p-field mt-4">
+              <label
+                htmlFor="unit_of_measure_id"
+                className="block mb-2 font-medium"
+              >
+                Unit of Measure
+              </label>
+              <Dropdown
+                value={formState.unit_of_measure_id}
+                onChange={(e: DropdownChangeEvent) =>
+                  handleDropdownChange("unit_of_measure_id", e.value)
+                }
+                options={units}
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Select a unit"
+                filter
+                className="w-full"
+              />
+            </div>
+          </Card>
         </div>
 
-        <div className="p-field">
-          <label htmlFor="shell_life">Shell Life</label>
-          <InputText
-            id="shell_life"
-            name="shell_life"
-            type="number"
-            value={formState.shell_life}
-            onChange={handleInputChange}
-            className="w-full"
-          />
+        {/* Right Column */}
+        <div className="space-y-4">
+          <Card className="p-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-field">
+                <label htmlFor="cost_price" className="block mb-2 font-medium">
+                  Cost Price
+                </label>
+                <InputNumber
+                  id="cost_price"
+                  value={parseFloat(formState.cost_price as string) || 0}
+                  onValueChange={(e) =>
+                    handleNumberChange("cost_price", e.value)
+                  }
+                  mode="currency"
+                  name="cost_price"
+                  currency="UGX"
+                  locale="en-US"
+                  className="w-full"
+                />
+              </div>
+
+              <div className="p-field">
+                <label
+                  htmlFor="selling_price"
+                  className="block mb-2 font-medium"
+                >
+                  Selling Price
+                </label>
+                <InputNumber
+                  id="selling_price"
+                  name="selling_price"
+                  value={parseFloat(formState.selling_price as string) || 0}
+                  onValueChange={(e) =>
+                    handleNumberChange("selling_price", e.value)
+                  }
+                  mode="currency"
+                  currency="UGX"
+                  locale="en-US"
+                  className="w-full"
+                />
+              </div>
+            </div>
+
+            <div className="p-field mt-4">
+              <label htmlFor="reference" className="block mb-2 font-medium">
+                Reference
+              </label>
+              <InputText
+                id="reference"
+                name="reference"
+                value={formState.reference}
+                onChange={handleInputChange}
+                className="w-full"
+              />
+            </div>
+
+            <div className="p-field mt-4">
+              <label
+                htmlFor="stock_alert_level"
+                className="block mb-2 font-medium"
+              >
+                Stock Alert Level
+              </label>
+              <InputText
+                id="stock_alert_level"
+                name="stock_alert_level"
+                type="number"
+                value={formState.stock_alert_level as string}
+                onChange={handleInputChange}
+                className="w-full"
+              />
+            </div>
+
+            <div className="p-field mt-4">
+              <label htmlFor="shell_life" className="block mb-2 font-medium">
+                Shell life (Days)
+              </label>
+              <InputText
+                id="shell_life"
+                name="shell_life"
+                type="number"
+                value={formState.shell_life as string}
+                onChange={handleInputChange}
+                className="w-full"
+              />
+            </div>
+
+            <div className="p-field mt-4">
+              <label htmlFor="sku_unit" className="block mb-2 font-medium">
+                Stock Keeping Unit (SKU)
+              </label>
+              <InputText
+                id="sku_unit"
+                name="sku_unit"
+                value={formState.sku_unit}
+                onChange={handleInputChange}
+                className="w-full"
+              />
+            </div>
+          </Card>
+
+          {/* Image Upload Section */}
+          <Card className="p-4">
+            <div className="p-field">
+              <label className="block mb-2 font-medium">Product Images</label>
+
+              <div
+                className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
+                  isDragging
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-blue-400 bg-gray-50"
+                }`}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+              >
+                <div className="flex flex-col items-center justify-center gap-3">
+                  <div className="p-3 bg-blue-50 rounded-full">
+                    <i className="pi pi-image text-blue-500 text-xl"></i>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-700">
+                      {isDragging
+                        ? "Drop files here"
+                        : "Drag & drop your files here"}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      or click to browse
+                    </p>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    Supports: PNG, JPG, JPEG (Max 10MB each)
+                  </p>
+                  <input
+                    type="file"
+                    className="hidden"
+                    id="file-upload"
+                    name="item_images"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className="mt-2 px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 cursor-pointer transition-colors"
+                  >
+                    Select Files
+                  </label>
+                </div>
+              </div>
+
+              {uploading && (
+                <ProgressBar value={uploadProgress} className="mt-2 h-2" />
+              )}
+
+              {/* Uploaded Images Preview */}
+              {formState.item_images && formState.item_images.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium mb-2">
+                    Uploaded Images ({formState.item_images.length})
+                  </h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    {formState.item_images.map((image, index) => (
+                      <div
+                        key={index}
+                        className="relative group rounded-lg overflow-hidden border border-gray-200"
+                      >
+                        <div className="aspect-square bg-gray-100 flex items-center justify-center">
+                          <img
+                            src={
+                              image.objectURL ||
+                              `https://saharaauth.efinanci.com/storage/${image.image_url}`
+                            }
+                            alt={`Product ${index}`}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <i className="pi pi-times text-xs"></i>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
         </div>
       </form>
     </Dialog>

@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
@@ -57,6 +58,13 @@ const LeaveApplications: React.FC = () => {
     {
       headerName: "Applied On",
       field: "applied_on",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "Reason",
+      field: "reason",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,

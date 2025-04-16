@@ -36,7 +36,6 @@ interface Item {
   organisation_id: number;
   unit_of_measure_id: number;
   currency_id: number;
-  brand_id: null;
   name: string;
   chart_of_account_id: number;
   item_type: string;

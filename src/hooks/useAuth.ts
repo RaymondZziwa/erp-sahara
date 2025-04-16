@@ -29,7 +29,7 @@ const useAuth = () => {
     try {
       setIsLoading(true);
       const res = await apiRequest<ServerResponse<UserAuthType>>(
-        "/admin/login",
+        "/login",
         "POST",
         "",
         data

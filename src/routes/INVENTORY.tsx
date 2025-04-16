@@ -1,13 +1,11 @@
 import { Icon } from "@iconify/react";
 import { lazy, Suspense } from "react";
 import AddProduct from "../pages/inventory/items/add";
-import ItemAttributes from "../pages/inventory/itemAttributes";
 // import InventoryDashboard from "../pages/inventory/inventories/InventoryDashboard";
 import InventoryDashboard from "../pages/inventory/inventories/InventoryDashboard";
 //import Dashboard from "../pages/inventory/inventories/new_dasboard";
 import POS from "../pages/inventory/pos/pos";
 import StockOut from "../pages/inventory/inventories/stock_out";
-import WarehouseTypes from "../pages/inventory/warehouses/warehouse_types";
 
 // Dynamic imports
 //const Dashboard = lazy(() => import("../pages/dashboard"));
@@ -18,7 +16,6 @@ const Suppliers = lazy(() => import("../pages/inventory/suppliers"));
 const ItemCategories = lazy(() => import("../pages/inventory/categories"));
 const Items = lazy(() => import("../pages/inventory/items"));
 const Warehouses = lazy(() => import("../pages/inventory/warehouses"));
-const Brands = lazy(() => import("../pages/inventory/brands"));
 const Inventories = lazy(() => import("../pages/inventory/inventories"));
 // const Variants = lazy(() => import("../pages/inventory/variants"));
 const Trucks = lazy(() => import("../pages/inventory/trucks"));
@@ -100,16 +97,16 @@ const INVENTORY_ROUTES = [
           </Suspense>
         ),
       },
-      {
-        name: "Store types",
-        icon: <Icon icon="ph:house-simple-duotone" fontSize={20} />,
-        path: "/warehousetypes",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <WarehouseTypes />
-          </Suspense>
-        ),
-      },
+      // {
+      //   name: "Store types",
+      //   icon: <Icon icon="ph:house-simple-duotone" fontSize={20} />,
+      //   path: "/warehousetypes",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <WarehouseTypes />
+      //     </Suspense>
+      //   ),
+      // },
       {
         name: "Suppliers",
         icon: <Icon icon="solar:buildings-3-outline" fontSize={20} />,
@@ -161,16 +158,16 @@ const INVENTORY_ROUTES = [
         ),
       },
 
-      {
-        name: "Item Attributes",
-        icon: <Icon icon="solar:box-outline" fontSize={20} />,
-        path: "/attributes",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <ItemAttributes />
-          </Suspense>
-        ),
-      },
+      // {
+      //   name: "Item Attributes",
+      //   icon: <Icon icon="solar:box-outline" fontSize={20} />,
+      //   path: "/attributes",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <ItemAttributes />
+      //     </Suspense>
+      //   ),
+      // },
 
       {
         name: "Items",
@@ -183,16 +180,16 @@ const INVENTORY_ROUTES = [
           </Suspense>
         ),
       },
-      {
-        name: "Brands",
-        icon: <Icon icon="tabler:brand-office" fontSize={20} />,
-        path: "/brands",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Brands />
-          </Suspense>
-        ),
-      },
+      // {
+      //   name: "Brands",
+      //   icon: <Icon icon="tabler:brand-office" fontSize={20} />,
+      //   path: "/brands",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <Brands />
+      //     </Suspense>
+      //   ),
+      // },
 
       {
         name: "Units of Measurement",

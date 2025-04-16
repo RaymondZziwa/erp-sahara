@@ -1,17 +1,19 @@
+//@ts-nocheck
 import { Button } from "primereact/button";
-import { Checkbox } from "primereact/checkbox";
 import { InputText } from "primereact/inputtext";
 
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { handleGenericError } from "../../utils/errorHandling";
-import { useTranslation } from "react-i18next";
-import Logo from '../../assets/images/logos/ltcu.jpeg';
+//import { useTranslation } from "react-i18next";
+import saharaLogo from '../../assets/images/sahara.jpeg';
+import latcuLogo from '../../assets/images/logos/ltcu.jpeg'
+import { org } from "../../utils/api";
 
 export default function LoginPage() {
   const { loginHandler, isLoading } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  //const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -52,20 +54,28 @@ export default function LoginPage() {
       </div>
 
       {/* Right section with form */}
-      <div className="flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-8">
+      <div className="flex items-center justify-center p-2">
+        <div className="w-full max-w-md space-y-2">
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-center">
             {/* <div className="w-8 h-8 rounded bg-gradient-to-r from-purple-500 to-teal-500" /> */}
-            <img src={Logo} alt="" className="w-42 h-48" />
+            <img
+              src={org === "latcu" ? latcuLogo : saharaLogo}
+              alt=""
+              className=" w-60 h-48"
+            />
+            
+            {org === "sahara" && (
+              <p className="font-bold text-6xl -mt-8 mb-4">SPICE HUB</p>
+            )}
             {/* <span className="text-xl font-semibold">ERP</span> */}
           </div>
 
           {/* Header */}
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight">
+            {/* <h1 className="text-2xl font-semibold tracking-tight">
               {t("welcome")}
-            </h1>
+            </h1> */}
             {/* <p className="text-sm text-muted-foreground">
               Your Admin Dashboard
             </p> */}
@@ -79,7 +89,7 @@ export default function LoginPage() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground bg-white">
-                  sign in
+                  log in
                 </span>
               </div>
             </div>
@@ -88,12 +98,12 @@ export default function LoginPage() {
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex flex-col gap-2">
-              <label htmlFor="email">Email</label>
+              {/* <label htmlFor="email" className="font-medium">Email</label> */}
               <InputText
                 name="email"
                 id="email"
                 aria-describedby="email-help"
-                placeholder="info@erp.com"
+                placeholder="Email"
                 type="email"
                 autoCapitalize="none"
                 autoComplete="email"
@@ -104,16 +114,16 @@ export default function LoginPage() {
               </small> */}
             </div>
             <div className="flex flex-col gap-2">
-              <label
+              {/* <label
                 htmlFor="password"
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 Password
-              </label>
+              </label> */}
               <InputText
                 name="password"
                 id="password"
-                placeholder="••••••••••••"
+                placeholder="Password"
                 type="password"
                 autoCapitalize="none"
                 autoComplete="email"
@@ -121,8 +131,8 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
+            <div className="flex justify-end">
+              {/* <div className="flex items-center space-x-2">
                 <Checkbox id="remember" checked={false} />
                 <label
                   htmlFor="remember"
@@ -130,13 +140,13 @@ export default function LoginPage() {
                 >
                   Remember this Device
                 </label>
-              </div>
-              <Link
+              </div> */}
+              {/* <Link
                 to="/forgot-password"
                 className="text-sm text-teal-500 hover:text-teal-600"
               >
                 Forgot Password?
-              </Link>
+              </Link> */}
             </div>
 
             <Button
@@ -144,7 +154,7 @@ export default function LoginPage() {
               type="submit"
               className="w-full bg-teal-500 hover:bg-teal-600 text-center"
             >
-              <h4 className="flex w-full justify-center"> Sign In</h4>
+              <h4 className="flex w-full justify-center"> LOG IN</h4>
             </Button>
           </form>
 

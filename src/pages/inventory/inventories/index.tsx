@@ -79,7 +79,7 @@ const Inventories: React.FC = () => {
         token.access_token,
         {
           unique_id: reversalId,
-          reason: reversalReason,
+          movement_reason: reversalReason,
         },
         refresh,
         "POST"
@@ -151,15 +151,17 @@ const Inventories: React.FC = () => {
             )}
 
             {/* Reverse Transaction Button - Always Visible */}
-            <button
-              onClick={() => {
-                setReversalId(params.data.unique_id);
-                handleReverseTransaction();
-              }}
-              className="rounded-md text-white bg-red-500 pb-2 pr-2 pl-2 flex items-center justify-center"
-            >
-              Undo
-            </button>
+            {status !== "reversed" && (
+              <button
+                onClick={() => {
+                  setReversalId(params.data.unique_id);
+                  handleReverseTransaction();
+                }}
+                className="rounded-md text-white bg-red-500 pb-2 pr-2 pl-2 flex items-center justify-center"
+              >
+                Undo
+              </button>
+            )}
           </div>
         );
       },

@@ -27,7 +27,7 @@ export interface AddProduct {
   shell_life: string;
   description: string;
   variants: Variant[];
-  images: File[];
+  item_images: File[];
   tax_class: string;
 }
 
@@ -60,8 +60,8 @@ export default function AddProduct() {
     cost_price: "",
     selling_price: "",
     vat: "",
-    reference: "GH",
-    barcode: "skja",
+    reference: "",
+    barcode: "",
     stock_alert_level: "",
     sku_unit: "",
     has_expiry: "1",
@@ -69,7 +69,7 @@ export default function AddProduct() {
     description: "",
     tax_class: "",
     variants: [],
-    images: [],
+    item_images: [],
   });
 
   // Handle changes to general product fields (level 1)
@@ -79,17 +79,6 @@ export default function AddProduct() {
   ) => {
     setProduct({ ...product, [key]: value });
   };
-
-  // Handle changes to variant fields (level 2)
-  // const handleVariantChange = (
-  //   index: number,
-  //   key: keyof Variant,
-  //   value: string
-  // ) => {
-  //   const updatedVariants = [...product.variants];
-  //   updatedVariants[index] = { ...updatedVariants[index], [key]: value };
-  //   setProduct({ ...product, variants: updatedVariants });
-  // };
 
   // Handle changes to attribute fields (level 3, inside a variant)
   const handleAttributeChange = (
@@ -117,14 +106,14 @@ export default function AddProduct() {
     }
     const formData = new FormData();
     Object.entries(product).forEach(([key, value]) => {
-      if (key !== "images" && key !== "variants" && value !== undefined) {
+      if (key !== "item_images" && key !== "variants" && value !== undefined) {
         // Convert value to string (for non-images fields)
         formData.append(key, value.toString());
       }
     });
     // Append images
-    product.images.forEach((image) => {
-      formData.append("images[]", image);
+    product.item_images.forEach((image) => {
+      formData.append("item_images[]", image);
     });
     product.variants.map((variant) =>
       formData.append("variants[]", JSON.stringify(variant))
@@ -154,7 +143,6 @@ export default function AddProduct() {
         },
       });
       if (response.data.success) {
-        // Handle successful save (e.g., display a success message or redirect)
         toast.success("Product saved successfully!");
         // Reset state if needed
         setProduct({
@@ -177,7 +165,7 @@ export default function AddProduct() {
           description: "",
           tax_class: "",
           variants: [],
-          images: [],
+          item_images: [],
           // Reset other fields as necessary
         });
       } else {
@@ -197,28 +185,7 @@ export default function AddProduct() {
       <div>
         <h4 className="text-xl font-bold my-3">Add Item</h4>
       </div>
-      {/* <TabView
-        activeIndex={activeIndex}
-        onTabChange={(e) => setActiveIndex(e.index)}
-      >
-        <TabPanel header="General">
-          <div className="bg-bg">
-            <GeneralProductForm
-              handleAttributeChange={handleAttributeChange}
-              handleProductChange={handleGeneralChange} // Using the general handler
-              product={product}
-            />
-          </div>
-        </TabPanel>
-        <TabPanel header="Advanced">
-          <AdvancedProductForm
-            handleProductChange={handleGeneralChange}
-            handleVariantChange={handleVariantChange} // Using the variant handler
-            product={product}
-            handleAttributeChange={handleAttributeChange} // Using the attribute handler
-          />
-        </TabPanel>
-      </TabView> */}
+      
       <div className="bg-bg">
         <GeneralProductForm
           handleAttributeChange={handleAttributeChange}
@@ -228,11 +195,11 @@ export default function AddProduct() {
       </div>
       <div className="flex justify-between w-full">
         <div className="flex gap-2 w-full mx-4 my-2">
-          <Button loading={isSubmitting} onClick={handleSave} size="small">
-            Save
-          </Button>
           <Button size="small" className="!bg-red-500">
             Cancel
+          </Button>
+          <Button loading={isSubmitting} onClick={handleSave} size="small">
+            Save
           </Button>
         </div>
       </div>
