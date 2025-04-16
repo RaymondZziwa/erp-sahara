@@ -15,18 +15,23 @@ import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import { createRequest } from "../../../utils/api";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
+import { Dialog } from "primereact/dialog";
+import { InputText } from "primereact/inputtext";
 
 const Inventories: React.FC = () => {
   const { data, refresh } = useInventoryRecords();
   const tableRef = useRef<any>(null);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isReverseModalOpen, setIsReverseModalOpen] = useState(false);
+  const [reversalReason, setReversalReason] = useState("");
 
-  const token = useSelector((state: RootState)=> state.userAuth.token);
+  const token = useSelector((state: RootState) => state.userAuth.token);
   const [storeId, setStoreId] = useState(1);
   const [storeData, setStoreData] = useState([]);
   const [selectedStore, setSelectedStore] = useState(0);
-  const [recordId, setRecordId] = useState(0)
+  const [recordId, setRecordId] = useState(0);
+  const [reversalId, setReversalId] = useState(0);
 
   const { data: warehousesd } = useWarehouses();
   const warehouses =
@@ -39,7 +44,8 @@ const Inventories: React.FC = () => {
     if (!data) {
       refresh();
     } else {
-      const dat = data && data.filter((store) => store.warehouse_id === storeId);
+      const dat =
+        data && data.filter((store) => store.warehouse_id === storeId);
       setStoreData(dat[0]?.stock_movements?.stock_in.transactions);
     }
   }, [storeId, data]);
@@ -55,24 +61,37 @@ const Inventories: React.FC = () => {
     }
   };
 
-  const reverseTransaction = async (id: number) => {
+  const handleReverseTransaction = () => {
+    setIsReverseModalOpen(true);
+  };
+
+  const reverseTransaction = async () => {
     try {
-      console.log("Reversing transaction for ID:", id); // Debugging log
+      console.log(
+        "Reversing transaction for ID:",
+        reversalId,
+        "with reason:",
+        reversalReason
+      );
 
       await createRequest(
         INVENTORY_ENDPOINTS.INVENTORIES.REVERSE,
         token.access_token,
-        { unique_id: id },
+        {
+          unique_id: reversalId,
+          movement_reason: reversalReason,
+        },
         refresh,
         "POST"
       );
 
       refresh();
+      setIsReverseModalOpen(false);
+      setReversalReason("");
     } catch (error) {
       console.log("Failed to reverse transaction", error);
     }
   };
-
 
   const columnDefinitions: ColDef<any>[] = [
     {
@@ -132,28 +151,74 @@ const Inventories: React.FC = () => {
             )}
 
             {/* Reverse Transaction Button - Always Visible */}
-            <button
-              onClick={() => {
-                // Handle reverse transaction logic
-                setRecordId(params.data.id);
-                //setIsReverseModalOpen(true);
-              }}
-              className="rounded-md text-white bg-red-500 pb-2 pr-2 pl-2 flex items-center justify-center"
-              onClickCapture={() => reverseTransaction(params.data.id)}
-            >
-              Undo
-            </button>
+            {status !== "reversed" && (
+              <button
+                onClick={() => {
+                  setReversalId(params.data.unique_id);
+                  handleReverseTransaction();
+                }}
+                className="rounded-md text-white bg-red-500 pb-2 pr-2 pl-2 flex items-center justify-center"
+              >
+                Undo
+              </button>
+            )}
           </div>
         );
       },
     },
   ];
 
+  const reverseModalFooter = (
+    <div>
+      <button
+        onClick={() => {
+          setIsReverseModalOpen(false);
+          setReversalReason("");
+        }}
+        className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-2"
+      >
+        Cancel
+      </button>
+      <button
+        onClick={reverseTransaction}
+        className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+        disabled={!reversalReason.trim()}
+      >
+        Confirm Reversal
+      </button>
+    </div>
+  );
+
   return (
     <div>
+      {/* Reverse Transaction Modal */}
+      <Dialog
+        header="Reverse Transaction"
+        visible={isReverseModalOpen}
+        style={{ width: "50vw" }}
+        onHide={() => {
+          setIsReverseModalOpen(false);
+          setReversalReason("");
+        }}
+        footer={reverseModalFooter}
+      >
+        <div className="p-fluid">
+          <div className="p-field">
+            <label htmlFor="reason">Reason for Reversal</label>
+            <InputText
+              id="reason"
+              value={reversalReason}
+              onChange={(e) => setReversalReason(e.target.value)}
+              placeholder="Enter reason for reversal"
+              className="w-full"
+            />
+          </div>
+        </div>
+      </Dialog>
+
       <ConfirmModal
-        record_id={recordId} // Example record ID
-        warehouse_id={selectedStore} // Pass selectedStore directly
+        record_id={recordId}
+        warehouse_id={selectedStore}
         onClose={() => setIsConfirmModalOpen(false)}
         visible={isConfirmModalOpen}
         onSave={refresh}
@@ -223,10 +288,15 @@ const Inventories: React.FC = () => {
             </button>
           </div>
         </div>
-        <Table columnDefs={columnDefinitions} data={storeData ? storeData : []} ref={tableRef} />
+        <Table
+          columnDefs={columnDefinitions}
+          data={storeData ? storeData : []}
+          ref={tableRef}
+        />
       </div>
     </div>
   );
 };
 
 export default Inventories;
+ 

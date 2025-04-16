@@ -17,9 +17,16 @@ interface AddOrModifySubCategoryAccountProps {
   onSave: () => void;
 }
 
+// "account_category_id": 1,
+//   "parent_id": 6,
+//   "name": "Petty Cash",
+//   "description": "Petty Cash 2",
+//   "code": null
+
 interface SubCategoryAccount {
   account_category_id: number;
   parent_id: number;
+  sub_parent_id: number;
   name: string;
   description: string;
   code?: string | null;
@@ -39,6 +46,7 @@ const AddOrModifyAccountSubCategory: React.FC<
       setFormState({
         account_category_id: item.account_category_id,
         parent_id: item?.parent_id ?? 0,
+        sub_parent_id: item?.sub_parent_id ?? 0,
         name: item.name,
         description: item.description,
         code: item.code?.toString() || "",
@@ -72,8 +80,9 @@ const AddOrModifyAccountSubCategory: React.FC<
 
     try {
       const data = {
-        account_category_id: formState.baseAccountId,
-        parent_id: formState.account_category_id,
+        account_category_id: formState.account_category_id,
+        parent_id: formState.parent_id,
+        sub_parent_id: formState.sub_parent_id,
         name: formState.name,
         description: formState.description,
         code: formState.code || null,
@@ -117,7 +126,7 @@ const AddOrModifyAccountSubCategory: React.FC<
   );
 
   const selectedParentAccount = accountCategories?.find(
-    (cat) => cat.id === formState.baseAccountId
+    (cat) => cat.id === formState.account_category_id
   );
   const selectedAccountCategory =
     selectedParentAccount?.account_sub_categories.find(
@@ -136,17 +145,17 @@ const AddOrModifyAccountSubCategory: React.FC<
         {((item?.id && item.is_system_created === 0) || !item?.id) && (
           <>
             <div className="p-field">
-              <label htmlFor="baseAccountId">Base Account</label>
+              <label htmlFor="account_category_id">Base Account</label>
               <Dropdown
                 placeholder="Select Account"
-                id="baseAccountId"
-                name="baseAccountId"
+                id="account_category_id"
+                name="account_category_id"
                 optionLabel="name"
                 optionValue="id"
-                value={formState.baseAccountId}
+                value={formState.account_category_id}
                 options={accountCategories}
                 onChange={(e) =>
-                  setFormState({ ...formState, baseAccountId: e.value })
+                  setFormState({ ...formState, account_category_id: e.value })
                 }
                 className="w-full"
               />
@@ -168,18 +177,18 @@ const AddOrModifyAccountSubCategory: React.FC<
               />
             </div>
             <div className="p-field">
-              <label htmlFor="account_category_id">Account Category</label>
+              <label htmlFor="sub_parent_id">Account Category</label>
               <Dropdown
                 placeholder="Select Account"
-                id="account_category_id"
-                name="account_category_id"
+                id="sub_parent_id"
+                name="sub_parent_id"
                 optionLabel="name"
                 optionValue="id"
                 filter
-                value={formState.account_category_id}
-                options={selectedAccountCategory?.children || []}
+                value={formState.sub_parent_id}
+                options={selectedAccountCategory?.children_recursive || []}
                 onChange={(e) =>
-                  setFormState({ ...formState, account_category_id: e.value })
+                  setFormState({ ...formState, sub_parent_id: e.value })
                 }
                 className="w-full"
               />

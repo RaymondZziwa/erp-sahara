@@ -136,10 +136,11 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="employee">Employee</label>
+          <label htmlFor="employee_id">Employee</label>
+          <span className="text-red-500">*</span>
           <Dropdown
             filter
-            id="employee"
+            id="employee_id"
             name="employee"
             value={formState.employee}
             options={employees.map((emloyee) => ({
@@ -152,7 +153,9 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="leave_type_id">Leave Type</label>
+          <label htmlFor="leave_type_id">
+            Leave Type<span className="text-red-500">*</span>
+          </label>
           <Dropdown
             id="leave_type_id"
             name="leave_type_id"
@@ -168,7 +171,9 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="start_date">Start Date</label>
+          <label htmlFor="start_date">
+            Start Date<span className="text-red-500">*</span>
+          </label>
           <InputText
             id="start_date"
             name="start_date"
@@ -181,7 +186,9 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="end_date">End Date</label>
+          <label htmlFor="end_date">
+            End Date<span className="text-red-500">*</span>
+          </label>
           <InputText
             id="end_date"
             name="end_date"
@@ -194,7 +201,9 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="reason">Reason</label>
+          <label htmlFor="reason">
+            Reason<span className="text-red-500">*</span>
+          </label>
           <InputTextarea
             id="reason"
             name="reason"

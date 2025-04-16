@@ -47,7 +47,7 @@ const ExpenseTransactions: React.FC = () => {
     const fetchRecords = async () => {
       try {
         const response = await axios.get(
-          `${baseURL}/erp/accounts/general-ledger/4`,
+          `${baseURL}/accounts/general-ledger/4`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -194,7 +194,7 @@ const ExpenseTransactions: React.FC = () => {
                 onJournalTypeClick({
                   debitAccountsType: AccountType.ASSETS,
                   creditAccountsType: AccountType.ASSETS,
-                  endpoint: "/erp/accounts/transactions/save-expense",
+                  endpoint: "/accounts/transactions/save-expense",
                   journalType: "Expenses journal",
                   creditAccountHeader: "Credit A/C",
                   debitAccountHeader: "Debit A/C",

@@ -35,12 +35,6 @@ const PayrollPeriods: React.FC = () => {
       width: 100,
     },
     {
-      headerName: "Name",
-      field: "period_name",
-      sortable: true,
-      filter: true,
-    },
-    {
       headerName: "Start Date",
       field: "start_date",
       sortable: true,

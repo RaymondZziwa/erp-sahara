@@ -37,7 +37,7 @@ const handleGenericError = <T>(
         //   localStorage.clear();
         //   window.location.href = "/login";
         // }, 2000);
-        window.location.href = "/login";
+        //window.location.href = "/login";
       }
     } else if (axiosError.request) {
       toast.error("No response received from the server.");

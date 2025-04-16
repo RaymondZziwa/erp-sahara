@@ -25,6 +25,10 @@ import ComparisonIncomeStatement from "../pages/reports/incomeStatement/Comparis
 import ComparisonBalanceSheet from "../pages/reports/balanceSheet/ComparisonBalancesheet";
 import BudgetDetails from "../pages/budgets/budgetDetails";
 import BalanceSheetReport from "../pages/reports/accounting/BSReport";
+import StockAgingReport from "../pages/reports/inventory/stock_aging_report";
+import OutOfStockReport from "../pages/reports/inventory/out_of_stock_report";
+import ReorderReport from "../pages/reports/inventory/reorder_report";
+import OwnersEquityReport from "../pages/reports/accounting/owners_equity";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -53,6 +57,9 @@ const AppRouter = () => {
             path="/supplier-performance-report"
             element={<SupplierPerformanceReport />}
           />
+          <Route path="/reorder-report" element={<ReorderReport />} />
+          <Route path="/out-of-stock-report" element={<OutOfStockReport />} />
+          <Route path="/stock-aging-report" element={<StockAgingReport />} />
           <Route
             path="/damaged-stock-report"
             element={<DamagedStockReport />}
@@ -64,6 +71,7 @@ const AppRouter = () => {
           />
           <Route path="/trial-balance" element={<TrialBalance />} />
           <Route path="/cashflow-report" element={<Cashflow />} />
+          <Route path="/owners-equity" element={<OwnersEquityReport />} />
           <Route path="/cash-book" element={<CashBook />} />
           <Route
             path="/general-ledger-book"

@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
@@ -41,8 +42,11 @@ const Drivers: React.FC = () => {
       filter: true,
     },
     {
-      headerName: "Staff ID",
-      field: "employee_id",
+      headerName: "Staff",
+      valueGetter: (params) =>
+        `${params.data?.employee?.first_name || ""} ${
+          params.data?.employee?.last_name || ""
+        }`,
       sortable: true,
       filter: true,
       suppressSizeToFit: true,

@@ -4,6 +4,7 @@ import { handleGenericError } from "./errorHandling";
 import { toast } from "react-toastify";
 import { ServerResponse } from "../redux/slices/types/ServerResponse";
 export const baseURL = "https://saharaauth.efinanci.com/api";
+//export const baseURL = "https://latcu-api.efinanci.co.tz/api";
 //export const baseURL = "https://merp.efinanci.co.tz/api";
 export const baseURL2 = "https://saharaauth.efinanci.com/api";
 //export const baseURL = "demo-api.efinanci.co.tz";
@@ -15,7 +16,7 @@ export const mossAppbaseURL = "https://mosappapi.mosmiles.org/api/app";
 //   "https://mosappapi.mosmiles.org/mos/public/api/app";
 export const mossAppImageURL =
   "https://mosappapi.mosmiles.org/api/public/storage";
-
+export const org = 'latcu'
 export const apiRequest = async <T>(
   endpoint: string,
   method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
@@ -41,20 +42,15 @@ export const apiRequest = async <T>(
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const data = error.response?.data;
-      if (error.response?.status === 401) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
         if (data?.message) {
           toast.error(data.message);
         }
 
-        // Clear localStorage and redirect after 2 seconds
-        // setTimeout(() => {
-        // localStorage.clear();
-        window.location.href = "/login";
-        // }, 2000);
+        //window.location.href = "/login";
       }
       throw error; // Rethrow the error for further handling if needed
     }
-
     // Handle non-Axios related errors
     throw new Error("An error occurred during the API request.");
   }

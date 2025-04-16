@@ -19,7 +19,7 @@ export interface IAccountsubcategory {
   is_system_created: number;
   parent_id: null | number;
   deleted_at: null;
-  children: IAccountChild[];
+  children_recursive: IAccountChild[];
 }
 
 export interface IAccountChild {

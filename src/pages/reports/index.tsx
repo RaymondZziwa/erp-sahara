@@ -23,7 +23,7 @@ const reportsData = [
       },
       { name: "Cash Flow", link: "/cashflow-report" },
       // { name: "Owner's equity", link: "/owner-equity" },
-      { name: "Owner's equity", link: "#" },
+      { name: "Owner's equity", link: "/owners-equity" },
       { name: "Cash book", link: "/cash-book" },
       { name: "General Ledger", link: "/general-ledger-book" },
       // { name: "Ledger book", link: "#" },

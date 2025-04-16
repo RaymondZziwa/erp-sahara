@@ -37,7 +37,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     start_date: "",
     end_date: "",
     frequency: "One-Time",
-    employee: 0,
+    employee_id: 0,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dateError, setDateError] = useState<string | null>(null);
@@ -80,7 +80,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const handleDateChange = (name: string, value: Date) => {
     setFormState((prevState) => ({
       ...prevState,
-      [name]: value.toISOString().slice(0, 10), // Format the date as 'YYYY-MM-DD'
+      [name]: value.toISOString().slice(0, 10),
     }));
 
     if (name === "start_date" && formState.end_date) {
@@ -94,7 +94,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     if (endDate < startDate) {
       setDateError("End date must be after the start date.");
     } else {
-      setDateError(null); // Dates are valid
+      setDateError(null);
     }
   };
 
@@ -108,8 +108,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       !formState.deduction_type_id ||
       dateError
     ) {
+      console.log(formState)
       setIsSubmitting(false);
-      return; // Handle validation error here
+      return;
     }
 
     const data = { ...formState };
@@ -160,11 +161,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="employee_id">Employee</label>
+          <label htmlFor="employee">Employee</label>
           <Dropdown
-            id="employee_id"
+            id="employee"
             name="employee_id"
-            value={formState.employee || null}
+            value={formState.employee_id || null}
             options={employees?.map((employee) => ({
               label: `${employee.first_name} ${employee.last_name}`,
               value: employee.id,
@@ -183,7 +184,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             name="deduction_type_id"
             value={formState.deduction_type_id || null}
             options={deductionTypes?.map((type) => ({
-              label: type.deduction_name,
+              label: type.name,
               value: type.id,
             }))}
             onChange={(e) => handleDropdownChange("deduction_type_id", e.value)}

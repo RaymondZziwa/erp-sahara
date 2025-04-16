@@ -1,16 +1,21 @@
 import { Employee } from "../Employee";
 
 export interface PayRollPeriod {
+  id: number;
+  organisation_id: number;
   period_name: string;
   start_date: string | null;
   end_date: string | null;
-  organisation_id: number;
-  updated_at: string;
-  created_at: string;
-  id: number;
   payroll_date: string | null;
-  pay_frequency: string; // Monthly, Weekly, Bi-Weekly, Hourly
+  pay_frequency: string; // You can remove this if you're using payment_every_after instead
+  is_repetitive: boolean;
+  payment_every_after: 'Monthly' | 'Weekly' | 'Bi-Weekly' | 'Hourly';
+  paytime: 'Day' | 'End';
+  pay_day: number;
+  created_at: string;
+  updated_at: string;
 }
+
 
 export interface Payroll {
   id: string;

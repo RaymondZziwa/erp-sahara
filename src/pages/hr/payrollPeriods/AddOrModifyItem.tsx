@@ -1,47 +1,41 @@
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
-import { Button } from "primereact/button";
-import { InputText } from "primereact/inputtext";
-import { createRequest } from "../../../utils/api";
-import useAuth from "../../../hooks/useAuth";
-import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
-import { Calendar } from "primereact/calendar";
+import { InputNumber } from "primereact/inputnumber";
 import { Dropdown } from "primereact/dropdown";
-
+import { Calendar } from "primereact/calendar";
+import { Checkbox } from "primereact/checkbox";
+import { Button } from "primereact/button";
 import { PayRollPeriod } from "../../../redux/slices/types/hr/salary/PayRollPeriod";
-import { Nullable } from "primereact/ts-helpers";
-import { toast } from "react-toastify";
+import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
+import useAuth from "../../../hooks/useAuth";
+import { createRequest } from "../../../utils/api";
 
-interface AddOrModifyItemProps {
+interface PayRollPeriodFormProps {
   visible: boolean;
   onClose: () => void;
-  item?: PayRollPeriod;
   onSave: () => void;
+  item?: Partial<PayRollPeriod>;
 }
 
-const payFrequencyOptions = [
-  { label: "Monthly", value: "Monthly" },
-  { label: "Weekly", value: "Weekly" },
-  { label: "Bi-Weekly", value: "Bi-Weekly" },
-  { label: "Hourly", value: "Hourly" },
-];
-
-const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
+const payFrequencies = ["Monthly", "Weekly", "Bi-Weekly", "Hourly"];
+const payTimes = ["Day", "End"];
+const AddOrModifyItem: React.FC<PayRollPeriodFormProps> = ({
   visible,
   onClose,
   item,
   onSave,
 }) => {
-  const [formState, setFormState] = useState<Partial<PayRollPeriod>>({
-    period_name: "",
-    start_date: null,
-    end_date: null,
-    payroll_date: null,
-    pay_frequency: "Monthly", // Monthly, Weekly, Bi-Weekly, Hourly
-  });
+  const { token } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { token } = useAuth();
+  const [formState, setFormState] = useState<Partial<PayRollPeriod>>({
+    start_date: null,
+    end_date: null,
+    is_repetitive: false,
+    payment_every_after: "Monthly",
+    paytime: "Day",
+    pay_day: 1,
+  });
 
   useEffect(() => {
     if (item) {
@@ -50,93 +44,61 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       });
     } else {
       setFormState({
-        period_name: "",
         start_date: null,
         end_date: null,
-        payroll_date: null,
-        pay_frequency: "Monthly",
+        is_repetitive: false,
+        payment_every_after: "Monthly",
+        paytime: "Day",
+        pay_day: 1,
       });
     }
   }, [item]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: any) => {
     const { name, value } = e.target;
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDateChange = (name: string, value: Nullable<Date>) => {
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-
-  const handleDropdownChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Ensure that the dates are in "YYYY-MM-DD" format
-    const formattedData = {
-      ...formState,
-      start_date: formState.start_date
-        ? new Date(formState.start_date).toISOString().split("T")[0]
-        : "",
-      end_date: formState.end_date
-        ? new Date(formState.end_date).toISOString().split("T")[0]
-        : "",
-      payroll_date: formState.payroll_date
-        ? new Date(formState.payroll_date).toISOString().split("T")[0]
-        : "",
+    const payload = {
+      start_date: formState.start_date,
+      end_date: formState.end_date,
+      is_repetitive: formState.is_repetitive ?? false,
+      payment_every_after: formState.payment_every_after ?? "Monthly",
+      paytime: formState.paytime ?? "Day",
+      pay_day: Number(formState.pay_day ?? 1),
     };
 
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? HUMAN_RESOURCE_ENDPOINTS.PAYROLL_PERIODS.UPDATE(item.id.toString())
       : HUMAN_RESOURCE_ENDPOINTS.PAYROLL_PERIODS.ADD;
-    if (formState.start_date == "" || formState.end_date == "") {
-      setIsSubmitting(false);
-      return toast.warn("Start date and end date required");
-    }
-    await createRequest(
-      endpoint,
-      token.access_token,
-      formattedData,
-      onSave,
-      method
-    );
+
+    await createRequest(endpoint, token.access_token, payload, onSave, method);
     setIsSubmitting(false);
     onSave();
-    onClose(); // Close the modal after saving
+    onClose();
   };
 
   const footer = (
-    <div className="flex justify-end space-x-2">
+    <div className="flex justify-end gap-2">
       <Button
         label="Cancel"
         icon="pi pi-times"
-        onClick={onClose}
         className="p-button-text !bg-red-500 hover:bg-red-400"
-        size="small"
+        onClick={onClose}
         disabled={isSubmitting}
+        size="small"
       />
       <Button
-        loading={isSubmitting}
-        disabled={isSubmitting}
-        label={item?.id ? "Update" : "Submit"}
-        icon="pi pi-check"
         type="submit"
         form="payroll-period-form"
+        label={item?.id ? "Update" : "Submit"}
+        icon="pi pi-check"
+        loading={isSubmitting}
         size="small"
       />
     </div>
@@ -146,93 +108,104 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     <Dialog
       header={item?.id ? "Edit Payroll Period" : "Add Payroll Period"}
       visible={visible}
-      style={{ width: "400px" }}
-      footer={footer}
       onHide={onClose}
+      footer={footer}
+      style={{ width: "500px" }}
     >
       <form
         id="payroll-period-form"
         onSubmit={handleSave}
-        className="p-fluid grid grid-cols-1 gap-4"
+        className="grid gap-4"
       >
-        <div className="p-field">
-          <label htmlFor="period_name">Payroll Period Name</label>
-          <InputText
-            id="period_name"
-            name="period_name"
-            value={formState.period_name}
-            onChange={handleInputChange}
-            placeholder="Enter period name (e.g., January 2024)"
-            required
-            className="w-full"
-          />
-        </div>
         <div className="p-field">
           <label htmlFor="start_date">Start Date</label>
           <Calendar
             id="start_date"
-            name="start_date"
-            placeholder="Choose start date"
-            value={
-              formState.start_date
-                ? new Date(formState.start_date || new Date())
-                : null
+            value={formState.start_date ? new Date(formState.start_date) : null}
+            onChange={(e) =>
+              setFormState((prev) => ({
+                ...prev,
+                start_date: e.value?.toISOString().split("T")[0] || null,
+              }))
             }
-            onChange={(e) => handleDateChange("start_date", e.value)}
             dateFormat="yy-mm-dd"
-            showIcon
-            required
             className="w-full"
           />
         </div>
+
         <div className="p-field">
           <label htmlFor="end_date">End Date</label>
           <Calendar
-            placeholder="Choose end_date"
             id="end_date"
-            name="end_date"
-            value={
-              formState.end_date
-                ? new Date(formState.end_date || new Date())
-                : null
+            value={formState.end_date ? new Date(formState.end_date) : null}
+            onChange={(e) =>
+              setFormState((prev) => ({
+                ...prev,
+                end_date: e.value?.toISOString().split("T")[0] || null,
+              }))
             }
-            onChange={(e) => handleDateChange("end_date", e.value)}
             dateFormat="yy-mm-dd"
-            showIcon
-            required
             className="w-full"
           />
         </div>
+
         <div className="p-field">
-          <label htmlFor="payroll_date">Payroll Date</label>
-          <Calendar
-            placeholder="Choose payroll date"
-            id="payroll_date"
-            name="payroll_date"
-            value={
-              formState.payroll_date
-                ? new Date(formState.payroll_date || new Date())
-                : null
-            }
-            onChange={(e) => handleDateChange("payroll_date", e.value)}
-            dateFormat="yy-mm-dd"
-            showIcon
-            required
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="pay_frequency">Pay Frequency</label>
+          <label htmlFor="payment_every_after">Payment Frequency</label>
           <Dropdown
-            placeholder="Select frequency"
-            id="pay_frequency"
-            name="pay_frequency"
-            value={formState.pay_frequency}
-            options={payFrequencyOptions}
-            onChange={handleDropdownChange}
-            required
+            id="payment_every_after"
+            name="payment_every_after"
+            value={formState.payment_every_after}
+            options={payFrequencies}
+            onChange={handleInputChange}
+            placeholder="Select Frequency"
             className="w-full"
           />
+        </div>
+
+        <div className="p-field">
+          <label htmlFor="paytime">Pay Time</label>
+          <Dropdown
+            id="paytime"
+            name="paytime"
+            value={formState.paytime}
+            options={payTimes}
+            onChange={handleInputChange}
+            placeholder="Select Pay Time"
+            className="w-full"
+          />
+        </div>
+
+        <div className="p-field">
+          <label htmlFor="pay_day">Pay Day (1–30)</label>
+          <InputNumber
+            id="pay_day"
+            name="pay_day"
+            value={formState.pay_day}
+            onValueChange={(e) =>
+              setFormState((prev) => ({
+                ...prev,
+                pay_day: e.value ?? 1,
+              }))
+            }
+            showButtons
+            min={1}
+            max={30}
+            className="w-full"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            inputId="is_repetitive"
+            checked={formState.is_repetitive}
+            onChange={(e) =>
+              setFormState((prev) => ({
+                ...prev,
+                is_repetitive: e.checked ?? false,
+              }))
+            }
+          />
+          <label htmlFor="is_repetitive">Is Repetitive</label>
         </div>
       </form>
     </Dialog>

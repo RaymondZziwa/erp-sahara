@@ -58,7 +58,7 @@ const StockOut: React.FC = () => {
     // },
     {
       headerName: "Name",
-      field: "item_name",
+      field: "item.name",
       sortable: true,
       filter: true,
       cellClass: 'cursor-pointer hover:underline',

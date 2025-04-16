@@ -80,18 +80,22 @@ const ChartOfAccounts: React.FC = () => {
       filter: false,
       cellRenderer: (params: ICellRendererParams<ChartofAccount>) => (
         <div className="flex items-center gap-2">
-          <button
-            className="bg-shade px-2 py-1 rounded text-white"
-            onClick={() =>
-              setDialogState({
-                ...dialogState,
-                currentAction: "balance", // Set action to "balance"
-                selectedItem: params.data,
-              })
-            }
-          >
-            Add Opening Balance
-          </button>
+          {(selectedCategory.toLowerCase().includes("asset") ||
+            selectedCategory.toLowerCase().includes("liabilities") ||
+            selectedCategory.toLowerCase().includes("expense")) && (
+            <button
+              className="bg-shade px-2 py-1 rounded text-white"
+              onClick={() =>
+                setDialogState({
+                  ...dialogState,
+                  currentAction: "balance", // Set action to "balance"
+                  selectedItem: params.data,
+                })
+              }
+            >
+              Add Opening Balance
+            </button>
+          )}
           <button
             className="bg-shade px-2 py-1 rounded text-white"
             onClick={() =>

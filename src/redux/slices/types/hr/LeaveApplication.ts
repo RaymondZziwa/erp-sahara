@@ -1,7 +1,7 @@
 export interface LeaveApplication {
   id: number;
   organisation_id: number;
-  employee_id: number;
+  employee: number;
   leave_type_id: number;
   start_date: string;
   end_date: string;
@@ -10,10 +10,10 @@ export interface LeaveApplication {
   applied_on: string;
   created_at: string;
   updated_at: string;
-  employee: Employee;
+  //employee: Employee;
 }
 
-interface Employee {
+export interface Employee {
   id: number;
   organisation_id: number;
   employee_code: string;

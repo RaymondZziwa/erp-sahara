@@ -1,63 +1,66 @@
 export const REPORTS_ENDPOINTS = {
   GENERAL_LEDGERS: {
-    GET_ALL: "/erp/reports/accounting/general-ledger?start_date=2025-01-01&end_date=2025-02-16",
+    GET_ALL: "/reports/accounting/general-ledger?start_date=2025-01-01&end_date=2025-02-16",
   },
   TRIAL_BALANCES: {
-    GET_ALL: "/erp/reports/accounting/false/detail-trial-balance",
+    GET_ALL: "/reports/accounting/detail-trial-balance",
   },
   COMPARISON_TRIAL_BALANCES: {
-    GET_ALL: "/erp/reports/accounting/false/comparison-trial-balance",
+    GET_ALL: "/reports/accounting/comparison-trial-balance",
   },
   COMPARISON_INCOME_STATEMENT: {
-    GET_ALL: "/erp/reports/accounting/comparison-income-statement",
+    GET_ALL: "/reports/accounting/comparison-income-statement",
   },
   DETAILED_INCOME_STATEMENT: {
-    GET_ALL: "/erp/reports/accounting/detail-income-statement",
+    GET_ALL: "/reports/accounting/detail-income-statement",
   },
   DETAILED_BALANCE_SHEET: {
-    GET_ALL: "/erp/reports/accounting/false/detail-balance-sheet",
+    GET_ALL: "/reports/accounting/detail-balance-sheet",
   },
   COMPARISON_BALANCE_SHEET: {
-    GET_ALL: "/erp/reports/accounting/false/comparison-balance-sheet",
+    GET_ALL: "/reports/accounting/comparison-balance-sheet",
   },
   JOURNAL_TYPES: {
-    GET_ALL: "/erp/accounts/journal-types",
+    GET_ALL: "/accounts/journal-types",
   },
   CASH_FLOW_STATEMENT: {
-    GET_ALL: "/erp/reports/accounting/false/cash-flow-statement-indirect",
+    GET_ALL: "/reports/accounting/cash-flow-statement-indirect",
   },
   DETAILED_CASH_BOOK: {
-    GET_ALL: "/erp/reports/accounting/cashbook/2024-01-01/2024-12-01",
+    GET_ALL: "/reports/accounting/cashbook/2024-01-01/2024-12-01",
   },
   DASHBOARD: {
-    SALES: "/erp/reports/dashboard/sales-comparison-current-vs-previous-fy",
+    SALES: "/reports/dashboard/sales-comparison-current-vs-previous-fy",
     PROFIT_AND_LOSS: (params: { start_date: string; end_date: string }) => {
       const { start_date, end_date } = params;
-      return `/erp/reports/dashboard/profit-or-loss?start_date=${encodeURIComponent(
+      return `/reports/dashboard/profit-or-loss?start_date=${encodeURIComponent(
         start_date
       )}&end_date=${encodeURIComponent(end_date)}`;
     },
     REVENUE_GROWTH: (params: { start_date: string; end_date: string }) => {
       const { start_date, end_date } = params;
-      return `/erp/reports/dashboard/revenue-growth?start_date=${encodeURIComponent(
+      return `/reports/dashboard/revenue-growth?start_date=${encodeURIComponent(
         start_date
       )}&end_date=${encodeURIComponent(end_date)}`;
     },
     EXPENSES: (params: { start_date: string; end_date: string }) => {
       const { start_date, end_date } = params;
-      return `/erp/reports/dashboard/expense-summary?start_date=${encodeURIComponent(
+      return `/reports/dashboard/expense-summary?start_date=${encodeURIComponent(
         start_date
       )}&end_date=${encodeURIComponent(end_date)}`;
     },
     INVOICES: (params: { start_date: string; end_date: string }) => {
       const { start_date, end_date } = params;
-      return `/erp/reports/dashboard/invoice-summary?start_date=${encodeURIComponent(
+      return `/reports/dashboard/invoice-summary?start_date=${encodeURIComponent(
         start_date
       )}&end_date=${encodeURIComponent(end_date)}`;
     },
     CASH_BOOK: (params: { start_date: string; end_date: string }) => {
       const { start_date, end_date } = params;
-      return `/erp/reports/accounting/cashbook/${start_date}/${end_date}`;
+      return `/reports/accounting/cashbook/${start_date}/${end_date}`;
     },
+    CASH_BALANCES: {
+      GET_ALL: "/reports/dashboard/cash-balances-two",
+    }
   },
 };

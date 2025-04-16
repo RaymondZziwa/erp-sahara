@@ -108,7 +108,7 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
     if (!formState.item_id || !formState.quantity) {
       setIsSubmitting(false);
       console.log("missin");
-
+      toast.warn('Fill in all mandatory fields')
       return; // Handle validation error here
     }
 
@@ -193,134 +193,128 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
-      <form
-        id="item-form"
-        onSubmit={handleSave}
-      >
+      <form id="item-form" onSubmit={handleSave}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-2">
-        <div className="p-field">
-          <label className="font-semibold" htmlFor="item_id">
-            Store
-          </label>
-          <Dropdown
-            required
-            name="warehouse_id"
-            value={stockOutForm.warehouse_id}
-            onChange={handleStockOutDropdownChange}
-            options={warehouses}
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Select warehouse"
-            filter
-            className="w-full md:w-14rem"
-          />
-        </div>
-        <div className="p-field">
-          <label className="font-semibold" htmlFor="item_id">
-            Type
-          </label>
-          <Dropdown
-            required
-            name="type"
-            value={stockOutForm.type}
-            onChange={handleStockOutDropdownChange}
-            options={sources}
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Select type"
-            filter
-            className="w-full md:w-14rem"
-          />
-        </div>
-        {
-          stockOutForm.type === 'transfer' && (
-            <div className="p-field">
+          <div className="p-field">
             <label className="font-semibold" htmlFor="item_id">
-              To Store
+              Store<span className="text-red-600">*</span>
             </label>
             <Dropdown
               required
-              name="to_warehouse_id"
-              value={stockOutForm.to_warehouse_id}
+              name="warehouse_id"
+              value={stockOutForm.warehouse_id}
               onChange={handleStockOutDropdownChange}
               options={warehouses}
               optionLabel="label"
               optionValue="value"
-              placeholder="Select store"
+              placeholder="Select warehouse"
               filter
               className="w-full md:w-14rem"
             />
           </div>
-          )
-        }
-        <div className="p-field">
-          <label className="font-semibold" htmlFor="item_id">
-            Item
-          </label>
-          <Dropdown
-            required
-            name="item_id"
-            value={stockOutForm.item_id}
-            onChange={handleStockOutDropdownChange}
-            options={items}
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Select item"
-            filter
-            className="w-full md:w-14rem"
-          />
-        </div>
-        <div className="p-field">
-          <label className="font-semibold" htmlFor="quantity">
-            Quantity
-          </label>
-          <InputText
-            id="quantity"
-            name="quantity"
-            type="number"
-            value={stockOutForm.quantity?.toString() || ""}
-            onChange={handleStockOutInputChange}
-            required
-            className="w-full"
-            min='1'
-          />
-        </div>
-        <div className="p-field">
-          <label className="font-semibold" htmlFor="received_date">
-            Movement Date
-          </label>
-          <InputText
-            id="movement_date"
-            name="movement_date"
-            type="date"
-            value={
-              stockOutForm.movement_date || new Date().toISOString().slice(0, 9)
-            }
-            onChange={handleStockOutInputChange}
-            className="w-full"
-            required   
-          />
-        </div>
-        <div className="p-field">
-          <label className="font-semibold" htmlFor="received_date">
-            Picked By
-          </label>
-          <InputText
-            id="received_date"
-            name="picked_by"
-            type="text"
-            value={
-              stockOutForm.picked_by
-            }
-            onChange={handleStockOutInputChange}
-            className="w-full"
-            required   
-          />
-        </div>
+          <div className="p-field">
+            <label className="font-semibold" htmlFor="item_id">
+              Type<span className="text-red-600">*</span>
+            </label>
+            <Dropdown
+              required
+              name="type"
+              value={stockOutForm.type}
+              onChange={handleStockOutDropdownChange}
+              options={sources}
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select type"
+              filter
+              className="w-full md:w-14rem"
+            />
+          </div>
+          {stockOutForm.type === "transfer" && (
+            <div className="p-field">
+              <label className="font-semibold" htmlFor="item_id">
+                To Store<span className="text-red-600">*</span>
+              </label>
+              <Dropdown
+                required
+                name="to_warehouse_id"
+                value={stockOutForm.to_warehouse_id}
+                onChange={handleStockOutDropdownChange}
+                options={warehouses}
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Select store"
+                filter
+                className="w-full md:w-14rem"
+              />
+            </div>
+          )}
+          <div className="p-field">
+            <label className="font-semibold" htmlFor="item_id">
+              Item<span className="text-red-600">*</span>
+            </label>
+            <Dropdown
+              required
+              name="item_id"
+              value={stockOutForm.item_id}
+              onChange={handleStockOutDropdownChange}
+              options={items}
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Select item"
+              filter
+              className="w-full md:w-14rem"
+            />
+          </div>
+          <div className="p-field">
+            <label className="font-semibold" htmlFor="quantity">
+              Quantity<span className="text-red-600">*</span>
+            </label>
+            <InputText
+              id="quantity"
+              name="quantity"
+              type="number"
+              value={stockOutForm.quantity?.toString() || ""}
+              onChange={handleStockOutInputChange}
+              required
+              className="w-full"
+              min="1"
+            />
+          </div>
+          <div className="p-field">
+            <label className="font-semibold" htmlFor="received_date">
+              Movement Date<span className="text-red-600">*</span>
+            </label>
+            <InputText
+              id="movement_date"
+              name="movement_date"
+              type="date"
+              value={
+                stockOutForm.movement_date ||
+                new Date().toISOString().slice(0, 9)
+              }
+              onChange={handleStockOutInputChange}
+              className="w-full"
+              required
+            />
+          </div>
+          <div className="p-field">
+            <label className="font-semibold" htmlFor="received_date">
+              Picked By<span className="text-red-600">*</span>
+            </label>
+            <InputText
+              id="received_date"
+              name="picked_by"
+              type="text"
+              value={stockOutForm.picked_by}
+              onChange={handleStockOutInputChange}
+              className="w-full"
+              required
+            />
+          </div>
         </div>
         <div className="p-field w-full">
           <label className="font-semibold" htmlFor="movement_reason">
-            Remarks
+            Remarks<span className="text-red-600">*</span>
           </label>
           <InputText
             id="movement_reason"

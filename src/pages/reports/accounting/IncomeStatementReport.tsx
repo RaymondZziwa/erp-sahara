@@ -1,4 +1,4 @@
-//@ts-nocheck
+// @ts-nocheck
 import React, { useState, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
 import { apiRequest } from "../../../utils/api";
@@ -9,34 +9,38 @@ import { useReactToPrint } from "react-to-print";
 import { PrintableContent } from "./IS_print_template";
 import Header from "../../../components/custom/print_header";
 
-interface IncomeStatementData {
-  group_name: string;
-  categories: {
-    category_name: string;
-    current_total: number;
-    children: {
-      category_name: string;
-      current_total: number;
-      ledgers: {
-        ledger_name: string;
-        current_amount: number;
-      }[];
-    }[];
+interface FinancialItem {
+  subcategory: string;
+  id: number;
+  code: number;
+  total_credit: number;
+  total_debit: number;
+  total_amount: number;
+  children: FinancialItem[];
+  ledgers?: {
+    ledger_name: string;
+    current_amount: number;
   }[];
 }
 
-function IncomeStatementReport() {
+interface CategoryGroup {
+  [key: string]: FinancialItem[];
+}
+
+interface ReportData {
+  "Revenue and Costs": CategoryGroup[];
+  "Income and Expenses": CategoryGroup[];
+}
+
+const IncomeStatementReport = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [incomeStatementData, setIncomeStatementData] = useState<
-    IncomeStatementData[] | null
-  >(null);
-  const [openModalData, setOpenModalData] = useState<{
-    category_name: string;
+  const [reportData, setReportData] = useState<ReportData[] | null>(null);
+  const [ledgerModal, setLedgerModal] = useState<{
+    title: string;
     ledgers: { ledger_name: string; current_amount: number }[];
   } | null>(null);
 
   const { token, isFetchingLocalToken } = useAuth();
-
   const contentRef = useRef<HTMLDivElement>(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
 
@@ -44,13 +48,12 @@ function IncomeStatementReport() {
     if (isFetchingLocalToken || !token.access_token) return;
     setIsLoading(true);
     try {
-      const response = await apiRequest<ServerResponse<IncomeStatementData[]>>(
+      const response = await apiRequest<ServerResponse<ReportData[]>>(
         REPORTS_ENDPOINTS.DETAILED_INCOME_STATEMENT.GET_ALL,
         "GET",
         token.access_token
       );
-      console.log("isreport", response.data);
-      setIncomeStatementData(response.data); // Set the data property of the response
+      setReportData(response.data);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -58,289 +61,236 @@ function IncomeStatementReport() {
     }
   };
 
-  const calculateGrossProfit = (categories) => {
-    // Find Total Income (Sales Revenue)
-    const salesRevenueCategory = categories.find(
-      (category) => category.category_name === "Sales Revenue"
-    );
-    const totalIncome = salesRevenueCategory
-      ? salesRevenueCategory.current_total
-      : 0;
+  const calculateGrossProfit = () => {
+    if (!reportData) return 0;
 
-    // Find Total Direct Costs
-    const directCostsCategory = categories.find(
-      (category) => category.category_name === "Direct Costs"
-    );
-    const totalDirectCosts = directCostsCategory
-      ? directCostsCategory.current_total
-      : 0;
+    const revenueData =
+      reportData[0]?.["Revenue and Costs"]?.[0]?.["Sales Revenue"];
+    const costsData =
+      reportData[0]?.["Revenue and Costs"]?.[1]?.["Direct Costs"];
 
-    // Gross Profit = Total Income - Total Direct Costs
-    return totalIncome - totalDirectCosts;
+    const revenue = revenueData?.[0]?.total_amount || 0;
+    const costs = costsData?.[0]?.total_amount || 0;
+
+    return revenue - costs;
   };
+
+  const calculateNetProfit = () => {
+    const grossProfit = calculateGrossProfit();
+    if (!reportData) return grossProfit;
+
+    const expensesData =
+      reportData[0]?.["Income and Expenses"]?.[1]?.["Operating Expenses"];
+    const otherIncomeData =
+      reportData[0]?.["Income and Expenses"]?.[0]?.["Other Income"];
+
+    const expenses = expensesData?.[0]?.total_amount || 0;
+    const otherIncome = otherIncomeData?.[0]?.total_amount || 0;
+
+    return grossProfit - expenses + otherIncome;
+  };
+
+  const openLedgerModal = (
+    title: string,
+    ledgers: { ledger_name: string; current_amount: number }[]
+  ) => {
+    if (ledgers?.length > 0) {
+      setLedgerModal({ title, ledgers });
+    }
+  };
+
+  const closeModal = () => setLedgerModal(null);
 
   useEffect(() => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-  // Function to open the modal
-  const handleRowClick = (child: {
-    category_name: string;
-    ledgers: { ledger_name: string; current_amount: number }[];
-  }) => {
-    // Check if the child has ledgers
-    if (child.ledgers && child.ledgers.length > 0) {
-      setOpenModalData(child);
-    }
+  const renderFinancialItem = (
+    item: FinancialItem,
+    depth = 0,
+    parentName = ""
+  ) => {
+    const paddingLeft = `${depth * 24}px`;
+    const hasChildren = item.children?.length > 0;
+    const isClickable = item.ledgers?.length > 0;
+
+    return (
+      <React.Fragment key={`${item.id}-${depth}`}>
+        <tr
+          className={`${depth === 0 ? "bg-gray-50" : ""} hover:bg-gray-100 ${
+            isClickable ? "cursor-pointer" : ""
+          }`}
+          onClick={() =>
+            isClickable && openLedgerModal(item.subcategory, item.ledgers || [])
+          }
+        >
+          <td
+            className={`py-3 ${depth === 0 ? "font-semibold" : ""}`}
+            style={{ paddingLeft }}
+          >
+            {item.subcategory}
+          </td>
+          <td className="py-3 text-right pr-6">
+            {item.total_amount?.toLocaleString()}
+          </td>
+        </tr>
+
+        {hasChildren &&
+          item.children.map((child) =>
+            renderFinancialItem(child, depth + 1, item.subcategory)
+          )}
+
+        {hasChildren && (
+          <tr className="border-t border-gray-200">
+            <td
+              className="py-2 font-medium"
+              style={{ paddingLeft: `${(depth + 1) * 24}px` }}
+            >
+              Total {item.subcategory}
+            </td>
+            <td className="py-2 text-right pr-6 font-medium border-t-2 border-black">
+              {item.total_amount?.toLocaleString()}
+            </td>
+          </tr>
+        )}
+      </React.Fragment>
+    );
   };
 
-  // Function to close the modal
-  const closeModal = () => {
-    setOpenModalData(null);
+  const renderCategoryGroup = (group: CategoryGroup) => {
+    const categoryName = Object.keys(group)[0];
+    const items = group[categoryName];
+
+    return items.map((item) => renderFinancialItem(item, 0, categoryName));
   };
 
   return (
-    <div className="bg-white p-3">
+    <div className="bg-white p-4 rounded-lg shadow">
       <div className="flex justify-end items-center mb-4">
+        {/* <h1 className="text-xl font-bold">Income Statement Report</h1> */}
         <button
-          className="bg-shade p-3 rounded text-white flex gap-2 items-center"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2"
           onClick={() => reactToPrintFn()}
         >
           <Icon icon="solar:printer-bold" fontSize={20} />
-          Print
+          Print Report
         </button>
       </div>
 
-      <div ref={contentRef} className="p-4">
-        <div className="flex flex-row justify-centeritems-center">
-          <Header title={"Income Statement Report"} />
+      {isLoading ? (
+        <div className="flex justify-center items-center p-8">
+          <p>Loading report data...</p>
         </div>
-        {incomeStatementData ? (
+      ) : reportData ? (
+        <div className="space-y-8">
+          {/* Revenue and Costs Section */}
+          <div className="overflow-x-auto" ref={contentRef}>
+            <div className="flex flex-row justify-centeritems-center">
+              <Header title={"Income Statement Report"} date={response.data[0].asOfDate}/>
+            </div>
+            <table className="min-w-full bg-white border border-gray-200">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th colSpan={2} className="px-6 py-3 text-left font-medium">
+                    Revenue and Costs
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {reportData[0]?.["Revenue and Costs"]?.map((group, index) => (
+                  <React.Fragment key={`revenue-${index}`}>
+                    {renderCategoryGroup(group)}
+                  </React.Fragment>
+                ))}
+                <tr className="bg-gray-50">
+                  <td className="px-6 py-3 font-semibold">Gross Profit/Loss</td>
+                  <td className="px-6 py-3 text-right font-semibold border-t-2 border-black">
+                    {calculateGrossProfit().toLocaleString()}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Income and Expenses Section */}
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white border border-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-100">
                 <tr>
-                  <th
-                    colSpan={2}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {incomeStatementData[0].group_name}
+                  <th colSpan={2} className="px-6 py-3 text-left font-medium">
+                    Income and Expenses
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {/* Map through categories */}
-                {incomeStatementData[0].categories.map((category, index) => (
-                  <React.Fragment key={index}>
-                    {/* Parent Category */}
-                    <tr>
-                      <td className="px-6 py-4 font-medium text-gray-900">
-                        <strong>{category.category_name}</strong>
-                      </td>
-                    </tr>
-
-                    {/* Map through children */}
-                    {category.children.map((child, childIndex) => (
-                      <React.Fragment key={childIndex}>
-                        {/* Child Category */}
-
-                        {/* Map through nested children (category.children.children) */}
-                        {child.children &&
-                          child.children.map(
-                            (nestedChild, nestedChildIndex) => (
-                              <React.Fragment key={nestedChildIndex}>
-                                {/* Nested Child Category */}
-                                <tr
-                                  onClick={() => handleRowClick(nestedChild)}
-                                  className={`${
-                                    nestedChild.ledgers &&
-                                    nestedChild.ledgers.length > 0
-                                      ? "cursor-pointer hover:bg-gray-50"
-                                      : "cursor-default"
-                                  }`}
-                                >
-                                  <td className="px-14 py-4 text-gray-700">
-                                    {nestedChild.child_name}
-                                  </td>
-                                  <td className="px-6 py-4 text-gray-500">
-                                    {nestedChild.current_total}
-                                  </td>
-                                </tr>
-                              </React.Fragment>
-                            )
-                          )}
-                        <tr
-                          onClick={() => handleRowClick(child)}
-                          className={`${
-                            child.ledgers && child.ledgers.length > 0
-                              ? "cursor-pointer hover:bg-gray-50"
-                              : "cursor-default"
-                          }`}
-                        >
-                          <td className="px-10 py-4 text-gray-700">
-                            Total {child.category_name}
-                          </td>
-                          <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
-                            {child.current_total}
-                          </td>
-                        </tr>
-                      </React.Fragment>
-                    ))}
+                {reportData[0]?.["Income and Expenses"]?.map((group, index) => (
+                  <React.Fragment key={`income-${index}`}>
+                    {renderCategoryGroup(group)}
                   </React.Fragment>
                 ))}
-
-                {/* Gross Profit */}
-                <tr>
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    Gross Profit/Loss
-                  </td>
-                  <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
-                    {calculateGrossProfit(incomeStatementData[0].categories) ||
-                      "XXXXX"}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <table className="min-w-full bg-white border border-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    colSpan={2}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {incomeStatementData[1].group_name}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {/* Map through categories */}
-                {incomeStatementData[1].categories.map((category, index) => (
-                  <React.Fragment key={index}>
-                    {/* Parent Category */}
-                    <tr>
-                      <td className="px-6 py-4 font-medium text-gray-900">
-                        <strong>{category.category_name}</strong>
-                      </td>
-                    </tr>
-
-                    {/* Map through children */}
-                    {category.children.map((child, childIndex) => (
-                      <React.Fragment key={childIndex}>
-                        {/* Child Category */}
-
-                        {/* Map through nested children (category.children.children) */}
-                        {child.children &&
-                          child.children.map(
-                            (nestedChild, nestedChildIndex) => (
-                              <React.Fragment key={nestedChildIndex}>
-                                {/* Nested Child Category */}
-                                <tr
-                                  onClick={() => handleRowClick(nestedChild)}
-                                  className={`${
-                                    nestedChild.ledgers &&
-                                    nestedChild.ledgers.length > 0
-                                      ? "cursor-pointer hover:bg-gray-50"
-                                      : "cursor-default"
-                                  }`}
-                                >
-                                  <td className="px-14 py-4 text-gray-700">
-                                    {nestedChild.child_name}
-                                  </td>
-                                  <td className="px-6 py-4 text-gray-500">
-                                    {nestedChild.current_total}
-                                  </td>
-                                </tr>
-                              </React.Fragment>
-                            )
-                          )}
-                        <tr
-                          onClick={() => handleRowClick(child)}
-                          className={`${
-                            child.ledgers && child.ledgers.length > 0
-                              ? "cursor-pointer hover:bg-gray-50"
-                              : "cursor-default"
-                          }`}
-                        >
-                          <td className="px-10 py-4 text-gray-700">
-                            Total {child.category_name}
-                          </td>
-                          <td className="px-6 py-4 text-gray-500  border-t-2 border-black">
-                            {child.current_total}
-                          </td>
-                        </tr>
-                      </React.Fragment>
-                    ))}
-                  </React.Fragment>
-                ))}
-
-                {/* Gross Profit */}
-                <tr>
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    NET Profit/Loss
-                  </td>
-                  <td className="px-6 py-4 text-gray-500 font-bold border-t-2 border-black">
-                    {calculateGrossProfit(incomeStatementData[0].categories) ||
-                      "XXXXX"}
+                <tr className="bg-gray-50">
+                  <td className="px-6 py-3 font-semibold">Net Profit/Loss</td>
+                  <td className="px-6 py-3 text-right font-semibold border-t-2 border-black">
+                    {calculateNetProfit().toLocaleString()}
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-        ) : (
-          <div className="flex justify-center items-center bg-red">
-            <p>Initializing report. Please be patient....</p>
-          </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex justify-center items-center p-8">
+          <p>No data available</p>
+        </div>
+      )}
 
-      {/* Modal for Ledgers */}
-      {openModalData && (
+      {/* Ledger Details Modal */}
+      {ledgerModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-lg font-medium text-gray-900">
-                Ledgers for {openModalData.child_name}
-              </h2>
-              <table className="min-w-full mt-4">
-                <thead>
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="p-6 flex justify-between items-center border-b">
+              <h3 className="text-lg font-semibold">
+                Ledger Details: {ledgerModal.title}
+              </h3>
+              <button
+                onClick={closeModal}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <Icon icon="mdi:close" fontSize={24} />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto flex-1">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Ledger Name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                       Amount
                     </th>
                   </tr>
                 </thead>
-                <tbody>
-                  {openModalData.ledgers && openModalData.ledgers.length > 0 ? (
-                    openModalData.ledgers.map((ledger, ledgerIndex) => (
-                      <tr key={ledgerIndex}>
-                        <td className="px-6 py-4 text-gray-700">
-                          {ledger.ledger_name}
-                        </td>
-                        <td className="px-6 py-4 text-gray-500">
-                          {ledger.current_amount}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={2}
-                        className="px-6 py-4 text-gray-500 italic"
-                      >
-                        No ledgers available
+                <tbody className="divide-y divide-gray-200">
+                  {ledgerModal.ledgers.map((ledger, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {ledger.ledger_name}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {ledger.current_amount.toLocaleString()}
                       </td>
                     </tr>
-                  )}
+                  ))}
                 </tbody>
               </table>
             </div>
-            <div className="flex justify-end p-6">
+
+            <div className="p-4 border-t flex justify-end">
               <button
                 onClick={closeModal}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md"
               >
                 Close
               </button>
@@ -348,29 +298,8 @@ function IncomeStatementReport() {
           </div>
         </div>
       )}
-
-      <div ref={contentRef} className="print-content">
-        <PrintableContent
-          reportName={"Income Statement Report"}
-          incomeStatementData={incomeStatementData}
-        />
-        <style>
-          {`
-             @media print {
-                .print-content {
-                  display: block !important;
-                }
-              }
-              .print-content {
-                display: none;
-              }
-          `}
-        </style>
-      </div>
-
-      {!isLoading && incomeStatementData === null && "No data present"}
     </div>
   );
-}
+};
 
 export default IncomeStatementReport;

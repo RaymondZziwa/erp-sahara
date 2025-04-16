@@ -6,6 +6,7 @@ export interface ChartofAccount {
   organisation_id: number;
   branch_id: null;
   account_sub_category_id: number;
+  account_category_id: number;
   cash_flow_type: null;
   manual_entry: string;
   deleted_at: null;

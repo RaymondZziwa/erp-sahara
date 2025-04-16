@@ -81,7 +81,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       ? 5
       : journalType.includes("cashflow")
       ? 20
-      : 20,
+      : 5,
     description: "",
     lines: [],
     currency_id: 2,
@@ -398,7 +398,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                             label: account.name,
                           }))
                       : journalType.toLowerCase().includes("income") ||
-                        journalType.toLowerCase().includes("clear")
+                        journalType.toLowerCase().includes("clear") || 
+                        journalType.toLowerCase().includes("sale")
                       ? data
                           .filter(
                             (acc) =>
