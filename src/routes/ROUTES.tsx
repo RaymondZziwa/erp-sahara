@@ -76,13 +76,13 @@ const ROUTES: Route[] = [
   //   path: "/manufacturing",
   //   sidebarItems: MANUFACTURING_ROUTES,
   // },
-  // {
-  //   name: "MOSS App",
-  //   icon: <Icon icon="mdi:cellphone" fontSize={24} />,
-  //   path: "/mossapp",
-  //   sidebarItems: MOSS_APP_ROUTES,
-  //   hidden: true,
-  // },
+  {
+    name: "MOSS App",
+    icon: <Icon icon="mdi:cellphone" fontSize={24} />,
+    path: "/mossapp",
+    sidebarItems: MOSS_APP_ROUTES,
+    hidden: true,
+  },
 
   {
     name: "Human Resource",
