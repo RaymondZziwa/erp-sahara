@@ -186,7 +186,7 @@ const IncomeStatementReport = () => {
           {/* Revenue and Costs Section */}
           <div className="overflow-x-auto" ref={contentRef}>
             <div className="flex flex-row justify-centeritems-center">
-              <Header title={"Income Statement Report"} date={response.data[0].asOfDate}/>
+              <Header title={"Income Statement Report"} />
             </div>
             <table className="min-w-full bg-white border border-gray-200">
               <thead className="bg-gray-100">
@@ -298,6 +298,7 @@ const IncomeStatementReport = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

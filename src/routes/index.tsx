@@ -29,6 +29,7 @@ import StockAgingReport from "../pages/reports/inventory/stock_aging_report";
 import OutOfStockReport from "../pages/reports/inventory/out_of_stock_report";
 import ReorderReport from "../pages/reports/inventory/reorder_report";
 import OwnersEquityReport from "../pages/reports/accounting/owners_equity";
+import BudgetComparisonReport from "../pages/reports/accounting/BudgetComparisonReport";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -85,6 +86,10 @@ const AppRouter = () => {
           <Route
             path="/income-statement-report-comparisons"
             element={<ComparisonIncomeStatement />}
+          />
+          <Route
+            path="/budget-comparison-report"
+            element={<BudgetComparisonReport />}
           />
           <Route
             path="/trial-balance-comparisons"

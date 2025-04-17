@@ -17,6 +17,7 @@ const reportsData = [
         link: "/income-statement-report-comparisons",
       },
       { name: "Balance Sheet", link: "/balance-sheet" },
+      { name: "Budget Comparison Report", link: "/budget-comparison-report" },
       {
         name: "Balance Sheet Comparisons",
         link: "/balance-sheet-comparisons",
