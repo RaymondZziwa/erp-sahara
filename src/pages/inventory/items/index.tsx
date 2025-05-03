@@ -12,6 +12,7 @@ import useItems from "../../../hooks/inventory/useItems";
 import { InventoryItem } from "../../../redux/slices/types/inventory/Items";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import { useNavigate } from "react-router-dom";
+import { imageURL } from "../../../utils/api";
 
 const ImagePreviewModal: React.FC<{
   visible: boolean;
@@ -36,7 +37,7 @@ const ImagePreviewModal: React.FC<{
           {images.map((img, index) => (
             <div key={index} className="relative group">
               <img
-                src={`https://saharaauth.efinanci.com/storage/${img.image_url}`}
+                src={`${imageURL}/${img.image_url}`}
                 alt={`Preview ${index}`}
                 className="w-full h-48 object-cover rounded-lg border border-gray-200"
               />
@@ -82,7 +83,7 @@ const Items: React.FC = () => {
 
         const firstImage = params.value[0];
         const imageUrl = firstImage
-          ? `https://saharaauth.efinanci.com/storage/${firstImage.image_url}`
+          ? `${imageURL}/${firstImage.image_url}`
           : firstImage.image_url || firstImage.objectURL;
 
         return (

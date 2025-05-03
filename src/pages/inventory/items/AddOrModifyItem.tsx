@@ -214,10 +214,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token.access_token}`,
         },
+        validateStatus: () => true,
       });
       if (response.data.success) {
         toast.success("Product modified successfully!");
       } else {
+        toast.error(response.data.message)
         throw Error(response.data.message);
       }
     } catch (error) {
@@ -353,7 +355,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   }
                   mode="currency"
                   name="cost_price"
-                  currency="UGX"
                   locale="en-US"
                   className="w-full"
                 />
@@ -374,7 +375,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                     handleNumberChange("selling_price", e.value)
                   }
                   mode="currency"
-                  currency="UGX"
                   locale="en-US"
                   className="w-full"
                 />

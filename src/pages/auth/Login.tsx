@@ -1,43 +1,66 @@
 //@ts-nocheck
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
-import { handleGenericError } from "../../utils/errorHandling";
+import { useAppDispatch } from "../../redux/hooks";
 //import { useTranslation } from "react-i18next";
 import saharaLogo from '../../assets/images/sahara.jpeg';
 import latcuLogo from '../../assets/images/logos/ltcu.jpeg'
 import { org } from "../../utils/api";
+import axios from "axios";
+import { baseURL } from "../../utils/api";
+import {
+  setUserData
+} from "../../redux/slices/user/userAuthSlice";
 
 export default function LoginPage() {
-  const { loginHandler, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   //const { t } = useTranslation();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    try {
-      const formData = new FormData(e.currentTarget);
-      const data = {
-        username: formData.get("email") as string,
-        password: formData.get("password") as string,
-      };
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-      const res = await loginHandler(data);
-      if (res.success) {
-        // console.log("Form Data:", data);
+  try {
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      username: formData.get("email") as string,
+      password: formData.get("password") as string,
+    };
 
-        navigate("/");
-      } else {
-        // throw Error(res.message);
+    const response = await axios.post(
+      `${baseURL}/login`,
+      data,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
-    } catch (error) {
-      handleGenericError(error);
-    }
+    );
 
-    // You can send 'data' to your API or handle it as needed
-  };
+    if(response.status === 200) {
+      const { token } = response.data.data;
+
+      // Save to localStorage or cookies as needed
+      localStorage.setItem("token", JSON.stringify(token));
+      localStorage.setItem("user", JSON.stringify(response.data.data));
+      dispatch(setUserData(response.data));
+      toast.success("Login successful");
+      navigate("/");
+    }
+  } catch (error: any) {
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Login failed. Please try again.";
+
+    toast.error(errorMessage);
+  }
+};
+
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
       {/* Left section with illustration */}

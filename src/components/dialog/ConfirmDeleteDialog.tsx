@@ -13,6 +13,7 @@ interface ConfirmDeleteDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   body?: Object;
+  //refresh?: () => void
 }
 
 const ConfirmDeleteDialog: React.FC<ConfirmDeleteDialogProps> = ({
@@ -20,6 +21,7 @@ const ConfirmDeleteDialog: React.FC<ConfirmDeleteDialogProps> = ({
   apiPath,
   onClose,
   onConfirm,
+  //refresh,
   body,
 }) => {
   const toast = useRef<Toast>(null);

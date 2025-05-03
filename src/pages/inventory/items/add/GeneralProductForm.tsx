@@ -296,9 +296,6 @@ export default function GeneralProductForm({
                   onChange={(e) =>
                     handleProductChange("cost_price", e.value.toString()!)
                   }
-                  mode="currency"
-                  currency="UGX"
-                  locale="en-US"
                 />
                 <p className="text-sm text-muted-foreground">
                   Set the product Cost price.
@@ -313,9 +310,6 @@ export default function GeneralProductForm({
                   placeholder="Product sale price"
                   className="w-full"
                   name="selling_price"
-                  currency="UGX"
-                  locale="en-US"
-                  mode="currency"
                   value={product.selling_price.toString()}
                   onChange={(e) =>
                     handleProductChange("selling_price", e.value.toString()!)

@@ -78,6 +78,8 @@ const ApprovalLevels = () => {
               {/* <th className="p-3">#</th> */}
               <th className="p-3">Name</th>
               <th className="p-3">Level</th>
+              <th className="p-3">Type</th>
+              <th className="p-3">Mandate</th>
               <th className="p-3">Action</th>
             </tr>
           </thead>
@@ -88,6 +90,8 @@ const ApprovalLevels = () => {
                   {/* <td className="p-3">{level.id}</td> */}
                   <td className="p-3">{level.name}</td>
                   <td className="p-3">{level.level}</td>
+                  <td className="p-3">{level.approval_type}</td>
+                  <td className="p-3">{level.mandate}</td>
                   <td className="p-3">
                     <button
                       className="px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-300"
@@ -133,6 +137,7 @@ const ApprovalLevels = () => {
         <ApprovalMembers
           handleMembersState={handleMembersState}
           selectedAprovalMemebers={selectedAprovalMemebers}
+          refreshApprovers={refresh}
         />
       ) : (
         ""

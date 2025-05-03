@@ -59,10 +59,13 @@ import ExpensesAccountsReducer from "./slices/accounts/expenseAccountsSlice"
 import payrollReducer from "./slices/hr/payrollSlice"
 import assetsReducer from "./slices/assets/assetsSlice";
 import balanceSheetReducer from "./slices/reports/ledgers/balanceSheetComparisonSlice"
-// import ApprovalLevelsReducer from "./slices/approval_levels/levelSlice";
+import fuelRequisitionReducer from "./slices/accounts/cash_requisitions/fuelRequisition"
+import storeRequisitionReducer from "./slices/accounts/cash_requisitions/storeRequisition"
 
 const store = configureStore({
   reducer: {
+    storeRequisition: storeRequisitionReducer,
+    fuelRequisition: fuelRequisitionReducer,
     balanceSheetComparison: balanceSheetReducer,
     payroll: payrollReducer,
     expensesAccounts: ExpensesAccountsReducer,

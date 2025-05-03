@@ -44,7 +44,7 @@ const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
       console.log(baseURL);
 
       const response = await fetch(
-        `${baseURL}/erp/accounts/requisitions-approval-level/create`,
+        `${baseURL}/accounts/approval-level/create`,
         {
           method: "POST",
           headers: {
@@ -73,7 +73,7 @@ const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
       setIsSubmitting(false);
     }
   };
-  const appType: string[] = ["Cash", "Fuel", "Repair", "Store", "Order"];
+  const appType: string[] = ["Cash", "Fuel", "Repair", "Store", "Order", "Purchase"];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-auto z-50">

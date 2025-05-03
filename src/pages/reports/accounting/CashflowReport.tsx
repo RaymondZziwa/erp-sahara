@@ -6,6 +6,7 @@ import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import useAuth from "../../../hooks/useAuth";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import Header from "../../../components/custom/print_header";
 
 interface cashFlowData {
   operating_activities: {
@@ -174,7 +175,10 @@ function Cashflow() {
   return (
     <div className="bg-white p-3">
       <div className="flex justify-between items-center mb-4">
-        <p className="font-bold text-xl">Cash Flow Report</p>
+        <Header
+          title={"Cash Flow Report"}
+          date={""}
+        />
         <button
           className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
           onClick={() => cashFlow && handleExportPDF(cashFlow)}

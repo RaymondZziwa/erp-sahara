@@ -222,6 +222,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           <InputText
             id="allocated_amount"
             name="allocated_amount"
+            type="currency"
             value={formState.allocated_amount || ""}
             onChange={handleInputChange}
             // required

@@ -6,15 +6,15 @@ const DASHBOARD_ROUTES = [
   {
     name: "Dashboard",
     icon: <Icon icon="solar:layers-line-duotone" fontSize={24} />,
-    path: "",
-    items: [
-      {
-        name: "CPI",
-        icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-        path: "/",
-        element: <Dashboard />,
-      },
-    ],
+    path: "/",
+    element: <Dashboard />,
+    // items: [
+    //   {
+    //     name: "CPI",
+    //     icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+    //     path: "/",
+    //   },
+    // ],
   },
 ];
 export default DASHBOARD_ROUTES;

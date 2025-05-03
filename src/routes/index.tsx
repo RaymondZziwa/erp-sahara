@@ -40,16 +40,28 @@ const AppRouter = () => {
       <ToastContainer />
       <Routes>
         <Route element={<Layout />}>
-          {ROUTES.filter((r) => !r.hidden).map((route) => {
-            return route.sidebarItems.map((item) =>
-              item.items.map((itemRoute) => (
+          {ROUTES.filter((r) => !r.hidden).flatMap((route) =>
+            route.sidebarItems.flatMap((item) => {
+              // If this sidebar item has its own nested `items` array...
+              if (item.items && item.items.length > 0) {
+                return item.items.map((itemRoute) => (
+                  <Route
+                    key={route.path + item.path + itemRoute.path}
+                    path={route.path + item.path + itemRoute.path}
+                    element={itemRoute.element}
+                  />
+                ));
+              }
+              // Otherwise, treat this `item` as a standalone link
+              return (
                 <Route
-                  path={route.path + item.path + itemRoute.path}
-                  element={itemRoute.element}
+                  key={route.path + item.path}
+                  path={route.path + item.path}
+                  element={item.element}
                 />
-              ))
-            );
-          })}
+              );
+            })
+          )}
           <Route
             path="/"
             element={<Navigate to={token ? "/inventory" : "/login"} replace />}

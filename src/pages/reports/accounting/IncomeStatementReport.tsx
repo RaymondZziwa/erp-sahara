@@ -1,13 +1,14 @@
-// @ts-nocheck
+
 import React, { useState, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
-import { apiRequest } from "../../../utils/api";
+import { apiRequest, baseURL } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 import useAuth from "../../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import { useReactToPrint } from "react-to-print";
-import { PrintableContent } from "./IS_print_template";
 import Header from "../../../components/custom/print_header";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 interface FinancialItem {
   subcategory: string;
@@ -30,19 +31,48 @@ interface CategoryGroup {
 interface ReportData {
   "Revenue and Costs": CategoryGroup[];
   "Income and Expenses": CategoryGroup[];
+  asOfDate: string;
 }
 
 const IncomeStatementReport = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [reportData, setReportData] = useState<ReportData[] | null>(null);
+  const [otherIncome, setOtherIncome] = useState(0)
+  const [totalExpenses, setTotalExpenses] = useState(0);
   const [ledgerModal, setLedgerModal] = useState<{
     title: string;
     ledgers: { ledger_name: string; current_amount: number }[];
+    isLoading: boolean;
   } | null>(null);
 
   const { token, isFetchingLocalToken } = useAuth();
   const contentRef = useRef<HTMLDivElement>(null);
-  const reactToPrintFn = useReactToPrint({ contentRef });
+  //const reactToPrintFn = useReactToPrint({ contentRef });
+
+  const reactToPrintFn = async () => {
+    try {
+      const response = await axios.get(
+        `${baseURL}/reports/accounting/print-income-statement`,
+        {
+          headers: {
+            Authorization: `Bearer ${token.access_token}`,
+          },
+          responseType: "blob", // assuming the endpoint returns a PDF
+        }
+      );
+
+      // create a blob URL for the PDF and open it in a new tab
+      const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(pdfBlob);
+      window.open(url);
+    } catch (error: any) {
+      console.error("Error fetching income statement:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Unable to print report. Please try again."
+      );
+    }
+  };
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken || !token.access_token) return;
@@ -58,6 +88,46 @@ const IncomeStatementReport = () => {
       console.error("Error fetching data:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchLedgerDetails = async (categoryId: number, title: string) => {
+    setLedgerModal({
+      title,
+      ledgers: [],
+      isLoading: true,
+    });
+
+    try {
+      const response = await apiRequest<
+        ServerResponse<
+          {
+            ledger_name: string;
+            current_amount: number;
+          }[]
+        >
+      >(
+        `/reports/accounting/get-category-ledger-totals/${categoryId}`,
+        "GET",
+        token.access_token
+      );
+
+      setLedgerModal({
+        title,
+        ledgers: response.data || [],
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error("Error fetching ledger details:", error);
+      setLedgerModal((prev) =>
+        prev
+          ? {
+              ...prev,
+              isLoading: false,
+              ledgers: [],
+            }
+          : null
+      );
     }
   };
 
@@ -90,13 +160,19 @@ const IncomeStatementReport = () => {
     return grossProfit - expenses + otherIncome;
   };
 
-  const openLedgerModal = (
-    title: string,
-    ledgers: { ledger_name: string; current_amount: number }[]
-  ) => {
-    if (ledgers?.length > 0) {
-      setLedgerModal({ title, ledgers });
+  useEffect(() => {
+    if (reportData) {
+      // Calculate and set derived values once when reportData changes
+      const expensesData = reportData[0]?.["Income and Expenses"]?.[1]?.["Operating Expenses"];
+      const otherIncomeData = reportData[0]?.["Income and Expenses"]?.[0]?.["Other Income"];
+      
+      setOtherIncome(otherIncomeData?.[0]?.total_amount || 0);
+      setTotalExpenses(expensesData?.[0]?.total_amount || 0);
     }
+  }, [reportData]);
+
+  const handleCategoryClick = (categoryId: number, title: string) => {
+    fetchLedgerDetails(categoryId, title);
   };
 
   const closeModal = () => setLedgerModal(null);
@@ -112,7 +188,7 @@ const IncomeStatementReport = () => {
   ) => {
     const paddingLeft = `${depth * 24}px`;
     const hasChildren = item.children?.length > 0;
-    const isClickable = item.ledgers?.length > 0;
+    const isClickable = depth === 0 || (depth === 1 && parentName !== ""); // Only make top-level and immediate children clickable
 
     return (
       <React.Fragment key={`${item.id}-${depth}`}>
@@ -121,7 +197,7 @@ const IncomeStatementReport = () => {
             isClickable ? "cursor-pointer" : ""
           }`}
           onClick={() =>
-            isClickable && openLedgerModal(item.subcategory, item.ledgers || [])
+            isClickable && handleCategoryClick(item.id, item.subcategory)
           }
         >
           <td
@@ -131,7 +207,7 @@ const IncomeStatementReport = () => {
             {item.subcategory}
           </td>
           <td className="py-3 text-right pr-6">
-            {item.total_amount?.toLocaleString()}
+            {item.total_amount}
           </td>
         </tr>
 
@@ -143,13 +219,13 @@ const IncomeStatementReport = () => {
         {hasChildren && (
           <tr className="border-t border-gray-200">
             <td
-              className="py-2 font-medium"
+              className="py-2 font-bold"
               style={{ paddingLeft: `${(depth + 1) * 24}px` }}
             >
               Total {item.subcategory}
             </td>
             <td className="py-2 text-right pr-6 font-medium border-t-2 border-black">
-              {item.total_amount?.toLocaleString()}
+              {item.total_amount}
             </td>
           </tr>
         )}
@@ -167,7 +243,6 @@ const IncomeStatementReport = () => {
   return (
     <div className="bg-white p-4 rounded-lg shadow">
       <div className="flex justify-end items-center mb-4">
-        {/* <h1 className="text-xl font-bold">Income Statement Report</h1> */}
         <button
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2"
           onClick={() => reactToPrintFn()}
@@ -185,27 +260,30 @@ const IncomeStatementReport = () => {
         <div className="space-y-8">
           {/* Revenue and Costs Section */}
           <div className="overflow-x-auto" ref={contentRef}>
-            <div className="flex flex-row justify-centeritems-center">
-              <Header title={"Income Statement Report"} />
+            <div className="flex flex-row justify-center items-center">
+              <Header
+                title={"Income Statement Report"}
+                date={reportData[0].asOfDate}
+              />
             </div>
             <table className="min-w-full bg-white border border-gray-200">
               <thead className="bg-gray-100">
-                <tr>
+                {/* <tr>
                   <th colSpan={2} className="px-6 py-3 text-left font-medium">
                     Revenue and Costs
                   </th>
-                </tr>
+                </tr> */}
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 p-4">
                 {reportData[0]?.["Revenue and Costs"]?.map((group, index) => (
                   <React.Fragment key={`revenue-${index}`}>
                     {renderCategoryGroup(group)}
                   </React.Fragment>
                 ))}
                 <tr className="bg-gray-50">
-                  <td className="px-6 py-3 font-semibold">Gross Profit/Loss</td>
+                  <td className=" font-bold">Gross Profit/Loss</td>
                   <td className="px-6 py-3 text-right font-semibold border-t-2 border-black">
-                    {calculateGrossProfit().toLocaleString()}
+                    {calculateGrossProfit()}
                   </td>
                 </tr>
               </tbody>
@@ -214,13 +292,13 @@ const IncomeStatementReport = () => {
 
           {/* Income and Expenses Section */}
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-200">
+            <table className="min-w-full bg-white border border-gray-200 p-4">
               <thead className="bg-gray-100">
-                <tr>
+                {/* <tr>
                   <th colSpan={2} className="px-6 py-3 text-left font-medium">
                     Income and Expenses
                   </th>
-                </tr>
+                </tr> */}
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {reportData[0]?.["Income and Expenses"]?.map((group, index) => (
@@ -229,9 +307,15 @@ const IncomeStatementReport = () => {
                   </React.Fragment>
                 ))}
                 <tr className="bg-gray-50">
-                  <td className="px-6 py-3 font-semibold">Net Profit/Loss</td>
+                  <td className="font-bold">Net Other Income/Expenses</td>
                   <td className="px-6 py-3 text-right font-semibold border-t-2 border-black">
-                    {calculateNetProfit().toLocaleString()}
+                    {otherIncome-totalExpenses}
+                  </td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="font-bold">Net Profit/Loss</td>
+                  <td className="px-6 py-3 text-right font-semibold border-t-2 border-black">
+                    {calculateNetProfit()}
                   </td>
                 </tr>
               </tbody>
@@ -261,30 +345,40 @@ const IncomeStatementReport = () => {
             </div>
 
             <div className="overflow-y-auto flex-1">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Ledger Name
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      Amount
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {ledgerModal.ledgers.map((ledger, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {ledger.ledger_name}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        {ledger.current_amount.toLocaleString()}
-                      </td>
+              {ledgerModal.isLoading ? (
+                <div className="flex justify-center items-center p-8">
+                  <p>Loading ledger details...</p>
+                </div>
+              ) : ledgerModal.ledgers.length > 0 ? (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Ledger Name
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                        Amount
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {ledgerModal.ledgers.map((ledger, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {ledger.ledger_name}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          {ledger.net_amount}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="flex justify-center items-center p-8">
+                  <p>No ledger details available</p>
+                </div>
+              )}
             </div>
 
             <div className="p-4 border-t flex justify-end">
@@ -298,7 +392,6 @@ const IncomeStatementReport = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

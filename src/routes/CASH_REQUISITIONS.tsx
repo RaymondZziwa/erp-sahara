@@ -5,6 +5,8 @@ import CashRequisitions from "../pages/accounts/cashRequisition";
 import { Suspense } from "react";
 import CashRequisitionDetails from "../pages/accounts/cashRequisition/requisitonDetails";
 import AddCashRequisition from "../pages/accounts/cashRequisition/add";
+import FuelRequisitions from "../pages/accounts/cashRequisition/fuel_reqs";
+import StoreRequisitions from "../pages/accounts/cashRequisition/store_reqs";
 
 // Loader fallback component
 const Loading = () => <div>Loading...</div>;
@@ -15,17 +17,29 @@ const CASHREQUISITION_ROUTES = [
     path: "",
     items: [
       {
-        name: "Requisitions",
+        name: "Expense Requisitions",
         icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
         path: "/req",
         element: <CashRequisitions />,
       },
       {
-        // name: "Requisitions",
-        // icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
-        path: "/req/add",
-        element: <AddCashRequisition />,
+        name: "Fuel Requisitions",
+        icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
+        path: "/fuel_req",
+        element: <FuelRequisitions />,
       },
+      {
+        name: "Store Requisitions",
+        icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
+        path: "/store_req",
+        element: <StoreRequisitions />,
+      },
+      // {
+      //   // name: "Requisitions",
+      //   // icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
+      //   path: "/req/add",
+      //   element: <AddCashRequisition />,
+      // },
       {
         name: "Requisitions",
         icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
