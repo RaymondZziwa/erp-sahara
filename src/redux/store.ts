@@ -61,9 +61,11 @@ import assetsReducer from "./slices/assets/assetsSlice";
 import balanceSheetReducer from "./slices/reports/ledgers/balanceSheetComparisonSlice"
 import fuelRequisitionReducer from "./slices/accounts/cash_requisitions/fuelRequisition"
 import storeRequisitionReducer from "./slices/accounts/cash_requisitions/storeRequisition"
+import AssetIncomeTypesReducer from "./slices/assets/assetIncomeTypesSlice"
 
 const store = configureStore({
   reducer: {
+    assetIncomeTypes: AssetIncomeTypesReducer,
     storeRequisition: storeRequisitionReducer,
     fuelRequisition: fuelRequisitionReducer,
     balanceSheetComparison: balanceSheetReducer,

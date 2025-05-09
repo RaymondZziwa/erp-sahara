@@ -15,9 +15,9 @@ import { Route } from "./routeTypes";
 import REPORTS_ROUTES from "./REPORTS";
 //import CROPS_ROUTES from "./CROPS";
 import CASHREQUISITION_ROUTES from "./CASH_REQUISITIONS";
-//import MANUFACTURING_ROUTES from "./MANUFACTURING";
+import MANUFACTURING_ROUTES from "./MANUFACTURING";
 import ASSETS from "./ASSETS";
-import FARM_GROUP_ROUTES from "./FARM_GROUPS";
+//import FARM_GROUP_ROUTES from "./FARM_GROUPS";
 // import INVESTMENT_FINANCING from "./INVESTMENT_FINANCING";
 import {org} from "../utils/api"
 
@@ -59,7 +59,12 @@ const ROUTES: Route[] = [
     sidebarItems: BUDGETS_ROUTES,
   },
 
-
+  {
+    name: "Manufacturing",
+    icon: <Icon icon="solar:factory-2-bold-duotone" fontSize={24} />, // More specific to project management
+    path: "/manufacturing",
+    sidebarItems: MANUFACTURING_ROUTES,
+  },
   {
     name: "Human Resource",
     icon: <Icon icon="mdi:account-group-outline" fontSize={24} />,

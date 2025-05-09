@@ -77,7 +77,7 @@ export const PrintableContent: React.FC<PrintableContentProps> = ({
               Closing Equity
             </td>
             <td className="px-6 py-4 text-right font-bold text-gray-900">
-              {equityData.closing_equity.toLocaleString()}
+              {equityData.closing_equity}
             </td>
           </tr>
         </tbody>

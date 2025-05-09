@@ -17,13 +17,10 @@ const useBalanceSheetComparison = () => {
   const { token, isFetchingLocalToken } = useAuth();
 
   const fetchDataFromApi = async () => {
-    console.log("fetchDataFromApi called");
     if (isFetchingLocalToken) {
-      console.log("Skipping API call: isFetchingLocalToken is true");
       return;
     }
     if (!token.access_token) {
-      console.log("Skipping API call: token.access_token is undefined");
       return;
     }
 

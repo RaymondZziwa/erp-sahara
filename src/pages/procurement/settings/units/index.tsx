@@ -102,7 +102,7 @@ const UnitsOfMeasurement: React.FC = () => {
         }
       />
       <ConfirmDeleteDialog
-        apiPath={`/erp/inventories/uom/${dialogState.selectedItem?.id}/delete`}
+        apiPath={`/inventories/uom/${dialogState.selectedItem?.id}/delete`}
         onClose={() =>
           setDialogState({ selectedItem: undefined, currentAction: "" })
         }

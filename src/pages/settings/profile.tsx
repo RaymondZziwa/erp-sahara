@@ -104,8 +104,7 @@ const ProfilePage = () => {
         }
       );
 
-      if (response.data.success) {
-        // Update localStorage with the new organisation data
+
         const userString = localStorage.getItem("user");
         if (userString) {
           const userData = JSON.parse(userString);
@@ -125,12 +124,10 @@ const ProfilePage = () => {
         setProfile(response.data.data);
         setIsEditing(false);
         toast.success(response.data.message || "Profile updated successfully!");
-      } else {
-        toast.error(response.data.message || "Failed to update profile");
-      }
+      
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error("An error occurred while updating the profile");
+      toast.error(error?.response?.data.message || "Failed to update profile");
     } finally {
       setIsLoading(false);
     }

@@ -102,7 +102,7 @@ const Currencies: React.FC = () => {
         }
       />
       <ConfirmDeleteDialog
-        apiPath={`/erp/procurement/item_categories/${dialogState.selectedItem?.id}/delete`}
+        apiPath={`/procurement/item_categories/${dialogState.selectedItem?.id}/delete`}
         onClose={() =>
           setDialogState({ selectedItem: undefined, currentAction: "" })
         }

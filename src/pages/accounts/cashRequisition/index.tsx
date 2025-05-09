@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import { Button } from "primereact/button";
 import { DataTable } from "primereact/datatable";
@@ -170,7 +170,7 @@ const CashRequisitions: React.FC = () => {
     });
 
     if (requisition.budget_id) {
-      const budget = budgets.find((b) => b.id === requisition.budget_id);
+      const budget = budgets?.find((b) => b.id === requisition.budget_id);
       setSelectedBudget(budget || null);
     }
 
@@ -184,7 +184,6 @@ const CashRequisitions: React.FC = () => {
 
   // Open details modal
   const openDetailsModal = (requisition: CashRequisition) => {
-    console.log('vd', requisition)
     setSelectedRequisition(requisition);
     setDetailModalVisible(true);
   };
@@ -205,7 +204,7 @@ const CashRequisitions: React.FC = () => {
   const handleSelectChange = (name: keyof AddCashRequisition, value: any) => {
     if (name === "budget_id") {
       setFormState((prev) => ({ ...prev, [name]: value }));
-      const selected = budgets.find((budget) => budget.id === value);
+      const selected = budgets?.find((budget) => budget.id === value);
       setSelectedBudget(selected || null);
     } else {
       setFormState((prev) => ({ ...prev, [name]: value }));
@@ -260,7 +259,7 @@ const CashRequisitions: React.FC = () => {
           unit_cost: 0,
           specifications: null,
           chart_of_account_id: 0,
-          currency_id: currencies.length > 0 ? currencies[0].id : "",
+          currency_id: currencies?.length > 0 ? currencies[0].id : "",
         },
       ],
     }));
@@ -356,12 +355,60 @@ const CashRequisitions: React.FC = () => {
     }
   };
 
-  // Action handlers
+  // Download PDF
+  const downloadPdf = (requisition: CashRequisition) => {
+    window.open(
+      `${baseURL}/accounts/cash-requisitions/${requisition.id}/pdf`,
+      "_blank"
+    );
+  };
+
+  // Download payment voucher
+  const downloadPaymentVoucher = (requisition: CashRequisition) => {
+    window.open(
+      `${baseURL}/accounts/cash-requisitions/${requisition.id}/payment-voucher`,
+      "_blank"
+    );
+  };
+
+  // Custom confirm dialog footer template
+  const confirmDialogFooter = (
+    accept: () => void,
+    reject: () => void,
+    acceptLabel: string,
+    rejectLabel: string
+  ) => {
+    return (
+      <div className="flex justify-end gap-2">
+        <Button
+          label={rejectLabel}
+          icon="pi pi-times"
+          onClick={reject}
+          className="p-button-text p-button-sm"
+        />
+        <Button
+          label={acceptLabel}
+          icon="pi pi-check"
+          onClick={accept}
+          className="p-button-sm"
+          autoFocus
+        />
+      </div>
+    );
+  };
+
+  // Action handlers with styled confirm dialogs
   const handleApprove = async (requisition: CashRequisition) => {
     confirmDialog({
       message: "Are you sure you want to approve this requisition?",
       header: "Confirm Approval",
       icon: "pi pi-exclamation-triangle",
+      acceptClassName: "p-button-success",
+      rejectClassName: "p-button-text",
+      acceptLabel: "Approve",
+      rejectLabel: "Cancel",
+      footer: (props) =>
+        confirmDialogFooter(props.accept, props.reject, "Approve", "Cancel"),
       accept: async () => {
         try {
           const response = await axios.post(
@@ -392,7 +439,6 @@ const CashRequisitions: React.FC = () => {
             refresh();
           }
         } catch (error: any) {
-          console.log(error);
           toastRef.current?.show({
             severity: "error",
             summary: "Error",
@@ -402,9 +448,6 @@ const CashRequisitions: React.FC = () => {
           });
         }
       },
-      reject: () => {
-        // Reject callback is now properly handled
-      },
     });
   };
 
@@ -413,6 +456,12 @@ const CashRequisitions: React.FC = () => {
       message: "Are you sure you want to reject this requisition?",
       header: "Confirm Rejection",
       icon: "pi pi-exclamation-triangle",
+      acceptClassName: "p-button-danger",
+      rejectClassName: "p-button-text",
+      acceptLabel: "Reject",
+      rejectLabel: "Cancel",
+      footer: (props) =>
+        confirmDialogFooter(props.accept, props.reject, "Reject", "Cancel"),
       accept: async () => {
         try {
           const response = await axios.post(
@@ -446,9 +495,6 @@ const CashRequisitions: React.FC = () => {
           });
         }
       },
-      reject: () => {
-        // Reject callback is now properly handled
-      },
     });
   };
 
@@ -457,12 +503,18 @@ const CashRequisitions: React.FC = () => {
       message: "Are you sure you want to disburse funds for this requisition?",
       header: "Confirm Disbursement",
       icon: "pi pi-exclamation-triangle",
+      acceptClassName: "p-button-success",
+      rejectClassName: "p-button-text",
+      acceptLabel: "Disburse",
+      rejectLabel: "Cancel",
+      footer: (props) =>
+        confirmDialogFooter(props.accept, props.reject, "Disburse", "Cancel"),
       accept: async () => {
         try {
           const response = await axios.post(
             `${baseURL}/accounts/cash-requisitions/${requisition.id}/disburse`,
             {
-              payment_method_id: "781dff18-254a-4bf5-8725-6288e3ee668b", // Default payment method
+              payment_method_id: "781dff18-254a-4bf5-8725-6288e3ee668b",
               transaction_date: new Date().toISOString().slice(0, 10),
               notes: `Payment for requisition ${requisition.requisition_no}`,
               items: requisition.cash_requisition_items.map((item) => ({
@@ -496,9 +548,6 @@ const CashRequisitions: React.FC = () => {
           });
         }
       },
-      reject: () => {
-        // Reject callback is now properly handled
-      },
     });
   };
 
@@ -507,6 +556,12 @@ const CashRequisitions: React.FC = () => {
       message: "Are you sure you want to delete this requisition?",
       header: "Confirm Deletion",
       icon: "pi pi-exclamation-triangle",
+      acceptClassName: "p-button-danger",
+      rejectClassName: "p-button-text",
+      acceptLabel: "Delete",
+      rejectLabel: "Cancel",
+      footer: (props) =>
+        confirmDialogFooter(props.accept, props.reject, "Delete", "Cancel"),
       accept: async () => {
         try {
           const response = await axios.delete(
@@ -541,75 +596,7 @@ const CashRequisitions: React.FC = () => {
           });
         }
       },
-      reject: () => {
-        // Reject callback is now properly handled
-      },
     });
-  };
-
-  const downloadPdf = async (requisition: CashRequisition) => {
-    try {
-      const response = await axios.get(
-        `${baseURL}/accounts/cash-requisitions/${requisition.id}/pdf`,
-        {
-          responseType: "blob",
-          headers: {
-            Authorization: `Bearer ${token?.access_token}`,
-          },
-        }
-      );
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        `requisition_${requisition.requisition_no}.pdf`
-      );
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (error: any) {
-      toastRef.current?.show({
-        severity: "error",
-        summary: "Error",
-        detail: error.response?.data?.message || "Failed to download PDF",
-        life: 3000,
-      });
-    }
-  };
-
-  const downloadPaymentVoucher = async (requisition: CashRequisition) => {
-    try {
-      const response = await axios.get(
-        `${baseURL}/accounts/cash-requisitions/payment-vouchers/${requisition.id}/download`,
-        {
-          responseType: "blob",
-          headers: {
-            Authorization: `Bearer ${token?.access_token}`,
-          },
-        }
-      );
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        `payment_voucher_${requisition.requisition_no}.pdf`
-      );
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (error: any) {
-      toastRef.current?.show({
-        severity: "error",
-        summary: "Error",
-        detail:
-          error.response?.data?.message || "Failed to download payment voucher",
-        life: 3000,
-      });
-    }
   };
 
   const handleRetirement = async (requisition: CashRequisition) => {
@@ -648,9 +635,6 @@ const CashRequisitions: React.FC = () => {
           });
         }
       },
-      reject: () => {
-        // Reject callback is now properly handled
-      },
     });
   };
 
@@ -667,7 +651,9 @@ const CashRequisitions: React.FC = () => {
       {
         label: "View Details",
         icon: "pi pi-eye",
-        command: () => openDetailsModal(requisition),
+        command: () => {
+          openDetailsModal(requisition);
+        },
       },
       {
         label: "Download PDF",
@@ -734,7 +720,7 @@ const CashRequisitions: React.FC = () => {
       0
     ) || 0;
 
-  const selectedCurrency = currencies.find(
+  const selectedCurrency = currencies?.find(
     (curr) => curr.id === formState.items?.[0]?.currency_id
   );
 
@@ -771,7 +757,11 @@ const CashRequisitions: React.FC = () => {
   return (
     <div className="p-4">
       <Toast ref={toastRef} />
-      <ConfirmDialog />
+      <ConfirmDialog
+        acceptClassName="p-button-sm"
+        rejectClassName="p-button-sm p-button-text"
+      />
+
       <Menu
         model={selectedRequisition ? actionItems(selectedRequisition) : []}
         popup
@@ -799,8 +789,221 @@ const CashRequisitions: React.FC = () => {
             onSubmit={handleSubmit}
             className="p-fluid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
           >
-            {/* Form fields remain the same as before */}
-            {/* ... */}
+            <div className="col-span-1">
+              <div className="field">
+                <label htmlFor="title">Title*</label>
+                <InputText
+                  id="title"
+                  name="title"
+                  value={formState.title || ""}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="col-span-1">
+              <div className="field">
+                <label htmlFor="date_expected">Expected Date*</label>
+                <Calendar
+                  id="date_expected"
+                  name="date_expected"
+                  value={new Date(formState.date_expected || new Date())}
+                  onChange={(e) =>
+                    handleSelectChange("date_expected", e.value?.toISOString())
+                  }
+                  dateFormat="dd/mm/yy"
+                  showIcon
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="col-span-1">
+              <div className="field">
+                <label htmlFor="budget_id">Budget</label>
+                <Dropdown
+                  id="budget_id"
+                  name="budget_id"
+                  value={formState.budget_id}
+                  options={budgets?.map((budget) => ({
+                    label: budget.name,
+                    value: budget.id,
+                  }))}
+                  onChange={(e) => handleSelectChange("budget_id", e.value)}
+                  optionLabel="label"
+                  placeholder="Select Budget"
+                  filter
+                  showClear
+                />
+              </div>
+            </div>
+
+            <div className="col-span-1">
+              <div className="field">
+                <label htmlFor="requester_id">Requester*</label>
+                <Dropdown
+                  id="requester_id"
+                  name="requester_id"
+                  value={formState.requester_id}
+                  options={employees?.map((employee) => ({
+                    label: `${employee.first_name} ${employee.last_name}`,
+                    value: employee.id,
+                  }))}
+                  onChange={(e) => handleSelectChange("requester_id", e.value)}
+                  optionLabel="label"
+                  placeholder="Select Requester"
+                  required
+                  filter
+                />
+              </div>
+            </div>
+
+            <div className="col-span-1">
+              <div className="field">
+                <label htmlFor="department_id">Department*</label>
+                <Dropdown
+                  id="department_id"
+                  name="department_id"
+                  value={formState.department_id}
+                  options={departments?.map((department) => ({
+                    label: department.name,
+                    value: department.id,
+                  }))}
+                  onChange={(e) => handleSelectChange("department_id", e.value)}
+                  optionLabel="label"
+                  placeholder="Select Department"
+                  required
+                  filter
+                />
+              </div>
+            </div>
+
+            <div className="col-span-3">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="font-bold">Items</h4>
+                <Button
+                  label="Add Item"
+                  icon="pi pi-plus"
+                  onClick={addItem}
+                  className="p-button-sm w-32"
+                />
+              </div>
+
+              <div className="space-y-4">
+                {formState.items?.map((item, index) => (
+                  <div
+                    key={item.uuid}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 border rounded"
+                  >
+                    {selectedBudget ? (
+                      <div className="field">
+                        <label htmlFor={`budget_item_id_${index}`}>Item</label>
+                        <Dropdown
+                          id={`budget_item_id_${index}`}
+                          value={item.budget_item_id}
+                          options={selectedBudget.items.map((budgetItem) => ({
+                            label: budgetItem.description,
+                            value: budgetItem.id,
+                          }))}
+                          onChange={(e) =>
+                            handleItemSelectChange(index, e.value)
+                          }
+                          optionLabel="label"
+                          placeholder="Select Budget Item"
+                          required
+                        />
+                      </div>
+                    ) : (
+                      <div className="field">
+                        <label htmlFor={`description_${index}`}>
+                          Description
+                        </label>
+                        <InputText
+                          id={`description_${index}`}
+                          value={item.description || ""}
+                          onChange={(e) =>
+                            handleItemChange(
+                              index,
+                              "description",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Item description"
+                          required
+                        />
+                      </div>
+                    )}
+
+                    <div className="field">
+                      <label htmlFor={`quantity_${index}`}>Quantity</label>
+                      <InputNumber
+                        id={`quantity_${index}`}
+                        value={item.quantity}
+                        onValueChange={(e) =>
+                          handleItemChange(index, "quantity", e.value)
+                        }
+                        mode="decimal"
+                        min={1}
+                        required
+                      />
+                    </div>
+
+                    <div className="field">
+                      <label htmlFor={`unit_cost_${index}`}>Unit Cost</label>
+                      <InputNumber
+                        id={`unit_cost_${index}`}
+                        value={item.unit_cost}
+                        onValueChange={(e) =>
+                          handleItemChange(index, "unit_cost", e.value)
+                        }
+                        mode="currency"
+                        currency={selectedCurrency?.code || "TZS"}
+                        locale="en-US"
+                        min={0}
+                        required
+                      />
+                    </div>
+
+                    <div className="field">
+                      <label htmlFor={`specifications_${index}`}>
+                        Specifications
+                      </label>
+                      <InputTextarea
+                        id={`specifications_${index}`}
+                        value={item.specifications || ""}
+                        onChange={(e) =>
+                          handleItemChange(
+                            index,
+                            "specifications",
+                            e.target.value
+                          )
+                        }
+                        rows={1}
+                        autoResize
+                      />
+                    </div>
+
+                    <div className="col-span-full flex justify-end">
+                      <Button
+                        icon="pi pi-trash"
+                        className="p-button-rounded p-button-danger p-button-text"
+                        onClick={() => removeItem(index)}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 p-4 border-t">
+                <div className="flex justify-end">
+                  <div className="text-xl font-bold">
+                    Total:{" "}
+                    {formatCurrency(totalCost, selectedCurrency?.code || "TZS")}
+                  </div>
+                </div>
+              </div>
+            </div>
           </form>
         )}
       </Dialog>
@@ -838,12 +1041,12 @@ const CashRequisitions: React.FC = () => {
                     <p className="font-semibold">Requester:</p>
                     <p>
                       {
-                        employees.find(
+                        employees?.find(
                           (e) => e.id === selectedRequisition.requester_id
                         )?.first_name
                       }{" "}
                       {
-                        employees.find(
+                        employees?.find(
                           (e) => e.id === selectedRequisition.requester_id
                         )?.last_name
                       }
@@ -852,7 +1055,7 @@ const CashRequisitions: React.FC = () => {
                   <div>
                     <p className="font-semibold">Department:</p>
                     <p>
-                      {departments.find(
+                      {departments?.find(
                         (d) => d.id === selectedRequisition.department_id
                       )?.name || "N/A"}
                     </p>
@@ -877,7 +1080,7 @@ const CashRequisitions: React.FC = () => {
                     <p className="font-semibold">Budget:</p>
                     <p>
                       {selectedRequisition.budget_id
-                        ? budgets.find(
+                        ? budgets?.find(
                             (b) => b.id === selectedRequisition.budget_id
                           )?.name
                         : "N/A"}
@@ -893,11 +1096,11 @@ const CashRequisitions: React.FC = () => {
                   value={selectedRequisition.cash_requisition_items}
                   className="w-full"
                 >
-                  <Column field="name" header="Item Name" />
+                  <Column field="description" header="Description" />
                   <Column
                     field="quantity"
                     header="Quantity"
-                    body={(item) => item.quantity}
+                    body={(item) => item.quantity.toFixed(2)}
                   />
                   <Column
                     field="unit_cost"
@@ -930,7 +1133,7 @@ const CashRequisitions: React.FC = () => {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-xl font-bold">
-              Cash Requisitions ({requisitions.length})
+              Cash Requisitions ({requisitions?.length || 0})
             </h1>
           </div>
           <div className="flex gap-2">

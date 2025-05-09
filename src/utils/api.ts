@@ -10,7 +10,7 @@ export const baseURL = "https://latcuapidemo.efinanci.com/api"
 //export const imageURL = "https://saharaauth.efinanci.com/storage"
 export const imageURL = "https://latcuapidemo.efinanci.com/storage"
 //export const imageURL = "https://shrecuapi.efinanci.com/storage"
-//export const imageURL = "https://latcuapi.efinanci.com"
+//export const imageURL = "https://latcuapi.efinanci.com/storage"
 //export const baseURL = "https://latcu-api.efinanci.co.tz/api";
 //export const baseURL = "https://merp.efinanci.co.tz/api";
 export const baseURL2 = "https://latcu-api.efinanci.co.tz/api";
@@ -54,7 +54,7 @@ export const apiRequest = async <T>(
           toast.error(data.message);
         }
 
-        //window.location.href = "/login";
+        window.location.href = "/login";
       }
       throw error; // Rethrow the error for further handling if needed
     }

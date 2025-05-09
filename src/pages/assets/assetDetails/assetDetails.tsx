@@ -12,7 +12,7 @@ import { ToastContainer } from "react-toastify";
 
 const AssetDetails: React.FC = () => {
  // const { id } = useParams<{ id: string }>();
-  const { data: assets } = useAssets();
+  const { data: assets, refresh } = useAssets();
   const [selectedAsset, setSelectedAsset] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("payments");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -69,14 +69,16 @@ const AssetDetails: React.FC = () => {
   return (
     <div className="p-fluid grid grid-cols-1 gap-4">
       <ToastContainer />
-      
+
       {/* Total Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {totalCards.map((card) => (
           <div key={card.title} className="bg-white rounded-lg p-6 shadow-sm">
             <h3 className="text-gray-500 text-sm font-medium">{card.title}</h3>
             <p className="text-2xl font-semibold mt-2">
-              {typeof card.value === 'number' ? card.value.toLocaleString() : card.value}
+              {typeof card.value === "number"
+                ? card.value.toLocaleString()
+                : card.value}
             </p>
           </div>
         ))}
@@ -111,7 +113,7 @@ const AssetDetails: React.FC = () => {
               <Button
                 label="Add Payment"
                 icon="pi pi-plus"
-                className="p-button-success"
+                className="p-button-success w-44"
                 onClick={() => setShowPaymentModal(true)}
               />
             )}
@@ -119,7 +121,7 @@ const AssetDetails: React.FC = () => {
               <Button
                 label="Add Expense"
                 icon="pi pi-plus"
-                className="p-button-warning"
+                className="p-button-warning w-44 float-end"
                 onClick={() => setShowExpenseModal(true)}
               />
             )}
@@ -127,7 +129,7 @@ const AssetDetails: React.FC = () => {
               <Button
                 label="Add Income"
                 icon="pi pi-plus"
-                className="p-button-info"
+                className="p-button-info w-44"
                 onClick={() => setShowIncomeModal(true)}
               />
             )}
@@ -159,7 +161,11 @@ const AssetDetails: React.FC = () => {
           )}
 
           {activeTab === "depreciation" && (
-            <DataTable value={selectedAsset.depreciation || []} paginator rows={10}>
+            <DataTable
+              value={selectedAsset.depreciation || []}
+              paginator
+              rows={10}
+            >
               <Column field="date" header="Date" />
               <Column field="type" header="Type" />
               <Column field="amount" header="Amount" />
@@ -174,7 +180,7 @@ const AssetDetails: React.FC = () => {
         onClose={() => setShowPaymentModal(false)}
         assetId={selectedAsset.id}
         onSave={() => {
-          // Implement refresh logic
+          refresh();
         }}
       />
 
@@ -183,7 +189,7 @@ const AssetDetails: React.FC = () => {
         onClose={() => setShowExpenseModal(false)}
         assetId={selectedAsset.id}
         onSave={() => {
-          // Implement refresh logic
+          refresh();
         }}
       />
 
@@ -192,7 +198,7 @@ const AssetDetails: React.FC = () => {
         onClose={() => setShowIncomeModal(false)}
         assetId={selectedAsset.id}
         onSave={() => {
-          // Implement refresh logic
+          refresh()
         }}
       />
     </div>

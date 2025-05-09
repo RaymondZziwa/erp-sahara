@@ -31,27 +31,17 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       password: formData.get("password") as string,
     };
 
-    const response = await axios.post(
-      `${baseURL}/login`,
-      data,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.post(`${baseURL}/login`, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-    if(response.status === 200) {
-      const { token } = response.data.data;
-
-      // Save to localStorage or cookies as needed
-      localStorage.setItem("token", JSON.stringify(token));
-      localStorage.setItem("user", JSON.stringify(response.data.data));
-      dispatch(setUserData(response.data));
-      toast.success("Login successful");
-      navigate("/");
-    }
+    localStorage.setItem("user", JSON.stringify(response.data.data));
+    dispatch(setUserData(response.data.data));
+    navigate("/");
   } catch (error: any) {
+    console.log(error)
     const errorMessage =
       error.response?.data?.message ||
       error.message ||
@@ -60,6 +50,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     toast.error(errorMessage);
   }
 };
+
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">

@@ -39,9 +39,12 @@ const Header: React.FC<HeaderProps> = (props) => {
         </div>
       </div>
       <p className="text-center font-bold text-lg mt-2">
-        For the period ending {props.date}
+        {props.date && 
+          `For the period ending ${props.date}`
+        }
+        
       </p>
-      <p className="text-center font-bold text-xl mt-2">{props.title}</p>
+      <p className="text-center font-bold text-xl mt-10">{props.title}</p>
     </div>
   );
 };

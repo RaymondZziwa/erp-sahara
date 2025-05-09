@@ -12,10 +12,10 @@ const reportsData = [
         link: "/trial-balance-comparisons",
       },
       { name: "Income Statement", link: "/income-statement-report" },
-      {
-        name: "Income Statement Comparisons",
-        link: "/income-statement-report-comparisons",
-      },
+      // {
+      //   name: "Income Statement Comparisons",
+      //   link: "/income-statement-report-comparisons",
+      // },
       { name: "Balance Sheet", link: "/balance-sheet" },
       // { name: "Budget Comparison Report", link: "/budget-comparison-report" },
       {
@@ -24,7 +24,8 @@ const reportsData = [
       },
       { name: "Cash Flow", link: "/cashflow-report" },
       // { name: "Owner's equity", link: "/owner-equity" },
-      { name: "Owner's equity", link: "/owners-equity" },
+      { name: "Owner's equity summary", link: "/owners-equity" },
+      { name: "Detailed Owner's equity", link: "/detailed-owners-equity" },
       { name: "Cash book", link: "/cash-book" },
       { name: "General Ledger", link: "/general-ledger-book" },
       // { name: "Ledger book", link: "#" },

@@ -48,8 +48,8 @@ const ReviewOrApprovePurchaseRequest = ({
 
     const endpoint =
       action === "approve"
-        ? `/erp/procurement/purchase_requests/${purchaseRequest?.id}/approve`
-        : "/erp/procurement/purchase_requests/review";
+        ? `/procurement/purchase_requests/${purchaseRequest?.id}/approve`
+        : "/procurement/purchase_requests/review";
 
     console.log("endpoint", endpoint);
     console.log("data", approvalData);

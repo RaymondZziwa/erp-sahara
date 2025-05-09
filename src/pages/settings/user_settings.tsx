@@ -4,6 +4,7 @@ import axios from "axios";
 import useAuth from "../../hooks/useAuth";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
+import { baseURL } from "../../utils/api";
 
 interface EmployeeProfile {
   // Fields that can be edited by the employee
@@ -120,8 +121,8 @@ const UserProfile = () => {
         password: tempEmployee.password,
       };
 
-      const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/hr/employees/${user?.id}/update`,
+      await axios.put(
+        `${baseURL}/hr/employees/${user?.employee?.id}/update`,
         payload,
         {
           headers: {
@@ -129,15 +130,10 @@ const UserProfile = () => {
           },
         }
       );
-
-      if (response.data.success) {
-        setEmployee({ ...tempEmployee });
-        setIsEditing(false);
-      } else {
-        setError(response.data.message || "Failed to update profile");
-      }
+      setEmployee({ ...tempEmployee });
+      setIsEditing(false);
     } catch (err) {
-      setError("An error occurred while updating your profile");
+      setError(err?.response?.data.message);
       console.error("Update error:", err);
     } finally {
       setIsLoading(false);

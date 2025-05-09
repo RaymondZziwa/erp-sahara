@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { TrialBalance } from "../../../redux/slices/types/reports/TrialBalance";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import useAuth from "../../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import { apiRequest, baseURL } from "../../../utils/api";
@@ -17,30 +15,54 @@ function TrialBalanceReport() {
     null
   );
 
+  // const print = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${baseURL}/reports/accounting/print-tb`,
+  //       {
+  //         responseType: "blob", // Important for downloading files
+  //         headers: {
+  //           Authorization: `Bearer ${token.access_token || ""}`,
+  //         },
+  //       }
+  //     );
+
+  //     const url = window.URL.createObjectURL(new Blob([response.data]));
+  //     const link = document.createElement("a");
+  //     link.href = url;
+  //     link.setAttribute("download", "trial-balance-report.pdf"); // Adjust filename/extension if needed
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     link.remove();
+  //     window.URL.revokeObjectURL(url);
+  //   } catch (error) {
+  //     console.error("Error downloading the trial balance report:", error);
+  //   }
+  // };
+
   const print = async () => {
     try {
       const response = await axios.get(
         `${baseURL}/reports/accounting/print-tb`,
         {
-          responseType: "blob", // Important for downloading files
+          responseType: "blob",
           headers: {
             Authorization: `Bearer ${token.access_token || ""}`,
           },
         }
       );
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "trial-balance-report.pdf"); // Adjust filename/extension if needed
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      // Explicitly set the MIME type as PDF
+      const file = new Blob([response.data], { type: "application/pdf" });
+      const fileURL = URL.createObjectURL(file);
+
+      // Open the file in a new browser tab
+      window.open(fileURL, "_blank");
     } catch (error) {
-      console.error("Error downloading the trial balance report:", error);
+      console.error("Error previewing the trial balance report:", error);
     }
   };
+
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken || !token.access_token) return;

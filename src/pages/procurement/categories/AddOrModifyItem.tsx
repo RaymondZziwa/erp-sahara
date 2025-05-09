@@ -56,8 +56,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     const data = { name: formState.name, description: formState.description };
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
-      ? `/erp/procurement/item_categories/${item.id}/update`
-      : "/erp/procurement/item_categories/create";
+      ? `/procurement/item_categories/${item.id}/update`
+      : "/procurement/item_categories/create";
     await createRequest(endpoint, token.access_token, data, onSave, method);
 
     onSave();

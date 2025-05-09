@@ -96,7 +96,7 @@ const EvaluationCriteria: React.FC = () => {
         }
       />
       <ConfirmDeleteDialog
-        apiPath={`/erp/procurement/evaluation_criteria/${dialogState.selectedCategory?.id}/delete`}
+        apiPath={`/procurement/evaluation_criteria/${dialogState.selectedCategory?.id}/delete`}
         onClose={() =>
           setDialogState({ selectedCategory: undefined, currentAction: "" })
         }

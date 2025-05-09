@@ -61,8 +61,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     const data = { name: formState.name, chart_of_account_id: formState.chart_of_account_id, descripton: formState.description };
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
-      ? `/erp/accounts/paymentmethod/${item.id}/update`
-      : "/erp/accounts/paymentmethod/create";
+      ? `/accounts/paymentmethod/${item.id}/update`
+      : "/accounts/paymentmethod/create";
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();

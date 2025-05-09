@@ -1,20 +1,21 @@
+//@ts-nocheck
 import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
-
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
-import Table from "../../../components/table";
 import BreadCrump from "../../../components/layout/bread_crump";
-import AddOrModifyItem from "./AddOrModifyItem";
-import { Variant } from "../../../redux/slices/types/inventory/Variants";
-import useVariants from "../../../hooks/inventory/useVariants";
+import AddOrModifyItem from "./AddorModifyIncomeType";
+import Table from "../../../components/table";
+import { ASSETSENDPOINTS } from "../../../api/assetEndpoints";
+import useAssetIncomeTypes from "../../../hooks/assets/useAssetIncomeTypes";
+import { AssetIncomeType } from "../../../redux/slices/types/mossApp/assets/asset";
 
-const Variants: React.FC = () => {
-  const { data, refresh } = useVariants();
+const AssetIncomeTypes: React.FC = () => {
+  const { data: types, refresh } = useAssetIncomeTypes();
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
-    selectedItem: Variant | undefined;
+    selectedItem: Asset | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
@@ -24,69 +25,31 @@ const Variants: React.FC = () => {
     }
   };
 
-  const columnDefinitions: ColDef<Variant>[] = [
-    {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
-      headerName: "Name",
-      field: "item_id",
-      sortable: true,
-      filter: true,
-    },
+  const columnDefinitions: ColDef<AssetIncomeType>[] = [
     {
       headerName: "Name",
       field: "name",
       sortable: true,
       filter: true,
-      suppressSizeToFit: true,
     },
     {
-      headerName: "Price",
-      field: "price",
+      headerName: "Description",
+      field: "identity_no",
       sortable: true,
       filter: true,
-      suppressSizeToFit: true,
     },
     {
-      headerName: "SKU",
-      field: "sku",
+      headerName: "Income Account",
+      field: "status",
       sortable: true,
       filter: true,
-      suppressSizeToFit: true,
     },
-    {
-      headerName: "Stock",
-      field: "stock",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Attributes",
-      field: "attributes",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Item",
-      field: "item.name",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-
     {
       headerName: "Actions",
       field: "id",
       sortable: false,
       filter: false,
-      cellRenderer: (params: ICellRendererParams<Variant>) => (
+      cellRenderer: (params: ICellRendererParams<Asset>) => (
         <div className="flex items-center gap-2">
           <button
             className="bg-shade px-2 py-1 rounded text-white"
@@ -124,28 +87,33 @@ const Variants: React.FC = () => {
         item={dialogState.selectedItem}
         visible={
           dialogState.currentAction == "add" ||
-          (dialogState.currentAction == "edit" && !!dialogState.selectedItem)
+          (dialogState.currentAction == "edit" &&
+            !!dialogState.selectedItem?.id)
         }
         onClose={() =>
           setDialogState({ currentAction: "", selectedItem: undefined })
         }
       />
-      <ConfirmDeleteDialog
-        apiPath={`/procurement/items/${dialogState.selectedItem?.id}/delete`}
-        onClose={() =>
-          setDialogState({ selectedItem: undefined, currentAction: "" })
-        }
-        visible={
-          !!dialogState.selectedItem?.id &&
-          dialogState.currentAction === "delete"
-        }
-        onConfirm={refresh}
-      />
-      <BreadCrump name="Variants" pageName="Items" />
+      {dialogState.selectedItem && (
+        <ConfirmDeleteDialog
+          apiPath={ASSETSENDPOINTS.ASSETS.DELETE(
+            dialogState.selectedItem?.id.toString()
+          )}
+          onClose={() =>
+            setDialogState({ selectedItem: undefined, currentAction: "" })
+          }
+          visible={
+            !!dialogState.selectedItem?.id &&
+            dialogState.currentAction === "delete"
+          }
+          onConfirm={refresh}
+        />
+      )}
+      <BreadCrump name="Asset Income Types" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Variants Table</h1>
+            <h1 className="text-xl font-bold">Asset Income Types</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -158,7 +126,7 @@ const Variants: React.FC = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add Variant
+              Add Asset Income Type
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
@@ -169,10 +137,10 @@ const Variants: React.FC = () => {
             </button>
           </div>
         </div>
-        <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />
+        <Table columnDefs={columnDefinitions} data={types} ref={tableRef} />
       </div>
     </div>
   );
 };
 
-export default Variants;
+export default AssetIncomeTypes;

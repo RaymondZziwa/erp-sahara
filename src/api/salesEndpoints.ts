@@ -3,8 +3,8 @@ export const SALES_ENDPOINTS = {
     GET_ALL: "/sales/quotations",
     GET_BY_ID: (id: string) => `/sales/quotations/${id}`,
     ADD: "/sales/quotations/create",
-    UPDATE: (id: string) => `/erp/sales/quotations/${id}/update`,
-    DELETE: (id: string) => `/erp/sales/quotations/${id}/delete`,
+    UPDATE: (id: string) => `/sales/quotations/${id}/update`,
+    DELETE: (id: string) => `/sales/quotations/${id}/delete`,
   },
   LEADS: {
     GET_ALL: "/sales/leads",

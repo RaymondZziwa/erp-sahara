@@ -1,44 +1,41 @@
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import { apiRequest } from "../../../utils/api";
+import { apiRequest, baseURL } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import useAuth from "../../../hooks/useAuth";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import axios from "axios";
 import Header from "../../../components/custom/print_header";
 
-interface cashFlowData {
-  operating_activities: {
-    current_profit_or_loss: number;
-    additions_to_cash: {
-      depreciations: number;
-      decrease_in_cash_receivable: number;
-      increase_in_accounts_payable: number;
-      increase_in_tax_payable: number;
-    };
-    subtractions_from_cash: {
-      increase_in_inventory: number;
-    };
-    net_cash_from_operating_activities: number;
-  };
+interface CashFlowData {
+  net_income: number;
+  adjustments: {
+    description: string;
+    amount: number;
+  }[];
+  working_capital_changes: {
+    description: string;
+    amount: number;
+    account_type: string;
+  }[];
   investing_activities: {
-    asset_purchase: number;
-    sale_of_asset: number;
-    loans_to_customers: number;
-    proceeds_from_sales_of_investments: number;
-  };
+    description: string;
+    amount: number;
+  }[];
   financing_activities: {
-    loan_disbursements: number;
-    loan_repayments: number;
-    equity_contributions: number;
-    equity_withdrawals: number;
+    description: string;
+    amount: number;
+  }[];
+  net_cash_increase: number;
+  cash_balances: {
+    beginning: number;
+    ending: number;
+    net_increase: number;
   };
-  cash_at_beginning_of_period: number;
-  cash_at_end_of_period: number;
 }
+
 function Cashflow() {
-  const [cashFlow, setCashFlow] = useState<cashFlowData | null>(null);
+  const [cashFlow, setCashFlow] = useState<CashFlowData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { token, isFetchingLocalToken } = useAuth();
 
@@ -46,12 +43,11 @@ function Cashflow() {
     if (isFetchingLocalToken || !token.access_token) return;
     setIsLoading(true);
     try {
-      const response = await apiRequest<ServerResponse<cashFlowData>>(
+      const response = await apiRequest<ServerResponse<CashFlowData>>(
         REPORTS_ENDPOINTS.CASH_FLOW_STATEMENT.GET_ALL,
         "GET",
         token.access_token
       );
-
       setCashFlow(response.data);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -60,324 +56,183 @@ function Cashflow() {
     }
   };
 
-  console.log("Cash Flow", cashFlow);
-
   useEffect(() => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-  const operating_activities = cashFlow?.operating_activities;
-  const financing_activities = cashFlow?.financing_activities;
-  const investing_activities = cashFlow?.investing_activities;
-
-  const handleExportPDF = (cashFlow: cashFlowData) => {
-    const doc = new jsPDF();
-    doc.setFillColor(255, 255, 255);
-    doc.text("Cash Flow Statement", 20, 10);
-
-    const tableBody: any[] = [];
-
-    const addSection = (title: string, data: Record<string, number>) => {
-      tableBody.push([
+  const print = async () => {
+    try {
+      const response = await axios.get(
+        `${baseURL}/reports/accounting/cash-flow-statement-indirect-download`,
         {
-          content: title,
-          colSpan: 2,
-          styles: {
-            fontStyle: "bold",
-            fillColor: [222, 226, 230],
-            halign: "left",
-            cellPadding: 3,
+          responseType: "pdf",
+          headers: {
+            Authorization: `Bearer ${token.access_token || ""}`,
           },
-        },
-      ]);
-
-      Object.entries(data).forEach(([key, value]) => {
-        tableBody.push([
-          key.replace(/_/g, " "), // Formatting key names for better readability
-          {
-            content: value.toLocaleString(),
-            styles: { halign: "right" },
-          },
-        ]);
-      });
-
-      const total = Object.values(data).reduce((acc, value) => acc + value, 0);
-      tableBody.push([
-        {
-          content: "Total " + title.split(" from ")[1],
-          styles: {
-            fontStyle: "bold",
-            fillColor: [246, 249, 252],
-            halign: "left",
-          },
-        },
-        {
-          content: total.toLocaleString(),
-          styles: { fontStyle: "bold", halign: "right" },
-        },
-      ]);
-    };
-
-    addSection("Cash Flow from Operating Activities", {
-      current_profit_or_loss:
-        cashFlow.operating_activities.current_profit_or_loss,
-      ...cashFlow.operating_activities.additions_to_cash,
-      ...cashFlow.operating_activities.subtractions_from_cash,
-    });
-
-    addSection(
-      "Cash Flow from Investing Activities",
-      cashFlow.investing_activities
-    );
-    addSection(
-      "Cash Flow from Financing Activities",
-      cashFlow.financing_activities
-    );
-
-    tableBody.push([
-      { content: "Cash at Beginning of Period", styles: { fontStyle: "bold" } },
-      {
-        content: cashFlow.cash_at_beginning_of_period.toLocaleString(),
-        styles: { halign: "right" },
-      },
-    ]);
-
-    tableBody.push([
-      { content: "Cash at End of Period", styles: { fontStyle: "bold" } },
-      {
-        content: cashFlow.cash_at_end_of_period.toLocaleString(),
-        styles: { fontStyle: "bold", halign: "right" },
-      },
-    ]);
-
-    autoTable(doc, {
-      body: tableBody,
-      theme: "grid",
-      styles: { textColor: "black", cellPadding: 3, lineWidth: 0.2 },
-      margin: { top: 20 },
-      tableLineWidth: 0,
-      tableLineColor: [255, 255, 255],
-      didParseCell: function (data) {
-        if (data.section === "body") {
-          data.cell.styles.lineWidth = {
-            top: 0.2,
-            right: 0,
-            bottom: 0.2,
-            left: 0,
-          };
         }
-      },
-    });
+      );
+      const file = new Blob([response.data], { type: "application/pdf" });
+      const fileURL = URL.createObjectURL(file);
+      window.open(fileURL, "_blank");
+    } catch (error) {
+      console.error("Error previewing the trial balance report:", error);
+    }
+  };
 
-    doc.save("CashFlowStatement.pdf");
+  const formatAmount = (amount: number) => {
+    return amount.toFixed(2);
   };
 
   return (
     <div className="bg-white p-3">
       <div className="flex justify-between items-center mb-4">
-        <Header
-          title={"Cash Flow Report"}
-          date={""}
-        />
+        <div className="text-center">
+          <h1 className="text-xl font-bold">SAHARA</h1>
+          <p className="text-sm">mplat84@gmail.com</p>
+          <h2 className="text-lg font-bold mt-2">STATEMENT OF CASH FLOWS</h2>
+          <p className="text-sm">
+            As of May 7, 2025 | Currency: UGX
+            <br />
+            For the Period from Apr 1, 2025 to Mar 31, 2026
+          </p>
+        </div>
         <button
           className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-          onClick={() => cashFlow && handleExportPDF(cashFlow)}
+          onClick={print}
         >
           <Icon icon="solar:printer-bold" fontSize={20} />
           Print
         </button>
       </div>
+
       {isLoading ? (
         "Loading..."
       ) : (
-        <table className="w-full">
-          <tbody>
-            <tr className="font-bold bg-gray-200">
-              <td className="p-3" colSpan={2}>
-                Cash Flow from Operating Activities
-              </td>
-            </tr>
+        <div className="font-mono text-sm">
+          {/* Operating Activities */}
+          <div className="mb-6">
+            <div className="font-bold border-b border-black mb-2">
+              CASH FLOWS FROM OPERATING ACTIVITIES
+            </div>
 
-            <tr>
-              <td className="px-5 py-2 font-bold border-gray-200 border-b">
-                Net Earnings
-              </td>
-              <td className="px-5 py-2 font-bold border-gray-200 border-b">
-                {operating_activities?.current_profit_or_loss}
-              </td>
-            </tr>
-            <tr>
-              <td
-                className="px-5 py-2 font-bold border-gray-200 border-b"
-                colSpan={2}
+            <div className="flex justify-between">
+              <div>Net Income</div>
+              <div
+                className={
+                  cashFlow?.net_income < 0 ? "text-red-600" : "text-green-600"
+                }
               >
-                Additions to Cash
-              </td>
-            </tr>
-            <tr>
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Depreciation
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {operating_activities?.additions_to_cash.depreciations}
-              </td>
-            </tr>
-            <tr>
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Decrease in Cash Receivable
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {
-                  operating_activities?.additions_to_cash
-                    .decrease_in_cash_receivable
-                }
-              </td>
-            </tr>
-            <tr>
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Increase in Accounts Payable
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {
-                  operating_activities?.additions_to_cash
-                    .increase_in_accounts_payable
-                }
-              </td>
-            </tr>
-            <tr>
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Increase in Tax Payable
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {
-                  operating_activities?.additions_to_cash
-                    .increase_in_tax_payable
-                }
-              </td>
-            </tr>
-            <tr>
-              <td
-                className="px-5 py-2 font-bold border-gray-200 border-b"
-                colSpan={2}
-              >
-                Subtractions from Cash
-              </td>
-            </tr>
-            <tr>
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Increase in Inventory
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {
-                  operating_activities?.subtractions_from_cash
-                    .increase_in_inventory
-                }
-              </td>
-            </tr>
-            <tr>
-              <td className="px-5 py-2 font-bold border-gray-200 border-b">
-                Current Profit or Loss
-              </td>
-              <td className="px-6 py-2 font-bold border-gray-200 border-b">
-                {operating_activities?.current_profit_or_loss}
-              </td>
-            </tr>
+                {formatAmount(cashFlow?.net_income || 0)}
+              </div>
+            </div>
 
-            <tr className="font-bold bg-gray-200">
-              <td className="p-3" colSpan={2}>
-                Cash Flow from Investing Activities
-              </td>
-            </tr>
+            <div className="ml-4 mt-2">
+              <div className="font-semibold">
+                Adjustments to reconcile net income to net cash:
+              </div>
+              {cashFlow?.adjustments.map((item, index) => (
+                <div key={index} className="flex justify-between">
+                  <div>{item.description}</div>
+                  <div>{formatAmount(item.amount)}</div>
+                </div>
+              ))}
+            </div>
 
-            <tr>
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Asset Purchase
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {investing_activities?.asset_purchase}
-              </td>
-            </tr>
-            <tr>
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Sale of Asset
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {investing_activities?.sale_of_asset}
-              </td>
-            </tr>
-            <tr>
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Loan to Customers
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {investing_activities?.loans_to_customers}
-              </td>
-            </tr>
-            <tr>
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Proceeds from sales of investments
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {investing_activities?.proceeds_from_sales_of_investments}
-              </td>
-            </tr>
+            <div className="ml-4 mt-2">
+              <div className="font-semibold">Changes in working capital:</div>
+              {cashFlow?.working_capital_changes.map((item, index) => (
+                <div key={index} className="flex justify-between">
+                  <div>{item.description}</div>
+                  <div>{formatAmount(item.amount)}</div>
+                </div>
+              ))}
+            </div>
 
-            <tr className="font-bold bg-gray-200">
-              <td className="p-3" colSpan={2}>
-                Cash Flow from Financing Activities
-              </td>
-            </tr>
+            <div className="flex justify-between font-bold border-t border-black mt-2">
+              <div>Net Cash Provided by Operating Activities</div>
+              <div>{formatAmount(cashFlow?.net_income || 0)}</div>
+            </div>
+          </div>
 
-            <tr>
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Loan Disbursements
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {financing_activities?.loan_disbursements}
-              </td>
-            </tr>
-            <tr>
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Loan Repayments
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {financing_activities?.loan_repayments}
-              </td>
-            </tr>
-            <tr>
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Equity Contributions
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {financing_activities?.equity_contributions}
-              </td>
-            </tr>
-            <tr>
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Equity Withdrawals
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {financing_activities?.equity_withdrawals}
-              </td>
-            </tr>
-            <tr className="font-bold bg-gray-200">
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Cash at Beginning of Period
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {cashFlow?.cash_at_beginning_of_period}
-              </td>
-            </tr>
-            <tr className="font-bold bg-gray-200">
-              <td className="px-5 py-2 border-gray-200 border-b border-r">
-                Cash at End of Period
-              </td>
-              <td className="px-5 py-2 border-gray-200 border-b">
-                {cashFlow?.cash_at_end_of_period}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          {/* Investing Activities */}
+          <div className="mb-6">
+            <div className="font-bold border-b border-black mb-2">
+              CASH FLOWS FROM INVESTING ACTIVITIES
+            </div>
+
+            {cashFlow?.investing_activities.map((item, index) => (
+              <div key={index} className="flex justify-between">
+                <div>{item.description}</div>
+                <div>{formatAmount(item.amount)}</div>
+              </div>
+            ))}
+
+            <div className="flex justify-between font-bold border-t border-black mt-2">
+              <div>Net Cash Used in Investing Activities</div>
+              <div>
+                {formatAmount(
+                  cashFlow?.investing_activities.reduce(
+                    (sum, item) => sum + item.amount,
+                    0
+                  ) || 0
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Financing Activities */}
+          <div className="mb-6">
+            <div className="font-bold border-b border-black mb-2">
+              CASH FLOWS FROM FINANCING ACTIVITIES
+            </div>
+
+            {cashFlow?.financing_activities.length ? (
+              cashFlow.financing_activities.map((item, index) => (
+                <div key={index} className="flex justify-between">
+                  <div>{item.description}</div>
+                  <div>{formatAmount(item.amount)}</div>
+                </div>
+              ))
+            ) : (
+              <div className="flex justify-between">
+                <div>No financing activities</div>
+                <div>0.00</div>
+              </div>
+            )}
+
+            <div className="flex justify-between font-bold border-t border-black mt-2">
+              <div>Net Cash Provided by Financing Activities</div>
+              <div>
+                {formatAmount(
+                  cashFlow?.financing_activities.reduce(
+                    (sum, item) => sum + item.amount,
+                    0
+                  ) || 0
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Cash Summary */}
+          <div className="mb-6">
+            <div className="flex justify-between font-bold">
+              <div>Net Increase in Cash and Cash Equivalents</div>
+              <div>{formatAmount(cashFlow?.net_cash_increase || 0)}</div>
+            </div>
+
+            <div className="flex justify-between">
+              <div>Cash and Cash Equivalents at Beginning of Period</div>
+              <div>{formatAmount(cashFlow?.cash_balances.beginning || 0)}</div>
+            </div>
+
+            <div className="flex justify-between font-bold border-t border-black mt-2">
+              <div>Cash and Cash Equivalents at End of Period</div>
+              <div>{formatAmount(cashFlow?.cash_balances.ending || 0)}</div>
+            </div>
+          </div>
+
+          <div className="text-xs mt-4">Generated on May 7, 2025</div>
+        </div>
       )}
     </div>
   );

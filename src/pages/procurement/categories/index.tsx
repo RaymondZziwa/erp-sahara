@@ -106,7 +106,7 @@ const Categories: React.FC = () => {
         }
       />
       <ConfirmDeleteDialog
-        apiPath={`/erp/procurement/item_categories/${dialogState.selectedCategory?.id}/delete`}
+        apiPath={`/procurement/item_categories/${dialogState.selectedCategory?.id}/delete`}
         onClose={() =>
           setDialogState({ selectedCategory: undefined, currentAction: "" })
         }

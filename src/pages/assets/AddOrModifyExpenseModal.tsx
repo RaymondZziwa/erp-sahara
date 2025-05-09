@@ -5,7 +5,6 @@ import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Calendar } from "primereact/calendar";
 import { Dropdown } from "primereact/dropdown";
-import { ProgressSpinner } from "primereact/progressspinner";
 import { toast } from "react-toastify";
 import axios from "axios";
 import useAuth from "../../hooks/useAuth";
@@ -92,7 +91,7 @@ const AddOrModifyExpenseModal: React.FC<AddOrModifyExpenseModalProps> = ({
   // Fetch expense accounts
   const fetchExpenseAccounts = async () => {
     try {
-      const response = await api.get("/erp/accounts/get-expense-accounts");
+      const response = await api.get("/accounts/get-expense-accounts");
       const expenseData = response.data?.data || [];
       setExpenseAccounts(
         expenseData.map((acc: any) => ({
@@ -109,7 +108,7 @@ const AddOrModifyExpenseModal: React.FC<AddOrModifyExpenseModalProps> = ({
   // Fetch cash accounts
   const fetchCashAccounts = async () => {
     try {
-      const response = await api.get("/erp/accounts/get-cash-accounts");
+      const response = await api.get("/accounts/get-cash-accounts");
       const cashData = response.data?.data || [];
       setCashAccounts(
         cashData.map((acc: any) => ({
@@ -185,29 +184,6 @@ const AddOrModifyExpenseModal: React.FC<AddOrModifyExpenseModalProps> = ({
       setIsSubmitting(false);
     }
   };
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-32">
-        <ProgressSpinner />
-      </div>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="p-4 bg-red-100 text-red-700 rounded-lg">
-        {error}
-        <Button
-          label="Retry"
-          className="p-button-text ml-2"
-          onClick={() => window.location.reload()}
-        />
-      </div>
-    );
-  }
 
   return (
     <Dialog

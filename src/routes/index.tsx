@@ -30,6 +30,7 @@ import OutOfStockReport from "../pages/reports/inventory/out_of_stock_report";
 import ReorderReport from "../pages/reports/inventory/reorder_report";
 import OwnersEquityReport from "../pages/reports/accounting/owners_equity";
 import BudgetComparisonReport from "../pages/reports/accounting/BudgetComparisonReport";
+import OwnersEquityDetailedReport from "../pages/reports/accounting/detailedOwnerEquity";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -85,6 +86,7 @@ const AppRouter = () => {
           <Route path="/trial-balance" element={<TrialBalance />} />
           <Route path="/cashflow-report" element={<Cashflow />} />
           <Route path="/owners-equity" element={<OwnersEquityReport />} />
+          <Route path="/detailed-owners-equity" element={<OwnersEquityDetailedReport/>} />
           <Route path="/cash-book" element={<CashBook />} />
           <Route
             path="/general-ledger-book"

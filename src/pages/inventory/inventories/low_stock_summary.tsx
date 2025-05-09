@@ -13,7 +13,7 @@ const LowStockSummary = () => {
         const fetchData = async () => {
           try {
             const response = await axios.get(
-              `${baseURL}/erp/reports/dashboard/getlowstockitemsummary`,
+              `${baseURL}/reports/dashboard/getlowstockitemsummary`,
               {
                 headers: {
                   "Content-Type": "application/json",

@@ -4,15 +4,16 @@ import {
   fetchDataStart,
   fetchDataSuccess,
   fetchDataFailure,
-} from "../../redux/slices/procurement/unitsOfMeasurementSlice"; // Import actions from your data reducer
+} from "../../redux/slices/assets/assetIncomeTypesSlice"; // Import actions from your data reducer
 import useAuth from "../useAuth";
 import { apiRequest } from "../../utils/api";
 
 import { ServerResponse } from "../../redux/slices/types/ServerResponse";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { UnitOfMeasurement } from "../../redux/slices/types/procurement/units";
+import { ASSETSENDPOINTS } from "../../api/assetEndpoints";
+import { AssetIncomeType } from "../../redux/slices/types/mossApp/assets/asset";
 
-const useUnitsOfMeasurement = () => {
+const useAssetIncomeTypes = () => {
   const dispatch = useAppDispatch();
 
   const { token, isFetchingLocalToken } = useAuth();
@@ -24,13 +25,16 @@ const useUnitsOfMeasurement = () => {
     }
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
-      const response = await apiRequest<ServerResponse<UnitOfMeasurement[]>>(
-        "/uom",
+      const response = await apiRequest<ServerResponse<AssetIncomeType[]>>(
+        ASSETSENDPOINTS.INCOME_TYPES.GET_ALL,
         "GET",
         token.access_token
       );
-
-      dispatch(fetchDataSuccess(response.data)); // Dispatch action with fetched data on success
+      dispatch(
+        fetchDataSuccess(
+          response.success && response.data.length > 0 ? response.data : []
+        )
+      ); // Dispatch action with fetched data on success
     } catch (error) {
       dispatch(
         fetchDataFailure(
@@ -43,9 +47,9 @@ const useUnitsOfMeasurement = () => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-  const data = useAppSelector((state) => state.units);
+  const data = useAppSelector((state) => state.assetIncomeTypes);
 
   return { ...data, refresh: fetchDataFromApi };
 };
 
-export default useUnitsOfMeasurement;
+export default useAssetIncomeTypes;

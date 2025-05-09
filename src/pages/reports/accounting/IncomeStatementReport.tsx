@@ -49,30 +49,28 @@ const IncomeStatementReport = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   //const reactToPrintFn = useReactToPrint({ contentRef });
 
-  const reactToPrintFn = async () => {
-    try {
-      const response = await axios.get(
-        `${baseURL}/reports/accounting/print-income-statement`,
-        {
-          headers: {
-            Authorization: `Bearer ${token.access_token}`,
-          },
-          responseType: "blob", // assuming the endpoint returns a PDF
-        }
-      );
+    const print = async () => {
+      try {
+        const response = await axios.get(
+          `${baseURL}/reports/accounting/print-income-statement`,
+          {
+            responseType: "blob",
+            headers: {
+              Authorization: `Bearer ${token.access_token || ""}`,
+            },
+          }
+        );
 
-      // create a blob URL for the PDF and open it in a new tab
-      const pdfBlob = new Blob([response.data], { type: "application/pdf" });
-      const url = window.URL.createObjectURL(pdfBlob);
-      window.open(url);
-    } catch (error: any) {
-      console.error("Error fetching income statement:", error);
-      toast.error(
-        error.response?.data?.message ||
-          "Unable to print report. Please try again."
-      );
-    }
-  };
+        // Explicitly set the MIME type as PDF
+        const file = new Blob([response.data], { type: "application/pdf" });
+        const fileURL = URL.createObjectURL(file);
+
+        // Open the file in a new browser tab
+        window.open(fileURL, "_blank");
+      } catch (error) {
+        console.error("Error previewing the trial balance report:", error);
+      }
+    };
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken || !token.access_token) return;
@@ -237,15 +235,15 @@ const IncomeStatementReport = () => {
     const categoryName = Object.keys(group)[0];
     const items = group[categoryName];
 
-    return items.map((item) => renderFinancialItem(item, 0, categoryName));
+    //return items?.map((item) => renderFinancialItem(item, 0, categoryName));
   };
 
   return (
     <div className="bg-white p-4 rounded-lg shadow">
       <div className="flex justify-end items-center mb-4">
         <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2"
-          onClick={() => reactToPrintFn()}
+          className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded flex items-center gap-2"
+          onClick={print}
         >
           <Icon icon="solar:printer-bold" fontSize={20} />
           Print Report

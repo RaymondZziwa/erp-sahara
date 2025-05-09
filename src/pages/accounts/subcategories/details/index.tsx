@@ -1,8 +1,4 @@
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { Card } from "primereact/card";
-import { ProgressSpinner } from "primereact/progressspinner"; // Import ProgressSpinner for loading indication
-import useChartOfAccountDetails from "../../../../hooks/accounts/useChartOfAccountDetails";
+
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -11,7 +7,6 @@ import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { baseURL } from "../../../../utils/api";
 import Header from "../../../../components/custom/print_header";
-import { Icon } from "@iconify/react";
 import React from "react";
 
 const ChartOfAccountDetails = () => {
