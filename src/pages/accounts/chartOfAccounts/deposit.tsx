@@ -74,7 +74,7 @@ const DepositBalance: React.FC<AddOrModifyItemProps> = ({
 
       // Send the request
       const res = await axios.post(
-        `${baseURL}/erp/accounts/chartofaccounts/${item?.id}/addopeningbalance`,
+        `${baseURL}/accounts/chartofaccounts/${item?.id}/addopeningbalance`,
         payload,
         {
           headers: {

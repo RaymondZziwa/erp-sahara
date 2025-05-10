@@ -37,21 +37,21 @@ const useAssetsAccounts = () => {
       );
 
       const resOne = await apiRequest<ServerResponse<ChartofAccount[]>>(
-        "/erp/accounts/get-expense-accounts",
+        "/accounts/get-expense-accounts",
         //ACCOUNTS_ENDPOINTS.GET_ALL_ACCOUNTS,
         "GET",
         token.access_token
       );
 
       const resTwo = await apiRequest<ServerResponse<ChartofAccount[]>>(
-        "/erp/accounts/get-cash-accounts",
+        "/accounts/get-cash-accounts",
         //ACCOUNTS_ENDPOINTS.GET_ALL_ACCOUNTS,
         "GET",
         token.access_token
       );
 
       const resThree = await apiRequest<ServerResponse<ChartofAccount[]>>(
-        "/erp/accounts/get-income-accounts",
+        "/accounts/get-income-accounts",
         //ACCOUNTS_ENDPOINTS.GET_ALL_ACCOUNTS,
         "GET",
         token.access_token

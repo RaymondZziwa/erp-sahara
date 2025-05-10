@@ -51,7 +51,7 @@ const ConfirmModal: React.FC<ConfirmProps> = ({
 
     try {
       const method = "POST";
-      const endpoint = `/erp/inventories/${record_id}/confirmreceiptstockmovement`
+      const endpoint = `/inventories/${record_id}/confirmreceiptstockmovement`
 
       const data = formState;
       await createRequest(

@@ -7,6 +7,7 @@ export interface Asset {
   asset_category_id: number;
   identity_no: string;
   purchase_date: string;
+  currency_id: number;
   date_put_to_use: string;
   purchase_cost: number;
   current_value: number;
@@ -34,4 +35,11 @@ export interface AssetCategory {
     description: string,
     updated_at: string,
     created_at: string
+}
+
+export interface AssetIncomeType {
+  id: string,
+  name: string,
+  income_account_id: number,
+  description: string
 }

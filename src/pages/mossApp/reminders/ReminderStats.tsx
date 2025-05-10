@@ -1,6 +1,5 @@
 import { Card } from "primereact/card";
 import { Chart } from "primereact/chart";
-import { ProgressSpinner } from "primereact/progressspinner";
 import { Badge } from "primereact/badge";
 import { Dropdown } from "primereact/dropdown";
 import React, { useState } from "react";
@@ -9,33 +8,6 @@ import useRemindersStats from "../../../hooks/mossApp/useRemindersStats";
 const ReminderStats: React.FC = () => {
   const { data, loading, error } = useRemindersStats();
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="card">
-          <ProgressSpinner
-            style={{ width: "50px", height: "50px" }}
-            strokeWidth="8"
-            fill="var(--surface-ground)"
-            animationDuration=".5s"
-          />
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-red-500 text-center">
-        Error loading reminder stats.
-      </div>
-    );
-  }
-
-  if (!data) {
-    return <div className="text-center">No Reminder stats available.</div>;
-  }
 
   const appointmentChartData = {
     labels: data.appointments_per_month.map((item) => item.month),

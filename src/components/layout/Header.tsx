@@ -7,12 +7,12 @@ import MobileSidebar from "./MobileSidebar";
 const SettingsPage = () => {
   const { user, logOutHandler } = useAuth();
   const settings = [
-    { name: "My Invoices", path: "/settings/invoices" },
-    { name: "Profile", path: "/settings/profile" },
-    { name: "Account Settings", path: "/settings/account" },
-    { name: "Notifications", path: "/settings/notifications" },
-    { name: "Privacy", path: "/settings/privacy" },
-    { name: "Help", path: "/settings/help" },
+    // { name: "My Invoices", path: "/settings/invoices" },
+    { name: "Profile", path: "/settings/user_profile" },
+    // { name: "Account Settings", path: "/settings/account" },
+    // { name: "Notifications", path: "/settings/notifications" },
+    // { name: "Privacy", path: "/settings/privacy" },
+    // { name: "Help", path: "/settings/help" },
   ];
 
   return (

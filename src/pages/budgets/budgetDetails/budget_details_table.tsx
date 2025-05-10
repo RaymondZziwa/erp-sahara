@@ -6,38 +6,57 @@ import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import useBudgets from "../../../hooks/budgets/useBudgets";
+import BudgetAllocationEditModal from "./allocationEditModal";
+import BudgetItemEditModal from "./budgetItemEditModal";
 
 //@ts-expect-error --ignore
-export default function BudgetTable({ budget }) {
+export default function BudgetTable({ budget, deleteBudgetItem }) {
   const [activeTab, setActiveTab] = useState("allocations");
-  const {refresh} = useBudgets()
+  const { refresh } = useBudgets();
   const token = useSelector(
     (state: RootState) => state.userAuth.token.access_token
   );
 
-const deleteHandler = async (id:any) => {
-  try {
-    const response = await axios.delete(
-      `${baseURL}/erp/accounts/budgets/${budget.id}/budgetallocations/${id}/delete`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+  // State for edit modals
+  const [editAllocationModalVisible, setEditAllocationModalVisible] =
+    useState(false);
+  const [editItemModalVisible, setEditItemModalVisible] = useState(false);
+  const [selectedAllocation, setSelectedAllocation] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
 
-    refresh();
-    if (response.data.success) {
-      toast.success("Budget allocation deleted successfully!");
-    } else {
-      toast.error("Failed to delete budget allocation.");
+  const deleteHandler = async (id: any) => {
+    try {
+      const response = await axios.delete(
+        `${baseURL}/accounts/budgets/${budget.id}/budgetallocations/${id}/delete`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      refresh();
+      if (response.data.success) {
+        toast.success("Budget allocation deleted successfully!");
+      } else {
+        toast.error("Failed to delete budget allocation.");
+      }
+    } catch (error) {
+      console.error("Error deleting allocation:", error);
+      toast.error("An error occurred while deleting.");
     }
-  } catch (error) {
-    console.error("Error deleting allocation:", error);
-    toast.error("An error occurred while deleting.");
-  }
-};
+  };
+
+  const openEditAllocationModal = (allocation: any) => {
+    setSelectedAllocation(allocation);
+    setEditAllocationModalVisible(true);
+  };
+
+  const openEditItemModal = (item: any) => {
+    setSelectedItem(item);
+    setEditItemModalVisible(true);
+  };
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-md">
@@ -94,6 +113,7 @@ const deleteHandler = async (id:any) => {
                           icon="solar:pen-bold"
                           className="text-blue-500 cursor-pointer"
                           fontSize={20}
+                          onClick={() => openEditAllocationModal(allocation)}
                         />
                         <Icon
                           icon="solar:trash-bin-trash-bold"
@@ -121,7 +141,7 @@ const deleteHandler = async (id:any) => {
             </thead>
             <tbody>
               {budget?.items.map((item: any) => (
-                <tr key={item.id} className="text-center">
+                <tr key={item.id}>
                   <td className="border border-gray-200 px-4 py-2">
                     {item.name}
                   </td>
@@ -137,13 +157,14 @@ const deleteHandler = async (id:any) => {
                         icon="solar:pen-bold"
                         className="text-blue-500 cursor-pointer"
                         fontSize={20}
+                        onClick={() => openEditItemModal(item)}
                       />
                       <Icon
                         icon="solar:trash-bin-trash-bold"
                         className="text-red-500 cursor-pointer"
                         fontSize={20}
                         onClick={() => {
-                          deleteHandler(item.id);
+                          deleteBudgetItem(item.id);
                         }}
                       />
                     </div>
@@ -154,6 +175,29 @@ const deleteHandler = async (id:any) => {
           </table>
         )}
       </div>
+
+      {/* Edit Modals */}
+      {selectedAllocation && (
+        <BudgetAllocationEditModal
+          visible={editAllocationModalVisible}
+          onHide={() => setEditAllocationModalVisible(false)}
+          allocation={selectedAllocation}
+          budget={budget}
+          budgetId={budget.id}
+          refresh={refresh}
+        />
+      )}
+
+      {selectedItem && (
+        <BudgetItemEditModal
+          visible={editItemModalVisible}
+          onHide={() => setEditItemModalVisible(false)}
+          item={selectedItem}
+          budget={budget}
+          budgetId={budget.id}
+          refresh={refresh}
+        />
+      )}
     </div>
   );
 }

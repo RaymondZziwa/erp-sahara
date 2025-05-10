@@ -133,6 +133,7 @@ export default function AddProduct() {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token.access_token}`,
         },
+        validateStatus: () => true,
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const percentCompleted = Math.round(
@@ -142,9 +143,9 @@ export default function AddProduct() {
           }
         },
       });
+
       if (response.data.success) {
         toast.success("Product saved successfully!");
-        // Reset state if needed
         setProduct({
           ...product,
           item_category_id: "",
@@ -166,17 +167,16 @@ export default function AddProduct() {
           tax_class: "",
           variants: [],
           item_images: [],
-          // Reset other fields as necessary
         });
       } else {
-        throw Error(response.data.message);
+        toast.error(response.data.message || "Failed to save product.");
       }
     } catch (error) {
       console.error("Error saving item", error);
       handleGenericError(error);
     } finally {
       setIsSubmitting(false);
-      setUploadProgress(0); // Reset progress after the upload
+      setUploadProgress(0);
     }
   };
 

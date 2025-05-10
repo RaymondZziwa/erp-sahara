@@ -13,6 +13,7 @@ import { baseURL } from "../../../utils/api";
 import useChartOfAccounts from "../../../hooks/accounts/useChartOfAccounts";
 import useLedgerChartOfAccounts from "../../../hooks/accounts/useLedgerChartOfAccounts";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
+import { Budget } from "../../../redux/slices/types/budgets/Budget";
 
 interface BudgetItem {
   name: string;
@@ -25,28 +26,31 @@ interface BudgetItem {
 }
 
 interface Props {
+  budget: Budget;
+  refresh: any;
   id: any;
   visible: boolean;
   onHide: () => void;
-  onSubmit: (data: BudgetItem[]) => void;
 }
 
 const BudgetItemsModal: React.FC<Props> = ({
+  budget,
   id,
   visible,
+  refresh,
   onHide,
-  onSubmit,
 }) => {
   const token = useSelector(
     (state: RootState) => state.userAuth.token.access_token
   );
   const { data: chartOfAccounts } = useChartOfAccounts();
+
   const [formState, setFormState] = useState<BudgetItem[]>([
     {
       name: "",
       type: "",
       amount: "",
-      currency_id: 1,
+      currency_id: budget.currency_id,
       chart_of_account_id: "",
       budget_allocation_id: "", // Nullable
       description: "",
@@ -73,7 +77,7 @@ const BudgetItemsModal: React.FC<Props> = ({
         name: "",
         type: "",
         amount: "",
-        currency_id: 1,
+        currency_id: budget.currency_id,
         chart_of_account_id: "",
         budget_allocation_id: "", // Nullable
         description: "",
@@ -88,7 +92,7 @@ const BudgetItemsModal: React.FC<Props> = ({
   const handleSubmit = async () => {
     try {
       const response = await axios.post(
-        `${baseURL}/erp/accounts/budgets/${id}/budgetitems/create`,
+        `${baseURL}/accounts/budgets/${id}/budgetitems/create`,
         {
           budget_items: formState,
         },
@@ -103,14 +107,14 @@ const BudgetItemsModal: React.FC<Props> = ({
 
       if (response.data.success) {
         toast.success(response.data.message);
+        refresh()
       } else {
         toast.error(response.data.message);
       }
 
-      onSubmit(response.data);
       onHide();
     } catch (error) {
-      console.error("Error submitting budget items:", error);
+      console.log("Error submitting budget items:", error);
       toast.error("An error occurred while submitting the budget items."); // Show error toast
     }
   };
@@ -152,6 +156,7 @@ const BudgetItemsModal: React.FC<Props> = ({
                   handleItemChange(index, "chart_of_account_id", e.value)
                 }
               />
+              
               <InputNumber
                 placeholder="Amount"
                 value={item.amount}

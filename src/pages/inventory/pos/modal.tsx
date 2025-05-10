@@ -180,7 +180,7 @@ useEffect(() => {
     };
 
     const response = await createRequest(
-      "/erp/inventories/pointsofsale",
+      "/inventories/pointsofsale",
       token,
       requestData,
       "POST"

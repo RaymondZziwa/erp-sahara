@@ -14,7 +14,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${baseURL}/erp/reports/dashboard/inventory-summary`, {
+        const response = await axios.get(`${baseURL}/reports/dashboard/inventory-summary`, {
                 headers: {
                   "Content-Type": "application/json",
                   Accept: "application/json",

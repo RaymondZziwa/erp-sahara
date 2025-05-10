@@ -1,5 +1,5 @@
-//@ts-nocheck
-import React, { useState } from "react";
+// @ts-nocheck
+import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { InputNumber } from "primereact/inputnumber";
@@ -9,16 +9,28 @@ import { baseURL } from "../../../utils/api";
 import { RootState } from "../../../redux/store";
 import { useSelector } from "react-redux";
 import { toast, ToastContainer } from "react-toastify";
+import useProjects from "../../../hooks/projects/useProjects";
+import { Dropdown } from "primereact/dropdown";
 
 interface props {
-    visible: boolean;
-    onHide: () => void;
-    onSubmit: (data: any) => void;
-    id: string
+  visible: boolean;
+  refresh: any;
+  onHide: () => void;
+  id: string;
 }
 
-const BudgetAllocationModal: React.FC<props> = ({ visible, onHide, onSubmit, id }) => {
-    const token = useSelector((state: RootState) => state.userAuth.token.access_token)
+const BudgetAllocationModal: React.FC<props> = ({
+  refresh,
+  visible,
+  onHide,
+  id,
+}) => {
+  const token = useSelector(
+    (state: RootState) => state.userAuth.token.access_token
+  );
+  const { data: projects, refresh: getProjects } = useProjects();
+
+  const [activities, setActivities] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     project_id: "",
@@ -27,14 +39,47 @@ const BudgetAllocationModal: React.FC<props> = ({ visible, onHide, onSubmit, id 
     description: "",
   });
 
+  const fetchActivitiesByProject = async (projectId: string) => {
+    try {
+      const res = await axios.get(
+        `${baseURL}/projects/${projectId}/activities`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setActivities(res.data.activities || []);
+    } catch (error) {
+      console.error("Failed to fetch activities:", error);
+      setActivities([]);
+    }
+  }
+
+  useEffect(() => {
+    getProjects();
+  }, []);
+
   const handleChange = (e, field) => {
     setFormData({ ...formData, [field]: e.target.value });
+  };
+
+  const handleItemChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === "project_id" ? { activity_id: "" } : {}),
+    }));
+
+    if (field === "project_id") {
+      fetchActivitiesByProject(value);
+    }
   };
 
   const handleSubmit = async () => {
     try {
       const response = await axios.post(
-        `${baseURL}/erp/accounts/budgets/${id}/budgetallocations/create`,
+        `${baseURL}/accounts/budgets/${id}/budgetallocations/create`,
         formData,
         {
           headers: {
@@ -43,13 +88,12 @@ const BudgetAllocationModal: React.FC<props> = ({ visible, onHide, onSubmit, id 
           },
         }
       );
-      if(response.data.success){
-        toast.success(response.data.message)
-      }else{
-        toast.error(response.data.message)
+      if (response.data.success) {
+        toast.success(response.data.message);
+        refresh();
+      } else {
+        toast.error(response.data.message);
       }
-      //toast.success('Success')
-      onSubmit(response.data);
       onHide();
     } catch (error) {
       console.error("Error submitting allocation:", error);
@@ -72,17 +116,32 @@ const BudgetAllocationModal: React.FC<props> = ({ visible, onHide, onSubmit, id 
             />
           </div>
           <div className="p-field">
-            <label>Project ID</label>
-            <InputText
+            <label>Project</label>
+            <Dropdown
+              placeholder="Select Project"
               value={formData.project_id}
-              onChange={(e) => handleChange(e, "project_id")}
+              options={projects.map((proj) => ({
+                label: proj.name,
+                value: proj.id,
+              }))}
+              onChange={(e) => handleItemChange("project_id", e.value)}
+              filter
+              showClear
             />
           </div>
           <div className="p-field">
-            <label>Activity ID</label>
-            <InputText
+            <label>Activity</label>
+            <Dropdown
+              placeholder="Select Activity"
               value={formData.activity_id}
-              onChange={(e) => handleChange(e, "activity_id")}
+              options={activities.map((act) => ({
+                label: act.name,
+                value: act.id,
+              }))}
+              onChange={(e) => handleItemChange("activity_id", e.value)}
+              disabled={!formData.project_id}
+              filter
+              showClear
             />
           </div>
           <div className="p-field">

@@ -24,7 +24,7 @@ const useLedgers = () => {
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
       const response = await apiRequest<ServerResponse<ChartofAccount[]>>(
-        `${baseURL}/erp//accounts/get-expense-accounts`,
+        `${baseURL}/accounts/get-expense-accounts`,
         "GET",
         token.access_token
       );

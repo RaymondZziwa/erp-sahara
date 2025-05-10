@@ -23,6 +23,7 @@ const useAuth = () => {
   const logOutHandler = () => {
     localStorage.clear();
     dispatch(clearUserData());
+    navigate("/login")
   };
 
   const loginHandler = async (data: { username: string; password: string }) => {

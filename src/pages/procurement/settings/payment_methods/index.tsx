@@ -88,7 +88,7 @@ const PaymentMethods: React.FC = () => {
         }
       />
       <ConfirmDeleteDialog
-        apiPath={`/erp/accounts/paymentmethod/${dialogState.selectedItem?.id}/delete`}
+        apiPath={`/accounts/paymentmethod/${dialogState.selectedItem?.id}/delete`}
         onClose={() =>
           setDialogState({ selectedItem: undefined, currentAction: "" })
         }

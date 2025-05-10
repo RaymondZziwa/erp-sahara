@@ -12,5 +12,6 @@ export const BUDGETS_ENDPOINTS = {
     ADD: "/accounts/budgets/create",
     UPDATE: (id: string) => `/accounts/budgets/${id}/update`,
     DELETE: (id: string) => `/accounts/budgets/${id}/delete`,
+    GET_USAGE_SUMMARY: ''
   },
 };

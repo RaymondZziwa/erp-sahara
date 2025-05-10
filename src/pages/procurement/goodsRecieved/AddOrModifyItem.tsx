@@ -169,8 +169,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     setIsSubmitting(true);
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
-      ? `/erp/procurement/grns/${item.id}/update`
-      : "/erp/procurement/grns/create";
+      ? `/procurement/grns/${item.id}/update`
+      : "/procurement/grns/create";
     await createRequest(
       endpoint,
       token.access_token,

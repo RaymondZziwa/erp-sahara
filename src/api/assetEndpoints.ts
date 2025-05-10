@@ -10,8 +10,8 @@ export const ASSETSENDPOINTS = {
       GET_ALL: "/assets",
       GET_BY_ID: (id: string) => `/assets/assets/${id}`,
       ADD: "/assets/create",
-      UPDATE: (id: string) => `/assets/assets/${id}/update`,
-      DELETE: (id: string) => `/assets/assets/${id}/delete`,
+      UPDATE: (id: string) => `/assets/${id}/update`,
+      DELETE: (id: string) => `/assets/${id}/delete`,
       PAYMENTS: {
         CREATE: (assetId: string) => `/assets/${assetId}/assetpayments/create`,
       },
@@ -22,4 +22,10 @@ export const ASSETSENDPOINTS = {
         CREATE: (assetId: string) => `/assets/${assetId}/assetexpenses/create`,
       },
     },
+    INCOME_TYPES: {
+      GET_ALL: "/assets/assetincometypes",
+      ADD: "assets/assetincometypes/create",
+      MODIFY: (id: string) => `assets/assetincometypes/${id}/update`,
+      DELETE: (id: string) => `assets/assetincometypes/${id}/delete`,
+    }
   };

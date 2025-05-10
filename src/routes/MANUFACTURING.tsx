@@ -28,20 +28,20 @@ const MANUFACTURING_ROUTES = [
     icon: <Icon icon="mdi:view-dashboard-outline" fontSize={24} />,
     path: "",
     items: [
+      // {
+      //   name: "Overview -",
+      //   icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
+      //   path: "/",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <Overview />
+      //     </Suspense>
+      //   ),
+      // },
       {
-        name: "Overview -",
-        icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
-        path: "/",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Overview />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Work Orders -",
+        name: "Work Orders",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
-        path: "/workorders",
+        path: "/",
         element: (
           <Suspense fallback={<Loading />}>
             <WorkOrders />
@@ -49,7 +49,7 @@ const MANUFACTURING_ROUTES = [
         ),
       },
       {
-        name: "Equipment Assignemts -",
+        name: "Equipment Assignemts",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/equipment_assignments",
         element: (
@@ -87,7 +87,7 @@ const MANUFACTURING_ROUTES = [
       },
 
       {
-        name: "Machine -",
+        name: "Machines",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/equipment",
         element: (
@@ -107,7 +107,7 @@ const MANUFACTURING_ROUTES = [
         ),
       },
       {
-        name: "Production Plans-",
+        name: "Production Plans",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/productionplans",
         element: (
@@ -117,7 +117,7 @@ const MANUFACTURING_ROUTES = [
         ),
       },
       {
-        name: "Processing-",
+        name: "Processing",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/productionplans",
         element: (
@@ -127,7 +127,7 @@ const MANUFACTURING_ROUTES = [
         ),
       },
       {
-        name: "Production Output -",
+        name: "Production Output",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/productionplans",
         element: (
@@ -137,7 +137,7 @@ const MANUFACTURING_ROUTES = [
         ),
       },
       {
-        name: "Equipment Details -",
+        name: "Equipment Details",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/equipment/:id",
         element: (
@@ -148,7 +148,7 @@ const MANUFACTURING_ROUTES = [
         hidden: true
       },
       {
-        name: "Plan Details -",
+        name: "Plan Details",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/productionplans/:id",
         element: (
@@ -158,7 +158,7 @@ const MANUFACTURING_ROUTES = [
         ),
       },
       {
-        name: "Center Details -",
+        name: "Center Details",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/centers/:id",
         element: (
@@ -169,7 +169,7 @@ const MANUFACTURING_ROUTES = [
         hidden: true
       },
       {
-        name: "Quality Control -",
+        name: "Quality Control",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
         path: "/qualitycontrol",
         element: (

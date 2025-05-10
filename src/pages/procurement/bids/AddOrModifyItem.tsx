@@ -154,8 +154,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
-      ? `/erp/procurement/bids/${item.id}/update`
-      : "/erp/procurement/bids/create";
+      ? `/procurement/bids/${item.id}/update`
+      : "/procurement/bids/create";
 
     try {
       // Create FormData to handle file upload

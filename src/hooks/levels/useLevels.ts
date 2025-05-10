@@ -22,7 +22,7 @@ const useLevels = () => {
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
       const response = await fetch(
-        `${baseURL}/erp/accounts/requisitions-approval-level`,
+        `${baseURL}/accounts/approval-level`,
         {
           method: "GET",
           headers: {

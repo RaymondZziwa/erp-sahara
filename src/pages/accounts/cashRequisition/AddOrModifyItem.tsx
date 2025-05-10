@@ -7,7 +7,7 @@ import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-
+import { InputNumber } from "primereact/inputnumber";
 import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import useCurrencies from "../../../hooks/procurement/useCurrencies";
@@ -17,37 +17,30 @@ import useBudgets from "../../../hooks/budgets/useBudgets";
 import { ACCOUNTS_ENDPOINTS } from "../../../api/accountsEndpoints";
 import { CashRequisition } from "../../../redux/slices/types/accounts/cash_requisitions/CashRequisition";
 import useEmployees from "../../../hooks/hr/useEmployees";
-import { v4 as uuidv4 } from "uuid"; // Import uuid
-import { InputNumber } from "primereact/inputnumber";
+import { v4 as uuidv4 } from "uuid";
 import { formatCurrency } from "../../../utils/formatCurrency";
 import useDepartments from "../../../hooks/hr/useDepartments";
 import { Budget } from "../../../redux/slices/types/budgets/Budget";
+import useLedgers from "../../../hooks/accounts/useLedgers";
 
 interface AddCashRequisition {
   title: string;
-  total_amount: number;
-  currency_id: number;
-  requester_id: number;
+  currency_id: string;
+  requester_id: string;
   date_expected: string;
-  purpose: string;
-  project_id?: number;
-  department_id: number;
-  branch_id: number;
-  segment_id: number;
-  items: ReqItem[];
   budget_id?: string;
+  department_id: string;
+  items: ReqItem[];
 }
 
 interface ReqItem {
-  item_type: string;
-  uuid: string;
-  item_id: number;
-  item_name: string;
-  chart_of_accounts_id: any;
-  quantity: number;
   unit_cost: number;
-  price: number;
-  budget_item_id?: number; //When a budget is selected on a requisition an added item must be compared to its budgeted value
+  budget_item_id?: string;
+  quantity: number;
+  specifications: null;
+  chart_of_account_id: number;
+  uuid: string; // For internal tracking only
+  item_name?: string; // For display only
 }
 
 interface AddOrModifyItemProps {
@@ -63,80 +56,81 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   item,
   onSave,
 }) => {
-  const [formState, setFormState] = useState<Partial<AddCashRequisition>>({});
+  const [formState, setFormState] = useState<Partial<AddCashRequisition>>({
+    items: [],
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: budgets, refresh } = useBudgets();
+  const { data: budgets } = useBudgets();
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
-  const [allItems, setAllItems] = useState<ReqItem[]>([]);
+  const [availableItems, setAvailableItems] = useState<any[]>([]);
 
   const { token } = useAuth();
   const { data: currencies } = useCurrencies();
-  const {data: expenseAccounts} = useLedgers()
-  const { data: inventoryItems } = useItems();
+  const { data: expenseAccounts } = useLedgers();
   const { data: projects } = useProjects();
   const { data: employees } = useEmployees();
   const { data: departments } = useDepartments();
 
- useEffect(() => {
-   if (formState.budget_id) {
-     const selectedBudget = budgets.find(
-       (budget) => budget.id === formState.budget_id
-     );
-     console.log("selected budget2233:", selectedBudget);
-     if (selectedBudget) {
-      console.log("selected budget22:", selectedBudget);
-       const budgetItems = selectedBudget.items.map((item) => ({
-         item_id: item.id,
-         item_name: item.name,
-         quantity: 0,
-         price: +item.amount_in_base_currency,
-         unit_cost: +item.amount_in_base_currency,
-         budget_item_id: item.budget_id,
-         uuid: uuidv4(),
-         item_type: "Product", // Default to "Product" or adjust as needed
-       }));
-       setAllItems(budgetItems);
-     }
-   } else {
-     setAllItems(
-       inventoryItems.map((item) => ({
-         item_id: item.id,
-         item_name: item.name,
-         quantity: 0,
-         price: +item.cost_price,
-         unit_cost: +item.cost_price,
-         uuid: uuidv4(),
-         item_type: item.item_type,
-       }))
-     );
-   }
- }, [formState.budget_id, budgets, inventoryItems]);
+  useEffect(() => {
+    if (item) {
+      // Initialize form with existing item data
+      setFormState({
+        title: item.title,
+        currency_id: item.currency_id,
+        requester_id: item.requester_id,
+        date_expected: item.date_expected,
+        budget_id: item.budget_id,
+        department_id: item.department_id,
+        items:
+          item.items?.map((item) => ({
+            ...item,
+            uuid: uuidv4(),
+          })) || [],
+      });
+    } else {
+      // Reset form for new item
+      setFormState({
+        items: [],
+      });
+    }
+  }, [item]);
+
+  useEffect(() => {
+    if (formState.budget_id) {
+      const budget = budgets.find((b) => b.id === formState.budget_id);
+      setSelectedBudget(budget || null);
+
+      if (budget) {
+        setAvailableItems(
+          budget.items.map((item) => ({
+            ...item,
+            uuid: uuidv4(),
+            chart_of_account_id: item.chart_of_account_id,
+            unit_cost: item.amount_in_base_currency,
+          }))
+        );
+      }
+    } else {
+      setAvailableItems(
+        expenseAccounts.map((account) => ({
+          uuid: uuidv4(),
+          item_name: account.name,
+          chart_of_account_id: account.id,
+          unit_cost: 0,
+        }))
+      );
+    }
+  }, [formState.budget_id, budgets, expenseAccounts]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (name: keyof AddCashRequisition, value: any) => {
-    if (name === "budget_id") {
-      setFormState((prevState) => ({
-        ...prevState,
-        [name]: value,
-      }));
-      const selected = budgets.find((budget) => budget.id === value);
-      console.log('selected budget:', selected)
-      setSelectedBudget(selected);
-    } else {
-      setFormState((prevState) => ({
-        ...prevState,
-        [name]: value,
-      }));
-    }
+    setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleItemChange = (
@@ -144,376 +138,321 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     field: keyof ReqItem,
     value: any
   ) => {
-    const updatedItems = [...(formState.items ?? [])];
+    const updatedItems = [...(formState.items || [])];
     updatedItems[index] = { ...updatedItems[index], [field]: value };
-
-    setFormState((prevState) => ({
-      ...prevState,
-      items: updatedItems,
-    }));
+    setFormState((prev) => ({ ...prev, items: updatedItems }));
   };
 
-  const handleItemSelectChange = (index: number, value: string) => {
-    const selectedItem = allItems.find((item) => item.uuid == value);
-
+  const handleItemSelect = (index: number, uuid: string) => {
+    const selectedItem = availableItems.find((item) => item.uuid === uuid);
     if (selectedItem) {
-      const updatedItems = [...(formState.items ?? [])];
+      const updatedItems = [...(formState.items || [])];
       updatedItems[index] = {
-        ...updatedItems[index],
-        item_id: selectedItem.item_id,
-        item_name: selectedItem.item_name,
-        price: +selectedItem.price,
-        unit_cost: +selectedItem.price,
-        budget_item_id: selectedItem?.budget_item_id,
+        unit_cost: selectedItem.unit_cost,
+        budget_item_id: selectedItem.id,
+        chart_of_account_id: selectedItem.chart_of_account_id,
+        quantity: 1,
+        specifications: null,
+        uuid: selectedItem.uuid,
       };
-
-      setFormState((prevState) => ({
-        ...prevState,
-        items: updatedItems,
-      }));
+      setFormState((prev) => ({ ...prev, items: updatedItems }));
     }
   };
 
   const removeItem = (index: number) => {
-    const updatedItems = [...(formState.items ?? [])];
+    const updatedItems = [...(formState.items || [])];
     updatedItems.splice(index, 1);
-    setFormState((prevState) => ({
-      ...prevState,
-      items: updatedItems,
-    }));
+    setFormState((prev) => ({ ...prev, items: updatedItems }));
   };
 
   const addItem = () => {
-    setFormState((prevState) => ({
-      ...prevState,
+    setFormState((prev) => ({
+      ...prev,
       items: [
-        ...(prevState.items ?? []),
+        ...(prev.items || []),
         {
-          item_id: 0,
-          item_name: "",
-          price: 0,
           unit_cost: 0,
-          budget_item_id: 0,
-          chart_of_accounts_id: 0,
-          quantity: 0,
+          quantity: 1,
+          specifications: null,
+          chart_of_account_id: 0,
           uuid: uuidv4(),
-          item_type: "",
         },
       ],
     }));
   };
 
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!formState.title || !formState.currency_id) {
+    try {
+      // Prepare the payload
+      const payload = {
+        title: formState.title,
+        currency_id: formState.currency_id,
+        requester_id: formState.requester_id,
+        date_expected: formState.date_expected,
+        budget_id: formState.budget_id,
+        department_id: formState.department_id,
+        items:
+          formState.items?.map((item) => ({
+            unit_cost: item.unit_cost,
+            budget_item_id: item.budget_item_id,
+            quantity: item.quantity,
+            specifications: null,
+            chart_of_account_id: item.chart_of_account_id,
+          })) || [],
+      };
+
+      const method = item?.id ? "PUT" : "POST";
+      const endpoint = item?.id
+        ? ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.UPDATE(item.id.toString())
+        : ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.ADD;
+
+      const response = await createRequest(
+        endpoint,
+        token.access_token,
+        payload,
+        onSave,
+        method
+      );
+
+      if(response.sucess) {
+        setIsSubmitting(false)
+      }else{
+        setIsSubmitting;(false)
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error saving requisition:", error);
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    const method = item?.id ? "PUT" : "POST";
-
-    // Construct the payload with `unit_cost` included
-    const data = {
-      ...formState,
-      date_expected: new Date(formState.date_expected ?? new Date())
-        .toISOString()
-        .slice(0, 10),
-      items: formState.items?.map((item) => ({
-        ...item,
-        unit_cost: item.unit_cost ?? 0, // Explicitly include `unit_cost`
-      })),
-    };
-
-    console.log("Payload:", data); // Log the payload for verification
-
-    const endpoint = item?.id
-      ? ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.UPDATE(item.id.toString())
-      : ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.ADD;
-
-    await createRequest(endpoint, token.access_token, data, onSave, method);
-    setIsSubmitting(false);
-    onSave();
-    onClose();
   };
 
-  const budgetItems = formState.budget_id
-    ? budgets.find((budget) => budget.id.toString() == formState.budget_id)
-        ?.items
-    : [];
+  const totalCost =
+    formState.items?.reduce(
+      (sum, item) => sum + item.unit_cost * item.quantity,
+      0
+    ) || 0;
 
-  const footer = (
-    <div className="flex justify-end space-x-2">
-      <Button
-        label="Cancel"
-        icon="pi pi-times"
-        onClick={onClose}
-        className="p-button-text !bg-red-500 hover:bg-red-400"
-        size="small"
-        disabled={isSubmitting}
-      />
-      <Button
-        loading={isSubmitting}
-        disabled={isSubmitting}
-        label={item?.id ? "Update" : "Submit"}
-        icon="pi pi-check"
-        type="submit"
-        form="project-form"
-        size="small"
-        onClick={(e) => handleSave(e)}
-      />
-    </div>
-  );
-
-  const totalCost = formState.items?.reduce(
-    (acc, curr) => acc + curr.price * curr.quantity,
-    0
-  );
-  const selectedCurrency = currencies.find(
-    (curr) => curr.id == formState.currency_id
+  const selectedCurrency = currencies?.find(
+    (c) => c.id === formState.currency_id
   );
 
   return (
     <Dialog
       header={item?.id ? "Edit Cash Requisition" : "Add Cash Requisition"}
       visible={visible}
-      footer={footer}
       onHide={onClose}
-      className="max-w-md md:max-w-2xl xl:max-w-screen-xl"
+      className="w-full max-w-4xl"
     >
-      <form
-        id="project-form"
-        //onSubmit={handleSave}
-        className="p-fluid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
-      >
-        {/* Form Fields */}
-        <div className="p-field">
-          <label htmlFor="name">Title</label>
-          <InputText
-            id="name"
-            name="title"
-            value={formState.title || ""}
-            onChange={handleInputChange}
-            required
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="currency_id">Currency</label>
-          <Dropdown
-            id="currency_id"
-            name="currency_id"
-            value={formState.currency_id}
-            options={currencies.map((curr) => ({
-              value: curr.id,
-              label: curr.name,
-            }))}
-            onChange={(e) => handleSelectChange("currency_id", e.value)}
-            placeholder="Select a Currency"
-            className="w-full"
-          />
+      <form onSubmit={handleSave} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Title</label>
+            <InputText
+              name="title"
+              value={formState.title || ""}
+              onChange={handleInputChange}
+              required
+              className="w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Currency</label>
+            <Dropdown
+              value={formState.currency_id}
+              options={
+                currencies?.map((c) => ({
+                  value: c.id,
+                  label: c.name,
+                })) || []
+              }
+              onChange={(e) => handleSelectChange("currency_id", e.value)}
+              placeholder="Select Currency"
+              className="w-full"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Date Expected
+            </label>
+            <Calendar
+              value={
+                formState.date_expected
+                  ? new Date(formState.date_expected)
+                  : null
+              }
+              onChange={(e) =>
+                handleSelectChange(
+                  "date_expected",
+                  e.value?.toISOString().split("T")[0]
+                )
+              }
+              className="w-full"
+              required
+              showIcon
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Budget</label>
+            <Dropdown
+              value={formState.budget_id}
+              options={
+                budgets?.map((b) => ({
+                  value: b.id,
+                  label: b.name,
+                })) || []
+              }
+              onChange={(e) => handleSelectChange("budget_id", e.value)}
+              placeholder="Select Budget"
+              className="w-full"
+              filter
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Requester</label>
+            <Dropdown
+              value={formState.requester_id}
+              options={
+                employees?.map((e) => ({
+                  value: e.id,
+                  label: `${e.first_name} ${e.last_name}`,
+                })) || []
+              }
+              onChange={(e) => handleSelectChange("requester_id", e.value)}
+              placeholder="Select Requester"
+              className="w-full"
+              required
+              filter
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Department</label>
+            <Dropdown
+              value={formState.department_id}
+              options={
+                departments?.map((d) => ({
+                  value: d.id,
+                  label: d.name,
+                })) || []
+              }
+              onChange={(e) => handleSelectChange("department_id", e.value)}
+              placeholder="Select Department"
+              className="w-full"
+              required
+              filter
+            />
+          </div>
         </div>
 
-        <div className="p-field">
-          <label htmlFor="date_expected">Date Expected</label>
-          <Calendar
-            id="date_expected"
-            name="date_expected"
-            value={new Date(formState.date_expected ?? new Date()) || null}
-            onChange={(e) =>
-              setFormState((prevState) => ({
-                ...prevState,
-                date_expected: e.value?.toString(),
-              }))
-            }
-            required
-            showIcon
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="purpose">Purpose</label>
-          <InputText
-            id="purpose"
-            name="purpose"
-            value={formState.purpose || ""}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="project_id">Project</label>
-          <Dropdown
-            showClear
-            id="project_id"
-            name="project_id"
-            value={formState.project_id}
-            options={projects.map((project) => ({
-              value: project.id,
-              label: project.name,
-            }))}
-            onChange={(e) => handleSelectChange("project_id", e.value)}
-            placeholder="Select a Project"
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="budget_id">Budget</label>
-          <Dropdown
-            filter
-            id="budget_id"
-            name="budget_id"
-            value={formState.budget_id}
-            options={budgets.map((budget) => ({
-              value: budget.id,
-              label: budget.name,
-            }))}
-            onChange={(e) => handleSelectChange("budget_id", e.value)}
-            placeholder="Select a Budget"
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="requester_id">Requester</label>
-          <Dropdown
-            filter
-            id="requester_id"
-            name="requester_id"
-            value={formState.requester_id}
-            options={employees.map((employee) => ({
-              value: employee.id,
-              label: employee.first_name + " " + employee.last_name,
-            }))}
-            onChange={(e) => handleSelectChange("requester_id", e.value)}
-            placeholder="Select a Requester"
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="department_id">Department</label>
-          <Dropdown
-            filter
-            id="department_id"
-            name="department_id"
-            value={formState.department_id}
-            options={departments.map((department) => ({
-              value: department.id,
-              label: department.name,
-            }))}
-            onChange={(e) => handleSelectChange("department_id", e.value)}
-            placeholder="Select a Department"
-            className="w-full"
-          />
-        </div>
+        <div className="mt-6">
+          <h3 className="text-lg font-medium mb-2">Items</h3>
 
-        This is the second form
-
-        {/* Items Section */}
-        <div className="col-span-1 md:col-span-2 xl:col-span-3">
-          <h4 className="text-xl font-semibold">Items</h4>
           <DataTable
-            value={formState.items}
-            emptyMessage="No items added yet."
+            value={formState.items || []}
+            emptyMessage="No items added"
             className="w-full"
-            footer={
-              <div className="p-field">
-                <Button
-                  size="small"
-                  type="button"
-                  label="Add Item"
-                  icon="pi pi-plus"
-                  onClick={addItem}
-                  className="p-button-outlined w-max"
-                />
-              </div>
-            }
           >
             <Column
               header="Item"
-              field="item_name"
-              body={(item: ReqItem, options) =>
-                item.item_id ? (
-                  item.item_name
-                ) : (
-                  <Dropdown
-                    value={item.uuid}
-                    options={
-                      selectedBudget
-                        ? selectedBudget?.items.map((it) => ({
-                            value: it.uuid,
-                            label: it.item_name,
-                          }))
-                        : expenseAccounts.map((acc)=> ({
-                          value: acc.id,
-                          label: acc.name
-                        }))
-                    }
-                    onChange={(e) =>
-                      handleItemSelectChange(options.rowIndex, e.value)
-                    }
-                    placeholder="Select an Item"
-                  />
-                )
-              }
+              body={(item, { rowIndex }) => (
+                <Dropdown
+                  value={item.uuid}
+                  options={availableItems.map((i) => ({
+                    value: i.uuid,
+                    label: i.item_name || i.name,
+                  }))}
+                  onChange={(e) => handleItemSelect(rowIndex, e.value)}
+                  placeholder="Select Item"
+                  className="w-full"
+                />
+              )}
+            />
+            <Column
+              header="Unit Cost"
+              body={(item, { rowIndex }) => (
+                <InputNumber
+                  value={item.unit_cost}
+                  onValueChange={(e) =>
+                    handleItemChange(rowIndex, "unit_cost", e.value || 0)
+                  }
+                  mode="currency"
+                  currency={selectedCurrency?.code || "USD"}
+                  className="w-full"
+                />
+              )}
             />
             <Column
               header="Quantity"
-              field="quantity"
-              body={(item, options) => (
+              body={(item, { rowIndex }) => (
                 <InputNumber
-                  className="w-max"
                   value={item.quantity}
-                  onChange={(e) =>
-                    handleItemChange(
-                      options.rowIndex,
-                      "quantity",
-                      e.value ? +e.value : ""
-                    )
+                  onValueChange={(e) =>
+                    handleItemChange(rowIndex, "quantity", e.value || 0)
                   }
+                  min={1}
+                  className="w-full"
                 />
               )}
             />
             <Column
-              header="Price"
-              field="price"
-              body={(item, options) => (
-                <InputNumber
-                  className="w-max"
-                  value={item.price}
-                  onChange={(e) =>
-                    handleItemChange(
-                      options.rowIndex,
-                      "price",
-                      e.value ? +e.value : ""
-                    )
-                  }
-                />
+              header="Total"
+              body={(item) => (
+                <div>
+                  {formatCurrency(
+                    item.unit_cost * item.quantity,
+                    selectedCurrency?.code || "USD"
+                  )}
+                </div>
               )}
-            />
-            <Column
-              header="Cost"
-              field="price"
-              body={(item: ReqItem) => <div>{item.quantity * item.price}</div>}
             />
             <Column
               header="Actions"
-              body={(_, options) => (
+              body={(_, { rowIndex }) => (
                 <Button
-                  type="button"
                   icon="pi pi-trash"
-                  className="p-button-danger p-button-outlined !bg-red-500"
-                  onClick={() => removeItem(options.rowIndex)}
+                  className="p-button-danger p-button-text"
+                  onClick={() => removeItem(rowIndex)}
                 />
               )}
             />
           </DataTable>
-          <div className="text-xl font-semibold my-2 flex justify-between">
-            <span>Total Cost: </span>
-            <span className="mr-80">
-              {formatCurrency(totalCost ?? 0, selectedCurrency?.code ?? "TZS")}
-            </span>
+
+          <Button
+            icon="pi pi-plus"
+            label="Add Item"
+            onClick={addItem}
+            className="mt-2"
+          />
+
+          <div className="mt-4 text-right font-bold">
+            Total: {formatCurrency(totalCost, selectedCurrency?.code || "USD")}
           </div>
+        </div>
+
+        <div className="flex justify-end gap-2 mt-6">
+          <Button
+            label="Cancel"
+            icon="pi pi-times"
+            onClick={onClose}
+            className="p-button-text"
+            disabled={isSubmitting}
+          />
+          <Button
+            label={item?.id ? "Update" : "Submit"}
+            icon="pi pi-check"
+            type="submit"
+            loading={isSubmitting}
+            disabled={isSubmitting}
+          />
         </div>
       </form>
     </Dialog>

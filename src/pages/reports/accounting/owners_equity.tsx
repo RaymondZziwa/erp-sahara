@@ -1,19 +1,47 @@
 //@ts-nocheck
 import React, { useState, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
-import { apiRequest } from "../../../utils/api";
+import { apiRequest, baseURL } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 import useAuth from "../../../hooks/useAuth";
 import { useReactToPrint } from "react-to-print";
-import { PrintableContent } from "./OE_print_template";
 import Header from "../../../components/custom/print_header";
+import axios from "axios";
+
+interface OwnersEquityComponents {
+  opening_equity: {
+    account_code: string;
+    description: string;
+    amount: number;
+  };
+  capital_additions: {
+    account_code: string;
+    description: string;
+    amount: number;
+  };
+  current_earnings: {
+    account_code: string;
+    description: string;
+    amount: number;
+  };
+  withdrawals: {
+    account_code: string;
+    description: string;
+    amount: number;
+  };
+  closing_equity: {
+    account_code: string;
+    description: string;
+    amount: number;
+  };
+}
 
 interface OwnersEquityData {
-  opening_equity: number;
-  capital_contributions: number;
-  net_income: number;
-  drawings: number;
-  closing_equity: number;
+  components: OwnersEquityComponents;
+  totals: any;
+  share_capital: any[];
+  notes: any[];
+  detailed_accounts: any;
 }
 
 function OwnersEquityReport() {
@@ -28,15 +56,39 @@ function OwnersEquityReport() {
     setIsLoading(true);
     try {
       const response = await apiRequest<ServerResponse<OwnersEquityData>>(
-        "/erp/reports/accounting/ownersequity",
+        "/reports/accounting/owners-equity",
         "GET",
         token.access_token
       );
-      setEquityData(response.data); // Access the data property
+      console.log(response.data);
+      setEquityData(response.data[0]);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const print = async () => {
+    try {
+      const response = await axios.get(
+        `${baseURL}/reports/accounting/owners-equity-summary/pdf`,
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${token.access_token || ""}`,
+          },
+        }
+      );
+
+      // Explicitly set the MIME type as PDF
+      const file = new Blob([response.data], { type: "application/pdf" });
+      const fileURL = URL.createObjectURL(file);
+
+      // Open the file in a new browser tab
+      window.open(fileURL, "_blank");
+    } catch (error) {
+      console.error("Error previewing the owner's equity report:", error);
     }
   };
 
@@ -49,7 +101,7 @@ function OwnersEquityReport() {
       <div className="flex justify-end items-center mb-4">
         <button
           className="bg-shade p-3 rounded text-white flex gap-2 items-center"
-          onClick={() => reactToPrintFn()}
+          onClick={print}
         >
           <Icon icon="solar:printer-bold" fontSize={20} />
           Print
@@ -58,7 +110,7 @@ function OwnersEquityReport() {
 
       <div ref={contentRef} className="p-4">
         <div className="flex flex-row justify-center items-center">
-          <Header title={"Owner's Equity Report"} />
+          <Header title={"Owner's Equity Summary Report"} />
         </div>
 
         {equityData ? (
@@ -78,50 +130,53 @@ function OwnersEquityReport() {
                 {/* Opening Equity */}
                 <tr>
                   <td className="px-6 py-4 font-medium text-gray-900">
-                    Opening Equity
+                    {equityData.components.opening_equity.description}
                   </td>
                   <td className="px-6 py-4 text-right text-gray-500">
-                    {equityData.opening_equity.toLocaleString()}
+                    {equityData.components.opening_equity.amount}
                   </td>
                 </tr>
 
                 {/* Capital Contributions */}
                 <tr>
                   <td className="px-6 py-4 font-medium text-gray-900">
-                    Add: Capital Contributions
+                    Add: {equityData.components.capital_additions.description}
                   </td>
                   <td className="px-6 py-4 text-right text-gray-500">
-                    {equityData.capital_contributions.toLocaleString()}
+                    {equityData.components.capital_additions.amount}
                   </td>
                 </tr>
 
-                {/* Net Income */}
+                {/* Current Earnings */}
                 <tr>
                   <td className="px-6 py-4 font-medium text-gray-900">
-                    Add: Net Income
+                    {equityData.components.current_earnings.amount >= 0
+                      ? "Add:"
+                      : "Less:"}{" "}
+                    {equityData.components.current_earnings.description}
                   </td>
                   <td className="px-6 py-4 text-right text-gray-500">
-                    {equityData.net_income.toLocaleString()}
+                    {equityData.components.current_earnings.amount}
                   </td>
                 </tr>
 
-                {/* Drawings */}
+                {/* Withdrawals */}
                 <tr>
                   <td className="px-6 py-4 font-medium text-gray-900">
-                    Less: Drawings
+                    Less: {equityData.components.withdrawals.description}
                   </td>
                   <td className="px-6 py-4 text-right text-gray-500">
-                    ({equityData.drawings.toLocaleString()})
+                    {equityData.components.withdrawals.amount}
                   </td>
                 </tr>
 
                 {/* Closing Equity */}
                 <tr className="border-t-2 border-gray-300">
                   <td className="px-6 py-4 font-bold text-gray-900">
-                    Closing Equity
+                    {equityData.components.closing_equity.description}
                   </td>
                   <td className="px-6 py-4 text-right font-bold text-gray-900">
-                    {equityData.closing_equity.toLocaleString()}
+                    {equityData.components.closing_equity.amount}
                   </td>
                 </tr>
               </tbody>
@@ -132,25 +187,6 @@ function OwnersEquityReport() {
             <p>{isLoading ? "Loading report..." : "No data available"}</p>
           </div>
         )}
-      </div>
-
-      <div ref={contentRef} className="print-content">
-        <PrintableContent
-          reportName={"Owner's Equity Report"}
-          equityData={equityData}
-        />
-        <style>
-          {`
-             @media print {
-                .print-content {
-                  display: block !important;
-                }
-              }
-              .print-content {
-                display: none;
-              }
-          `}
-        </style>
       </div>
     </div>
   );

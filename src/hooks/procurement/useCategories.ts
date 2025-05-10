@@ -25,7 +25,7 @@ const useItemCategories = () => {
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
       const response = await apiRequest<ServerResponse<Category[]>>(
-        "/erp/procurement/item_categories",
+        "/procurement/item_categories",
         "GET",
         token.access_token
       );

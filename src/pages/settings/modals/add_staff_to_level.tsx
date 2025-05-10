@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { RootState } from "../../../redux/store";
-import { baseURL } from "../../../utils/api";
+import { apiRequest, baseURL } from "../../../utils/api";
 import useEmployees from "../../../hooks/hr/useEmployees";
+import axios from "axios";
 
 interface props {
   setIsModalOpen: (val: boolean) => void;
@@ -25,57 +26,46 @@ const AddStaffToApprovalLevelModal: React.FC<props> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    user_id: "",
-    approver_names: "",
-    rank: "",
+    approver_id: "",
+    rank: 0,
     approver_title: "",
     description: "",
   });
 
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'rank') {
+      setFormData((prev) => ({ ...prev, [name]: +value }));
+    }else{
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleAddRole = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!formData.user_id) {
+    console.log(formData);
+    if (!formData.approver_id) {
       toast.error("Staff is required!");
       return;
     }
 
     try {
-      setIsSubmitting(true);
-
-      let approverId = formData.user_id;
-      let selectedEmp = emp.filter(
-        (emp) => Number(emp.id) === Number(approverId)
-      )[0];
-
-      const tempData = {
-        ...formData,
-        approver_names: `${selectedEmp.first_name} ${selectedEmp.last_name}`,
-        approver_id: Number(formData.user_id),
-        rank: Number(formData.rank),
+      const payload = {
+        approvers: [formData],
       };
-
-      const finalParams = { approvers: [tempData] };
-      console.log("fp", finalParams);
-
-      const response = await fetch(
-        `${baseURL}/erp/accounts/requisitions-approval-level/${levelId}/add_approver`,
+      setIsSubmitting(true);
+      const response = await axios.post(
+        `${baseURL}/accounts/approval-level/${levelId}/add_approver`,
+        payload,
         {
-          method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(finalParams),
         }
       );
 
-      const data = await response.json();
-      if (data.success) {
+      if (response.data.success) {
         refresh();
         toast.success("Staff added successfully!");
         setFormData({
@@ -88,10 +78,11 @@ const AddStaffToApprovalLevelModal: React.FC<props> = ({
         setIsModalOpen(false);
         setIsSubmitting(false);
       } else {
-        toast.error(data.message || "Failed to add staff");
+        toast.error(response.data.message || "Failed to add staff");
         setIsSubmitting(false);
       }
     } catch (error) {
+      console.log(error);
       toast.error("An error occurred while adding the staff.");
       setIsSubmitting(false);
     }
@@ -105,8 +96,8 @@ const AddStaffToApprovalLevelModal: React.FC<props> = ({
           <div>
             <label className="block text-gray-700 mb-1">Add staff</label>
             <select
-              name="user_id"
-              value={formData.user_id}
+              name="approver_id"
+              value={formData.approver_id}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
             >
@@ -130,7 +121,7 @@ const AddStaffToApprovalLevelModal: React.FC<props> = ({
               <option value=" ">Select rank</option>
               <option value="1">1</option>
               <option value="2">2</option>
-              <option value="2">3</option>
+              <option value="3">3</option>
             </select>
           </div>
           <div>
