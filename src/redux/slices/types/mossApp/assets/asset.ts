@@ -43,3 +43,27 @@ export interface AssetIncomeType {
   income_account_id: number,
   description: string
 }
+
+export interface AssetAssignment {
+  id: string,
+  asset_id: string,
+  assigned_to: string,
+  reason_for_assignment: string,
+  start_date: string,
+  end_date: string,
+  notes: string
+}
+
+export interface AssetMaintenance {
+  id: string;
+  asset_id: string;
+  start_date: string; // ISO date string (e.g., '2025-03-01')
+  end_date: string;   // ISO date string (e.g., '2025-03-05')
+  maintenance_type: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
+  downtime_days: number;
+  description: string;
+  cost: number;
+  service_provider_id: string; // Should be linked to a searchable list of suppliers
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  checklist?: string[] | null; // Nullable, list of tasks to be performed
+}

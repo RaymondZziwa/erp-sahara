@@ -3,10 +3,10 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { handleGenericError } from "./errorHandling";
 import { toast } from "react-toastify";
 import { ServerResponse } from "../redux/slices/types/ServerResponse";
-export const baseURL = "https://latcuapidemo.efinanci.com/api"
+// export const baseURL = "https://latcuapidemo.efinanci.com/api"
 //export const baseURL = "https://saharaauth.efinanci.com/api";
 //export const baseURL = "https://shrecuapi.efinanci.com/api"
-//export const baseURL = "https://latcuapi.efinanci.com/api"
+export const baseURL = "https://latcuapi.efinanci.com/api"
 //export const imageURL = "https://saharaauth.efinanci.com/storage"
 export const imageURL = "https://latcuapidemo.efinanci.com/storage"
 //export const imageURL = "https://shrecuapi.efinanci.com/storage"

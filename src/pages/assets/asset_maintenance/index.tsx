@@ -1,29 +1,24 @@
-
 import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
-import ConfirmDeleteDialog from "../../components/dialog/ConfirmDeleteDialog";
-import BreadCrump from "../../components/layout/bread_crump";
-import AddOrModifyItem from "./AddOrModifyItem";
-import { Asset } from "../../redux/slices/types/mossApp/assets/asset";
-import Table from "../../components/table";
-import useAssets from "../../hooks/assets/useAssets";
-import { ASSETSENDPOINTS } from "../../api/assetEndpoints";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { baseURL } from "../../utils/api";
 import { toast } from "react-toastify";
-import useAuth from "../../hooks/useAuth";
+import axios from "axios";
+import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
+import BreadCrump from "../../../components/layout/bread_crump";
+import useAuth from "../../../hooks/useAuth";
+import { baseURL } from "../../../utils/api";
+import Table from "../../../components/table";
+import useAssetMaintenance from "../../../hooks/assets/useAssetMaintenance";
+import AddOrModifyMaintenance from "./AddOrModifyMaintenance";
 
-const Assets: React.FC = () => {
-  const {token} = useAuth()
-  const { data: assets, refresh } = useAssets();
+const AssetMaintenance: React.FC = () => {
+  const { token } = useAuth();
+  const { data: maintenances, refresh } = useAssetMaintenance();
   const tableRef = useRef<any>(null);
-  const navigate = useNavigate()
 
   const [dialogState, setDialogState] = useState<{
-    selectedItem: Asset | undefined;
-    currentAction: "delete" | "edit" | "add" | "";
+    selectedItem: any;
+    currentAction: "delete" | "edit" | "add" | "complete" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
   const handleExportPDF = () => {
@@ -32,80 +27,94 @@ const Assets: React.FC = () => {
     }
   };
 
-  const processAppreciationOrDepreciation = async (
-    asset_id: string,
-    asset_type: string
-  ): Promise<void> => {
+  const handleCompleteMaintenance = async (id: string) => {
+    const formData = new FormData();
+    formData.append("actual_end_date", new Date().toISOString().split("T")[0]);
+    formData.append("completion_notes", "Maintenance completed successfully");
+    formData.append("cost", "250"); // update dynamically in form
+    // formData.append("attachments[]", file) –– Add attachments if needed
+
     try {
-      const endpoint =
-        asset_type === "depreciating"
-          ? `${baseURL}/assets/assetdepreciation/history/${asset_id}`
-          : `${baseURL}/assets/assetappreciation/process/${asset_id}`;
-
-      await axios.post(endpoint, null, {
-        headers: {
-          Authorization: `Bearer ${token.access_token}`,
-        },
-      });
-
-      toast.success('Record saved successfully')
-      // Optionally trigger a success notification here
-    } catch (error: any) {
-      console.error("Error processing:", error);
-      // toast.error(error?.response?.data?.message || "Failed to process asset");
+      await axios.post(
+        `${baseURL}/assets/assetmaintenance/${id}/complete`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token.access_token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      toast.success("Maintenance marked as complete");
+      refresh();
+    } catch (error) {
+      console.error("Error completing maintenance:", error);
+      toast.error("Failed to complete maintenance");
     }
   };
 
-  const columnDefinitions: ColDef<Asset>[] = [
+  const columnDefinitions: ColDef[] = [
     {
-      headerName: "Name",
-      field: "name",
+      headerName: "Asset",
+      field: "asset",
+      valueGetter: (params) =>
+        params.data?.asset ? `${params.data.asset.name}` : "",
       sortable: true,
       filter: true,
     },
     {
-      headerName: "Purchase Date",
-      field: "purchase_date",
+      headerName: "Start Date",
+      field: "start_date",
       sortable: true,
       filter: true,
     },
     {
-      headerName: "Purchase Cost",
-      field: "purchase_cost",
+      headerName: "End Date",
+      field: "end_date",
       sortable: true,
       filter: true,
     },
     {
-      headerName: "Current Value",
-      field: "current_value",
+      headerName: "Type",
+      field: "maintenance_type",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Priority",
+      field: "priority",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Cost",
+      field: "cost",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Service Provider",
+      field: "service_provider",
+      valueGetter: (params) => params.data?.service_provider?.name || "N/A",
       sortable: true,
       filter: true,
     },
     {
       headerName: "Status",
-      field: "status",
+      field: "maintenance_status",
       sortable: true,
       filter: true,
     },
     {
       headerName: "Actions",
       field: "id",
-      sortable: false,
-      filter: false,
-      width: 320, // ✅ Increased width
-      cellRenderer: (params: ICellRendererParams<Asset>) => (
+      width: 300,
+      cellRenderer: (params: ICellRendererParams) => (
         <div className="flex items-center gap-1">
-          <button
-            className="bg-shade px-2 py-1 rounded text-white"
-            onClick={() => navigate(`asset_details/${params.data?.id}`)}
-          >
-            Manage
-          </button>
           <button
             className="bg-shade px-2 py-1 rounded text-white"
             onClick={() =>
               setDialogState({
-                ...dialogState,
                 currentAction: "edit",
                 selectedItem: params.data,
               })
@@ -114,17 +123,14 @@ const Assets: React.FC = () => {
             Edit
           </button>
           <button
-            className="bg-shade px-2 py-1 rounded text-white"
-            onClick={() => processAppreciationOrDepreciation(params.data?.id, params.data?.asset_type)}
+            className="bg-green-600 px-2 py-1 rounded text-white"
+            onClick={() => handleCompleteMaintenance(params.data.id)}
           >
-            {params.data?.asset_type === "appreciating"
-              ? "Appreciate"
-              : "Depreciate"}
+            Complete
           </button>
           <Icon
             onClick={() =>
               setDialogState({
-                ...dialogState,
                 currentAction: "delete",
                 selectedItem: params.data,
               })
@@ -140,12 +146,13 @@ const Assets: React.FC = () => {
 
   return (
     <div>
-      <AddOrModifyItem
+      <AddOrModifyMaintenance
         onSave={refresh}
         item={dialogState.selectedItem}
         visible={
-          dialogState.currentAction == "add" ||
-          (dialogState.currentAction == "edit" && !!dialogState.selectedItem?.id)
+          dialogState.currentAction === "add" ||
+          (dialogState.currentAction === "edit" &&
+            !!dialogState.selectedItem?.id)
         }
         onClose={() =>
           setDialogState({ currentAction: "", selectedItem: undefined })
@@ -153,9 +160,7 @@ const Assets: React.FC = () => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={ASSETSENDPOINTS.ASSETS.DELETE(
-            dialogState.selectedItem?.id.toString()
-          )}
+          apiPath={`${baseURL}/assets/assetmaintenance/${dialogState.selectedItem.id}/delete`}
           onClose={() =>
             setDialogState({ selectedItem: undefined, currentAction: "" })
           }
@@ -166,11 +171,11 @@ const Assets: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Assets" pageName="All" />
+      <BreadCrump name="Asset Maintenance" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Assets</h1>
+            <h1 className="text-xl font-bold">Asset Maintenance</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -183,7 +188,7 @@ const Assets: React.FC = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add Asset
+              Add Maintenance
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
@@ -196,7 +201,7 @@ const Assets: React.FC = () => {
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={assets}
+          data={maintenances}
           ref={tableRef}
         />
       </div>
@@ -204,4 +209,4 @@ const Assets: React.FC = () => {
   );
 };
 
-export default Assets;
+export default AssetMaintenance;

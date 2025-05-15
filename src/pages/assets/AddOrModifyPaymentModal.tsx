@@ -43,6 +43,8 @@ interface AddOrModifyPaymentModalProps {
   onSave: () => void;
 }
 
+
+
 const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
   visible,
   onClose,
@@ -51,14 +53,17 @@ const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
 }) => {
   const { token } = useAuth();
   const { data: currencies } = useCurrencies();
-  const [paymentForm, setPaymentForm] = useState<PaymentForm>({
+
+  const defaultPaymentForm: PaymentForm = {
     amount: 0,
     narrative: "",
     currency_id: "",
     transaction_date: "",
     payment_method_id: "",
     fund_source_account_id: null,
-  });
+  };
+
+  const [paymentForm, setPaymentForm] = useState<PaymentForm>(defaultPaymentForm);
 
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
@@ -155,6 +160,7 @@ const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
         paymentForm
       );
       toast.success("Payment added successfully.");
+      setPaymentForm(defaultPaymentForm)
       onSave();
       onClose();
     } catch (error) {

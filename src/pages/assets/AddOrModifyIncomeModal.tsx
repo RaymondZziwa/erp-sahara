@@ -10,6 +10,8 @@ import axios from "axios";
 import useAuth from "../../hooks/useAuth";
 import { ASSETSENDPOINTS } from "../../api/assetEndpoints";
 import { baseURL } from "../../utils/api";
+import useCurrencies from "../../hooks/procurement/useCurrencies";
+import usePaymentMethods from "../../hooks/procurement/usePaymentMethods";
 
 // Centralized API configuration
 const api = axios.create({
@@ -19,12 +21,19 @@ const api = axios.create({
   },
 });
 
+interface PaymentMethod {
+  id: number;
+  name: string;
+  chart_of_account_id: number;
+  description: string | null;
+}
+
 interface IncomeForm {
+  currency_id: string;
   amount: number;
   narrative: string;
   transaction_date: string;
-  income_account_id: number | null;
-  cash_account_id: number | null;
+  payment_method_id: string;
 }
 
 interface Account {
@@ -47,19 +56,20 @@ const AddOrModifyIncomeModal: React.FC<AddOrModifyIncomeModalProps> = ({
 }) => {
   const { token } = useAuth();
   const [incomeForm, setIncomeForm] = useState<IncomeForm>({
+    currency_id: "",
     amount: 0,
     narrative: "",
     transaction_date: "",
-    income_account_id: null,
-    cash_account_id: null,
+    payment_method_id: ""
   });
 
+    const { data: currencies } = useCurrencies();
+    const {data: paymentMethods} = usePaymentMethods()
   const [incomeAccounts, setIncomeAccounts] = useState<Account[]>([]);
   const [cashAccounts, setCashAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   // Axios interceptors for token injection
   useEffect(() => {
     const requestInterceptor = api.interceptors.request.use(
@@ -160,9 +170,9 @@ const AddOrModifyIncomeModal: React.FC<AddOrModifyIncomeModalProps> = ({
     // Validate mandatory fields
     if (
       !incomeForm.amount ||
-      !incomeForm.transaction_date ||
-      !incomeForm.income_account_id ||
-      !incomeForm.cash_account_id
+      !incomeForm.transaction_date || 
+      !incomeForm.currency_id || 
+      !incomeForm.payment_method_id
     ) {
       toast.warn("Please fill in all mandatory fields.");
       setIsSubmitting(false);
@@ -214,6 +224,25 @@ const AddOrModifyIncomeModal: React.FC<AddOrModifyIncomeModalProps> = ({
       <form onSubmit={handleSaveIncome}>
         <div className="p-fluid grid grid-cols-1 gap-4">
           <div className="p-field">
+                      <label htmlFor="currency_id">
+                        Currency<span className="text-red-500">*</span>
+                      </label>
+                      <Dropdown
+                        id="currency_id"
+                        name="currency_id"
+                        value={incomeForm.currency_id}
+                        options={currencies.map((method) => ({
+                          value: method.id,
+                          name: method.name,
+                        }))}
+                        onChange={(e) => handleDropdownChange("currency_id", e.value)}
+                        optionLabel="name"
+                        optionValue="value"
+                        placeholder="Select Currency"
+                        required
+                      />
+                    </div>
+          <div className="p-field">
             <label htmlFor="amount">
               Amount<span className="text-red-500">*</span>
             </label>
@@ -254,37 +283,26 @@ const AddOrModifyIncomeModal: React.FC<AddOrModifyIncomeModalProps> = ({
             />
           </div>
           <div className="p-field">
-            <label htmlFor="income_account_id">
-              Income Account<span className="text-red-500">*</span>
-            </label>
-            <Dropdown
-              id="income_account_id"
-              name="income_account_id"
-              value={incomeForm.income_account_id}
-              options={incomeAccounts}
-              onChange={(e) => handleDropdownChange("income_account_id", e.value)}
-              optionLabel="name"
-              optionValue="value"
-              placeholder="Select Income Account"
-              required
-            />
-          </div>
-          <div className="p-field">
-            <label htmlFor="cash_account_id">
-              Cash Account<span className="text-red-500">*</span>
-            </label>
-            <Dropdown
-              id="cash_account_id"
-              name="cash_account_id"
-              value={incomeForm.cash_account_id}
-              options={cashAccounts}
-              onChange={(e) => handleDropdownChange("cash_account_id", e.value)}
-              optionLabel="name"
-              optionValue="value"
-              placeholder="Select Cash Account"
-              required
-            />
-          </div>
+                                <label htmlFor="payment_method_id">
+                                  Payment Method<span className="text-red-500">*</span>
+                                </label>
+                                <Dropdown
+                                  id="payment_method_id"
+                                  name="payment_method_id"
+                                  value={incomeForm.payment_method_id}
+                                  options={paymentMethods.map((method) => ({
+                                    value: method.id, 
+                                    name: method.name,
+                                  }))}
+                                  onChange={(e) =>
+                                    handleDropdownChange("payment_method_id", e.value)
+                                  }
+                                  optionLabel="name"
+                                  optionValue="value"
+                                  placeholder="Select Payment Method"
+                                  required
+                                />
+                              </div>
         </div>
       </form>
     </Dialog>

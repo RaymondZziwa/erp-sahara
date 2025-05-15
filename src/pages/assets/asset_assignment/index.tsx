@@ -1,29 +1,25 @@
-
 import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
-import ConfirmDeleteDialog from "../../components/dialog/ConfirmDeleteDialog";
-import BreadCrump from "../../components/layout/bread_crump";
-import AddOrModifyItem from "./AddOrModifyItem";
-import { Asset } from "../../redux/slices/types/mossApp/assets/asset";
-import Table from "../../components/table";
-import useAssets from "../../hooks/assets/useAssets";
-import { ASSETSENDPOINTS } from "../../api/assetEndpoints";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { baseURL } from "../../utils/api";
 import { toast } from "react-toastify";
-import useAuth from "../../hooks/useAuth";
+import axios from "axios";
+import { ASSETSENDPOINTS } from "../../../api/assetEndpoints";
+import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
+import BreadCrump from "../../../components/layout/bread_crump";
+import useAuth from "../../../hooks/useAuth";
+import { baseURL } from "../../../utils/api";
+import Table from "../../../components/table";
+import useAssetAssignments from "../../../hooks/assets/useAssetAssignment";
+import AddOrModifyAssignment from "./Add0rModify";
 
-const Assets: React.FC = () => {
-  const {token} = useAuth()
-  const { data: assets, refresh } = useAssets();
+const AssetAssignment: React.FC = () => {
+  const { token } = useAuth();
+  const { data: assignments, refresh } = useAssetAssignments();
   const tableRef = useRef<any>(null);
-  const navigate = useNavigate()
 
   const [dialogState, setDialogState] = useState<{
-    selectedItem: Asset | undefined;
-    currentAction: "delete" | "edit" | "add" | "";
+    selectedItem: AssetAssignment | undefined;
+    currentAction: "delete" | "edit" | "add" | "updateStatus" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
   const handleExportPDF = () => {
@@ -32,52 +28,63 @@ const Assets: React.FC = () => {
     }
   };
 
-  const processAppreciationOrDepreciation = async (
-    asset_id: string,
-    asset_type: string
-  ): Promise<void> => {
+  const handleUpdateStatus = async (id: string, status: string) => {
     try {
-      const endpoint =
-        asset_type === "depreciating"
-          ? `${baseURL}/assets/assetdepreciation/history/${asset_id}`
-          : `${baseURL}/assets/assetappreciation/process/${asset_id}`;
-
-      await axios.post(endpoint, null, {
-        headers: {
-          Authorization: `Bearer ${token.access_token}`,
+      await axios.post(
+        `${baseURL}/assets/assetassignment/${id}/updatestatus`,
+        {
+          status: status,
+          return_condition: "Good condition",
         },
-      });
-
-      toast.success('Record saved successfully')
-      // Optionally trigger a success notification here
-    } catch (error: any) {
-      console.error("Error processing:", error);
-      // toast.error(error?.response?.data?.message || "Failed to process asset");
+        {
+          headers: {
+            Authorization: `Bearer ${token.access_token}`,
+          },
+        }
+      );
+      toast.success("Status updated successfully");
+      refresh();
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      toast.error("Failed to update status");
     }
   };
 
-  const columnDefinitions: ColDef<Asset>[] = [
+  const columnDefinitions: ColDef<AssetAssignment>[] = [
     {
-      headerName: "Name",
-      field: "name",
+      headerName: "Asset",
+      field: "asset",
+      sortable: true,
+      filter: true,
+      valueGetter: (params) =>
+        params.data?.asset ? `${params.data.asset.name}` : "",
+    },
+    {
+      headerName: "Assigned To",
+      field: "assigned_to",
+      sortable: true,
+      filter: true,
+      valueGetter: (params) =>
+        params.data?.assigned_to
+          ? `${params.data.assigned_to.first_name} ${params.data.assigned_to.last_name}`
+          : "",
+    },
+    {
+      headerName: "Reason",
+      field: "reason_for_assignment",
+      sortable: true,
+      filter: true,
+    },
+
+    {
+      headerName: "Start Date",
+      field: "start_date",
       sortable: true,
       filter: true,
     },
     {
-      headerName: "Purchase Date",
-      field: "purchase_date",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Purchase Cost",
-      field: "purchase_cost",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Current Value",
-      field: "current_value",
+      headerName: "End Date",
+      field: "end_date",
       sortable: true,
       filter: true,
     },
@@ -90,22 +97,13 @@ const Assets: React.FC = () => {
     {
       headerName: "Actions",
       field: "id",
-      sortable: false,
-      filter: false,
-      width: 320, // ✅ Increased width
-      cellRenderer: (params: ICellRendererParams<Asset>) => (
+      width: 320,
+      cellRenderer: (params: ICellRendererParams<AssetAssignment>) => (
         <div className="flex items-center gap-1">
-          <button
-            className="bg-shade px-2 py-1 rounded text-white"
-            onClick={() => navigate(`asset_details/${params.data?.id}`)}
-          >
-            Manage
-          </button>
           <button
             className="bg-shade px-2 py-1 rounded text-white"
             onClick={() =>
               setDialogState({
-                ...dialogState,
                 currentAction: "edit",
                 selectedItem: params.data,
               })
@@ -114,17 +112,14 @@ const Assets: React.FC = () => {
             Edit
           </button>
           <button
-            className="bg-shade px-2 py-1 rounded text-white"
-            onClick={() => processAppreciationOrDepreciation(params.data?.id, params.data?.asset_type)}
+            className="bg-green-600 px-2 py-1 rounded text-white"
+            onClick={() => handleUpdateStatus(params.data.id, "Returned")}
           >
-            {params.data?.asset_type === "appreciating"
-              ? "Appreciate"
-              : "Depreciate"}
+            Mark Returned
           </button>
           <Icon
             onClick={() =>
               setDialogState({
-                ...dialogState,
                 currentAction: "delete",
                 selectedItem: params.data,
               })
@@ -140,12 +135,13 @@ const Assets: React.FC = () => {
 
   return (
     <div>
-      <AddOrModifyItem
+      <AddOrModifyAssignment
         onSave={refresh}
         item={dialogState.selectedItem}
         visible={
-          dialogState.currentAction == "add" ||
-          (dialogState.currentAction == "edit" && !!dialogState.selectedItem?.id)
+          dialogState.currentAction === "add" ||
+          (dialogState.currentAction === "edit" &&
+            !!dialogState.selectedItem?.id)
         }
         onClose={() =>
           setDialogState({ currentAction: "", selectedItem: undefined })
@@ -153,7 +149,7 @@ const Assets: React.FC = () => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={ASSETSENDPOINTS.ASSETS.DELETE(
+          apiPath={ASSETSENDPOINTS.ASSETS.ASSIGNMENTS.DELETE(
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>
@@ -166,11 +162,11 @@ const Assets: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Assets" pageName="All" />
+      <BreadCrump name="Asset Assignments" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Assets</h1>
+            <h1 className="text-xl font-bold">Asset Assignments</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -183,7 +179,7 @@ const Assets: React.FC = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add Asset
+              Add Assignment
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
@@ -196,7 +192,7 @@ const Assets: React.FC = () => {
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={assets}
+          data={assignments}
           ref={tableRef}
         />
       </div>
@@ -204,4 +200,4 @@ const Assets: React.FC = () => {
   );
 };
 
-export default Assets;
+export default AssetAssignment;

@@ -312,7 +312,6 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
         url: endpoint,
         data: formState,
       });
-      toast.success("Asset saved successfully")
       setFormState({
         name: "",
         supplier: "",

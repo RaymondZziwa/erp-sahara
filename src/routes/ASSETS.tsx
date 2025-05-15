@@ -3,7 +3,8 @@ import AssetsManagement from "../pages/assets/manage_assets";
 //import ToBeUpdated from "../pages/ToBeUpdated";
 import AssetsCategories from "../pages/assets/categories/manage_categories";
 import AssetDetails from "../pages/assets/assetDetails/assetDetails";
-import AssetIncomeTypes from "../pages/assets/income_types";
+import AssetAssignment from "../pages/assets/asset_assignment";
+//import AssetIncomeTypes from "../pages/assets/income_types";
 
 const ASSETS = [
   {
@@ -32,33 +33,22 @@ const ASSETS = [
       {
         name: "Asset Details",
         icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-        path: "asset_details",
+        path: `asset_details/:id`,
         element: <AssetDetails />,
+        hidden: true,
       },
-      // {
-      //   name: "Depreciation",
-      //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-      //   path: "asset_depreciation",
-      //   element: <ToBeUpdated />,
-      // },
-      // {
-      //   name: "Asset Payment",
-      //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-      //   path: "asset_depreciation",
-      //   element: <ToBeUpdated />,
-      // },
-      // {
-      //   name: "Asset Income",
-      //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-      //   path: "asset_depreciation",
-      //   element: <ToBeUpdated />,
-      // },
-      // {
-      //   name: "Asset Expenses",
-      //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-      //   path: "asset_depreciation",
-      //   element: <ToBeUpdated />,
-      // },
+      {
+        name: "Asset Assignment",
+        icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+        path: "asset_assignment",
+        element: <AssetAssignment />,
+      },
+      {
+        name: "Asset Maintenance",
+        icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+        path: "asset_maintenance",
+        element: <AssetsCategories />,
+      },
     ],
   },
 ];
