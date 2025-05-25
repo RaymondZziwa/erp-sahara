@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
 import { apiRequest, baseURL } from "../../../utils/api";
@@ -36,8 +35,8 @@ interface ReportData {
 
 const IncomeStatementReport = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [reportData, setReportData] = useState<ReportData[] | null>(null);
-  const [otherIncome, setOtherIncome] = useState(0)
+  const [reportData, setReportData] = useState<any>(null);
+  const [otherIncome, setOtherIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [ledgerModal, setLedgerModal] = useState<{
     title: string;
@@ -47,41 +46,43 @@ const IncomeStatementReport = () => {
 
   const { token, isFetchingLocalToken } = useAuth();
   const contentRef = useRef<HTMLDivElement>(null);
-  //const reactToPrintFn = useReactToPrint({ contentRef });
 
-    const print = async () => {
-      try {
-        const response = await axios.get(
-          `${baseURL}/reports/accounting/print-income-statement`,
-          {
-            responseType: "blob",
-            headers: {
-              Authorization: `Bearer ${token.access_token || ""}`,
-            },
-          }
-        );
+  const print = async () => {
+    try {
+      const response = await axios.get(
+        `${baseURL}/reports/accounting/print-income-statement`,
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${token.access_token || ""}`,
+          },
+        }
+      );
 
-        // Explicitly set the MIME type as PDF
-        const file = new Blob([response.data], { type: "application/pdf" });
-        const fileURL = URL.createObjectURL(file);
-
-        // Open the file in a new browser tab
-        window.open(fileURL, "_blank");
-      } catch (error) {
-        console.error("Error previewing the trial balance report:", error);
-      }
-    };
+      const file = new Blob([response.data], { type: "application/pdf" });
+      const fileURL = URL.createObjectURL(file);
+      window.open(fileURL, "_blank");
+    } catch (error) {
+      console.error("Error previewing the trial balance report:", error);
+    }
+  };
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken || !token.access_token) return;
     setIsLoading(true);
     try {
-      const response = await apiRequest<ServerResponse<ReportData[]>>(
+      const response = await apiRequest<any>(
         REPORTS_ENDPOINTS.DETAILED_INCOME_STATEMENT.GET_ALL,
         "GET",
         token.access_token
       );
-      setReportData(response.data);
+      // The response is an array, we need to combine the data
+      const combinedData = {
+        "Revenue and Costs": response.data[0]["Revenue and Costs"],
+        "Income and Expenses": response.data[1]["Income and Expenses"],
+        asOfDate: response.data[2].asOfDate,
+      };
+      setReportData(combinedData);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -97,14 +98,7 @@ const IncomeStatementReport = () => {
     });
 
     try {
-      const response = await apiRequest<
-        ServerResponse<
-          {
-            ledger_name: string;
-            current_amount: number;
-          }[]
-        >
-      >(
+      const response = await apiRequest<any>(
         `/reports/accounting/get-category-ledger-totals/${categoryId}`,
         "GET",
         token.access_token
@@ -132,13 +126,39 @@ const IncomeStatementReport = () => {
   const calculateGrossProfit = () => {
     if (!reportData) return 0;
 
-    const revenueData =
-      reportData[0]?.["Revenue and Costs"]?.[0]?.["Sales Revenue"];
-    const costsData =
-      reportData[0]?.["Revenue and Costs"]?.[1]?.["Direct Costs"];
+    let revenue = 0;
+    let costs = 0;
 
-    const revenue = revenueData?.[0]?.total_amount || 0;
-    const costs = costsData?.[0]?.total_amount || 0;
+    const revenueGroups = reportData["Revenue and Costs"];
+    if (Array.isArray(revenueGroups)) {
+      // Find Sales Revenue
+      const salesRevenueGroup = revenueGroups.find(
+        (group: any) => group["Sales Revenue"]
+      );
+      if (
+        salesRevenueGroup &&
+        typeof salesRevenueGroup["Sales Revenue"] === "object"
+      ) {
+        const salesItems: FinancialItem[] = Object.values(
+          salesRevenueGroup["Sales Revenue"]
+        );
+        revenue = salesItems.reduce((sum, item) => sum + item.total_amount, 0);
+      }
+
+      // Find Direct Costs
+      const directCostsGroup = revenueGroups.find(
+        (group: any) => group["Direct Costs"]
+      );
+      if (
+        directCostsGroup &&
+        typeof directCostsGroup["Direct Costs"] === "object"
+      ) {
+        const costItems: FinancialItem[] = Object.values(
+          directCostsGroup["Direct Costs"]
+        );
+        costs = costItems.reduce((sum, item) => sum + item.total_amount, 0);
+      }
+    }
 
     return revenue - costs;
   };
@@ -147,27 +167,100 @@ const IncomeStatementReport = () => {
     const grossProfit = calculateGrossProfit();
     if (!reportData) return grossProfit;
 
-    const expensesData =
-      reportData[0]?.["Income and Expenses"]?.[1]?.["Operating Expenses"];
-    const otherIncomeData =
-      reportData[0]?.["Income and Expenses"]?.[0]?.["Other Income"];
+    let expenses = 0;
+    let otherIncomeTotal = 0;
 
-    const expenses = expensesData?.[0]?.total_amount || 0;
-    const otherIncome = otherIncomeData?.[0]?.total_amount || 0;
+    const incomeGroups = reportData["Income and Expenses"];
+    if (Array.isArray(incomeGroups)) {
+      // Find Other Income
+      const otherIncomeGroup = incomeGroups.find(
+        (group: any) => group["Other Income"]
+      );
+      if (
+        otherIncomeGroup &&
+        typeof otherIncomeGroup["Other Income"] === "object"
+      ) {
+        const incomeItems: FinancialItem[] = Object.values(
+          otherIncomeGroup["Other Income"]
+        );
+        otherIncomeTotal = incomeItems.reduce(
+          (sum, item) => sum + item.total_amount,
+          0
+        );
+      }
 
-    return grossProfit - expenses + otherIncome;
+      // Find Operating Expenses
+      const expenseGroup = incomeGroups.find(
+        (group: any) => group["Operating Expenses"]
+      );
+      if (
+        expenseGroup &&
+        typeof expenseGroup["Operating Expenses"] === "object"
+      ) {
+        const expenseItems: FinancialItem[] = Object.values(
+          expenseGroup["Operating Expenses"]
+        );
+        expenses = expenseItems.reduce(
+          (sum, item) => sum + item.total_amount,
+          0
+        );
+      }
+    }
+
+    return grossProfit - expenses + otherIncomeTotal;
   };
+
 
   useEffect(() => {
     if (reportData) {
-      // Calculate and set derived values once when reportData changes
-      const expensesData = reportData[0]?.["Income and Expenses"]?.[1]?.["Operating Expenses"];
-      const otherIncomeData = reportData[0]?.["Income and Expenses"]?.[0]?.["Other Income"];
-      
-      setOtherIncome(otherIncomeData?.[0]?.total_amount || 0);
-      setTotalExpenses(expensesData?.[0]?.total_amount || 0);
+      let expensesTotal = 0;
+      let otherIncomeTotal = 0;
+
+      // Get income and expense groups
+      const incomeExpenseGroups = reportData["Income and Expenses"];
+
+      // Ensure it's an array and not null
+      if (Array.isArray(incomeExpenseGroups)) {
+        // ----- Other Income -----
+        const otherIncomeGroup = incomeExpenseGroups.find(
+          (group: any) => group["Other Income"]
+        );
+
+        if (otherIncomeGroup && otherIncomeGroup["Other Income"]) {
+          const incomeItemsObj = otherIncomeGroup["Other Income"];
+          const incomeItems: FinancialItem[] = Object.values(incomeItemsObj);
+
+          otherIncomeTotal = incomeItems.reduce(
+            (sum: number, item: FinancialItem) => sum + item.total_amount,
+            0
+          );
+        }
+
+        // ----- Operating Expenses -----
+        const operatingExpensesGroup = incomeExpenseGroups.find(
+          (group: any) => group["Operating Expenses"]
+        );
+
+        if (
+          operatingExpensesGroup &&
+          operatingExpensesGroup["Operating Expenses"]
+        ) {
+          const expenseItemsObj = operatingExpensesGroup["Operating Expenses"];
+          const expenseItems: FinancialItem[] = Object.values(expenseItemsObj);
+
+          expensesTotal = expenseItems.reduce(
+            (sum: number, item: FinancialItem) => sum + item.total_amount,
+            0
+          );
+        }
+
+        // Update state
+        setOtherIncome(otherIncomeTotal);
+        setTotalExpenses(expensesTotal);
+      }
     }
   }, [reportData]);
+
 
   const handleCategoryClick = (categoryId: number, title: string) => {
     fetchLedgerDetails(categoryId, title);
@@ -179,64 +272,94 @@ const IncomeStatementReport = () => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-  const renderFinancialItem = (
-    item: FinancialItem,
-    depth = 0,
-    parentName = ""
-  ) => {
-    const paddingLeft = `${depth * 24}px`;
-    const hasChildren = item.children?.length > 0;
-    const isClickable = depth === 0 || (depth === 1 && parentName !== ""); // Only make top-level and immediate children clickable
+const renderFinancialItem = (
+  item: FinancialItem,
+  depth = 0,
+  parentName = ""
+) => {
+  const hasChildren = item.children?.length > 0;
+  const isClickable = depth === 0 || (depth === 1 && parentName !== "");
 
-    return (
-      <React.Fragment key={`${item.id}-${depth}`}>
-        <tr
-          className={`${depth === 0 ? "bg-gray-50" : ""} hover:bg-gray-100 ${
-            isClickable ? "cursor-pointer" : ""
-          }`}
-          onClick={() =>
-            isClickable && handleCategoryClick(item.id, item.subcategory)
-          }
+  // Padding increases by 25px per depth level, starting from 8px
+  const paddingLeft = `${depth * 25 + 25}px`;
+
+  return (
+    <React.Fragment key={`${item.id}-${depth}`}>
+      <tr
+        className={`${depth === 0 ? "bg-gray-50" : ""} hover:bg-gray-100 ${
+          isClickable ? "cursor-pointer" : ""
+        }`}
+        onClick={() =>
+          isClickable && handleCategoryClick(item.id, item.subcategory)
+        }
+      >
+        <td
+          className={`py-3 ${depth === 0 ? "font-semibold" : ""}`}
+          style={{ paddingLeft }}
         >
-          <td
-            className={`py-3 ${depth === 0 ? "font-semibold" : ""}`}
-            style={{ paddingLeft }}
-          >
-            {item.subcategory}
+          {item.subcategory}
+        </td>
+        <td className="py-3 text-right pr-6">
+          {item.total_amount.toLocaleString()}
+        </td>
+      </tr>
+
+      {hasChildren &&
+        item.children.map((child) =>
+          renderFinancialItem(child, depth + 1, item.subcategory)
+        )}
+
+      {/* {hasChildren && (
+        <tr className="border-t border-gray-200">
+          <td className="py-2 font-bold" style={{ paddingLeft }}>
+            Total {item.subcategory}
           </td>
-          <td className="py-3 text-right pr-6">
-            {item.total_amount}
+          <td className="py-2 text-right pr-6 font-medium border-t-2 border-black">
+            {item.total_amount.toLocaleString()}
           </td>
         </tr>
+      )} */}
+    </React.Fragment>
+  );
+};
 
-        {hasChildren &&
-          item.children.map((child) =>
-            renderFinancialItem(child, depth + 1, item.subcategory)
-          )}
 
-        {hasChildren && (
-          <tr className="border-t border-gray-200">
-            <td
-              className="py-2 font-bold"
-              style={{ paddingLeft: `${(depth + 1) * 24}px` }}
-            >
-              Total {item.subcategory}
-            </td>
-            <td className="py-2 text-right pr-6 font-medium border-t-2 border-black">
-              {item.total_amount}
-            </td>
-          </tr>
-        )}
-      </React.Fragment>
-    );
-  };
 
-  const renderCategoryGroup = (group: CategoryGroup) => {
-    const categoryName = Object.keys(group)[0];
-    const items = group[categoryName];
 
-    //return items?.map((item) => renderFinancialItem(item, 0, categoryName));
-  };
+const renderCategoryGroup = (group: any) => {
+  if (!group || typeof group !== "object") return null;
+
+  const categoryName = Object.keys(group)[0];
+  const items = group[categoryName];
+
+  if (!items || typeof items !== "object") return null;
+
+  const itemArray: FinancialItem[] = Object.values(items);
+
+  return (
+    <React.Fragment key={categoryName}>
+      <tr className="bg-gray-100">
+        <td colSpan={2} className="py-2 font-bold">
+          {categoryName}
+        </td>
+      </tr>
+
+      {itemArray.map((item: FinancialItem) =>
+        renderFinancialItem(item, 0, categoryName)
+      )}
+
+      
+      <tr className="border-t border-gray-200">
+        <td className="py-2 font-bold">Total {categoryName}</td>
+        <td className="py-2 text-right pr-6 font-medium border-t-2 border-black">
+          {itemArray.reduce((sum, item) => sum + item.total_amount, 0)}
+        </td>
+      </tr>
+     
+    </React.Fragment>
+  );
+};
+
 
   return (
     <div className="bg-white p-4 rounded-lg shadow">
@@ -261,27 +384,22 @@ const IncomeStatementReport = () => {
             <div className="flex flex-row justify-center items-center">
               <Header
                 title={"Income Statement Report"}
-                date={reportData[0].asOfDate}
+                date={reportData.asOfDate}
               />
             </div>
             <table className="min-w-full bg-white border border-gray-200">
-              <thead className="bg-gray-100">
-                {/* <tr>
-                  <th colSpan={2} className="px-6 py-3 text-left font-medium">
-                    Revenue and Costs
-                  </th>
-                </tr> */}
-              </thead>
               <tbody className="divide-y divide-gray-200 p-4">
-                {reportData[0]?.["Revenue and Costs"]?.map((group, index) => (
-                  <React.Fragment key={`revenue-${index}`}>
-                    {renderCategoryGroup(group)}
-                  </React.Fragment>
-                ))}
+                {reportData["Revenue and Costs"]?.map(
+                  (group: any, index: number) => (
+                    <React.Fragment key={`revenue-${index}`}>
+                      {renderCategoryGroup(group)}
+                    </React.Fragment>
+                  )
+                )}
                 <tr className="bg-gray-50">
-                  <td className=" font-bold">Gross Profit/Loss</td>
+                  <td className="font-bold">Gross Profit/Loss</td>
                   <td className="px-6 py-3 text-right font-semibold border-t-2 border-black">
-                    {calculateGrossProfit()}
+                    {calculateGrossProfit().toLocaleString()}
                   </td>
                 </tr>
               </tbody>
@@ -291,29 +409,24 @@ const IncomeStatementReport = () => {
           {/* Income and Expenses Section */}
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white border border-gray-200 p-4">
-              <thead className="bg-gray-100">
-                {/* <tr>
-                  <th colSpan={2} className="px-6 py-3 text-left font-medium">
-                    Income and Expenses
-                  </th>
-                </tr> */}
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {reportData[0]?.["Income and Expenses"]?.map((group, index) => (
-                  <React.Fragment key={`income-${index}`}>
-                    {renderCategoryGroup(group)}
-                  </React.Fragment>
-                ))}
+              <tbody className="divide-y divide-gray-200 pl-10">
+                {reportData["Income and Expenses"]?.map(
+                  (group: any, index: number) => (
+                    <React.Fragment key={`income-${index}`}>
+                      {renderCategoryGroup(group)}
+                    </React.Fragment>
+                  )
+                )}
                 <tr className="bg-gray-50">
                   <td className="font-bold">Net Other Income/Expenses</td>
                   <td className="px-6 py-3 text-right font-semibold border-t-2 border-black">
-                    {otherIncome-totalExpenses}
+                    {(otherIncome - totalExpenses).toLocaleString()}
                   </td>
                 </tr>
                 <tr className="bg-gray-50">
                   <td className="font-bold">Net Profit/Loss</td>
                   <td className="px-6 py-3 text-right font-semibold border-t-2 border-black">
-                    {calculateNetProfit()}
+                    {calculateNetProfit().toLocaleString()}
                   </td>
                 </tr>
               </tbody>
@@ -366,7 +479,7 @@ const IncomeStatementReport = () => {
                           {ledger.ledger_name}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          {ledger.net_amount}
+                          {ledger.net_amount?.toLocaleString()}
                         </td>
                       </tr>
                     ))}

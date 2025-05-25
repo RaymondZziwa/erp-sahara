@@ -11,6 +11,150 @@ import { baseURL } from "../../../utils/api";
 import Table from "../../../components/table";
 import useAssetAssignments from "../../../hooks/assets/useAssetAssignment";
 import AddOrModifyAssignment from "./Add0rModify";
+import { Dropdown } from "primereact/dropdown";
+
+interface ReturnStatusModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onSubmit: (data: {
+    status: string;
+    return_condition: string;
+    end_date?: string;
+  }) => Promise<void>;
+}
+
+const ReturnStatusModal: React.FC<ReturnStatusModalProps> = ({
+  visible,
+  onClose,
+  onSubmit,
+}) => {
+  const [formData, setFormData] = useState({
+    status: "Returned",
+    return_condition: "",
+    end_date: "",
+  });
+  const handleDropdownChange = (name: string, value: any) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const statusOptions = [
+    { label: "Returned", value: "Returned" },
+    { label: "Damaged", value: "Damaged" },
+    { label: "Lost", value: "Lost" },
+  ];
+
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        ...formData,
+        end_date: formData.end_date || undefined,
+      });
+      onClose();
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      toast.error("Failed to update status");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!visible) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold">Update Asset Status</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <Icon icon="mdi:close" fontSize={24} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Status *
+              </label>
+              <Dropdown
+                name="status"
+                value={formData.status}
+                options={statusOptions}
+                onChange={(e) => handleDropdownChange("status", e.value)}
+                placeholder="Select Status"
+                className="w-full"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Return Condition *
+              </label>
+              <textarea
+                name="return_condition"
+                value={formData.return_condition}
+                onChange={handleChange}
+                placeholder="Describe the condition of the returned asset"
+                className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500"
+                rows={3}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                End Date (optional)
+              </label>
+              <input
+                type="date"
+                name="end_date"
+                value={formData.end_date}
+                onChange={handleChange}
+                className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                If not provided, today's date will be used
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-4 py-2 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50"
+            >
+              {isSubmitting ? "Submitting..." : "Submit"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 const AssetAssignment: React.FC = () => {
   const { token } = useAuth();
@@ -28,13 +172,21 @@ const AssetAssignment: React.FC = () => {
     }
   };
 
-  const handleUpdateStatus = async (id: string, status: string) => {
+  const handleUpdateStatus = async (
+    id: string,
+    data: {
+      status: string;
+      return_condition: string;
+      end_date?: string;
+    }
+  ) => {
     try {
-      await axios.post(
+      await axios.put(
         `${baseURL}/assets/assetassignment/${id}/updatestatus`,
         {
-          status: status,
-          return_condition: "Good condition",
+          status: data.status,
+          return_condition: data.return_condition,
+          end_date: data.end_date || new Date().toISOString().split("T")[0],
         },
         {
           headers: {
@@ -47,6 +199,7 @@ const AssetAssignment: React.FC = () => {
     } catch (error) {
       console.error("Failed to update status:", error);
       toast.error("Failed to update status");
+      throw error;
     }
   };
 
@@ -75,24 +228,33 @@ const AssetAssignment: React.FC = () => {
       sortable: true,
       filter: true,
     },
-
     {
       headerName: "Start Date",
       field: "start_date",
       sortable: true,
       filter: true,
+      valueFormatter: (params) =>
+        params.value ? new Date(params.value).toLocaleDateString() : "",
     },
     {
       headerName: "End Date",
       field: "end_date",
       sortable: true,
       filter: true,
+      valueFormatter: (params) =>
+        params.value ? new Date(params.value).toLocaleDateString() : "",
     },
     {
       headerName: "Status",
       field: "status",
       sortable: true,
       filter: true,
+      cellStyle: (params) => {
+        if (params.value === "Returned") return { color: "green" };
+        if (params.value === "Damaged") return { color: "orange" };
+        if (params.value === "Lost") return { color: "red" };
+        return {};
+      },
     },
     {
       headerName: "Actions",
@@ -111,12 +273,21 @@ const AssetAssignment: React.FC = () => {
           >
             Edit
           </button>
-          <button
-            className="bg-green-600 px-2 py-1 rounded text-white"
-            onClick={() => handleUpdateStatus(params.data.id, "Returned")}
-          >
-            Mark Returned
-          </button>
+          {params.data?.status !== "Returned" &&
+            params.data?.status !== "Damaged" &&
+            params.data?.status !== "Lost" && (
+              <button
+                className="bg-green-600 px-2 py-1 rounded text-white"
+                onClick={() =>
+                  setDialogState({
+                    currentAction: "updateStatus",
+                    selectedItem: params.data,
+                  })
+                }
+              >
+                Mark Returned
+              </button>
+            )}
           <Icon
             onClick={() =>
               setDialogState({
@@ -147,6 +318,20 @@ const AssetAssignment: React.FC = () => {
           setDialogState({ currentAction: "", selectedItem: undefined })
         }
       />
+
+      <ReturnStatusModal
+        visible={
+          dialogState.currentAction === "updateStatus" &&
+          !!dialogState.selectedItem?.id
+        }
+        onClose={() =>
+          setDialogState({ currentAction: "", selectedItem: undefined })
+        }
+        onSubmit={(data) =>
+          handleUpdateStatus(dialogState.selectedItem?.id || "", data)
+        }
+      />
+
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
           apiPath={ASSETSENDPOINTS.ASSETS.ASSIGNMENTS.DELETE(
@@ -162,6 +347,7 @@ const AssetAssignment: React.FC = () => {
           onConfirm={refresh}
         />
       )}
+
       <BreadCrump name="Asset Assignments" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">

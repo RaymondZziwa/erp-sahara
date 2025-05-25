@@ -13,6 +13,7 @@ import useChartOfAccounts from "../../../hooks/accounts/useChartOfAccounts";
 import useLedgerChartOfAccounts from "../../../hooks/accounts/useLedgerChartOfAccounts";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import { Budget } from "../../../redux/slices/types/budgets/Budget";
+import useAssetsAccounts from "../../../hooks/accounts/useAssetsAccounts";
 
 interface Props {
   visible: boolean;
@@ -38,6 +39,7 @@ const BudgetItemEditModal: React.FC<Props> = ({
   const { data: incomeChartOfAccounts } = useLedgerChartOfAccounts({
     accountType: AccountType.INCOME,
   });
+  const {expenseAccounts, incomeAccounts} = useAssetsAccounts()
 
   const [formData, setFormData] = useState({
     name: "",
@@ -133,13 +135,9 @@ const BudgetItemEditModal: React.FC<Props> = ({
             filter
             value={formData.chart_of_account_id}
             options={
-              (formData.type === "revenue"
-                ? incomeChartOfAccounts
-                : chartOfAccounts
-              )?.map((coa) => ({
-                label: coa.name,
-                value: coa.id,
-              })) || []
+              formData.type === "Revenue"
+                ? incomeAccounts
+                : expenseAccounts || []
             }
             onChange={(e) => handleChange("chart_of_account_id", e.value)}
             placeholder="Select Account"

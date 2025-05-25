@@ -31,6 +31,7 @@ import ReorderReport from "../pages/reports/inventory/reorder_report";
 import OwnersEquityReport from "../pages/reports/accounting/owners_equity";
 import BudgetComparisonReport from "../pages/reports/accounting/BudgetComparisonReport";
 import OwnersEquityDetailedReport from "../pages/reports/accounting/detailedOwnerEquity";
+import AssetRegistryReport from "../pages/reports/assets/assetRegistryReport";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -85,8 +86,15 @@ const AppRouter = () => {
           />
           <Route path="/trial-balance" element={<TrialBalance />} />
           <Route path="/cashflow-report" element={<Cashflow />} />
+          <Route
+            path="/asset-registry-report"
+            element={<AssetRegistryReport />}
+          />
           <Route path="/owners-equity" element={<OwnersEquityReport />} />
-          <Route path="/detailed-owners-equity" element={<OwnersEquityDetailedReport/>} />
+          <Route
+            path="/detailed-owners-equity"
+            element={<OwnersEquityDetailedReport />}
+          />
           <Route path="/cash-book" element={<CashBook />} />
           <Route
             path="/general-ledger-book"

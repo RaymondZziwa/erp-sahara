@@ -1,4 +1,4 @@
-//@ts-nocheck
+// @ts-nocheck
 import React, { useEffect, useState, useRef } from "react";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import useAuth from "../../../hooks/useAuth";
@@ -7,7 +7,6 @@ import { apiRequest } from "../../../utils/api";
 import { Icon } from "@iconify/react";
 import { PrintableContent } from "./general_ledger_print_template";
 import { useReactToPrint } from "react-to-print";
-import Logo from "../../../assets/images/logos/ltcu.jpeg";
 import Header from "../../../components/custom/print_header";
 
 interface Transaction {
@@ -31,11 +30,18 @@ interface SubCategory {
   accounts: Account[];
 }
 
-interface Props {
-  data: SubCategory[];
-}
+interface LedgerDataType extends Array<SubCategory> {}
 
-const TransactionTable: React.FC<Props> = () => {
+const TransactionTable: React.FC = () => {
+  const today = new Date();
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+  const [filters, setFilters] = useState({
+    start_date: startOfMonth.toISOString().split("T")[0],
+    end_date: endOfMonth.toISOString().split("T")[0],
+  });
+
   const [data, setLedgerData] = useState<LedgerDataType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { token, isFetchingLocalToken } = useAuth();
@@ -46,8 +52,18 @@ const TransactionTable: React.FC<Props> = () => {
     if (isFetchingLocalToken || !token.access_token) return;
     setIsLoading(true);
     try {
+      const queryParams = new URLSearchParams();
+      if (filters.start_date)
+        queryParams.append("start_date", filters.start_date);
+      if (filters.end_date) queryParams.append("end_date", filters.end_date);
+
+      const endpoint = `${REPORTS_ENDPOINTS.GENERAL_LEDGERS.GET_ALL(
+        filters.start_date,
+        filters.end_date
+      )}?${queryParams.toString()}`;
+
       const response = await apiRequest<ServerResponse<LedgerDataType>>(
-        REPORTS_ENDPOINTS.GENERAL_LEDGERS.GET_ALL,
+        endpoint,
         "GET",
         token.access_token
       );
@@ -59,6 +75,26 @@ const TransactionTable: React.FC<Props> = () => {
     }
   };
 
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleApplyFilters = () => {
+    fetchDataFromApi();
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      start_date: startOfMonth.toISOString().split("T")[0],
+      end_date: endOfMonth.toISOString().split("T")[0],
+    });
+    fetchDataFromApi();
+  };
+
   useEffect(() => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
@@ -66,19 +102,70 @@ const TransactionTable: React.FC<Props> = () => {
   return (
     <div className="bg-white p-3 rounded-lg shadow">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold"></h1>
-        <button
-          className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-          onClick={() => reactToPrintFn()}
-        >
-          <Icon icon="solar:printer-bold" fontSize={20} />
-          Print
-        </button>
+        <h1 className="text-xl font-bold">General Ledger</h1>
+        <div className="flex gap-2">
+          <button
+            className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
+            onClick={() => reactToPrintFn()}
+          >
+            <Icon icon="solar:printer-bold" fontSize={20} />
+            Print
+          </button>
+        </div>
+      </div>
+
+      {/* Date Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Start Date
+          </label>
+          <input
+            type="date"
+            name="start_date"
+            value={filters.start_date}
+            onChange={handleFilterChange}
+            className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            End Date
+          </label>
+          <input
+            type="date"
+            name="end_date"
+            value={filters.end_date}
+            onChange={handleFilterChange}
+            className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div className="flex items-end space-x-2">
+          <button
+            onClick={handleApplyFilters}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Apply Filters
+          </button>
+          <button
+            onClick={handleResetFilters}
+            className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
+          >
+            Reset
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-row justify-center items-center">
         <Header title={"General Ledger Report"} />
       </div>
+
+      {(filters.start_date || filters.end_date) && (
+        <div className="text-center mb-4 text-sm text-gray-600">
+          Showing data from {filters.start_date || "the beginning"} to{" "}
+          {filters.end_date || "now"}
+        </div>
+      )}
 
       {isLoading && data === null ? (
         <div className="flex justify-center items-center p-8">
@@ -91,7 +178,6 @@ const TransactionTable: React.FC<Props> = () => {
             <tbody>
               {data.map((subCategory, subCategoryIndex) => (
                 <React.Fragment key={subCategoryIndex}>
-                  {/* Subcategory Heading */}
                   <tr>
                     <td
                       colSpan={6}
@@ -100,8 +186,6 @@ const TransactionTable: React.FC<Props> = () => {
                       {subCategory.sub_category_name}
                     </td>
                   </tr>
-
-                  {/* Accounts */}
                   {subCategory.accounts
                     .filter(
                       (account) =>
@@ -110,7 +194,6 @@ const TransactionTable: React.FC<Props> = () => {
                     )
                     .map((account, accountIndex) => (
                       <React.Fragment key={accountIndex}>
-                        {/* Account Name */}
                         <tr>
                           <td
                             colSpan={6}
@@ -119,8 +202,6 @@ const TransactionTable: React.FC<Props> = () => {
                             {account.account_name}
                           </td>
                         </tr>
-
-                        {/* Transactions Table */}
                         {account.transactions.length > 0 ? (
                           <>
                             <tr className="border-b border-gray-300">
@@ -197,7 +278,14 @@ const TransactionTable: React.FC<Props> = () => {
       )}
 
       <div ref={contentRef} className="print-content">
-        <PrintableContent reportName={"General Ledger Report"} data={data} />
+        <PrintableContent
+          reportName={"General Ledger Report"}
+          data={data}
+          dateRange={{
+            start: filters.start_date,
+            end: filters.end_date,
+          }}
+        />
         <style>
           {`
             @media print {

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Dialog } from "primereact/dialog";
+import { InputText } from "primereact/inputtext";
 import { AccountSubCategory } from "../../../redux/slices/types/accounts/subCategories";
 import useAccountSubCategories from "../../../hooks/accounts/useAccountsSubCategories";
 import AddOrModifyAccountSubCategory from "./AddOrModifyAccountSubCategory";
@@ -27,15 +28,30 @@ const chartOfAccountsColumns = [
 ];
 
 const AccountSubCategories = () => {
-  const [viewingChartsForAccount, setViewingChartsForAccount] = useState<AccountSubCategory | null>(null);
+  const [viewingChartsForAccount, setViewingChartsForAccount] =
+    useState<AccountSubCategory | null>(null);
   const [dialogState, setDialogState] = useState<{
     selectedCategory: AccountSubCategory | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedCategory: undefined, currentAction: "" });
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const { data, loading, error, refresh, deleteSubCategory } = useAccountSubCategories();
+  const { data, loading, error, refresh, deleteSubCategory } =
+    useAccountSubCategories();
 
-  const handleDeleteSubCategory = async (subCategoryId: number, is_system_created: number) => {
+  // Filter data based on search query
+  const filteredData = data?.filter(
+    (subCategory) =>
+      subCategory.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      subCategory.description
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase())
+  );
+
+  const handleDeleteSubCategory = async (
+    subCategoryId: number,
+    is_system_created: number
+  ) => {
     if (confirm("Are you sure you want to delete this subcategory?")) {
       await deleteSubCategory(subCategoryId, is_system_created);
       refresh(); // Refresh after deletion
@@ -45,12 +61,6 @@ const AccountSubCategories = () => {
 
   const actionBodyTemplate = (rowData: AccountSubCategory) => (
     <div className="flex items-center gap-2">
-      <button
-        className="bg-shade px-2 py-1 rounded text-white"
-        onClick={() => setViewingChartsForAccount(rowData)}
-      >
-        View Charts
-      </button>
       <button
         className="bg-shade px-2 py-1 rounded text-white"
         onClick={() =>
@@ -78,11 +88,16 @@ const AccountSubCategories = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Account SubCategories Table</h1>
+            <h1 className="text-xl font-bold">Account SubCategories</h1>
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => setDialogState({ selectedCategory: undefined, currentAction: "add" })}
+              onClick={() =>
+                setDialogState({
+                  selectedCategory: undefined,
+                  currentAction: "add",
+                })
+              }
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
@@ -91,27 +106,57 @@ const AccountSubCategories = () => {
           </div>
         </div>
 
-        {loading && <p className="text-blue-600">Loading...</p>}
-        {error && <p className="text-red-600">Error loading accounts.</p>}
+        {/* Search Input */}
+        <div className="mb-4">
+          <span className="p-input-icon-left">
+            <Icon icon="solar:magnifer-linear" className="text-gray-400 pl-2" />
+            <InputText
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search subcategories by name or description"
+              className="w-[400px] pl-2"
+            />
+          </span>
+        </div>
 
         <DataTable
-          value={data}
+          value={filteredData}
           responsiveLayout="scroll"
           paginator
           rows={10}
           className="p-datatable-striped mb-4"
+          loading={loading}
         >
-          <Column field="name" header="Name" />
-          <Column field="code" header="Code" />
-          <Column field="description" header="Description" />
-          <Column body={actionBodyTemplate} header="Actions" style={{ minWidth: "12rem" }} />
+          <Column
+            field="name"
+            header="Name"
+            filter
+            filterElement={textFilterTemplate}
+          />
+          <Column
+            field="code"
+            header="Code"
+            filter
+            filterElement={textFilterTemplate}
+          />
+          <Column
+            field="description"
+            header="Description"
+            filter
+            filterElement={textFilterTemplate}
+          />
+          <Column
+            body={actionBodyTemplate}
+            header="Actions"
+            style={{ minWidth: "12rem" }}
+          />
         </DataTable>
 
         {/* Charts of Accounts Dialog */}
         <Dialog
-          header={`Chart of Accounts - ${viewingChartsForAccount?.name || ''}`}
+          header={`Chart of Accounts - ${viewingChartsForAccount?.name || ""}`}
           visible={!!viewingChartsForAccount}
-          style={{ width: '80vw' }}
+          style={{ width: "80vw" }}
           onHide={() => setViewingChartsForAccount(null)}
         >
           {viewingChartsForAccount && (
@@ -148,12 +193,18 @@ const AccountSubCategories = () => {
         </Dialog>
 
         {/* Add/Edit SubCategory Dialog */}
-        {(dialogState.currentAction === "edit" || dialogState.currentAction === "add") && (
+        {(dialogState.currentAction === "edit" ||
+          dialogState.currentAction === "add") && (
           <AddOrModifyAccountSubCategory
             onSave={refresh}
             item={dialogState.selectedCategory}
-            visible={dialogState.currentAction === "add" || !!dialogState.selectedCategory?.id}
-            onClose={() => setDialogState({ currentAction: "", selectedCategory: undefined })}
+            visible={
+              dialogState.currentAction === "add" ||
+              !!dialogState.selectedCategory?.id
+            }
+            onClose={() =>
+              setDialogState({ currentAction: "", selectedCategory: undefined })
+            }
           />
         )}
       </div>

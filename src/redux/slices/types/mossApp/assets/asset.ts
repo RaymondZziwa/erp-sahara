@@ -67,3 +67,14 @@ export interface AssetMaintenance {
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
   checklist?: string[] | null; // Nullable, list of tasks to be performed
 }
+
+export interface AssetDisposal {
+  id: string;
+  disposal_date: string; // ISO format, e.g., "2023-12-15"
+  disposal_type: string; // e.g., "Sale", "Write-Off", "Donation", etc.
+  disposal_value: number;
+  net_book_value: number;
+  disposal_reference: string;
+  reason: string;
+  notes?: string; // Optional
+}

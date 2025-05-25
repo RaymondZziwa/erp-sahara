@@ -51,7 +51,7 @@ const SignIn = () => {
         onSubmit={handleSubmit}
         className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md"
       >
-        <img src="/logo.jpg" alt="Logo" className=" mx-auto mb-6" />
+        {/* <img src="/logo.jpg" alt="Logo" className=" mx-auto mb-6" /> */}
         <h2 className="text-2xl font-semibold text-center mb-6">
           Let's get you signed in
         </h2>

@@ -4,7 +4,7 @@ export const ACCOUNTS_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/accounts/categories/${id}`,
     // ADD: "/accounts/categories/create",
     ADD: "/account-charts",
-    UPDATE: (id: string) => `/accounts/categories/${id}/update`,
+    UPDATE: (id: string) => `/accounts/categories/${id}/update-code`,
     DELETE: (id: string) => `/accounts/categories/${id}/delete`,
   },
   SUB_CATEGORIES: {

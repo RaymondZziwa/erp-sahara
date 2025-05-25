@@ -11,6 +11,7 @@ import useAuth from "../../hooks/useAuth";
 import { ASSETSENDPOINTS } from "../../api/assetEndpoints";
 import { baseURL } from "../../utils/api";
 import useCurrencies from "../../hooks/procurement/useCurrencies";
+import useAssets from "../../hooks/assets/useAssets";
 
 // Centralized API configuration
 const api = axios.create({
@@ -53,6 +54,7 @@ const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
 }) => {
   const { token } = useAuth();
   const { data: currencies } = useCurrencies();
+  const {refresh} = useAssets()
 
   const defaultPaymentForm: PaymentForm = {
     amount: 0,
@@ -161,11 +163,12 @@ const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
       );
       toast.success("Payment added successfully.");
       setPaymentForm(defaultPaymentForm)
+      refresh()
       onSave();
       onClose();
     } catch (error) {
       console.error("Error saving payment:", error);
-      toast.error("Failed to add payment.");
+      toast.error(error?.response?.data.message);
     } finally {
       setIsSubmitting(false);
     }

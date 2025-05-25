@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ColDef } from "ag-grid-community";
 import AddOrModifyItem from "./AddOrModifyItem";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
@@ -11,10 +11,16 @@ import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
 import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import NCTBtnsTypes from "./NCT";
+import { toast } from "react-toastify";
+import { baseURL } from "../../../utils/api";
+import axios from "axios";
+import useAuth from "../../../hooks/useAuth";
 
 const OtherTransactions: React.FC = () => {
   const { refresh } = useGeneralLedgers();
   const tableRef = useRef<any>(null);
+  const [dt, setDt] = useState<any[]>([]);
+  const {token} = useAuth()
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: Ledger | undefined;
@@ -36,6 +42,45 @@ const OtherTransactions: React.FC = () => {
     debitAccountHeader: "",
   });
 
+    const fetchRecords = async () => {
+      try {
+        const response = await axios.get(
+          `${baseURL}/accounts/general-ledger/3`,
+          {
+            headers: {
+              Authorization: `Bearer ${token.access_token}`,
+            },
+          }
+        );
+        setDt(response.data.data);
+        //    if(response.success) {
+        //     setDt(response.data.data)
+        //    }
+      } catch (error) {
+        //toast.error(error);
+      }
+    };
+
+      useEffect(() => {
+        fetchRecords();
+      }, []);
+
+  const handleReverseTransaction = async (transactionId: number) => {
+    try {
+      await axios.delete(
+        `${baseURL}/accounts/transactions/${transactionId}/delete`,
+        {
+          headers: {
+            Authorization: `Bearer ${token.access_token}`,
+          },
+        }
+      );
+      toast.success("Transaction reversed successfully");
+    } catch (error) {
+      console.error("Reversal failed", error);
+      toast.error("Failed to reverse transaction");
+    }
+  };
 
   const columnDefinitions: ColDef<any>[] = [
     {
@@ -56,40 +101,20 @@ const OtherTransactions: React.FC = () => {
       sortable: true,
       filter: true,
     },
-    // {
-    //   headerName: "Actions",
-    //   field: "chart_of_account.id",
-    //   sortable: false,
-    //   filter: false,
-    //   cellRenderer: (params: ICellRendererParams<Ledger>) => (
-    //     <div className="flex items-center gap-2">
-    //       <button
-    //         className="bg-shade px-2 py-1 rounded text-white"
-    //         onClick={() =>
-    //           setDialogState({
-    //             ...dialogState,
-    //             currentAction: "edit",
-    //             selectedItem: params.data,
-    //           })
-    //         }
-    //       >
-    //         Edit
-    //       </button>
-    //       <Icon
-    //         onClick={() =>
-    //           setDialogState({
-    //             ...dialogState,
-    //             currentAction: "delete",
-    //             selectedItem: params.data,
-    //           })
-    //         }
-    //         icon="solar:trash-bin-trash-bold"
-    //         className="text-red-500 cursor-pointer"
-    //         fontSize={20}
-    //       />
-    //     </div>
-    //   ),
-    // },
+    {
+      headerName: "Actions",
+      field: "actions",
+      cellRenderer: (params: any) => {
+        return (
+          <button
+            onClick={() => handleReverseTransaction(params.data.id)}
+            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+          >
+            Reverse
+          </button>
+        );
+      },
+    },
   ];
 
   interface JournalTypeClickParams {
@@ -125,28 +150,32 @@ const OtherTransactions: React.FC = () => {
     <div>
       {dialogState.currentAction !== "" && (
         <AddOrModifyItem
-                  creditAccountsHeader={dialogState.creditAccountHeader}
-                  debitAccountsHeader={dialogState.debitAccountHeader}
-                  journalType={dialogState.journalType}
-                  endpoint={dialogState.endpoint}
-                  debitAccountType={dialogState.debitAccountsType}
-                  creditAccountType={dialogState.creditAccountsType}
-
-                  onSave={refresh}
-                  item={dialogState.selectedItem}
-                  visible={dialogState.currentAction == "add" ||
-                      (dialogState.currentAction == "edit" &&
-                          !!dialogState.selectedItem?.id)}
-                  onClose={() => setDialogState({
-                      currentAction: "",
-                      selectedItem: undefined,
-                      debitAccountsType: AccountType.ASSETS,
-                      creditAccountsType: AccountType.ASSETS,
-                      endpoint: "",
-                      journalType: "",
-                      debitAccountHeader: "",
-                      creditAccountHeader: "",
-                  })}        />
+          creditAccountsHeader={dialogState.creditAccountHeader}
+          debitAccountsHeader={dialogState.debitAccountHeader}
+          journalType={dialogState.journalType}
+          endpoint={dialogState.endpoint}
+          debitAccountType={dialogState.debitAccountsType}
+          creditAccountType={dialogState.creditAccountsType}
+          onSave={fetchRecords}
+          item={dialogState.selectedItem}
+          visible={
+            dialogState.currentAction == "add" ||
+            (dialogState.currentAction == "edit" &&
+              !!dialogState.selectedItem?.id)
+          }
+          onClose={() =>
+            setDialogState({
+              currentAction: "",
+              selectedItem: undefined,
+              debitAccountsType: AccountType.ASSETS,
+              creditAccountsType: AccountType.ASSETS,
+              endpoint: "",
+              journalType: "",
+              debitAccountHeader: "",
+              creditAccountHeader: "",
+            })
+          }
+        />
       )}
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
@@ -189,7 +218,7 @@ const OtherTransactions: React.FC = () => {
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={[]}
+          data={dt ? dt : []}
           ref={tableRef}
         />
       </div>

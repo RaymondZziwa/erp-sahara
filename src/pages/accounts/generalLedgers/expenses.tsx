@@ -14,6 +14,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { baseURL } from "../../../utils/api";
+import { toast } from "react-toastify";
 
 const ExpenseTransactions: React.FC = () => {
   const { refresh } = useGeneralLedgers();
@@ -43,27 +44,41 @@ const ExpenseTransactions: React.FC = () => {
     debitAccountHeader: "",
   });
 
-  useEffect(() => {
-    const fetchRecords = async () => {
-      try {
-        const response = await axios.get(
-          `${baseURL}/accounts/general-ledger/4`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        console.log("resqq", response.data.data.data);
-        setDt(response.data.data.data);
-        //    if(response.success) {
-        //     setDt(response.data.data)
-        //    }
-      } catch (error) {
-        //toast.error(error);
-      }
-    };
+  const fetchRecords = async () => {
+    try {
+      const response = await axios.get(`${baseURL}/accounts/general-ledger/4`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setDt(response.data.data);
+      //    if(response.success) {
+      //     setDt(response.data.data)
+      //    }
+    } catch (error) {
+      //toast.error(error);
+    }
+  };
 
+  const handleReverseTransaction = async (transactionId: number) => {
+    try {
+      await axios.delete(
+        `${baseURL}/accounts/transactions/${transactionId}/delete`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.success("Transaction reversed successfully");
+      fetchRecords();
+    } catch (error) {
+      console.error("Reversal failed", error);
+      toast.error("Failed to reverse transaction");
+    }
+  };
+
+  useEffect(() => {
     fetchRecords();
   }, []);
 
@@ -97,6 +112,20 @@ const ExpenseTransactions: React.FC = () => {
       field: "journal_transaction.description",
       sortable: true,
       filter: true,
+    },
+    {
+      headerName: "Actions",
+      field: "actions",
+      cellRenderer: (params: any) => {
+        return (
+          <button
+            onClick={() => handleReverseTransaction(params.data.id)}
+            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+          >
+            Reverse
+          </button>
+        );
+      },
     },
   ];
 
@@ -139,7 +168,7 @@ const ExpenseTransactions: React.FC = () => {
           endpoint={dialogState.endpoint}
           debitAccountType={dialogState.debitAccountsType}
           creditAccountType={dialogState.creditAccountsType}
-          onSave={refresh}
+          onSave={fetchRecords}
           item={dialogState.selectedItem}
           visible={
             dialogState.currentAction == "add" ||

@@ -8,7 +8,7 @@ export const ASSETSENDPOINTS = {
     },
     ASSETS: {
       GET_ALL: "/assets",
-      GET_BY_ID: (id: string) => `/assets/assets/${id}`,
+      GET_BY_ID: (id: string) => `/assets/${id}`,
       ADD: "/assets/create",
       UPDATE: (id: string) => `/assets/${id}/update`,
       DELETE: (id: string) => `/assets/${id}/delete`,
@@ -34,6 +34,12 @@ export const ASSETSENDPOINTS = {
       MAINTENANCE: {
         CREATE: '/assets/assetmaintenance/create',
         MODIFY: (id: string) => `/assets/assetmaintenance/${id}/update`,
+        DELETE: (id: string) => `/assets/assetmaintenance/${id}/delete`,
+        GET_ALL: '/assets/assetmaintenance'
+      },
+      DISPOSAL: {
+        CREATE: (id: string) => `/assets/${id}/disposal/create`,
+        MODIFY: (id: string) => `/assets/${id}/valuations/03fb3a42-4f3e-4b3b-b99b-64bf06cb6748/update`,
         DELETE: (id: string) => `/assets/assetmaintenance/${id}/delete`,
         GET_ALL: '/assets/assetmaintenance'
       }

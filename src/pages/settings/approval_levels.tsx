@@ -33,8 +33,6 @@ const ApprovalLevels = () => {
     RequisitionApprovalMember[]
   >([]);
 
-  console.log(levels);
-
   const handleMembersState = () => {
     setIsApprovalMemebersModalOpen((prev) => !prev);
   };

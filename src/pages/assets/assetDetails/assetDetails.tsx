@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import useAssets from "../../../hooks/assets/useAssets";
 import AddOrModifyPaymentModal from ".././AddOrModifyPaymentModal";
@@ -18,7 +17,7 @@ import AddOrModifyValuationModal from "../AddOrModifyValuationModal";
 const AssetDetails: React.FC = () => {
   const {token} = useAuth()
   const { id } = useParams<{ id: string }>();
-  const { data: assets, refresh } = useAssets();
+  const { data: assets } = useAssets();
   const [assetType, setAssetType] = useState('')
   const [selectedAsset, setSelectedAsset] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("payments");
@@ -27,9 +26,6 @@ const AssetDetails: React.FC = () => {
   const [showIncomeModal, setShowIncomeModal] = useState(false);
   const [valuationDialogOpen, setValuationDialogOpen] = useState(false)
 
-  const [payments, setAssetPayments] = useState<any[]>([])
-  const [expenses, setAssetExpenses] = useState<any[]>([]);
-  const [income, setAssetIncome] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([])
 
   const navigationTabs = [
@@ -44,42 +40,26 @@ const AssetDetails: React.FC = () => {
     { id: "valuation", label: "Valuation" },
   ];
 
-  useEffect(() => {
-    const asset = assets.filter((asset) => asset.id == id);
-    setSelectedAsset(asset[0])
-  }, [assets, id]);
-
-  const fetchPayments = async () => {
+  const fetchAssetInfo = async () => {
     try {
       const res = await axios.get(
-        `${baseURL}${ASSETSENDPOINTS.ASSETS.PAYMENTS.GET_ALL(id)}`,
+        `${baseURL}${ASSETSENDPOINTS.ASSETS.GET_BY_ID(id)}`,
         {
           headers: {
             Authorization: `Bearer ${token.access_token}`, // ✅ fixed typo
           },
         }
       );
-      setAssetPayments(res.data.data);
+      setSelectedAsset(res.data.data);
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to fetch payments");
+      toast.error(error?.response?.data?.message || "Failed to fetch asset data");
     }
   };
 
-  const fetchExpenses = async () => {
-    try {
-      const res = await axios.get(
-        `${baseURL}${ASSETSENDPOINTS.ASSETS.EXPENSES.GET_ALL(id)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token.access_token}`, // ✅ fixed typo
-          },
-        }
-      );
-      setAssetExpenses(res.data.data);
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to fetch expenses");
-    }
-  };
+    useEffect(() => {
+      fetchAssetInfo();
+    }, [id]);
+
 
   const fetchAppreciationOrDepreciationHistory = async (
     asset_id: string,
@@ -104,27 +84,9 @@ const AssetDetails: React.FC = () => {
     }
   };
 
-  const fetchIncome = async () => {
-    try {
-      const res = await axios.get(
-        `${baseURL}/${ASSETSENDPOINTS.ASSETS.INCOMES.GET_ALL(id)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token.access_token}`, // ✅ fixed typo
-          },
-        }
-      );
-      setAssetIncome(res.data.data);
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to fetch income");
-    }
-  };
 
   useEffect(() => {
     fetchAppreciationOrDepreciationHistory(id, assetType)
-    fetchIncome()
-    fetchPayments();
-    fetchExpenses();
   }, [id]); 
 
   useEffect(()=> {
@@ -139,12 +101,12 @@ const AssetDetails: React.FC = () => {
 
   const totalCards = [
     { title: "Total Purchase", value: selectedAsset?.purchase_cost || 0 },
-    { title: "Total Payments", value: selectedAsset?.total_payments || 0 },
+    { title: "Total Payments", value: selectedAsset?.total_paid || 0 },
     {
-      title: "Total Balance",
-      value:
-        selectedAsset?.current_value || 0 - selectedAsset?.total_paid || 0,
-    },
+  title: "Total Balance",
+  value: selectedAsset?.purchase_cost - parseFloat(selectedAsset?.total_paid ?? "0")
+},
+
     {
       title: "Depreciation/Appreciation",
       value:
@@ -250,7 +212,11 @@ const AssetDetails: React.FC = () => {
 
           {/* Data Tables */}
           {activeTab === "payments" && (
-            <DataTable value={payments || []} paginator rows={10}>
+            <DataTable
+              value={selectedAsset.asset_payments || []}
+              paginator
+              rows={10}
+            >
               <Column field="transaction_date" header="Date" />
               <Column field="amount" header="Amount" />
               <Column field="payment_method.name" header="Payment Method" />
@@ -258,7 +224,11 @@ const AssetDetails: React.FC = () => {
           )}
 
           {activeTab === "expenses" && (
-            <DataTable value={expenses || []} paginator rows={10}>
+            <DataTable
+              value={selectedAsset.asset_expenses || []}
+              paginator
+              rows={10}
+            >
               <Column field="transaction_date" header="Date" />
               <Column field="amount" header="Amount" />
               <Column field="narrative" header="Description" />
@@ -266,14 +236,45 @@ const AssetDetails: React.FC = () => {
           )}
 
           {activeTab === "income" && (
-            <DataTable value={income || []} paginator rows={10}>
+            <DataTable
+              value={selectedAsset.asset_incomes || []}
+              paginator
+              rows={10}
+            >
+              <Column field="transaction_date" header="Date" />
+              <Column field="amount" header="Amount" />
+              <Column field="payment method" header="Payment Method" />
+            </DataTable>
+          )}
+
+          {(activeTab === "depreciation" || activeTab === "appreciation") && (
+            <DataTable
+              value={
+                activeTab === "depreciation"
+                  ? selectedAsset.asset_depreciations || []
+                  : selectedAsset.asset_appreciations || []
+              }
+              paginator
+              rows={10}
+            >
               <Column field="date" header="Date" />
-              <Column field="source" header="Source" />
+              <Column field="type" header="Type" />
               <Column field="amount" header="Amount" />
             </DataTable>
           )}
 
-          {activeTab === "depreciation" && (
+          {activeTab === "valuation" && (
+            <DataTable
+              value={selectedAsset.valuations || []}
+              paginator
+              rows={10}
+            >
+              <Column field="date" header="Date" />
+              <Column field="type" header="Type" />
+              <Column field="amount" header="Amount" />
+            </DataTable>
+          )}
+          {activeTab === "attachments" && (
             <DataTable
               value={selectedAsset.depreciation || []}
               paginator
@@ -293,7 +294,7 @@ const AssetDetails: React.FC = () => {
         onClose={() => setShowPaymentModal(false)}
         assetId={selectedAsset.id}
         onSave={() => {
-          fetchPayments();
+          fetchAssetInfo();
         }}
       />
 
@@ -302,7 +303,7 @@ const AssetDetails: React.FC = () => {
         onClose={() => setShowExpenseModal(false)}
         assetId={selectedAsset.id}
         onSave={() => {
-          fetchExpenses();
+          fetchAssetInfo();
         }}
       />
 
@@ -311,7 +312,7 @@ const AssetDetails: React.FC = () => {
         onClose={() => setShowIncomeModal(false)}
         assetId={selectedAsset.id}
         onSave={() => {
-          refresh();
+          fetchAssetInfo();
         }}
       />
 

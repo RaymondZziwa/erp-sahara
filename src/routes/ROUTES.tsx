@@ -58,13 +58,19 @@ const ROUTES: Route[] = [
     path: "/budgets",
     sidebarItems: BUDGETS_ROUTES,
   },
-
   {
-    name: "Manufacturing",
-    icon: <Icon icon="solar:factory-2-bold-duotone" fontSize={24} />, // More specific to project management
-    path: "/manufacturing",
-    sidebarItems: MANUFACTURING_ROUTES,
+    name: "Procurement",
+    icon: <Icon icon="mdi:cash-multiple" fontSize={24} />, // Updated for better budget representation
+    path: "/procurement",
+    sidebarItems: PROCUREMENT_ROUTES,
   },
+
+  // {
+  //   name: "Manufacturing",
+  //   icon: <Icon icon="solar:factory-2-bold-duotone" fontSize={24} />, // More specific to project management
+  //   path: "/manufacturing",
+  //   sidebarItems: MANUFACTURING_ROUTES,
+  // },
   {
     name: "Human Resource",
     icon: <Icon icon="mdi:account-group-outline" fontSize={24} />,

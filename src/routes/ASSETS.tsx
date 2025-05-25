@@ -4,6 +4,8 @@ import AssetsManagement from "../pages/assets/manage_assets";
 import AssetsCategories from "../pages/assets/categories/manage_categories";
 import AssetDetails from "../pages/assets/assetDetails/assetDetails";
 import AssetAssignment from "../pages/assets/asset_assignment";
+import AssetMaintenance from "../pages/assets/asset_maintenance";
+import AssetDisposal from "../pages/assets/asset_disposal";
 //import AssetIncomeTypes from "../pages/assets/income_types";
 
 const ASSETS = [
@@ -47,7 +49,7 @@ const ASSETS = [
         name: "Asset Maintenance",
         icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
         path: "asset_maintenance",
-        element: <AssetsCategories />,
+        element: <AssetMaintenance />,
       },
     ],
   },

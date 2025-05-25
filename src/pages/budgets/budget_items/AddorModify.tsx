@@ -14,6 +14,7 @@ import useChartOfAccounts from "../../../hooks/accounts/useChartOfAccounts";
 import useLedgerChartOfAccounts from "../../../hooks/accounts/useLedgerChartOfAccounts";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import { Budget } from "../../../redux/slices/types/budgets/Budget";
+import useAssetsAccounts from "../../../hooks/accounts/useAssetsAccounts";
 
 interface BudgetItem {
   name: string;
@@ -59,6 +60,7 @@ const BudgetItemsModal: React.FC<Props> = ({
   const { data: incomeChartOfAccounts } = useLedgerChartOfAccounts({
     accountType: AccountType.INCOME,
   });
+  const { expenseAccounts, incomeAccounts } = useAssetsAccounts();
 
   const handleItemChange = (
     index: number,
@@ -107,7 +109,7 @@ const BudgetItemsModal: React.FC<Props> = ({
 
       if (response.data.success) {
         toast.success(response.data.message);
-        refresh()
+        refresh();
       } else {
         toast.error(response.data.message);
       }
@@ -143,20 +145,17 @@ const BudgetItemsModal: React.FC<Props> = ({
               />
               <Dropdown
                 filter
-                placeholder="Chart of Account"
-                value={item.chart_of_account_id}
-                options={(item.type == "revenue"
-                  ? incomeChartOfAccounts
-                  : chartOfAccounts
-                ).map((coa) => ({
-                  label: coa.name,
-                  value: coa.id,
-                }))}
+                value={item.chart_of_account_id} // Changed from formState to item
+                options={(item.type === "revenue" // Changed from formState to item
+                  ? incomeAccounts
+                  : expenseAccounts || []
+                ).map((acc) => ({ label: acc.name, value: acc.id }))}
                 onChange={(e) =>
                   handleItemChange(index, "chart_of_account_id", e.value)
                 }
+                placeholder="Select Account"
               />
-              
+
               <InputNumber
                 placeholder="Amount"
                 value={item.amount}

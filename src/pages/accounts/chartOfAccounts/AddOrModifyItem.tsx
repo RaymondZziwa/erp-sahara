@@ -150,10 +150,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       // Basic validation
       if (
         !formState.name ||
-        !formState.account_sub_category_id ||
-        (formState?.opening_balance &&
-          +formState?.opening_balance > 0 &&
-          !formState.currency_id)
+        !formState.account_sub_category_id
       ) {
         setIsSubmitting(false);
         return; // Handle validation error here
@@ -309,7 +306,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               onChange={(e) =>
                 setFormState({ ...formState, opening_balance: e.value ?? null })
               }
-              required={!(accountType == 4 || accountType == 5)}
               className="w-full"
             />
           </div>

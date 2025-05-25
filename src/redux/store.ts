@@ -64,9 +64,15 @@ import storeRequisitionReducer from "./slices/accounts/cash_requisitions/storeRe
 import AssetIncomeTypesReducer from "./slices/assets/assetIncomeTypesSlice"
 import AssetAssignmentReducer from "./slices/assets/assetAssignmentSlice";
 import AssetMaintenanceReducer from "./slices/assets/assetMaintenanceSlice";
+import AssetDisposalReducer from "./slices/assets/assetDisposalSlice"
+import ProcurementTypesReducer from "./slices/procurement/procTypeSlice"
+import ServicesReducer from "./slices/procurement/serviceSlice"
 
 const store = configureStore({
   reducer: {
+    services: ServicesReducer,
+    procTypes: ProcurementTypesReducer,
+    assetDisposal: AssetDisposalReducer,
     assetMaintenance: AssetMaintenanceReducer,
     assetAssignment: AssetAssignmentReducer,
     assetIncomeTypes: AssetIncomeTypesReducer,

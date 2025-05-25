@@ -73,11 +73,11 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           {/* Logo */}
           <div className="flex flex-col items-center">
             {/* <div className="w-8 h-8 rounded bg-gradient-to-r from-purple-500 to-teal-500" /> */}
-            <img
+            {/* <img
               src={org === "latcu" ? latcuLogo : saharaLogo}
               alt=""
               className=" w-60 h-48"
-            />
+            /> */}
             
             {org === "sahara" && (
               <p className="font-bold text-6xl -mt-8 mb-4">SPICE HUB</p>
@@ -171,13 +171,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               <h4 className="flex w-full justify-center"> LOG IN</h4>
             </Button>
           </form>
-
-          {/* <p className="text-center text-sm text-muted-foreground">
-            New to ERP?{" "}
-            <Link to="/signup" className="text-teal-500 hover:text-teal-600">
-              Create an account
-            </Link>
-          </p> */}
         </div>
       </div>
     </div>

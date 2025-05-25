@@ -12,12 +12,15 @@ import BreadCrump from "../../../components/layout/bread_crump";
 import { Button } from "primereact/button";
 import { Link } from "react-router-dom";
 import DepositBalance from "./deposit";
+import { InputText } from "primereact/inputtext";
 
 const ChartOfAccounts: React.FC = () => {
   const { data, refresh } = useChartOfAccounts();
   const tableRef = useRef<any>(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [accountCountsByCategory, setAccountCountsByCategory] = useState<any>();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredData, setFilteredData] = useState<ChartofAccount[]>([]);
   const [dialogState, setDialogState] = useState<{
     selectedItem: ChartofAccount | undefined;
     currentAction: "delete" | "edit" | "add" | "balance" | "";
@@ -28,6 +31,34 @@ const ChartOfAccounts: React.FC = () => {
       tableRef.current.exportPDF();
     }
   };
+
+  // Filter data based on search query and category
+  useEffect(() => {
+    if (data) {
+      let result = data;
+
+      // Apply category filter
+      if (selectedCategory !== "all") {
+        result = result.filter(
+          (acc) =>
+            acc.account_sub_category.account_category.name === selectedCategory
+        );
+      }
+
+      // Apply search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        result = result.filter(
+          (acc) =>
+            acc.name.toLowerCase().includes(query) ||
+            acc.description?.toLowerCase().includes(query) ||
+            acc.code?.toLowerCase().includes(query)
+        );
+      }
+
+      setFilteredData(result);
+    }
+  }, [data, selectedCategory, searchQuery]);
 
   const columnDefinitions: ColDef<ChartofAccount>[] = [
     {
@@ -88,7 +119,7 @@ const ChartOfAccounts: React.FC = () => {
               onClick={() =>
                 setDialogState({
                   ...dialogState,
-                  currentAction: "balance", // Set action to "balance"
+                  currentAction: "balance",
                   selectedItem: params.data,
                 })
               }
@@ -158,7 +189,7 @@ const ChartOfAccounts: React.FC = () => {
       <DepositBalance
         onSave={refresh}
         item={dialogState.selectedItem}
-        visible={dialogState.currentAction === "balance"} // Only show for "balance" action
+        visible={dialogState.currentAction === "balance"}
         onClose={() =>
           setDialogState({ currentAction: "", selectedItem: undefined })
         }
@@ -206,41 +237,56 @@ const ChartOfAccounts: React.FC = () => {
             </button>
           </div>
         </div>
-        <ul className="flex gap-2 my-2">
-          {accountCountsByCategory &&
-            Object.entries(accountCountsByCategory).map(([category, count]) => (
-              <li key={category}>
-                <Button
-                  onClick={() => setSelectedCategory(category)}
-                  outlined={category != selectedCategory}
-                  size="small"
-                  severity="info"
-                  type="button"
-                  label={category}
-                  icon="pi pi-wallet"
-                  className={`text-nowrap capitalize p-2 ${
-                    category == selectedCategory
-                      ? ""
-                      : "bg-white !text-black hover:!bg-gray-300"
-                  }`}
-                  badge={count && count.toString()}
-                  badgeClassName="p-badge-danger"
-                  raised
-                />
-              </li>
-            ))}
-        </ul>
+
+        <div className="flex flex-col md:flex-row gap-4 my-4">
+          {/* Search Input - 1/4 */}
+          <div className="md:w-1/4 w-full">
+            <div className="p-inputgroup text-lg">
+              <span className="p-inputgroup-addon py-1 px-2">
+                <Icon icon="solar:magnifer-linear" fontSize={16} />
+              </span>
+              <InputText
+                placeholder="Search by account name"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="text-lg py-1 px-2 w-full"
+              />
+            </div>
+          </div>
+          {/* Category Filters - 3/4 */}
+          <div className="md:w-3/4 w-full overflow-x-auto">
+            <ul className="flex gap-2">
+              {accountCountsByCategory &&
+                Object.entries(accountCountsByCategory).map(
+                  ([category, count]) => (
+                    <li key={category}>
+                      <Button
+                        onClick={() => setSelectedCategory(category)}
+                        outlined={category !== selectedCategory}
+                        size="small"
+                        severity="info"
+                        type="button"
+                        label={category}
+                        icon="pi pi-wallet"
+                        className={`text-nowrap capitalize p-2 ${
+                          category === selectedCategory
+                            ? ""
+                            : "bg-white !text-black hover:!bg-gray-300"
+                        }`}
+                        badge={count?.toString()}
+                        badgeClassName="p-badge-danger"
+                        raised
+                      />
+                    </li>
+                  )
+                )}
+            </ul>
+          </div>
+        </div>
+
         <Table
           columnDefs={columnDefinitions}
-          data={
-            selectedCategory == "all"
-              ? data
-              : data.filter(
-                  (acc) =>
-                    acc.account_sub_category.account_category.name ==
-                    selectedCategory
-                )
-          }
+          data={filteredData}
           ref={tableRef}
         />
       </div>

@@ -1,6 +1,7 @@
 import { Icon } from "@iconify/react";
 import { lazy, Suspense } from "react";
-import Suppliers from "../pages/inventory/suppliers";
+import ProcurementTypes from "../pages/procurement/procTypes";
+import Services from "../pages/procurement/services";
 
 // Dynamic imports
 //const Dashboard = lazy(() => import("../pages/dashboard"));
@@ -30,6 +31,26 @@ const PROCUREMENT_ROUTES = [
     path: "",
     items: [
       {
+        name: "Procurement Types",
+        icon: <Icon icon="solar:cart-line-duotone" fontSize={24} />,
+        path: "/procurement-types",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <ProcurementTypes />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Services",
+        icon: <Icon icon="solar:star-outline" fontSize={20} />,
+        path: "/services",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Services />
+          </Suspense>
+        ),
+      },
+      {
         name: "Purchase Requests",
         icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
         path: "/",
@@ -47,16 +68,6 @@ const PROCUREMENT_ROUTES = [
     icon: <Icon icon="solar:cart-outline" fontSize={24} />,
     path: "/procurement",
     items: [
-      // {
-      //   name: "Purchase Requests",
-      //   icon: <Icon icon="solar:cart-outline" fontSize={20} />,
-      //   path: "/purchaserequests",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <PurchaseRequests />
-      //     </Suspense>
-      //   ),
-      // },
       {
         name: "Requests for Quotation",
         icon: <Icon icon="solar:crown-star-line-duotone" fontSize={20} />,
@@ -68,7 +79,7 @@ const PROCUREMENT_ROUTES = [
         ),
       },
       {
-        name: "Bids",
+        name: "Supplier Quotations",
         icon: <Icon icon="solar:hand-money-outline" fontSize={20} />,
         path: "/bids",
         element: (
@@ -76,45 +87,40 @@ const PROCUREMENT_ROUTES = [
             <Bids />
           </Suspense>
         ),
+        hidden: true
       },
-      {
-        name: "Bid Evaluation",
-        icon: <Icon icon="solar:star-outline" fontSize={20} />,
-        path: "/bidevaluation",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <BidEvaluations />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Purchase Orders",
-        icon: <Icon icon="solar:cart-line-duotone" fontSize={24} />,
-        path: "/purchaseorders",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <PurchaseOrders />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Goods Received",
-        icon: <Icon icon="solar:box-outline" fontSize={20} />,
-        path: "/goodsreceived",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <GoodsReceived />
-          </Suspense>
-        ),
-      },
+      // {
+      //   name: "Quotation Evaluation",
+      //   icon: <Icon icon="solar:star-outline" fontSize={20} />,
+      //   path: "/bidevaluation",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <BidEvaluations />
+      //     </Suspense>
+      //   ),
+      // },
+      // {
+      //   name: "Purchase Orders",
+      //   icon: <Icon icon="solar:cart-line-duotone" fontSize={24} />,
+      //   path: "/purchaseorders",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <PurchaseOrders />
+      //     </Suspense>
+      //   ),
+      // },
+      // {
+      //   name: "Goods Received",
+      //   icon: <Icon icon="solar:box-outline" fontSize={20} />,
+      //   path: "/goodsreceived",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <GoodsReceived />
+      //     </Suspense>
+      //   ),
+      // },
     ],
   },
-  // {
-  //   name: "Bidding & Evaluation",
-  //   icon: <Icon icon="solar:hand-money-outline" fontSize={24} />,
-  //   path: "/bidding",
-  //   items: [],
-  // },
   {
     name: "More",
     icon: <Icon icon="solar:settings-outline" fontSize={24} />,
@@ -127,16 +133,6 @@ const PROCUREMENT_ROUTES = [
         element: (
           <Suspense fallback={<Loading />}>
             <EvaluationCriteria />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Suppliers",
-        icon: <Icon icon="solar:align-vertical-center-outline" fontSize={20} />,
-        path: "/suppliers",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Suppliers />
           </Suspense>
         ),
       },

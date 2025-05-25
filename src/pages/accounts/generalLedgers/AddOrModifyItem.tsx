@@ -49,16 +49,10 @@ interface AddLedger {
     credit_account_id: number;
     amount: number;
     currency_id: number;
+    budget_item_id?: number;
   }[];
   currency_id: number;
   supporting_files: File[];
-}
-
-interface Line {
-  chart_of_account_id: number;
-  credit_amount?: number;
-  debit_amount?: number;
-  currency_id: number;
 }
 
 const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
@@ -77,11 +71,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     budget_id: null,
     journal_type_id: journalType.toLowerCase().includes("expense")
       ? 4
-      : journalType.includes("income")
+      : journalType.toLowerCase().includes("sale")
       ? 5
-      : journalType.includes("cashflow")
+      : journalType.toLowerCase().includes("cashflow")
       ? 20
-      : 5,
+      : journalType.toLowerCase().includes("banking")
+      ? 20
+      : 3,
     description: "",
     lines: [],
     currency_id: 2,
@@ -92,10 +88,18 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const { data: currenciesData, loading: currenciesLoading } = useCurrencies();
   const { data: projects, loading: projectsLoading } = useProjects();
   const { data: budgets, loading: budgetsLoading } = useBudgets();
+  const [selectedBudgetItemMaxAmounts, setSelectedBudgetItemMaxAmounts] =
+    useState<{ [key: number]: number }>({});
+  const [budgetItems, setBudgetItems] = useState([]);
   const { data, refresh: getCOA } = useChartOfAccounts();
   const {
     expenseAccounts,
     cashAccounts,
+    payableAccounts,
+    receivableAccounts,
+    prepaidAccounts,
+    liabilityAccounts,
+    incomeAccounts,
     data: accounts,
     refresh,
   } = useAssetsAccounts();
@@ -106,17 +110,35 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }
   }, [accounts]);
 
-  useEffect(()=> {
-    console.log('coa', data)
-    if(!data){
+  useEffect(() => {
+    if (!data) {
       getCOA();
     }
-  }, [])
+  }, []);
 
   const currencies = currenciesData.map((curr) => ({
     label: curr.code,
     value: curr.id,
   }));
+
+  // Replace the useEffect with this version
+  useEffect(() => {
+    if (formState.budget_id) {
+      // Find the selected budget from the budgets data
+      const selectedBudget = budgets.find(
+        (budget) => budget.id === formState.budget_id
+      );
+
+      if (selectedBudget && selectedBudget.items) {
+        setBudgetItems(selectedBudget.items);
+      } else {
+        setBudgetItems([]);
+        toast.warning("No items found for selected budget");
+      }
+    } else {
+      setBudgetItems([]);
+    }
+  }, [formState.budget_id, budgets]); // Add budgets to dependency array
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -132,20 +154,24 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
 
-    const data = {
-      ...formState,
-      transaction_date:
-        formState.transaction_date?.toISOString().slice(0, 10) ?? "",
-      reference: formState.reference ?? "",
-      journal_type_id: formState.journal_type_id,
-      description: formState.description ?? "",
-      currency_id: formState.currency_id,
-      lines: formState?.lines.map((line) => ({
-        ...line,
-        currency_id: formState.currency_id!,
-      })),
-      supporting_files: formState.supporting_files,
-    };
+    
+  const data = {
+    ...formState,
+    transaction_date:
+      formState.transaction_date?.toISOString().slice(0, 10) ?? "",
+    reference: formState.reference ?? "",
+    journal_type_id: formState.journal_type_id,
+    description: formState.description ?? "",
+    currency_id: formState.currency_id,
+    lines: formState?.lines.map((line) => ({
+      debit_account_id: line.debit_account_id,
+      credit_account_id: line.credit_account_id,
+      amount: line.amount,
+      currency_id: formState.currency_id!,
+      budget_item_id: line.budget_item_id, // Include budget_item_id in payload
+    })),
+    supporting_files: formState.supporting_files,
+  };
 
     const method = item?.id ? "PUT" : "POST";
     const endPoint = item?.id
@@ -189,18 +215,53 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     </div>
   );
 
-  const handleItemChange = (
-    index: number,
-    field: keyof (typeof formState.lines)[0],
-    value: number
-  ) => {
-    const updatedLines = [...(formState.lines ?? [])];
-    updatedLines[index] = { ...updatedLines[index], [field]: value };
-    setFormState((prevState) => ({
-      ...prevState,
-      lines: updatedLines,
-    }));
-  };
+const handleItemChange = (
+  index: number,
+  field: keyof (typeof formState.lines)[0],
+  value: number
+) => {
+  const updatedLines = [...(formState.lines ?? [])];
+  updatedLines[index] = { ...updatedLines[index], [field]: value };
+
+  // If we have a budget selected
+  if (formState.budget_id) {
+    let selectedBudgetItem;
+
+    // For expense journals, look at debit account
+    if (
+      field === "debit_account_id" &&
+      journalType.toLowerCase().includes("expense")
+    ) {
+      selectedBudgetItem = budgetItems.find(
+        (item) => item.chart_of_account_id === value
+      );
+    }
+    // For sale journals, look at credit account
+    else if (
+      field === "credit_account_id" &&
+      journalType.toLowerCase().includes("sale")
+    ) {
+      selectedBudgetItem = budgetItems.find(
+        (item) => item.chart_of_account_id === value
+      );
+    }
+
+    if (selectedBudgetItem) {
+      setSelectedBudgetItemMaxAmounts((prev) => ({
+        ...prev,
+        [index]: selectedBudgetItem.amount,
+      }));
+      // Add the budget_item_id to the line
+      updatedLines[index].budget_item_id = selectedBudgetItem.id;
+    }
+  }
+
+  setFormState((prevState) => ({
+    ...prevState,
+    lines: updatedLines,
+  }));
+};
+
 
   const removeItem = (index: number) => {
     const updatedLines = [...(formState.lines ?? [])];
@@ -212,26 +273,55 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   };
 
   const getDebitAccountOptions = () => {
-    if (journalType.toLowerCase().includes("expense")) {
+    if (
+      journalType.toLowerCase().includes("expense") ||
+      journalType.toLowerCase().includes("add payable")
+    ) {
       return expenseAccounts;
     } else if (journalType.toLowerCase().includes("income")) {
       return cashAccounts;
     } else if (journalType.toLowerCase().includes("bank")) {
       return cashAccounts;
-    }else {
+    } else if (journalType.toLowerCase().includes("clear payable")) {
+      return payableAccounts;
+    } else if (journalType.toLowerCase().includes("add receivable")) {
+      return receivableAccounts;
+    } else if (journalType.toLowerCase().includes("clear receivable")) {
+      return cashAccounts;
+    } else if (journalType.toLowerCase().includes("add prepaid")) {
+      return cashAccounts;
+    } else if (journalType.toLowerCase().includes("clear prepaid")) {
+      return prepaidAccounts;
+    } else {
       return cashAccounts;
     }
   };
+
+  // useEffect(()=> {
+  //   alert(journalType)
+  // }, [])
 
   const getCreditAccountOptions = () => {
     if (journalType.toLowerCase().includes("expense")) {
       return cashAccounts;
     } else if (journalType.toLowerCase().includes("income")) {
       return expenseAccounts;
-    } else if (journalType.toLowerCase().includes("bank")) {
+    } else if (
+      journalType.toLowerCase().includes("bank") ||
+      journalType.toLowerCase().includes("clear payable")
+    ) {
       return cashAccounts;
+    } else if (journalType.toLowerCase().includes("add payable")) {
+      return payableAccounts;
+    } else if (journalType.toLowerCase().includes("add receivable")) {
+      return incomeAccounts;
+    } else if (journalType.toLowerCase().includes("clear receivable")) {
+      return receivableAccounts;
+    } else if (journalType.toLowerCase().includes("add prepaid")) {
+      return prepaidAccounts;
+    } else if (journalType.toLowerCase().includes("clear prepaid")) {
+      return liabilityAccounts;
     }
-    return [];
   };
 
   return (
@@ -248,7 +338,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         className="p-fluid grid grid-cols-1 md:grid-cols-2 gap-1"
       >
         <div className="">
-          <label htmlFor="transaction_date">Transaction Date</label>
+          <label htmlFor="transaction_date">
+            Transaction Date<span className="text-red-500">*</span>
+          </label>
           <Calendar
             className="p-inputtext-sm"
             maxDate={new Date()}
@@ -276,6 +368,23 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             placeholder="Enter Reference"
           />
         </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 col-span-full gap-2">
+          <div className="">
+            <label htmlFor="account type">
+              Currency <span className="text-red-500">*</span>
+            </label>
+            <Dropdown
+              className="p-inputtext-sm"
+              loading={currencies.length == 0 && currenciesLoading}
+              value={formState.currency_id}
+              options={currencies}
+              onChange={(e: DropdownChangeEvent) =>
+                setFormState({ ...formState, currency_id: e.value })
+              }
+              placeholder="Select Currency"
+            />
+          </div>
+        </div>
         <div className="col-span-full">
           <label htmlFor="description">Description</label>
           <InputTextarea
@@ -290,19 +399,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           />
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 col-span-full gap-2">
-          <div className="">
-            <label htmlFor="account type">Currency</label>
-            <Dropdown
-              className="p-inputtext-sm"
-              loading={currencies.length == 0 && currenciesLoading}
-              value={formState.currency_id}
-              options={currencies}
-              onChange={(e: DropdownChangeEvent) =>
-                setFormState({ ...formState, currency_id: e.value })
-              }
-              placeholder="Select Currency"
-            />
-          </div>
           {!journalType.includes("Banking") && (
             <>
               <div className="">
@@ -344,7 +440,16 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             </>
           )}
         </div>
-        <div className="col-span-full">
+        <div className="col-span-full h-24">
+          <h4 className="text-xl font-bold my-2">Support Files</h4>
+          <FileUploadInput
+            uploadVisible={false}
+            onFilesChange={(files) =>
+              setFormState({ ...formState, supporting_files: files })
+            }
+          />
+        </div>
+        <div className="col-span-full mt-24">
           <h3 className="font-bold text-xl">Entry</h3>
           <DataTable
             size="small"
@@ -368,6 +473,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                           credit_account_id: 0,
                           amount: 0,
                           currency_id: formState.currency_id ?? 0,
+                          budget_item_id: undefined, // Initialize as undefined
                         },
                       ],
                     }))
@@ -386,7 +492,43 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   value={line.debit_account_id}
                   filter
                   options={
+                    formState.budget_id &&
                     journalType.toLowerCase().includes("expense")
+                      ? budgetItems.map((item) => ({
+                          value: item.chart_of_account_id,
+                          label: `${item.name} (Budget: ${item.remaining_balance_amount})`,
+                        }))
+                      : journalType.toLowerCase().includes("clear prepaid")
+                      ? getDebitAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("add prepaid")
+                      ? getDebitAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("clear receivable")
+                      ? getDebitAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("add receivable")
+                      ? getDebitAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("clear payable")
+                      ? getDebitAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("add payable")
+                      ? getDebitAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("expense")
                       ? data
                           .filter(
                             (acc) =>
@@ -398,8 +540,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                             label: account.name,
                           }))
                       : journalType.toLowerCase().includes("income") ||
-                        journalType.toLowerCase().includes("clear") || 
-                        journalType.toLowerCase().includes("sale")
+                        journalType.toLowerCase().includes("clear")
                       ? data
                           .filter(
                             (acc) =>
@@ -451,8 +592,48 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   filter
                   value={line.credit_account_id}
                   options={
-                    journalType.toLowerCase().includes("expense") ||
-                    journalType.toLowerCase().includes("clear")
+                    formState.budget_id &&
+                    journalType.toLowerCase().includes("sale")
+                      ? budgetItems.map((item) => ({
+                          value: item.chart_of_account_id,
+                          label: `${item.name} (Budget: ${item.remaining_amount})`,
+                        }))
+                      : journalType.toLowerCase().includes("clear prepaid")
+                      ? getCreditAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("add prepaid")
+                      ? getCreditAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("clear receivable")
+                      ? getCreditAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("add receivable")
+                      ? getCreditAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("clear payable")
+                      ? getCreditAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("add payable")
+                      ? getCreditAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("expenses")
+                      ? getCreditAccountOptions().map((account) => ({
+                          value: account.id,
+                          label: account.name,
+                        }))
+                      : journalType.toLowerCase().includes("clear")
                       ? data
                           .filter(
                             (acc) =>
@@ -508,15 +689,51 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             />
             <Column
               header="Amount"
-              body={(line: (typeof formState.lines)[0], options) => (
-                <InputNumber
-                  className="w-max p-inputtext-sm"
-                  value={line.amount}
-                  onChange={(e) =>
-                    handleItemChange(options.rowIndex, "amount", e.value ?? 0)
-                  }
-                />
-              )}
+              body={(line: (typeof formState.lines)[0], options) => {
+                // Get the selected debit account ID for this line
+                const debitAccountId = line.debit_account_id;
+
+                // Find the corresponding budget item (if exists)
+                const budgetItem =
+                  formState.budget_id &&
+                  journalType.toLowerCase().includes("expense")
+                    ? budgetItems.find(
+                        (item) => item.chart_of_account_id === debitAccountId
+                      )
+                    : null;
+
+                // Get the max allowed amount from the budget item
+                const maxAmount = budgetItem?.amount;
+
+                return (
+                  <InputNumber
+                    className="w-max p-inputtext-sm"
+                    value={line.amount}
+                    min={0}
+                    max={maxAmount}
+                    onValueChange={(e) => {
+                      const newValue = e.value ?? 0;
+                      if (maxAmount && newValue > maxAmount) {
+                        toast.warning(
+                          `Amount cannot exceed budget allocation (${maxAmount})`
+                        );
+                        return;
+                      }
+                      handleItemChange(options.rowIndex, "amount", newValue);
+                    }}
+                    onKeyDown={(e) => {
+                      // Prevent typing if it would exceed max amount
+                      if (
+                        maxAmount &&
+                        line.amount >= maxAmount &&
+                        e.key !== "Backspace"
+                      ) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
+                );
+              }}
             />
             <Column
               header="Actions"
@@ -530,15 +747,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               )}
             />
           </DataTable>
-        </div>
-        <div className="col-span-full h-24">
-          <h4 className="text-xl font-bold my-2">Support Files</h4>
-          <FileUploadInput
-            uploadVisible={false}
-            onFilesChange={(files) =>
-              setFormState({ ...formState, supporting_files: files })
-            }
-          />
         </div>
       </form>
     </Dialog>

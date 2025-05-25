@@ -28,12 +28,12 @@ const CASHREQUISITION_ROUTES = [
         path: "/fuel_req",
         element: <FuelRequisitions />,
       },
-      {
-        name: "Store Requisitions",
-        icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
-        path: "/store_req",
-        element: <StoreRequisitions />,
-      },
+      // {
+      //   name: "Store Requisitions",
+      //   icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
+      //   path: "/store_req",
+      //   element: <StoreRequisitions />,
+      // },
       // {
       //   // name: "Requisitions",
       //   // icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,

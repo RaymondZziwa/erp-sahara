@@ -4,12 +4,8 @@ import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { useState, useEffect } from "react";
 import { PurchaseRequest } from "../../../redux/slices/types/procurement/PurchaseRequests";
-import { createRequest } from "../../../utils/api";
+import { baseURL, createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
-import useItems from "../../../hooks/inventory/useItems";
-import { Dropdown } from "primereact/dropdown";
 import useCurrencies from "../../../hooks/procurement/useCurrencies";
 
 const ReviewOrApprovePurchaseRequest = ({
@@ -21,104 +17,88 @@ const ReviewOrApprovePurchaseRequest = ({
   purchaseRequest?: PurchaseRequest;
   onClose: () => void;
   onRefresh: () => void;
-  action: "approve" | "review" | "view";
+  action: "approve" | "view";
 }) => {
   const [comment, setComment] = useState("");
+  const [approvalComment, setApprovalComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState(
-    purchaseRequest?.purchase_request_items || []
-  );
+  const [items, setItems] = useState(purchaseRequest?.items || []);
+  const [approvedItems, setApprovedItems] = useState<any[]>([]);
+  const [showApproveModal, setShowApproveModal] = useState(false);
   const { token } = useAuth();
-  const { data: availableItems } = useItems();
   const { data: currencies } = useCurrencies();
 
-  console.log("token", token);
-  console.log("purr", purchaseRequest);
   useEffect(() => {
-    setItems(purchaseRequest?.purchase_request_items || []);
+    const initialItems = purchaseRequest?.items || [];
+    setItems(initialItems);
+    setApprovedItems(initialItems.map((item) => item.id));
   }, [purchaseRequest]);
 
-  const handleAction = async (status: "reviewed" | "rejected") => {
+  const handleAction = async (status: "approved" | "rejected") => {
     setLoading(true);
+    try {
+      const endpoint = `/procurement/purchase_requests/${purchaseRequest?.id}/${
+        status === "approved" ? "approve" : "reject"
+      }`;
 
-    const approvalData = {
-      comments: comment,
-      purchas_request_item_ids: items.map((item) => item.id),
-    };
+      const data = {
+        remarks: status === "approved" ? approvalComment : comment,
+        ...(status === "approved" && {
+          items: items
+            .filter((item) => approvedItems.includes(item.id))
+            .map((item) => ({
+              purchase_request_item_id: item.id,
+              remarks: item.notes || "",
+              quantity: item.quantity,
+              approved_cost_estimate: item.estimated_unit_price,
+              comments: approvalComment,
+              preferred_supplier_id: item.preferred_supplier_id || "",
+            })),
+        }),
+        ...(status === "rejected" && {
+          rejection_reason: approvalComment,
+        }),
+      };
 
-    const endpoint =
-      action === "approve"
-        ? `/procurement/purchase_requests/${purchaseRequest?.id}/approve`
-        : "/procurement/purchase_requests/review";
-
-    console.log("endpoint", endpoint);
-    console.log("data", approvalData);
-
-    const data =
-      action === "approve" && status !== "rejected"
-        ? approvalData
-        : {
-            purchase_request_id: purchaseRequest?.id,
-            status,
-            review_comment: comment,
-            rejected_comment: status === "rejected" ? comment : undefined,
-          };
-
-    await createRequest(endpoint, token.access_token, data, onRefresh, "POST");
-
-    setComment("");
-    setLoading(false);
-    onClose();
+      await createRequest(
+        endpoint,
+        token.access_token,
+        data,
+        onRefresh,
+        "POST"
+      );
+      setApprovalComment("");
+      setShowApproveModal(false);
+      onClose();
+    } catch (error) {
+      console.error("Error handling action:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handlePrint = () => {
-    const doc = new jsPDF();
-
-    // Title
-    doc.setFontSize(18);
-    doc.text(`Purchase Request: ${purchaseRequest?.name}`, 10, 10);
-    doc.setFontSize(12);
-
-    // Request Details
-    doc.text(`Request Date: ${purchaseRequest?.request_date}`, 10, 20);
-    doc.text(`Status: ${purchaseRequest?.status}`, 10, 30);
-    doc.text(`Requested By: ${purchaseRequest?.requested_by}`, 10, 40);
-    doc.text(
-      `Request Comment: ${purchaseRequest?.request_comment || "N/A"}`,
-      10,
-      50
-    );
-
-    if (purchaseRequest?.reviewer_comment) {
-      doc.text(`Review Comment: ${purchaseRequest.reviewer_comment}`, 10, 60);
+  const handlePrint = async () => {
+    setLoading(true);
+    try {
+      const pdfUrl = `/procurement/purchase_requests/${purchaseRequest?.id}/pdf`;
+      const response = await fetch(`${baseURL}${pdfUrl}`, {
+        headers: {
+          Authorization: `Bearer ${token.access_token}`,
+        },
+      });
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `purchase_request_${purchaseRequest?.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    } finally {
+      setLoading(false);
     }
-
-    // Table
-    const tableColumn = [
-      { header: "Item ID", dataKey: "item_id" },
-      { header: "Quantity", dataKey: "quantity" },
-      { header: "Unit Price Estimate", dataKey: "unit_price_estimate" },
-      { header: "Currency", dataKey: "currency_id" },
-      { header: "Notes", dataKey: "notes" },
-    ];
-
-    const tableRows = items.map((item) => ({
-      item_id: item.item_id,
-      quantity: item.quantity,
-      unit_price_estimate: item.unit_price_estimate,
-      currency_id: item.currency_id,
-      notes: item.notes,
-    }));
-
-    // @ts-ignore
-    doc.autoTable({
-      columns: tableColumn,
-      body: tableRows,
-      startY: 70,
-      margin: { top: 70 },
-    });
-
-    doc.save("purchase_request.pdf");
   };
 
   const onEditorValueChange = (
@@ -131,151 +111,233 @@ const ReviewOrApprovePurchaseRequest = ({
     setItems(newItems);
   };
 
+  const toggleItemApproval = (itemId: number) => {
+    setApprovedItems((prev) =>
+      prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
   return (
-    <Dialog
-      header={`${action === "review" ? "Review" : "Approve"} Purchase Request`}
-      visible={!!purchaseRequest?.id}
-      onHide={onClose}
-      className="w-full md:max-w-6xl"
-    >
-      {purchaseRequest ? (
-        <div className="p-4">
-          <h2 className="text-lg font-semibold mb-4">{purchaseRequest.name}</h2>
-          <div className="mb-4 space-y-2">
-            <div className="flex border-b py-2">
-              <span className="font-semibold w-1/3">Request Date</span>
-              <span>{purchaseRequest.request_date}</span>
-            </div>
-            <div className="flex border-b py-2">
-              <span className="font-semibold w-1/3">Status</span>
-              <span>{purchaseRequest.status}</span>
-            </div>
-            <div className="flex border-b py-2">
-              <span className="font-semibold w-1/3">Requested By</span>
-              <span>{purchaseRequest.requested_by}</span>
-            </div>
-            <div className="flex border-b py-2">
-              <span className="font-semibold w-1/3">Request Comment</span>
-              <span>{purchaseRequest.request_comment || "N/A"}</span>
-            </div>
-            {purchaseRequest.reviewer_comment && (
+    <>
+      <Dialog
+        header={`${action === "approve" ? "Approve" : "View"} Purchase Request`}
+        visible={!!purchaseRequest?.id}
+        onHide={onClose}
+        className="w-full md:max-w-6xl"
+      >
+        {purchaseRequest ? (
+          <div className="p-4">
+            <h2 className="text-lg font-semibold mb-4">
+              {purchaseRequest.title || purchaseRequest.name}
+            </h2>
+            <div className="mb-4 space-y-2">
               <div className="flex border-b py-2">
-                <span className="font-semibold w-1/3">Review Comment</span>
-                <span>{purchaseRequest.reviewer_comment || "N/A"}</span>
+                <span className="font-semibold w-1/3">Request Date</span>
+                <span>{purchaseRequest.request_date}</span>
               </div>
-            )}
-          </div>
+              <div className="flex border-b py-2">
+                <span className="font-semibold w-1/3">Status</span>
+                <span
+                  className={`font-semibold ${
+                    purchaseRequest.status === "Approved"
+                      ? "text-green-500"
+                      : purchaseRequest.status === "Rejected"
+                      ? "text-red-500"
+                      : "text-yellow-500"
+                  }`}
+                >
+                  {purchaseRequest.status}
+                </span>
+              </div>
+              <div className="flex border-b py-2">
+                <span className="font-semibold w-1/3">Requested By</span>
+                <span>
+                  {purchaseRequest.requester?.first_name || "N/A"}{" "}
+                  {purchaseRequest.requester?.last_name || ""}
+                </span>
+              </div>
+              <div className="flex border-b py-2">
+                <span className="font-semibold w-1/3">Request Comment</span>
+                <span>{purchaseRequest.request_comment || "N/A"}</span>
+              </div>
+              {purchaseRequest.reviewer_comment && (
+                <div className="flex border-b py-2">
+                  <span className="font-semibold w-1/3">Review Comment</span>
+                  <span>{purchaseRequest.reviewer_comment}</span>
+                </div>
+              )}
+            </div>
 
-          <div className="mt-4">
-            <h3>Items</h3>
-            <table className="min-w-full table-auto">
-              <thead>
-                <tr>
-                  <th className="border px-4 py-2">Item</th>
-                  <th className="border px-4 py-2">Quantity</th>
-                  <th className="border px-4 py-2">Unit Price Estimate</th>
-                  <th className="border px-4 py-2">Currency</th>
-                  <th className="border px-4 py-2">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={index}>
-                    <td className="border px-4 py-2">
-                      {item.id ? (
-                        <h4 className="w-max max-w-max">{item.item.name}</h4>
-                      ) : (
-                        <Dropdown
-                          value={item.id}
-                          options={availableItems.map((it) => ({
-                            label: it.name,
-                            value: it.id,
-                          }))}
-                        />
-                      )}
-                    </td>
-                    <td className="border px-4 py-2">
-                      <InputText
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) =>
-                          onEditorValueChange(e, "quantity", index)
-                        }
-                      />
-                    </td>
-                    <td className="border px-4 py-2">
-                      <InputText
-                        type="number"
-                        value={item.unit_price_estimate}
-                        onChange={(e) =>
-                          onEditorValueChange(e, "unit_price_estimate", index)
-                        }
-                      />
-                    </td>
-                    <td className="border px-4 py-2">
-                      <h4>
-                        {currencies.find((curr) => curr.id == item.currency_id)
-                          ?.code ?? ""}
-                      </h4>
-                    </td>
-                    <td className="border px-4 py-2">
-                      <InputTextarea
-                        value={item.notes ?? ""}
-                        onChange={(e) => onEditorValueChange(e, "notes", index)}
-                        rows={2}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            <div className="mt-4">
+              <h3 className="font-semibold mb-2">Items</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full table-auto border">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border px-4 py-2">Selection</th>
+                      <th className="border px-4 py-2">Item</th>
+                      <th className="border px-4 py-2">Quantity</th>
+                      <th className="border px-4 py-2">Unit Price</th>
+                      <th className="border px-4 py-2">Currency</th>
+                      <th className="border px-4 py-2">Total</th>
+                      <th className="border px-4 py-2">Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, index) => (
+                      <tr key={index}>
+                        <td className="border px-2 py-1 text-center">
+                          <input
+                            type="checkbox"
+                            checked={approvedItems.includes(item.id)}
+                            onChange={() => toggleItemApproval(item.id)}
+                            disabled={
+                              purchaseRequest.status.toLowerCase() ===
+                              "rejected"
+                            }
+                          />
+                        </td>
+                        <td className="border px-4 py-2">
+                          {item.item?.name || "N/A"}
+                        </td>
+                        <td className="border px-4 py-2">
+                          {action === "approve" ? (
+                            <InputText
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) =>
+                                onEditorValueChange(e, "quantity", index)
+                              }
+                              className="w-full"
+                            />
+                          ) : (
+                            item.quantity
+                          )}
+                        </td>
+                        <td className="border px-4 py-2">
+                          {action === "approve" ? (
+                            <InputText
+                              type="number"
+                              value={item.estimated_unit_price}
+                              onChange={(e) =>
+                                onEditorValueChange(
+                                  e,
+                                  "estimated_unit_price",
+                                  index
+                                )
+                              }
+                              className="w-full"
+                            />
+                          ) : (
+                            item.estimated_unit_price?.toLocaleString()
+                          )}
+                        </td>
+                        <td className="border px-4 py-2">
+                          {currencies?.find(
+                            (curr) => curr.id == item.currency_id
+                          )?.code || "N/A"}
+                        </td>
+                        <td className="border px-4 py-2">
+                          {(
+                            item.quantity * item.estimated_unit_price
+                          )?.toLocaleString()}
+                        </td>
+                        <td className="border px-4 py-2">
+                          {action === "approve" ? (
+                            <InputTextarea
+                              value={item.notes ?? ""}
+                              onChange={(e) =>
+                                onEditorValueChange(e, "notes", index)
+                              }
+                              rows={2}
+                              className="w-full"
+                            />
+                          ) : (
+                            item.notes || "N/A"
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-          <div className="mb-4">
-            <label htmlFor="comment" className="font-semibold">
-              {action === "approve" ? "Approval" : "Review"} Comment:
-            </label>
-            <InputTextarea
-              id="comment"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={4}
-              className="w-full mt-2"
-              placeholder="Add your comment here..."
-            />
-          </div>
-
-          <div className="flex justify-end space-x-4">
-            {action === "view" && (
-              <Button
-                label="Print"
-                className="p-button-info "
-                icon="pi pi-print"
-                onClick={handlePrint}
-                loading={loading}
+            <div className="mb-4 mt-4">
+              <label htmlFor="comment" className="font-semibold">
+                {action === "approve" ? "Comments" : "Comments"}:
+              </label>
+              <InputTextarea
+                id="comment"
+                value={
+                  purchaseRequest.status.toLowerCase() === "rejected"
+                    ? purchaseRequest.rejection_reason
+                    : purchaseRequest.status.toLowerCase() === "approved"
+                    ? purchaseRequest.approvals[0].comment
+                    : approvalComment
+                }
+                onChange={(e) => setApprovalComment(e.target.value)}
+                rows={4}
+                className="w-full mt-2"
+                placeholder="Add your comments here..."
+                disabled={purchaseRequest.status.toLowerCase() === "rejected"}
               />
-            )}
-            <Button
-              label="Reject"
-              className=" !bg-red-500"
-              icon="pi pi-times"
-              onClick={() => handleAction("rejected")}
-              loading={loading}
-            />
-            <Button
-              label={action === "approve" ? "Approve" : "Review"}
-              // label={"Approve"}
-              className="p-button-success"
-              icon="pi pi-check"
-              onClick={() => handleAction("reviewed")}
-              loading={loading}
-            />
+            </div>
+            {purchaseRequest.status.toLowerCase() === "approved" &&
+              purchaseRequest.approvals.length > 0 && (
+                <div className="mt-4 bg-gray-50 border border-gray-200 rounded-md p-4">
+                  <h3 className="font-semibold mb-2">Approval Comments History</h3>
+                  <ul className="space-y-2">
+                    {purchaseRequest.approvals.map((approval, index) => (
+                      <li key={index} className="text-sm text-gray-700">
+                        <span className="font-medium text-red-500">
+                          {approval.approver.first_name} {approval.approver.last_name}:
+                        </span>{" "}
+                        {approval.comment || <em>No comment provided</em>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            <div className="flex justify-end space-x-4 mt-4">
+              <button
+                onClick={handlePrint}
+                disabled={loading}
+                aria-label="Print"
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-50"
+              >
+                <i className="pi pi-print"></i>
+                <span>Print</span>
+              </button>
+              {purchaseRequest.status.toLowerCase() !== "rejected" && (
+                <>
+                  <button
+                    onClick={() => handleAction("rejected")}
+                    disabled={loading}
+                    aria-label="Reject"
+                    className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded disabled:opacity-50"
+                  >
+                    <i className="pi pi-times"></i>
+                    <span>Reject</span>
+                  </button>
+                  <Button
+                    label="Approve"
+                    icon="pi pi-check"
+                    className="p-button-success"
+                    onClick={() => handleAction("approved")}
+                    loading={loading}
+                    aria-label="Approve"
+                  />
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      ) : (
-        <p className="p-4">No purchase request selected.</p>
-      )}
-    </Dialog>
+        ) : (
+          <p className="p-4">No purchase request selected.</p>
+        )}
+      </Dialog>
+    </>
   );
 };
 

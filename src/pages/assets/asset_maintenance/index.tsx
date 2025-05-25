@@ -9,7 +9,7 @@ import useAuth from "../../../hooks/useAuth";
 import { baseURL } from "../../../utils/api";
 import Table from "../../../components/table";
 import useAssetMaintenance from "../../../hooks/assets/useAssetMaintenance";
-import AddOrModifyMaintenance from "./AddOrModifyMaintenance";
+import AddOrModifyMaintenance from "./Add0rModify";
 
 const AssetMaintenance: React.FC = () => {
   const { token } = useAuth();
@@ -160,7 +160,7 @@ const AssetMaintenance: React.FC = () => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={`${baseURL}/assets/assetmaintenance/${dialogState.selectedItem.id}/delete`}
+          apiPath={`/assets/assetmaintenance/${dialogState.selectedItem.id}/delete`}
           onClose={() =>
             setDialogState({ selectedItem: undefined, currentAction: "" })
           }

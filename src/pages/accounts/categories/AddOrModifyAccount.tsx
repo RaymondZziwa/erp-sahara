@@ -7,6 +7,7 @@ import { ACCOUNTS_ENDPOINTS } from "../../../api/accountsEndpoints";
 import { createRequest } from "../../../utils/api";
 import { Account } from "../../../redux/slices/types/accounts";
 import useAuth from "../../../hooks/useAuth";
+import { toast } from "react-toastify";
 
 interface AddOrModifyAccountProps {
   visible: boolean;
@@ -22,6 +23,8 @@ interface AddAccount {
   description?: string;
   account_sub_category_id?: number;
 }
+
+
 
 const AddOrModifyAccount: React.FC<AddOrModifyAccountProps> = ({
   visible,
@@ -68,36 +71,37 @@ const AddOrModifyAccount: React.FC<AddOrModifyAccountProps> = ({
 
     if (!formState.account_name || !formState.account_code) {
       setIsSubmitting(false);
-      return; // Handle validation error here
+      return;
     }
 
     try {
       const data: AddAccount = {
         account_name: formState.account_name,
-        account_code: formState.account_code,
+        code: formState.account_code,
         description: formState.description || "",
         manual_entry: formState.manual_entry,
         account_sub_category_id: formState.account_sub_category_id,
       };
+
       const method = item?.id ? "PUT" : "POST";
       const endpoint = item?.id
         ? ACCOUNTS_ENDPOINTS.CATEGORIES.UPDATE(item.id.toString())
         : ACCOUNTS_ENDPOINTS.CATEGORIES.ADD;
-      await createRequest(endpoint, token.access_token, data, onSave, method);
 
+      await createRequest(endpoint, token.access_token, data, onSave, method);
+      //toast.success("Category updated successfully")
       setIsSubmitting(false);
       onSave();
-      onClose(); // Close the modal after saving
+      onClose();
     } catch (error) {
       console.error("Error saving item", error);
-      // Handle error here
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const footer = (
-    <div>
+    <div className="flex flex-row gap-2 justify-end">
       <Button
         severity="danger"
         disabled={isSubmitting}
@@ -137,6 +141,7 @@ const AddOrModifyAccount: React.FC<AddOrModifyAccountProps> = ({
               value={formState.account_name || ""}
               onChange={handleInputChange}
               required
+              disabled={!!item?.id} // 🔒 Make read-only when editing
             />
           </div>
           <div className="p-field">
@@ -156,9 +161,9 @@ const AddOrModifyAccount: React.FC<AddOrModifyAccountProps> = ({
               name="description"
               value={formState.description || ""}
               onChange={handleInputChange}
+              disabled={!!item?.id} // 🔒 Make read-only when editing
             />
           </div>
-          {/* Add fields for manual_entry and account_sub_category_id if needed */}
         </div>
       </form>
     </Dialog>

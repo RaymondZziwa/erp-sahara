@@ -73,7 +73,22 @@ const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
       setIsSubmitting(false);
     }
   };
-  const appType: string[] = ["Cash", "Fuel", "Repair", "Store", "Order", "Purchase"];
+  
+ const appType: string[] = [
+   "Cash",
+   "Fuel",
+   "Repair",
+   "PurchaseRequest",
+   "PurchaseOrder",
+   "SalesOrder",
+   "Store",
+   "PayRoll",
+   "Disposal",
+   "PurchaseQuoteEvaluation",
+   "Disposals",
+   "AssetFinancing",
+ ];
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-auto z-50">

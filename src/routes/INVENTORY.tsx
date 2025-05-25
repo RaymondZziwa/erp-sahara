@@ -31,7 +31,7 @@ const INVENTORY_ROUTES = [
     path: "",
     items: [
       {
-        name: "Dashboard",
+        name: "Summary",
         icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
         path: "/",
         element: (

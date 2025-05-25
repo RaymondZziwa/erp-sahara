@@ -30,7 +30,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: chartOfAccounts, loading: chartOfAccountsLoading } =
-    useLedgerChartOfAccounts({ accountType: AccountType.EXPENSES });
+    useLedgerChartOfAccounts({ accountType: AccountType.CASH });
 
   const { token } = useAuth();
   useEffect(() => {

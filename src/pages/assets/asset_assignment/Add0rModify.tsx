@@ -13,6 +13,7 @@ import { AssetAssignment } from "../../../redux/slices/types/mossApp/assets/asse
 import { baseURL } from "../../../utils/api";
 import useAssets from "../../../hooks/assets/useAssets";
 import useEmployees from "../../../hooks/hr/useEmployees";
+import { InputTextarea } from "primereact/inputtextarea";
 
 // API instance with base URL
 const api = axios.create({
@@ -193,33 +194,34 @@ const AddOrModifyAssignment: React.FC<AddOrModifyAssignmentProps> = ({
               className="w-full"
             />
           </div>
+          <div className="col-span-2 flex flex-row justify-between">
+            <div className="col-span-2">
+              <label>
+                Start Date <span className="text-red-500">*</span>
+              </label>
+              <Calendar
+                value={
+                  formState.start_date
+                    ? new Date(formState.start_date)
+                    : undefined
+                }
+                onChange={(e) => handleDropdownChange("start_date", e.value)}
+                showIcon
+                className="w-full"
+              />
+            </div>
 
-          <div className="col-span-2">
-            <label>
-              Start Date <span className="text-red-500">*</span>
-            </label>
-            <Calendar
-              value={
-                formState.start_date
-                  ? new Date(formState.start_date)
-                  : undefined
-              }
-              onChange={(e) => handleDropdownChange("start_date", e.value)}
-              showIcon
-              className="w-full"
-            />
-          </div>
-
-          <div className="col-span-2">
-            <label>End Date</label>
-            <Calendar
-              value={
-                formState.end_date ? new Date(formState.end_date) : undefined
-              }
-              onChange={(e) => handleDropdownChange("end_date", e.value)}
-              showIcon
-              className="w-full"
-            />
+            <div className="col-span-2">
+              <label>End Date</label>
+              <Calendar
+                value={
+                  formState.end_date ? new Date(formState.end_date) : undefined
+                }
+                onChange={(e) => handleDropdownChange("end_date", e.value)}
+                showIcon
+                className="w-full"
+              />
+            </div>
           </div>
 
           <div className="col-span-2">
@@ -234,7 +236,7 @@ const AddOrModifyAssignment: React.FC<AddOrModifyAssignmentProps> = ({
 
           <div className="col-span-2">
             <label>Notes</label>
-            <InputText
+            <InputTextarea
               name="notes"
               value={formState.notes || ""}
               onChange={handleInputChange}

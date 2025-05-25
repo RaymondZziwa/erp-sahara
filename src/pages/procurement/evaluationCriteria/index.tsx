@@ -24,13 +24,7 @@ const EvaluationCriteria: React.FC = () => {
   };
 
   const columnDefinitions: ColDef<EvaluationCriteriaType>[] = [
-    {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
+
     {
       headerName: "Name",
       field: "name",
@@ -96,7 +90,7 @@ const EvaluationCriteria: React.FC = () => {
         }
       />
       <ConfirmDeleteDialog
-        apiPath={`/procurement/evaluation_criteria/${dialogState.selectedCategory?.id}/delete`}
+        apiPath={`/procurement/evaluation-criteria/${dialogState.selectedCategory?.id}/delete`}
         onClose={() =>
           setDialogState({ selectedCategory: undefined, currentAction: "" })
         }
@@ -110,7 +104,7 @@ const EvaluationCriteria: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Evaluation Criteria Table</h1>
+            <h1 className="text-xl font-bold">Evaluation Criteria</h1>
           </div>
           <div className="flex gap-2">
             <button
