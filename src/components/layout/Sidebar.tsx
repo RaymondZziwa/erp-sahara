@@ -25,7 +25,7 @@ const Sidebar = () => {
   };
 
   const hasSubItems = (item: any) => {
-    return item.sidebarItems.some((subItem: any) => subItem.items.length > 0);
+    return item.sidebarItems.some((subItem: any) => subItem.items?.length > 0);
   };
 
   return (

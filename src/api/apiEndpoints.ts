@@ -33,6 +33,12 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/procurement/purchase_requests/${id}/update`,
     DELETE: (id: string) => `/procurement/purchase_requests/${id}/delete`,
   },
+  PROCUREMENT_TYPES: {
+    GET_ALL: '/procurement/procurement-types',
+    ADD: '/procurement/procurement-types/create',
+    MODIFY: (id: string) =>  `/procurement/procurement-types/${id}/update`,
+    DELETE: (id: string) => `/procurement/procurement-types/${id}/delete`
+  },
   REQUEST_FOR_QUOTATION: {
     GET_ALL: "/procurement/rfq",
     GET_BY_ID: (id: string) => `/procurement/rfq/${id}`,
@@ -41,28 +47,28 @@ export const API_ENDPOINTS = {
     DELETE: (id: string) => `/procurement/rfq/${id}/delete`,
   },
   BIDS: {
-    GET_ALL: "/procurement/bids",
+    GET_ALL: "/procurement/supplier-quotations",
     GET_BY_ID: (id: string) => `/procurement/bids/${id}`,
     ADD: "/procurement/bids/create",
-    UPDATE: (id: string) => `/procurement/bids/${id}/update`,
-    DELETE: (id: string) => `/procurement/bids/${id}/delete`,
+    UPDATE: (id: string) => `/procurement/supplier-quotations/${id}/update`,
+    DELETE: (id: string) => `/procurement/supplier-quotations/${id}/delete`,
   },
   BID_EVALUATION: {
     GET_ALL: "/procurement/evaluations",
     GET_BY_ID: (id: string) => `/procurement/evaluations/${id}`,
     ADD: "/procurement/evaluations/create",
     UPDATE: (id: string) => `/procurement/evaluations/${id}/update`,
-    DELETE: (id: string) => `/procurement/evaluations/${id}/delete`,
+    DELETE: (id: string) => `/procurement/quotation-evaluations/${id}/delete`,
   },
   BID_EVALUATION_CRITERIA: {
-    GET_ALL: "/procurement/evaluation_criteria",
+    GET_ALL: "/procurement/evaluation-criteria",
     GET_BY_ID: (id: string) => `/procurement/evaluation_criteria/${id}`,
     ADD: "/procurement/evaluation_criteria/create",
     UPDATE: (id: string) => `/procurement/evaluation_criteria/${id}/update`,
-    DELETE: (id: string) => `/procurement/evaluation_criteria/${id}/delete`,
+    DELETE: (id: string) => `/procurement/evaluation-criteria/${id}/delete`,
   },
   SUPPLIERS: {
-    GET_ALL: "/procurement/suppliers",
+    GET_ALL: "/people/suppliers",
     GET_BY_ID: (id: string) => `/procurement/suppliers/${id}`,
     ADD: "/procurement/suppliers/create",
     UPDATE: (id: string) => `/procurement/suppliers/${id}/update`,
@@ -84,4 +90,10 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/procurement/grns/${id}/update`,
     DELETE: (id: string) => `/procurement/grns/${id}/delete`,
   },
+  SERVICES: {
+    GET_ALL: '/services',
+    ADD: '/services/create',
+    MODIFY: (id: string) => `/services/${id}/update`,
+    DELETE: (id: string) => `/services/${id}`
+  }
 };

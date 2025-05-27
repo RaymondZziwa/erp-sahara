@@ -21,7 +21,7 @@ const StockTakingReport = () => {
     const fetchData = async () => {
       try {
         const response = await axios.post(
-          `${baseURL}/erp/inventories/reports/stocktakingreport`,
+          `${baseURL}/inventories/reports/stocktakingreport`,
           {
             "start_date":"2024-08-01",
             "end_date":"2024-08-24"

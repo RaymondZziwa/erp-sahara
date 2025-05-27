@@ -5,7 +5,7 @@ import PROCUREMENT_ROUTES from "./PROCUREMENT";
 import SETTINGS_ROUTES from "./SETTINGS";
 import DASHBOARD_ROUTES from "./DASHBOARD";
 import INVENTORY_ROUTES from "./INVENTORY";
-// import MOSS_APP_ROUTES from "./MOSSAPP";
+import MOSS_APP_ROUTES from "./MOSSAPP";
 import SALES_ROUTES from "./SALES";
 import ACCOUNTS_ROUTES from "./ACCOUNTS";
 import HUMAN_RESOURCE_ROUTES from "./HUMAN_RESOURCE";
@@ -15,9 +15,9 @@ import { Route } from "./routeTypes";
 import REPORTS_ROUTES from "./REPORTS";
 //import CROPS_ROUTES from "./CROPS";
 import CASHREQUISITION_ROUTES from "./CASH_REQUISITIONS";
-//import MANUFACTURING_ROUTES from "./MANUFACTURING";
+import MANUFACTURING_ROUTES from "./MANUFACTURING";
 import ASSETS from "./ASSETS";
-import FARM_GROUP_ROUTES from "./FARM_GROUPS";
+//import FARM_GROUP_ROUTES from "./FARM_GROUPS";
 // import INVESTMENT_FINANCING from "./INVESTMENT_FINANCING";
 import {org} from "../utils/api"
 
@@ -41,7 +41,7 @@ const ROUTES: Route[] = [
     sidebarItems: INVENTORY_ROUTES,
   },
   {
-    name: "Expense Requisitions",
+    name: "Requisitions",
     icon: <Icon icon="mdi:book-outline" fontSize={24} />, // More specific to project management
     path: "/cash-requsuitions",
     sidebarItems: CASHREQUISITION_ROUTES,
@@ -60,30 +60,17 @@ const ROUTES: Route[] = [
   },
   {
     name: "Procurement",
-    icon: <Icon icon="mdi:cart-outline" fontSize={24} />,
+    icon: <Icon icon="mdi:cash-multiple" fontSize={24} />, // Updated for better budget representation
     path: "/procurement",
     sidebarItems: PROCUREMENT_ROUTES,
   },
-  {
-    name: "Sales",
-    icon: <Icon icon="mdi:cash-register" fontSize={24} />,
-    path: "/sales",
-    sidebarItems: SALES_ROUTES,
-  },
+
   // {
   //   name: "Manufacturing",
-  //   icon: <Icon icon="mdi:cash-register" fontSize={24} />,
+  //   icon: <Icon icon="solar:factory-2-bold-duotone" fontSize={24} />, // More specific to project management
   //   path: "/manufacturing",
   //   sidebarItems: MANUFACTURING_ROUTES,
   // },
-  // {
-  //   name: "MOSS App",
-  //   icon: <Icon icon="mdi:cellphone" fontSize={24} />,
-  //   path: "/mossapp",
-  //   sidebarItems: MOSS_APP_ROUTES,
-  //   hidden: true,
-  // },
-
   {
     name: "Human Resource",
     icon: <Icon icon="mdi:account-group-outline" fontSize={24} />,
@@ -97,12 +84,12 @@ const ROUTES: Route[] = [
     sidebarItems: ASSETS,
   },
 
-  {
-    name: "Amcos",
-    icon: <Icon icon="mdi:tractor" fontSize={24} />, // Example: Tractor icon for a farm-related look
-    path: "/farm_groups",
-    sidebarItems: FARM_GROUP_ROUTES,
-  },
+  // {
+  //   name: "Amcos",
+  //   icon: <Icon icon="mdi:tractor" fontSize={24} />, // Example: Tractor icon for a farm-related look
+  //   path: "/farm_groups",
+  //   sidebarItems: FARM_GROUP_ROUTES,
+  // },
 
   // {
   //   name: "Investment Financing",
@@ -110,12 +97,12 @@ const ROUTES: Route[] = [
   //   path: "/investment",
   //   sidebarItems: INVESTMENT_FINANCING,
   // },
-  {
-    name: "Projects",
-    icon: <Icon icon="mdi:clipboard-text-outline" fontSize={24} />, // More specific to project management
-    path: "/projects",
-    sidebarItems: PROJECTS_ROUTES,
-  },
+  // {
+  //   name: "Projects",
+  //   icon: <Icon icon="mdi:clipboard-text-outline" fontSize={24} />, // More specific to project management
+  //   path: "/projects",
+  //   sidebarItems: PROJECTS_ROUTES,
+  // },
   {
     name: "Settings",
     icon: <Icon icon="mdi:cog-outline" fontSize={24} />,

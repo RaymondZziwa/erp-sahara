@@ -4,13 +4,13 @@ import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Calendar } from "primereact/calendar";
-import { Dropdown } from "primereact/dropdown";
-import { ProgressSpinner } from "primereact/progressspinner";
 import { toast } from "react-toastify";
 import axios from "axios";
 import useAuth from "../../hooks/useAuth";
 import { ASSETSENDPOINTS } from "../../api/assetEndpoints";
 import { baseURL } from "../../utils/api";
+import { Dropdown } from "primereact/dropdown";
+import useCurrencies from "../../hooks/procurement/useCurrencies";
 
 // Centralized API configuration
 const api = axios.create({
@@ -21,16 +21,23 @@ const api = axios.create({
 });
 
 interface ExpenseForm {
+  currency_id: string;
   amount: number;
   narrative: string;
   transaction_date: string;
-  expense_account_id: number | null;
-  cash_account_id: number | null;
+  payment_method_id: string;
 }
 
 interface Account {
   value: number;
   name: string;
+}
+
+interface PaymentMethod {
+  id: number;
+  name: string;
+  chart_of_account_id: number;
+  description: string | null;
 }
 
 interface AddOrModifyExpenseModalProps {
@@ -47,19 +54,32 @@ const AddOrModifyExpenseModal: React.FC<AddOrModifyExpenseModalProps> = ({
   onSave,
 }) => {
   const { token } = useAuth();
-  const [expenseForm, setExpenseForm] = useState<ExpenseForm>({
+
+  const defaultExpenseForm: ExpenseForm = {
+    currency_id: "",
     amount: 0,
     narrative: "",
     transaction_date: "",
-    expense_account_id: null,
-    cash_account_id: null,
-  });
+    payment_method_id: "",
+  };
 
+  const [expenseForm, setExpenseForm] = useState<ExpenseForm>(defaultExpenseForm);
+
+  const { data: currencies } = useCurrencies();
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [expenseAccounts, setExpenseAccounts] = useState<Account[]>([]);
   const [cashAccounts, setCashAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Handle dropdown changes
+  const handleDropdownChange = (name: keyof ExpenseForm, value: any) => {
+    setExpenseForm((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
 
   // Axios interceptors for token injection
   useEffect(() => {
@@ -89,10 +109,34 @@ const AddOrModifyExpenseModal: React.FC<AddOrModifyExpenseModalProps> = ({
     };
   }, [token]);
 
+    const fetchPaymentMethods = async () => {
+      try {
+        const response = await api.get("/accounts/paymentmethod");
+        if (!response.data?.success) {
+          throw new Error("Failed to fetch payment methods.");
+        }
+        const paymentMethodsData = response.data.data || [];
+        setPaymentMethods(paymentMethodsData);
+      } catch (error) {
+        console.error("Error fetching payment methods:", error);
+        setError("Failed to load payment methods.");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    // Initialize data fetching
+    useEffect(() => {
+      if (token?.access_token) {
+        fetchPaymentMethods();
+      }
+    }, [token]);
+  
+
   // Fetch expense accounts
   const fetchExpenseAccounts = async () => {
     try {
-      const response = await api.get("/erp/accounts/get-expense-accounts");
+      const response = await api.get("/accounts/get-expense-accounts");
       const expenseData = response.data?.data || [];
       setExpenseAccounts(
         expenseData.map((acc: any) => ({
@@ -109,7 +153,7 @@ const AddOrModifyExpenseModal: React.FC<AddOrModifyExpenseModalProps> = ({
   // Fetch cash accounts
   const fetchCashAccounts = async () => {
     try {
-      const response = await api.get("/erp/accounts/get-cash-accounts");
+      const response = await api.get("/accounts/get-cash-accounts");
       const cashData = response.data?.data || [];
       setCashAccounts(
         cashData.map((acc: any) => ({
@@ -137,16 +181,10 @@ const AddOrModifyExpenseModal: React.FC<AddOrModifyExpenseModalProps> = ({
   }, [token]);
 
   // Handle input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setExpenseForm((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-
-  // Handle dropdown changes
-  const handleDropdownChange = (name: keyof ExpenseForm, value: any) => {
     setExpenseForm((prevState) => ({
       ...prevState,
       [name]: value,
@@ -159,12 +197,7 @@ const AddOrModifyExpenseModal: React.FC<AddOrModifyExpenseModalProps> = ({
     setIsSubmitting(true);
 
     // Validate mandatory fields
-    if (
-      !expenseForm.amount ||
-      !expenseForm.transaction_date ||
-      !expenseForm.expense_account_id ||
-      !expenseForm.cash_account_id
-    ) {
+    if (!expenseForm.amount || !expenseForm.transaction_date) {
       toast.warn("Please fill in all mandatory fields.");
       setIsSubmitting(false);
       return;
@@ -176,6 +209,7 @@ const AddOrModifyExpenseModal: React.FC<AddOrModifyExpenseModalProps> = ({
         expenseForm
       );
       toast.success("Expense added successfully.");
+      setExpenseForm(defaultExpenseForm)
       onSave();
       onClose();
     } catch (error) {
@@ -185,29 +219,6 @@ const AddOrModifyExpenseModal: React.FC<AddOrModifyExpenseModalProps> = ({
       setIsSubmitting(false);
     }
   };
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-32">
-        <ProgressSpinner />
-      </div>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="p-4 bg-red-100 text-red-700 rounded-lg">
-        {error}
-        <Button
-          label="Retry"
-          className="p-button-text ml-2"
-          onClick={() => window.location.reload()}
-        />
-      </div>
-    );
-  }
 
   return (
     <Dialog
@@ -237,6 +248,25 @@ const AddOrModifyExpenseModal: React.FC<AddOrModifyExpenseModalProps> = ({
     >
       <form onSubmit={handleSaveExpense}>
         <div className="p-fluid grid grid-cols-1 gap-4">
+          <div className="p-field">
+            <label htmlFor="currency_id">
+              Currency<span className="text-red-500">*</span>
+            </label>
+            <Dropdown
+              id="currency_id"
+              name="currency_id"
+              value={expenseForm.currency_id}
+              options={currencies.map((method) => ({
+                value: method.id,
+                name: method.name, // Use payment method name for display
+              }))}
+              onChange={(e) => handleDropdownChange("currency_id", e.value)}
+              optionLabel="name"
+              optionValue="value"
+              placeholder="Select Currency"
+              required
+            />
+          </div>
           <div className="p-field">
             <label htmlFor="amount">
               Amount<span className="text-red-500">*</span>
@@ -278,37 +308,26 @@ const AddOrModifyExpenseModal: React.FC<AddOrModifyExpenseModalProps> = ({
             />
           </div>
           <div className="p-field">
-            <label htmlFor="expense_account_id">
-              Expense Account<span className="text-red-500">*</span>
-            </label>
-            <Dropdown
-              id="expense_account_id"
-              name="expense_account_id"
-              value={expenseForm.expense_account_id}
-              options={expenseAccounts}
-              onChange={(e) => handleDropdownChange("expense_account_id", e.value)}
-              optionLabel="name"
-              optionValue="value"
-              placeholder="Select Expense Account"
-              required
-            />
-          </div>
-          <div className="p-field">
-            <label htmlFor="cash_account_id">
-              Cash Account<span className="text-red-500">*</span>
-            </label>
-            <Dropdown
-              id="cash_account_id"
-              name="cash_account_id"
-              value={expenseForm.cash_account_id}
-              options={cashAccounts}
-              onChange={(e) => handleDropdownChange("cash_account_id", e.value)}
-              optionLabel="name"
-              optionValue="value"
-              placeholder="Select Cash Account"
-              required
-            />
-          </div>
+                      <label htmlFor="payment_method_id">
+                        Payment Method<span className="text-red-500">*</span>
+                      </label>
+                      <Dropdown
+                        id="payment_method_id"
+                        name="payment_method_id"
+                        value={expenseForm.payment_method_id}
+                        options={paymentMethods.map((method) => ({
+                          value: method.id, 
+                          name: method.name,
+                        }))}
+                        onChange={(e) =>
+                          handleDropdownChange("payment_method_id", e.value)
+                        }
+                        optionLabel="name"
+                        optionValue="value"
+                        placeholder="Select Payment Method"
+                        required
+                      />
+                    </div>
         </div>
       </form>
     </Dialog>

@@ -29,6 +29,9 @@ import StockAgingReport from "../pages/reports/inventory/stock_aging_report";
 import OutOfStockReport from "../pages/reports/inventory/out_of_stock_report";
 import ReorderReport from "../pages/reports/inventory/reorder_report";
 import OwnersEquityReport from "../pages/reports/accounting/owners_equity";
+import BudgetComparisonReport from "../pages/reports/accounting/BudgetComparisonReport";
+import OwnersEquityDetailedReport from "../pages/reports/accounting/detailedOwnerEquity";
+import AssetRegistryReport from "../pages/reports/assets/assetRegistryReport";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -39,16 +42,28 @@ const AppRouter = () => {
       <ToastContainer />
       <Routes>
         <Route element={<Layout />}>
-          {ROUTES.filter((r) => !r.hidden).map((route) => {
-            return route.sidebarItems.map((item) =>
-              item.items.map((itemRoute) => (
+          {ROUTES.filter((r) => !r.hidden).flatMap((route) =>
+            route.sidebarItems.flatMap((item) => {
+              // If this sidebar item has its own nested `items` array...
+              if (item.items && item.items.length > 0) {
+                return item.items.map((itemRoute) => (
+                  <Route
+                    key={route.path + item.path + itemRoute.path}
+                    path={route.path + item.path + itemRoute.path}
+                    element={itemRoute.element}
+                  />
+                ));
+              }
+              // Otherwise, treat this `item` as a standalone link
+              return (
                 <Route
-                  path={route.path + item.path + itemRoute.path}
-                  element={itemRoute.element}
+                  key={route.path + item.path}
+                  path={route.path + item.path}
+                  element={item.element}
                 />
-              ))
-            );
-          })}
+              );
+            })
+          )}
           <Route
             path="/"
             element={<Navigate to={token ? "/inventory" : "/login"} replace />}
@@ -71,7 +86,15 @@ const AppRouter = () => {
           />
           <Route path="/trial-balance" element={<TrialBalance />} />
           <Route path="/cashflow-report" element={<Cashflow />} />
+          <Route
+            path="/asset-registry-report"
+            element={<AssetRegistryReport />}
+          />
           <Route path="/owners-equity" element={<OwnersEquityReport />} />
+          <Route
+            path="/detailed-owners-equity"
+            element={<OwnersEquityDetailedReport />}
+          />
           <Route path="/cash-book" element={<CashBook />} />
           <Route
             path="/general-ledger-book"
@@ -85,6 +108,10 @@ const AppRouter = () => {
           <Route
             path="/income-statement-report-comparisons"
             element={<ComparisonIncomeStatement />}
+          />
+          <Route
+            path="/budget-comparison-report"
+            element={<BudgetComparisonReport />}
           />
           <Route
             path="/trial-balance-comparisons"

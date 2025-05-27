@@ -14,6 +14,7 @@ import { RootState } from "../../../redux/store";
 import { baseURL } from "../../../utils/api";
 import axios from "axios";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
+import { toast } from "react-toastify";
 
 const SalesTransactions: React.FC = () => {
   const { refresh } = useGeneralLedgers();
@@ -53,8 +54,7 @@ const SalesTransactions: React.FC = () => {
           },
         }
       );
-      console.log("resqq", response.data.data.data);
-      setDt(response.data.data.data);
+      setDt(response.data.data);
       //    if(response.success) {
       //     setDt(response.data.data)
       //    }
@@ -66,6 +66,24 @@ const SalesTransactions: React.FC = () => {
   useEffect(() => {
     fetchRecords();
   }, []);
+
+  const handleReverseTransaction = async (transactionId: number) => {
+    try {
+      await axios.delete(
+        `${baseURL}/accounts/transactions/${transactionId}/delete`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.success("Transaction reversed successfully");
+      fetchRecords();
+    } catch (error) {
+      console.error("Reversal failed", error);
+      toast.error("Failed to reverse transaction");
+    }
+  };
 
   const columnDefinitions: ColDef<any>[] = [
     {
@@ -97,6 +115,20 @@ const SalesTransactions: React.FC = () => {
       field: "journal_transaction.description",
       sortable: true,
       filter: true,
+    },
+    {
+      headerName: "Actions",
+      field: "actions",
+      cellRenderer: (params: any) => {
+        return (
+          <button
+            onClick={() => handleReverseTransaction(params.data.id)}
+            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+          >
+            Reverse
+          </button>
+        );
+      },
     },
   ];
 
@@ -139,7 +171,7 @@ const SalesTransactions: React.FC = () => {
           endpoint={dialogState.endpoint}
           debitAccountType={dialogState.debitAccountsType}
           creditAccountType={dialogState.creditAccountsType}
-          onSave={refresh}
+          onSave={fetchRecords}
           item={dialogState.selectedItem}
           visible={
             dialogState.currentAction == "add" ||

@@ -4,9 +4,11 @@ import store from "./redux/store";
 import { PrimeReactProvider } from "primereact/api";
 import i18n from "./locales/config/config";
 import { I18nextProvider } from "react-i18next";
+// import InternshipAppointmentLetter from "./pages/auth/temp";
 
 const App = () => {
   return (
+    //<InternshipAppointmentLetter />
     <I18nextProvider i18n={i18n}>
       <Provider store={store}>
         <PrimeReactProvider

@@ -4,7 +4,7 @@ export const ACCOUNTS_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/accounts/categories/${id}`,
     // ADD: "/accounts/categories/create",
     ADD: "/account-charts",
-    UPDATE: (id: string) => `/accounts/categories/${id}/update`,
+    UPDATE: (id: string) => `/accounts/categories/${id}/update-code`,
     DELETE: (id: string) => `/accounts/categories/${id}/delete`,
   },
   SUB_CATEGORIES: {
@@ -35,6 +35,18 @@ export const ACCOUNTS_ENDPOINTS = {
     APPROVE: (id: string) => `/accounts/cash-requisitions/${id}/approve`,
     REJECT: (id: string) => `/accounts/cash-requisitions/${id}/reject`,
     DISBURSE: (id: string) => `/accounts/cash-requisitions/${id}/disburse`,
+  },
+  FUEL_REQUISITIONS: {
+    GET_ALL: "/requisitions/fuel-requisitions",
+    GET_BY_ID: (id: string) => `/accounts/fuel-requisitions/${id}`,
+    ADD: "/requisitions/fuel-requisitions",
+    UPDATE: (id: string) => `/accounts/fuel-requisitions`
+  },
+  STORE_REQUISITIONS: {
+    GET_ALL: "/requisitions/store-requisitions",
+    GET_BY_ID: (id: string) => `/accounts/fuel-requisitions/${id}`,
+    ADD: "/requisitions/store-requisitions",
+    UPDATE: (id: string) => `/requisitions/store-requisitions/${id}`
   },
   APPROVAL_LEVELS: {
     GET_ALL: "/accounts/requisitions-approval-level",

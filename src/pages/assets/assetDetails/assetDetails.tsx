@@ -1,49 +1,117 @@
-import React, { useState } from "react";
-//import { useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import useAssets from "../../../hooks/assets/useAssets";
 import AddOrModifyPaymentModal from ".././AddOrModifyPaymentModal";
 import AddOrModifyExpenseModal from ".././AddOrModifyExpenseModal";
 import AddOrModifyIncomeModal from ".././AddOrModifyIncomeModal";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import axios from "axios";
+import { ASSETSENDPOINTS } from "../../../api/assetEndpoints";
+import { baseURL } from "../../../utils/api";
+import useAuth from "../../../hooks/useAuth";
+import AddOrModifyValuationModal from "../AddOrModifyValuationModal";
 
 const AssetDetails: React.FC = () => {
- // const { id } = useParams<{ id: string }>();
+  const {token} = useAuth()
+  const { id } = useParams<{ id: string }>();
   const { data: assets } = useAssets();
+  const [assetType, setAssetType] = useState('')
   const [selectedAsset, setSelectedAsset] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("payments");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showIncomeModal, setShowIncomeModal] = useState(false);
+  const [valuationDialogOpen, setValuationDialogOpen] = useState(false)
+
+  const [history, setHistory] = useState<any[]>([])
 
   const navigationTabs = [
     { id: "payments", label: "Payments" },
     { id: "expenses", label: "Expenses" },
     { id: "income", label: "Income" },
-    { id: "depreciation", label: "Depreciation/Appreciation" },
+    {
+      id: assetType === "appreciating" ? "appreciation" : "depreciation",
+      label: assetType === "appreciating" ? "Appreciation" : "Depreciation",
+    },
+    { id: "attachments", label: "Attachments" },
+    { id: "valuation", label: "Valuation" },
   ];
+
+  const fetchAssetInfo = async () => {
+    try {
+      const res = await axios.get(
+        `${baseURL}${ASSETSENDPOINTS.ASSETS.GET_BY_ID(id)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token.access_token}`, // ✅ fixed typo
+          },
+        }
+      );
+      setSelectedAsset(res.data.data);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to fetch asset data");
+    }
+  };
+
+    useEffect(() => {
+      fetchAssetInfo();
+    }, [id]);
+
+
+  const fetchAppreciationOrDepreciationHistory = async (
+    asset_id: string,
+    asset_type: string
+  ): Promise<any> => {
+    try {
+      const endpoint =
+        asset_type === "depreciating"
+          ? `${baseURL}/assets/assetdepreciation/process/${asset_id}`
+          : `${baseURL}/assets/assetappreciation/history/${asset_id}`;
+
+      const response = await axios.get(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token.access_token}`,
+        },
+      });
+      setHistory(response.data.data)
+    } catch (error: any) {
+      console.error("Error fetching history:", error);
+      // toast.error(error?.response?.data?.message || "Failed to fetch asset history");
+      return null;
+    }
+  };
+
+
+  useEffect(() => {
+    fetchAppreciationOrDepreciationHistory(id, assetType)
+  }, [id]); 
+
+  useEffect(()=> {
+    if(selectedAsset) {
+      setAssetType(selectedAsset.asset_type);
+    }
+  }, [selectedAsset])
+
+  const fetchValuations = async () => {}
 
   if (!assets) return <div>Loading...</div>;
 
-  const handleAssetChange = (e: { value: any }) => {
-    setSelectedAsset(e.value);
-  };
-
-  const assetOptions = assets.map((asset) => ({
-    label: asset.name,
-    value: asset,
-  }));
-
   const totalCards = [
     { title: "Total Purchase", value: selectedAsset?.purchase_cost || 0 },
-    { title: "Total Payments", value: selectedAsset?.total_payments || 0 },
-    { title: "Total Balance", value: selectedAsset?.current_value || 0 },
-    { 
-      title: "Depreciation/Appreciation", 
-      value: (selectedAsset?.current_value || 0) - (selectedAsset?.purchase_cost || 0) 
+    { title: "Total Payments", value: selectedAsset?.total_paid || 0 },
+    {
+  title: "Total Balance",
+  value: selectedAsset?.purchase_cost - parseFloat(selectedAsset?.total_paid ?? "0")
+},
+
+    {
+      title: "Depreciation/Appreciation",
+      value:
+        (selectedAsset?.current_value || 0) -
+        (selectedAsset?.purchase_cost || 0),
     },
     { title: "Total Expense", value: selectedAsset?.total_expense || 0 },
     { title: "Total Income", value: selectedAsset?.total_income || 0 },
@@ -52,16 +120,7 @@ const AssetDetails: React.FC = () => {
   if (!selectedAsset) {
     return (
       <div className="p-fluid grid grid-cols-1 gap-4">
-        <div className="p-field">
-          <h2 className="text-xl font-bold mb-4">Select Asset</h2>
-          <Dropdown
-            value={selectedAsset}
-            options={assetOptions}
-            onChange={handleAssetChange}
-            placeholder="Select an Asset"
-            className="w-full md:w-96"
-          />
-        </div>
+        Loading...
       </div>
     );
   }
@@ -69,14 +128,16 @@ const AssetDetails: React.FC = () => {
   return (
     <div className="p-fluid grid grid-cols-1 gap-4">
       <ToastContainer />
-      
+
       {/* Total Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {totalCards.map((card) => (
           <div key={card.title} className="bg-white rounded-lg p-6 shadow-sm">
             <h3 className="text-gray-500 text-sm font-medium">{card.title}</h3>
             <p className="text-2xl font-semibold mt-2">
-              {typeof card.value === 'number' ? card.value.toLocaleString() : card.value}
+              {typeof card.value === "number"
+                ? card.value.toLocaleString()
+                : card.value}
             </p>
           </div>
         ))}
@@ -111,7 +172,7 @@ const AssetDetails: React.FC = () => {
               <Button
                 label="Add Payment"
                 icon="pi pi-plus"
-                className="p-button-success"
+                className="p-button-success w-44"
                 onClick={() => setShowPaymentModal(true)}
               />
             )}
@@ -119,7 +180,7 @@ const AssetDetails: React.FC = () => {
               <Button
                 label="Add Expense"
                 icon="pi pi-plus"
-                className="p-button-warning"
+                className="p-button-warning w-44 float-end"
                 onClick={() => setShowExpenseModal(true)}
               />
             )}
@@ -127,39 +188,98 @@ const AssetDetails: React.FC = () => {
               <Button
                 label="Add Income"
                 icon="pi pi-plus"
-                className="p-button-info"
+                className="p-button-info w-44"
                 onClick={() => setShowIncomeModal(true)}
+              />
+            )}
+            {activeTab === "attachments" && (
+              <Button
+                label="Add Attachment"
+                icon="pi pi-plus"
+                className="p-button-info w-48"
+                onClick={() => setShowIncomeModal(true)}
+              />
+            )}
+            {activeTab === "valuation" && (
+              <Button
+                label="Add Valuation"
+                icon="pi pi-plus"
+                className="p-button-info w-44"
+                onClick={() => setValuationDialogOpen(true)}
               />
             )}
           </div>
 
           {/* Data Tables */}
           {activeTab === "payments" && (
-            <DataTable value={selectedAsset.payments || []} paginator rows={10}>
-              <Column field="date" header="Date" />
+            <DataTable
+              value={selectedAsset.asset_payments || []}
+              paginator
+              rows={10}
+            >
+              <Column field="transaction_date" header="Date" />
               <Column field="amount" header="Amount" />
-              <Column field="method" header="Payment Method" />
+              <Column field="payment_method.name" header="Payment Method" />
             </DataTable>
           )}
 
           {activeTab === "expenses" && (
-            <DataTable value={selectedAsset.expenses || []} paginator rows={10}>
-              <Column field="date" header="Date" />
-              <Column field="description" header="Description" />
+            <DataTable
+              value={selectedAsset.asset_expenses || []}
+              paginator
+              rows={10}
+            >
+              <Column field="transaction_date" header="Date" />
               <Column field="amount" header="Amount" />
+              <Column field="narrative" header="Description" />
             </DataTable>
           )}
 
           {activeTab === "income" && (
-            <DataTable value={selectedAsset.income || []} paginator rows={10}>
+            <DataTable
+              value={selectedAsset.asset_incomes || []}
+              paginator
+              rows={10}
+            >
+              <Column field="transaction_date" header="Date" />
+              <Column field="amount" header="Amount" />
+              <Column field="payment method" header="Payment Method" />
+            </DataTable>
+          )}
+
+          {(activeTab === "depreciation" || activeTab === "appreciation") && (
+            <DataTable
+              value={
+                activeTab === "depreciation"
+                  ? selectedAsset.asset_depreciations || []
+                  : selectedAsset.asset_appreciations || []
+              }
+              paginator
+              rows={10}
+            >
               <Column field="date" header="Date" />
-              <Column field="source" header="Source" />
+              <Column field="type" header="Type" />
               <Column field="amount" header="Amount" />
             </DataTable>
           )}
 
-          {activeTab === "depreciation" && (
-            <DataTable value={selectedAsset.depreciation || []} paginator rows={10}>
+          {activeTab === "valuation" && (
+            <DataTable
+              value={selectedAsset.valuations || []}
+              paginator
+              rows={10}
+            >
+              <Column field="date" header="Date" />
+              <Column field="type" header="Type" />
+              <Column field="amount" header="Amount" />
+            </DataTable>
+          )}
+          {activeTab === "attachments" && (
+            <DataTable
+              value={selectedAsset.depreciation || []}
+              paginator
+              rows={10}
+            >
               <Column field="date" header="Date" />
               <Column field="type" header="Type" />
               <Column field="amount" header="Amount" />
@@ -174,7 +294,7 @@ const AssetDetails: React.FC = () => {
         onClose={() => setShowPaymentModal(false)}
         assetId={selectedAsset.id}
         onSave={() => {
-          // Implement refresh logic
+          fetchAssetInfo();
         }}
       />
 
@@ -183,7 +303,7 @@ const AssetDetails: React.FC = () => {
         onClose={() => setShowExpenseModal(false)}
         assetId={selectedAsset.id}
         onSave={() => {
-          // Implement refresh logic
+          fetchAssetInfo();
         }}
       />
 
@@ -192,8 +312,18 @@ const AssetDetails: React.FC = () => {
         onClose={() => setShowIncomeModal(false)}
         assetId={selectedAsset.id}
         onSave={() => {
-          // Implement refresh logic
+          fetchAssetInfo();
         }}
+      />
+
+      <AddOrModifyValuationModal
+        visible={valuationDialogOpen}
+        onClose={() => setValuationDialogOpen(false)}
+        assetId={id}
+        onSave={fetchValuations}
+        editMode={false}
+        valuationId=""
+        //initialData={selectedValuation}
       />
     </div>
   );

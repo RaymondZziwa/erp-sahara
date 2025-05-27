@@ -11,7 +11,7 @@ import { Card } from "primereact/card";
 
 import useItemCategories from "../../../hooks/inventory/useCategories";
 import useUnitsOfMeasurement from "../../../hooks/inventory/useUnitsOfMeasurement";
-import { baseURL } from "../../../utils/api";
+import { baseURL, imageURL } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import { InventoryItem } from "../../../redux/slices/types/inventory/Items";
@@ -194,7 +194,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
     // Append all fields to formData
     Object.entries(formState).forEach(([key, value]) => {
-      console.log('items', key, value)
+      console.log("items", key, value);
       if (key !== "item_images" && value !== undefined) {
         // Convert value to string (for non-images fields)
         formData.append(key, value?.toString());
@@ -206,7 +206,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     });
 
     try {
-      const response = await axios({
+      await axios({
         method,
         url: baseURL + endpoint,
         data: formData,
@@ -214,14 +214,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token.access_token}`,
         },
+        validateStatus: () => true,
       });
-      if (response.data.success) {
-        toast.success("Product modified successfully!");
-      } else {
-        throw Error(response.data.message);
-      }
+      toast.success("Product modified successfully!");
+      onSave()
+      onClose();
     } catch (error) {
-      console.error("Error saving item", error);
+      toast.error(error?.response?.data.message);
       handleGenericError(error);
     } finally {
       setIsSubmitting(false);
@@ -351,10 +350,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   onValueChange={(e) =>
                     handleNumberChange("cost_price", e.value)
                   }
-                  mode="currency"
                   name="cost_price"
-                  currency="UGX"
-                  locale="en-US"
                   className="w-full"
                 />
               </div>
@@ -373,9 +369,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   onValueChange={(e) =>
                     handleNumberChange("selling_price", e.value)
                   }
-                  mode="currency"
-                  currency="UGX"
-                  locale="en-US"
                   className="w-full"
                 />
               </div>
@@ -510,7 +503,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                           <img
                             src={
                               image.objectURL ||
-                              `https://saharaauth.efinanci.com/storage/${image.image_url}`
+                              `${imageURL}/${image.image_url}`
                             }
                             alt={`Product ${index}`}
                             className="object-cover w-full h-full"

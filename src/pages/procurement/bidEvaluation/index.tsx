@@ -118,7 +118,7 @@ const BidEvaluations: React.FC = () => {
         />
       )}
       <ConfirmDeleteDialog
-        apiPath={API_ENDPOINTS.BIDS.DELETE(
+        apiPath={API_ENDPOINTS.BID_EVALUATION.DELETE(
           dialogState.selectedItem?.id.toString() ?? ""
         )}
         onClose={() =>
@@ -130,11 +130,11 @@ const BidEvaluations: React.FC = () => {
         }
         onConfirm={refresh}
       />
-      <BreadCrump name="Bid Evaluations" pageName="Bid Evaluations" />
+      <BreadCrump name="Quotation Evaluation" pageName="Quotation Evaluation" />
       <div className="bg-white md:px-8 rounded-lg flex flex-col">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Bid Evaluations Table</h1>
+            <h1 className="text-xl font-bold">Quotation Evaluation</h1>
           </div>
           <div className="flex gap-2">
             <button

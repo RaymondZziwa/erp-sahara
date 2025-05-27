@@ -10,9 +10,12 @@ import AddOrModifyItem from "./AddOrModifyItem";
 import useRequestForQuotation from "../../../hooks/procurement/useRequestForQuotation";
 import { RequestForQuotation } from "../../../redux/slices/types/procurement/RequestForQuotation";
 import { API_ENDPOINTS } from "../../../api/apiEndpoints";
+import { useNavigate } from "react-router-dom";
 
 const RequestForQuotationItems: React.FC = () => {
   const { data, refresh } = useRequestForQuotation();
+  const navigate = useNavigate()
+  
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
@@ -28,43 +31,47 @@ const RequestForQuotationItems: React.FC = () => {
 
   const columnDefinitions: ColDef<RequestForQuotation>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "Title",
       field: "title",
       sortable: true,
       filter: true,
+      cellStyle: { cursor: "pointer", textDecoration: "underline" },
+      onCellClicked: (params) => {
+        // Navigate to bids page with RFQ ID
+        navigate(`/procurement/procurement/bids?rfq_id=${params.data?.id}`);
+      },
     },
     {
-      headerName: "Budget",
-      field: "budget",
+      headerName: "RFQ Number",
+      field: "rfq_number",
       sortable: true,
       filter: true,
-      suppressSizeToFit: true,
     },
     {
-      headerName: "Submission Deadline",
+      headerName: "Issue Date",
+      field: "issue_date",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Closing Date",
+      field: "closing_date",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Deadline",
       field: "submission_deadline",
       sortable: true,
       filter: true,
-      suppressSizeToFit: true,
     },
     {
-      headerName: "Items",
-      field: "id",
+      headerName: "Status",
+      field: "status",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
-      cellRenderer: (params: ICellRendererParams<RequestForQuotation>) => (
-        <div>{params.data?.rfq_items.length}</div>
-      ),
     },
-
     {
       headerName: "Actions",
       field: "id",
@@ -84,7 +91,7 @@ const RequestForQuotationItems: React.FC = () => {
             className="text-blue-500 cursor-pointer"
             fontSize={20}
           />
-          <Icon
+          {/* <Icon
             onClick={() =>
               setDialogState({
                 ...dialogState,
@@ -95,7 +102,7 @@ const RequestForQuotationItems: React.FC = () => {
             icon="solar:check-square-line-duotone"
             className="text-green-500 cursor-pointer"
             fontSize={20}
-          />
+          /> */}
           <Icon
             onClick={() =>
               setDialogState({
@@ -146,7 +153,7 @@ const RequestForQuotationItems: React.FC = () => {
         <div className="flex justify-between items-center">
           <div className="py-2">
             <h1 className="text-xl font-bold text-nowrap mr-2">
-              Quotation Requests Table
+              Quotation Requests
             </h1>
           </div>
           <div className="flex gap-2">

@@ -4,13 +4,12 @@ import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Dropdown, DropdownChangeEvent } from "primereact/dropdown";
+import { FileUpload } from "primereact/fileupload";
 import { createRequest } from "../../../utils/api";
-
 import { BidEvaluation } from "../../../redux/slices/types/procurement/BidEvaluation";
 import useBids from "../../../hooks/procurement/useBids";
 import useEvaluationCriteria from "../../../hooks/procurement/useEvaluationCriteria";
 import useAuth from "../../../hooks/useAuth";
-
 import useRequestForQuotation from "../../../hooks/procurement/useRequestForQuotation";
 
 interface AddOrModifyItemProps {
@@ -20,34 +19,42 @@ interface AddOrModifyItemProps {
   onSave: () => void;
 }
 
-interface BidEvaluationAdd {
-  request_for_quotation_id: number;
-  evaluation_criteria_id: number;
-  attachment: string;
-  evaluations: {
-    bid_id: number;
-    score: number;
-  }[];
-  evaluated_at: string;
+interface EvaluationItem {
+  evaluation_criteria_id: string;
+  score: number;
   comments: string;
 }
 
-const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
+interface BidEvaluationForm {
+  rfq_id: string;
+  supplier_quotation_id: string;
+  evaluation_summary: string;
+  justification: string;
+  technical_score: number;
+  commercial_score: number;
+  evaluation_items: EvaluationItem[];
+  attachment?: File | null;
+}
+
+const EvaluationForm: React.FC<AddOrModifyItemProps> = ({
   visible,
   onClose,
   item,
   onSave,
 }) => {
-  const initialItem: BidEvaluationAdd = {
-    request_for_quotation_id: 0,
-    evaluation_criteria_id: 1,
-    attachment: "",
-    evaluations: [{ bid_id: 0, score: 0 }],
-    evaluated_at: "",
-    comments: "",
+  const initialFormState: BidEvaluationForm = {
+    rfq_id: "",
+    supplier_quotation_id: "",
+    evaluation_summary: "",
+    justification: "",
+    technical_score: 0,
+    commercial_score: 0,
+    evaluation_items: [],
+    attachment: null,
   };
 
-  const [formState, setFormState] = useState<BidEvaluationAdd>(initialItem);
+  const [formState, setFormState] =
+    useState<BidEvaluationForm>(initialFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: bids } = useBids();
   const { data: evaluationCriteria } = useEvaluationCriteria();
@@ -56,12 +63,19 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
   useEffect(() => {
     if (item) {
+      // Map existing item to form state if editing
       setFormState({
-        ...initialItem,
-        ...item,
+        rfq_id: item.rfq_id || "",
+        supplier_quotation_id: item.supplier_quotation_id || "",
+        evaluation_summary: item.evaluation_summary || "",
+        justification: item.justification || "",
+        technical_score: item.technical_score || 0,
+        commercial_score: item.commercial_score || 0,
+        evaluation_items: item.evaluation_items || [],
+        attachment: null, // Handle existing attachment if needed
       });
     } else {
-      setFormState(initialItem);
+      setFormState(initialFormState);
     }
   }, [item]);
 
@@ -75,9 +89,20 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
 
+  const handleNumberInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fieldName: string
+  ) => {
+    const value = parseFloat(e.target.value) || 0;
+    setFormState((prevState) => ({
+      ...prevState,
+      [fieldName]: value,
+    }));
+  };
+
   const handleDropdownChange = (
     e: DropdownChangeEvent,
-    field: keyof BidEvaluationAdd
+    field: keyof BidEvaluationForm
   ) => {
     setFormState((prevState) => ({
       ...prevState,
@@ -85,61 +110,98 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
 
-  const handleEvaluationChange = (
-    e: React.ChangeEvent<HTMLInputElement> | DropdownChangeEvent,
-    index: number
+  const handleEvaluationItemChange = (
+    index: number,
+    field: keyof EvaluationItem,
+    value: string | number
   ) => {
-    const { name, value } =
-      e.target instanceof HTMLInputElement
-        ? e.target
-        : { name: e.target.name, value: e.target.value }; // Handle both cases correctly
-
-    const updatedEvaluations = formState.evaluations.map((evaluation, i) =>
-      i === index ? { ...evaluation, [name]: value } : evaluation
-    );
-
+    const updatedItems = [...formState.evaluation_items];
+    updatedItems[index] = {
+      ...updatedItems[index],
+      [field]: value,
+    };
     setFormState((prevState) => ({
       ...prevState,
-      evaluations: updatedEvaluations,
+      evaluation_items: updatedItems,
     }));
   };
 
-  const handleAddEvaluation = () => {
+  const handleAddEvaluationItem = () => {
     setFormState((prevState) => ({
       ...prevState,
-      evaluations: [...prevState.evaluations, { bid_id: 0, score: 0 }],
+      evaluation_items: [
+        ...prevState.evaluation_items,
+        { evaluation_criteria_id: "", score: 0, comments: "" },
+      ],
     }));
   };
 
-  const handleRemoveEvaluation = (index: number) => {
-    const updatedEvaluations = formState.evaluations.filter(
+  const handleRemoveEvaluationItem = (index: number) => {
+    const updatedItems = formState.evaluation_items.filter(
       (_, i) => i !== index
     );
     setFormState((prevState) => ({
       ...prevState,
-      evaluations: updatedEvaluations,
+      evaluation_items: updatedItems,
     }));
   };
 
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFileUpload = (e: { files: File[] }) => {
+    setFormState((prevState) => ({
+      ...prevState,
+      attachment: e.files[0],
+    }));
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    const method = item?.id ? "PUT" : "POST";
-    const endpoint = item?.id
-      ? `/erp/procurement/evaluations/${item.id}/update`
-      : "/erp/procurement/evaluations/create";
 
-    await createRequest(
-      endpoint,
-      token.access_token,
-      formState,
-      onSave,
-      method
-    );
-    setIsSubmitting(false);
+    try {
+      const formData = new FormData();
 
-    onSave();
-    onClose(); // Close the modal after saving
+      // Append all form fields to FormData
+      formData.append("rfq_id", formState.rfq_id);
+      formData.append("supplier_quotation_id", formState.supplier_quotation_id);
+      formData.append("evaluation_summary", formState.evaluation_summary);
+      formData.append("justification", formState.justification);
+      formData.append("technical_score", formState.technical_score.toString());
+      formData.append(
+        "commercial_score",
+        formState.commercial_score.toString()
+      );
+
+      // Append evaluation items as JSON string
+      formData.append(
+        "evaluation_items",
+        JSON.stringify(formState.evaluation_items)
+      );
+
+      // Append file if exists
+      if (formState.attachment) {
+        formData.append("attachment", formState.attachment);
+      }
+
+      const method = "POST";
+      const endpoint = item?.id
+        ? `/procurement/quotation-evaluations/${item.id}/update`
+        : "/procurement/quotation-evaluations/create";
+
+      await createRequest(
+        endpoint,
+        token.access_token,
+        formData,
+        onSave,
+        method
+      );
+
+      onSave();
+      onClose();
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const footer = (
@@ -158,7 +220,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         label={item?.id ? "Update" : "Submit"}
         icon="pi pi-check"
         type="submit"
-        form="item-form"
+        form="evaluation-form"
         size="small"
       />
     </div>
@@ -168,164 +230,199 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     <Dialog
       header={`${item?.id ? "Edit" : "Add"} Evaluation`}
       visible={visible}
-      className="w-1/2 md:w-4xl"
+      className="w-11/12 md:w-3/4 lg:w-1/2"
       footer={footer}
       onHide={onClose}
     >
       <form
-        id="item-form"
+        id="evaluation-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-field">
+            <label htmlFor="rfq_id">RFQ ID</label>
+            <Dropdown
+              id="rfq_id"
+              name="rfq_id"
+              value={formState.rfq_id}
+              options={quotationRequests?.map((rfq) => ({
+                label: rfq.title || rfq.id.toString(),
+                value: rfq.id.toString(),
+              }))}
+              onChange={(e) => handleDropdownChange(e, "rfq_id")}
+              placeholder="Select RFQ"
+              filter
+              className="w-full"
+            />
+          </div>
+
+          <div className="p-field">
+            <label htmlFor="supplier_quotation_id">Supplier Quotation</label>
+            <Dropdown
+              id="supplier_quotation_id"
+              name="supplier_quotation_id"
+              value={formState.supplier_quotation_id}
+              options={bids
+                ?.filter((bid) => bid.rfq_id === formState.rfq_id)
+                .map((bid) => ({
+                  label: `${bid.rfq_supplier?.supplier.supplier_name} - ${bid.quotation_ref}`,
+                  value: bid.id.toString(),
+                }))}
+              onChange={(e) => handleDropdownChange(e, "supplier_quotation_id")}
+              placeholder="Select Supplier Quotation"
+              filter
+              className="w-full"
+              disabled={!formState.rfq_id}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-field">
+            <label htmlFor="technical_score">Technical Score</label>
+            <InputText
+              id="technical_score"
+              name="technical_score"
+              type="number"
+              min="0"
+              max="100"
+              value={formState.technical_score.toString()}
+              onChange={(e) => handleNumberInputChange(e, "technical_score")}
+              className="w-full"
+            />
+          </div>
+
+          <div className="p-field">
+            <label htmlFor="commercial_score">Commercial Score</label>
+            <InputText
+              id="commercial_score"
+              name="commercial_score"
+              type="number"
+              min="0"
+              max="100"
+              value={formState.commercial_score.toString()}
+              onChange={(e) => handleNumberInputChange(e, "commercial_score")}
+              className="w-full"
+            />
+          </div>
+        </div>
+
         <div className="p-field">
-          <label htmlFor="request_for_quotation_id">
-            Request for Quotation
-          </label>
-          <Dropdown
-            id="request_for_quotation_id"
-            name="request_for_quotation_id"
-            value={formState.request_for_quotation_id}
-            options={quotationRequests}
-            optionLabel="title"
-            optionValue="id"
-            onChange={(e) => {
-              handleDropdownChange(e, "request_for_quotation_id");
-            }}
-            placeholder="Select Request for Quotation"
-            filter
+          <label htmlFor="evaluation_summary">Evaluation Summary</label>
+          <InputTextarea
+            id="evaluation_summary"
+            name="evaluation_summary"
+            value={formState.evaluation_summary}
+            onChange={handleInputChange}
+            rows={3}
             className="w-full"
           />
         </div>
 
         <div className="p-field">
-          {quotationRequests
-            ?.filter((item) => item.id === formState.request_for_quotation_id)
-            .map((rfq) => (
-              <div key={rfq.id}>
-                <h4 className="font-semibold mb-2">Bids</h4>
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr>
-                      <th className="border px-2 py-1">Bid No</th>
-                      <th className="border px-2 py-1">Supplier</th>
-                      <th className="border px-2 py-1">Score</th>
-                      <th className="border px-2 py-1">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {formState.evaluations.map((evaluation, index) => (
-                      <tr key={index}>
-                        <td className="border px-2 py-1">
-                          <Dropdown
-                            id={`bid_id_${index}`}
-                            name="bid_id"
-                            value={evaluation.bid_id}
-                            options={bids.filter(
-                              (bid) =>
-                                bid.request_for_quotation_id ===
-                                formState.request_for_quotation_id
-                            )}
-                            optionLabel="bid_no"
-                            optionValue="id"
-                            onChange={(e) => handleEvaluationChange(e, index)}
-                            placeholder="Select a bid"
-                            filter
-                            className="w-full"
-                          />
-                        </td>
-                        <td className="border px-2 py-1">
-                          {
-                            bids.find((bid) => bid.id === evaluation.bid_id)
-                              ?.supplier.supplier_name
-                          }
-                        </td>
-                        <td className="border px-2 py-1">
-                          <InputText
-                            id={`score_${index}`}
-                            name="score"
-                            type="number"
-                            value={evaluation.score.toString()}
-                            onChange={(e) => handleEvaluationChange(e, index)}
-                            className="w-full"
-                          />
-                        </td>
-                        <td className="border px-2 py-1">
-                          <Button
-                            type="button"
-                            icon="pi pi-trash"
-                            className="p-button-rounded p-button-danger p-button-text"
-                            onClick={() => handleRemoveEvaluation(index)}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <Button
-                  type="button"
-                  label="Add Bid"
-                  icon="pi pi-plus"
-                  className="p-button-text p-button-sm mt-2 w-max"
-                  onClick={handleAddEvaluation}
-                />
+          <label htmlFor="justification">Justification</label>
+          <InputTextarea
+            id="justification"
+            name="justification"
+            value={formState.justification}
+            onChange={handleInputChange}
+            rows={3}
+            className="w-full"
+          />
+        </div>
+
+        <div className="p-field">
+          <div className="flex justify-between items-center mb-2">
+            <label>Evaluation Items</label>
+            <Button
+              type="button"
+              label="Add Item"
+              icon="pi pi-plus"
+              className="p-button-text p-button-sm"
+              onClick={handleAddEvaluationItem}
+            />
+          </div>
+
+          <div className="space-y-4">
+            {formState.evaluation_items.map((item, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded"
+              >
+                <div className="p-field">
+                  <label htmlFor={`criteria_name_${index}`}>Criteria</label>
+                  <Dropdown
+                    id={`criteria_name_${index}`}
+                    value={item.evaluation_criteria_id}
+                    options={evaluationCriteria?.map((criteria) => ({
+                      label: criteria.name,
+                      value: criteria.id,
+                    }))}
+                    onChange={(e) =>
+                      handleEvaluationItemChange(
+                        index,
+                        "evaluation_criteria_id",
+                        e.value
+                      )
+                    }
+                    placeholder="Select Criteria"
+                    filter
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="p-field">
+                  <label htmlFor={`score_${index}`}>Score</label>
+                  <InputText
+                    id={`score_${index}`}
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={item.score.toString()}
+                    onChange={(e) =>
+                      handleEvaluationItemChange(
+                        index,
+                        "score",
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="p-field">
+                  <label htmlFor={`comments_${index}`}>Comments</label>
+                  <InputTextarea
+                    id={`comments_${index}`}
+                    value={item.comments}
+                    onChange={(e) =>
+                      handleEvaluationItemChange(
+                        index,
+                        "comments",
+                        e.target.value
+                      )
+                    }
+                    rows={1}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="col-span-full flex justify-end">
+                  <Button
+                    type="button"
+                    icon="pi pi-trash"
+                    className="p-button-rounded p-button-danger p-button-text"
+                    onClick={() => handleRemoveEvaluationItem(index)}
+                  />
+                </div>
               </div>
             ))}
-        </div>
-
-        <div className="p-field">
-          <label htmlFor="evaluation_criteria_id">Evaluation Criteria</label>
-          <Dropdown
-            id="evaluation_criteria_id"
-            name="evaluation_criteria_id"
-            value={formState.evaluation_criteria_id}
-            options={evaluationCriteria}
-            optionLabel="name"
-            optionValue="id"
-            onChange={(e) => handleDropdownChange(e, "evaluation_criteria_id")}
-            placeholder="Select a criteria"
-            filter
-            className="w-full"
-          />
-        </div>
-
-        <div className="p-field">
-          <label htmlFor="attachment">Attachment</label>
-          <InputText
-            id="attachment"
-            name="attachment"
-            type="text"
-            value={formState.attachment}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-
-        <div className="p-field">
-          <label htmlFor="evaluated_at">Evaluated At</label>
-          <InputText
-            id="evaluated_at"
-            name="evaluated_at"
-            type="datetime-local"
-            value={formState.evaluated_at}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-
-        <div className="p-field">
-          <label htmlFor="comments">Comments</label>
-          <InputTextarea
-            id="comments"
-            name="comments"
-            value={formState.comments}
-            onChange={handleInputChange}
-            rows={4}
-            className="w-full"
-          />
+          </div>
         </div>
       </form>
     </Dialog>
   );
 };
 
-export default AddOrModifyItem;
+export default EvaluationForm;

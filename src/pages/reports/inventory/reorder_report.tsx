@@ -24,7 +24,7 @@ const ReorderReport = () => {
       try {
         setLoading(true);
         const response = await axios.post(
-          `${baseURL}/erp/inventories/reports/reorderreport`,
+          `${baseURL}/inventories/reports/reorderreport`,
           {},
           {
             headers: {

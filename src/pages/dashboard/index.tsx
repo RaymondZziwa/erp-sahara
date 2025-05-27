@@ -13,7 +13,7 @@ const Dashboard = () => {
         {/* Expenses Section */}
         <ExpensesSection />
         {/* Invoices Section */}
-        <InvoicesSection />
+        {/* <InvoicesSection /> */}
         
 
        

@@ -28,8 +28,8 @@ const ReviewOrApprovePurchaseRequest = ({
 
     const endpoint =
       action === "approve"
-        ? "/erp/procurement/purchase_requests/approve"
-        : "/erp/procurement/purchase_requests/review";
+        ? "/procurement/purchase_requests/approve"
+        : "/procurement/purchase_requests/review";
 
     const data =
       action === "approve" && status !== "rejected"

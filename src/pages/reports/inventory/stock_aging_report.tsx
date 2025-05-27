@@ -25,7 +25,7 @@ const StockAgingReport = () => {
       try {
         setLoading(true);
         const response = await axios.post(
-          `${baseURL}/erp/inventories/reports/stockagingreport`,
+          `${baseURL}/inventories/reports/stockagingreport`,
           {
             ...(startDate && {
               start_date: startDate.toISOString().split("T")[0],

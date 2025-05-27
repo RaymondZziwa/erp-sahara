@@ -12,20 +12,23 @@ const reportsData = [
         link: "/trial-balance-comparisons",
       },
       { name: "Income Statement", link: "/income-statement-report" },
-      {
-        name: "Income Statement Comparisons",
-        link: "/income-statement-report-comparisons",
-      },
+      // {
+      //   name: "Income Statement Comparisons",
+      //   link: "/income-statement-report-comparisons",
+      // },
       { name: "Balance Sheet", link: "/balance-sheet" },
+      // { name: "Budget Comparison Report", link: "/budget-comparison-report" },
       {
         name: "Balance Sheet Comparisons",
         link: "/balance-sheet-comparisons",
       },
       { name: "Cash Flow", link: "/cashflow-report" },
       // { name: "Owner's equity", link: "/owner-equity" },
-      { name: "Owner's equity", link: "/owners-equity" },
+      { name: "Owner's equity summary", link: "/owners-equity" },
+      { name: "Detailed Owner's equity", link: "/detailed-owners-equity" },
       { name: "Cash book", link: "/cash-book" },
       { name: "General Ledger", link: "/general-ledger-book" },
+      { name: "Budget comparison", link: "/budget-comparison-report" },
       // { name: "Ledger book", link: "#" },
       // { name: "Petty cash book", link: "#" },
       // { name: "Statement of Changes in Equity", link: "#" },
@@ -37,7 +40,6 @@ const reportsData = [
       // { name: "Aging Payables", link: "#" },
       // { name: "Capital Adequacy", link: "#" },
       // { name: "Other Disclosures", link: "#" },
-      // { name: "Budget comparison", link: "#" },
       // { name: "Budget performance report", link: "#" },
     ],
   },
@@ -54,27 +56,15 @@ const reportsData = [
       { name: "Stock Taking Report", link: "/stock-taking-report" },
     ],
   },
-  // {
-  //   category: "Frequent Reports",
-  //   reports: [
-  //     { name: "Accounts Receivable", link: "/out-of-stock-report" },
-  //     { name: "Invoices", link: "/out-of-stock-report" },
-  //   ],
-  // },
-  // {
-  //   category: "Debtors: What You Owe",
-  //   reports: [
-  //     { name: "Accounts Payable", link: "/out-of-stock-report" },
-  //     { name: "Unpaid Bills", link: "/out-of-stock-report" },
-  //   ],
-  // },
-  // {
-  //   category: "Creditors: Who Owe You",
-  //   reports: [
-  //     { name: "Accounts Receivable", link: "/out-of-stock-report" },
-  //     { name: "Invoices", link: "/out-of-stock-report" },
-  //   ],
-  // },
+  {
+    category: "Assets",
+    reports: [
+      {
+        name: "Asset Registry Report",
+        link: "/asset-registry-report",
+      },
+    ],
+  },
 ];
 
 const Reports = () => {

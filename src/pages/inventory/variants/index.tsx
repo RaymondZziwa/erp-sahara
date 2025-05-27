@@ -131,7 +131,7 @@ const Variants: React.FC = () => {
         }
       />
       <ConfirmDeleteDialog
-        apiPath={`/erp/procurement/items/${dialogState.selectedItem?.id}/delete`}
+        apiPath={`/procurement/items/${dialogState.selectedItem?.id}/delete`}
         onClose={() =>
           setDialogState({ selectedItem: undefined, currentAction: "" })
         }

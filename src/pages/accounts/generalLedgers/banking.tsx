@@ -10,10 +10,11 @@ import { PROJECTS_ENDPOINTS } from "../../../api/projectsEndpoints";
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
 import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
-import { baseURL } from "../../../utils/api";
+import { baseURL, createRequest } from "../../../utils/api";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
+import { toast } from "react-toastify";
 
 const BankingLedgers: React.FC = () => {
   const { refresh } = useGeneralLedgers();
@@ -41,62 +42,92 @@ const BankingLedgers: React.FC = () => {
     debitAccountHeader: "",
   });
 
-  useEffect(()=>{
-    const fetchRecords = async () => {
+      const fetchRecords = async () => {
         try {
-           const response = await axios.get(
-             `${baseURL}/accounts/general-ledger/20`,{
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-             }
-           ); 
-           console.log('resqq', response.data.data.data)
-           setDt(response.data.data.data);
-        //    if(response.success) {
-        //     setDt(response.data.data)
-        //    }
-           
+          const response = await axios.get(
+            `${baseURL}/accounts/general-ledger/20`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setDt(response.data.data);
+          //    if(response.success) {
+          //     setDt(response.data.data)
+          //    }
         } catch (error) {
-            console.log(error)
+          console.log(error);
         }
-    }
+      };
 
+  useEffect(()=>{
     fetchRecords()
   },[])
 
-  const columnDefinitions: ColDef<any>[] = [
-    {
-      headerName: "Date",
-      field: "transaction_date",
-      sortable: true,
-      filter: true,
+  const handleReverseTransaction = async (transactionId: number) => {
+    try {
+      await axios.delete(`${baseURL}/accounts/transactions/${transactionId}/delete`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      toast.success("Transaction reversed successfully");
+      fetchRecords()
+    } catch (error) {
+      console.error("Reversal failed", error);
+      toast.error("Failed to reverse transaction");
+    }
+  };
+
+
+const columnDefinitions: ColDef<any>[] = [
+  {
+    headerName: "Date",
+    field: "transaction_date",
+    sortable: true,
+    filter: true,
+  },
+  {
+    headerName: "Debit A/C",
+    field: "debit_account.name",
+    sortable: true,
+    filter: true,
+  },
+  {
+    headerName: "Credit A/C",
+    field: "credit_account.name",
+    sortable: true,
+    filter: true,
+  },
+  {
+    headerName: "Amount",
+    field: "amount",
+    sortable: true,
+    filter: true,
+  },
+  {
+    headerName: "Description",
+    field: "journal_transaction.description",
+    sortable: true,
+    filter: true,
+  },
+  {
+    headerName: "Actions",
+    field: "actions",
+    cellRenderer: (params: any) => {
+      return (
+        <button
+          onClick={() => handleReverseTransaction(params.data.id)}
+          className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+        >
+          Reverse
+        </button>
+      );
     },
-    {
-      headerName: "Debit A/C",
-      field: "debit_account.name",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Credit A/C",
-      field: "credit_account.name",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Amount",
-      field: "amount",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Description",
-      field: "journal_transaction.description",
-      sortable: true,
-      filter: true,
-    },
-  ];
+  },
+];
+
 
   interface JournalTypeClickParams {
     debitAccountsType: AccountType;
@@ -134,27 +165,32 @@ const BankingLedgers: React.FC = () => {
     <div>
       {dialogState.currentAction !== "" && (
         <AddOrModifyItem
-                  creditAccountsHeader={dialogState.creditAccountHeader}
-                  debitAccountsHeader={dialogState.debitAccountHeader}
-                  journalType={dialogState.journalType}
-                  endpoint={dialogState.endpoint}
-                  debitAccountType={dialogState.debitAccountsType}
-                  creditAccountType={dialogState.creditAccountsType}
-                  onSave={refresh}
-                  item={dialogState.selectedItem}
-                  visible={dialogState.currentAction == "add" ||
-                      (dialogState.currentAction == "edit" &&
-                          !!dialogState.selectedItem?.id)}
-                  onClose={() => setDialogState({
-                      currentAction: "",
-                      selectedItem: undefined,
-                      debitAccountsType: AccountType.ASSETS,
-                      creditAccountsType: AccountType.ASSETS,
-                      endpoint: "",
-                      journalType: "",
-                      debitAccountHeader: "",
-                      creditAccountHeader: "",
-                  })}       />
+          creditAccountsHeader={dialogState.creditAccountHeader}
+          debitAccountsHeader={dialogState.debitAccountHeader}
+          journalType={dialogState.journalType}
+          endpoint={dialogState.endpoint}
+          debitAccountType={dialogState.debitAccountsType}
+          creditAccountType={dialogState.creditAccountsType}
+          onSave={fetchRecords}
+          item={dialogState.selectedItem}
+          visible={
+            dialogState.currentAction == "add" ||
+            (dialogState.currentAction == "edit" &&
+              !!dialogState.selectedItem?.id)
+          }
+          onClose={() =>
+            setDialogState({
+              currentAction: "",
+              selectedItem: undefined,
+              debitAccountsType: AccountType.ASSETS,
+              creditAccountsType: AccountType.ASSETS,
+              endpoint: "",
+              journalType: "",
+              debitAccountHeader: "",
+              creditAccountHeader: "",
+            })
+          }
+        />
       )}
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
@@ -177,7 +213,7 @@ const BankingLedgers: React.FC = () => {
             !!dialogState.selectedItem?.id &&
             dialogState.currentAction === "delete"
           }
-          onConfirm={refresh}
+          onConfirm={fetchRecords}
         />
       )}
       <BreadCrump name="Banking Transactions" pageName="All" />

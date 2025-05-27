@@ -25,7 +25,7 @@ const useUnitsOfMeasurement = () => {
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
       const response = await apiRequest<ServerResponse<UnitOfMeasurement[]>>(
-        "/erp/uom",
+        "/uom",
         "GET",
         token.access_token
       );

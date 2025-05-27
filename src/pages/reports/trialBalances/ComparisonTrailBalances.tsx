@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import useAuth from "../../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
-import { apiRequest } from "../../../utils/api";
+import { apiRequest, baseURL } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 import { ACCOUNTS_ENDPOINTS } from "../../../api/accountsEndpoints";
 import { Icon } from "@iconify/react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import Header from "../../../components/custom/print_header";
+import axios from "axios";
 
 interface ComparisonTrialBalance {
   account_id: number;
@@ -79,86 +79,64 @@ const ComparisonTrialBalances: React.FC = () => {
 
   console.log(trialBalance);
 
-  let current_fy = fiscalYears[fiscalYears.length - 1]?.financial_year;
-  let previous_fy = fiscalYears[fiscalYears.length - 1]?.financial_year;
+  // let current_fy = fiscalYears[fiscalYears.length - 1]?.financial_year;
+  // let previous_fy = fiscalYears[fiscalYears.length - 1]?.financial_year;
 
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-
-    // Define table columns
-    const tableColumn = [
-      "Account Code",
-      "Account Name",
-      ` Debit`,
-      `Credit`,
-      `Debit`,
-      `Credit`,
-      "Debit Difference",
-      "Credit Difference",
-    ];
-
-    // Add the fiscal years row manually
-    const fiscalYearRow = [
-      "Years",
-      "",
-      current_fy,
-      "",
-      previous_fy,
-      "",
-      "",
-      "",
-    ];
-
-    // Map your trial balance data into table rows (replace 0 with "")
-    const tableRows = trialBalance?.map((item) => [
-      item.account_code,
-      item.account_name,
-      item.current_debit !== 0 ? item.current_debit : "",
-      item.current_credit !== 0 ? item.current_credit : "",
-      item.previous_debit !== 0 ? item.previous_debit : "",
-      item.previous_credit !== 0 ? item.previous_credit : "",
-      item.debit_difference !== 0 ? item.debit_difference : "",
-      item.credit_difference !== 0 ? item.credit_difference : "",
-    ]);
-
-    // Add title
-    doc.text("Trial Balance Comparison", 14, 15);
-
-    // Generate the table with the extra row
-    autoTable(doc, {
-      startY: 20,
-      head: [fiscalYearRow, tableColumn],
-      body: tableRows,
-      headStyles: {
-        fillColor: [222, 226, 230],
-        textColor: "black",
-        fontStyle: "bold",
-      },
-      tableLineWidth: 0, // Removes outer table borders
-      tableLineColor: [255, 255, 255], // Makes sure no table outline
-      didParseCell: function (data) {
-        if (data.section === "body") {
-          data.cell.styles.lineWidth = {
-            top: 0.2,
-            right: 0.2,
-            bottom: 0.2,
-            left: 0.2,
-          }; // [top, right, bottom, left]
+  const print = async () => {
+    try {
+      const response = await axios.get(
+        `${baseURL}/reports/accounting/print-tb-comparison`,
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${token.access_token || ""}`,
+          },
         }
-      },
-    });
+      );
 
-    // Save the PDF
-    doc.save("Trial_Balance_Comparison.pdf");
+      // Explicitly set the MIME type as PDF
+      const file = new Blob([response.data], { type: "application/pdf" });
+      const fileURL = URL.createObjectURL(file);
+
+      // Open the file in a new browser tab
+      window.open(fileURL, "_blank");
+    } catch (error) {
+      console.error("Error previewing the balance sheet report:", error);
+    }
   };
+
+    // const print = async () => {
+    //   try {
+    //     const response = await axios.get(
+    //       `${baseURL}/reports/accounting/print-tb-comparison`,
+    //       {
+    //         responseType: "blob", // Important for downloading files
+    //         headers: {
+    //           Authorization: `Bearer ${token.access_token || ""}`,
+    //         },
+    //       }
+    //     );
+
+    //     const url = window.URL.createObjectURL(new Blob([response.data]));
+    //     const link = document.createElement("a");
+    //     link.href = url;
+    //     link.setAttribute("download", "trial-balance-report.pdf"); // Adjust filename/extension if needed
+    //     document.body.appendChild(link);
+    //     link.click();
+    //     link.remove();
+    //     window.URL.revokeObjectURL(url);
+    //   } catch (error) {
+    //     console.error("Error downloading the trial balance report:", error);
+    //   }
+    // };
 
   return (
     <div className="p-4 bg-white">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Trial Balance Comparison Report</h1>
+        <Header title={"Trial Balance Comparison Report"} />
         <button
           className="bg-shade px-2 py-2 rounded text-white flex gap-2 items-center"
-          onClick={handleExportPDF}
+          onClick={print}
         >
           <Icon icon="solar:printer-bold" fontSize={20} />
           Print
@@ -171,15 +149,15 @@ const ComparisonTrialBalances: React.FC = () => {
           <tbody>
             <tr className="font-bold">
               <td className="border-r border-b border-gray-200 p-2" colSpan={2}>
-                Years
+                
               </td>
 
               <td className="border-r border-b border-gray-200 p-2" colSpan={2}>
-                {current_fy}
+                Current Period
               </td>
 
               <td className="border-r border-b border-gray-200 p-2" colSpan={2}>
-                {previous_fy}
+                Previous Period
               </td>
 
               <td
@@ -203,14 +181,6 @@ const ComparisonTrialBalances: React.FC = () => {
               <td className="border-r border-b border-gray-200 p-2">Debit</td>
 
               <td className="border-r border-b border-gray-200 p-2">Credit</td>
-
-              <td className="border-r border-b border-gray-200 p-2">
-                Debit Difference
-              </td>
-
-              <td className="border-r border-b border-gray-200 p-2">
-                Credit Difference
-              </td>
             </tr>
             {trialBalance?.map((item) => (
               <tr key={item.account_id}>
@@ -236,14 +206,6 @@ const ComparisonTrialBalances: React.FC = () => {
 
                 <td className="border-r border-b border-gray-200 px-2">
                   {item.previous_credit !== 0 ? item.previous_credit : ""}
-                </td>
-
-                <td className="border-r border-b border-gray-200 px-2">
-                  {item.debit_difference !== 0 ? item.debit_difference : ""}
-                </td>
-
-                <td className="border-r border-b border-gray-200 px-2">
-                  {item.credit_difference !== 0 ? item.credit_difference : ""}
                 </td>
               </tr>
             ))}

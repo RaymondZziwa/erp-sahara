@@ -1,43 +1,57 @@
 //@ts-nocheck
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
-import { handleGenericError } from "../../utils/errorHandling";
+import { useAppDispatch } from "../../redux/hooks";
 //import { useTranslation } from "react-i18next";
 import saharaLogo from '../../assets/images/sahara.jpeg';
 import latcuLogo from '../../assets/images/logos/ltcu.jpeg'
 import { org } from "../../utils/api";
+import axios from "axios";
+import { baseURL } from "../../utils/api";
+import {
+  setUserData
+} from "../../redux/slices/user/userAuthSlice";
 
 export default function LoginPage() {
-  const { loginHandler, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   //const { t } = useTranslation();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    try {
-      const formData = new FormData(e.currentTarget);
-      const data = {
-        username: formData.get("email") as string,
-        password: formData.get("password") as string,
-      };
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-      const res = await loginHandler(data);
-      if (res.success) {
-        // console.log("Form Data:", data);
+  try {
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      username: formData.get("email") as string,
+      password: formData.get("password") as string,
+    };
 
-        navigate("/");
-      } else {
-        // throw Error(res.message);
-      }
-    } catch (error) {
-      handleGenericError(error);
-    }
+    const response = await axios.post(`${baseURL}/login`, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-    // You can send 'data' to your API or handle it as needed
-  };
+    localStorage.setItem("user", JSON.stringify(response.data.data));
+    dispatch(setUserData(response.data.data));
+    navigate("/");
+  } catch (error: any) {
+    console.log(error)
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Login failed. Please try again.";
+
+    toast.error(errorMessage);
+  }
+};
+
+
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
       {/* Left section with illustration */}
@@ -59,11 +73,11 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="flex flex-col items-center">
             {/* <div className="w-8 h-8 rounded bg-gradient-to-r from-purple-500 to-teal-500" /> */}
-            <img
+            {/* <img
               src={org === "latcu" ? latcuLogo : saharaLogo}
               alt=""
               className=" w-60 h-48"
-            />
+            /> */}
             
             {org === "sahara" && (
               <p className="font-bold text-6xl -mt-8 mb-4">SPICE HUB</p>
@@ -157,13 +171,6 @@ export default function LoginPage() {
               <h4 className="flex w-full justify-center"> LOG IN</h4>
             </Button>
           </form>
-
-          {/* <p className="text-center text-sm text-muted-foreground">
-            New to ERP?{" "}
-            <Link to="/signup" className="text-teal-500 hover:text-teal-600">
-              Create an account
-            </Link>
-          </p> */}
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { Currency } from "./Currency";
 
 export interface PurchaseRequest {
+  request_no: any;
   id: number;
   purchase_request_no: string;
   organisation_id: number;

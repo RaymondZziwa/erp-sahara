@@ -44,11 +44,11 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
   const [formState, setFormState] = useState<NewInventory>(initialItem);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stockOutForm, setStockOutForm] = useState({
-    item_id: 0,
+    item_id: "",
     quantity: 0,
     type: "",
     movement_date: "",
-    warehouse_id: 0,
+    warehouse_id: "",
     to_warehouse_id: 0,
     movement_reason:"",
     picked_by:"",
@@ -104,13 +104,6 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Basic validation
-    if (!formState.item_id || !formState.quantity) {
-      setIsSubmitting(false);
-      console.log("missin");
-      toast.warn('Fill in all mandatory fields')
-      return; // Handle validation error here
-    }
 
     try {
       const method = item?.id ? "PUT" : "POST";

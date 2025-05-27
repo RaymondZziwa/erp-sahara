@@ -13,6 +13,8 @@ import { baseURL } from "../../../utils/api";
 import useChartOfAccounts from "../../../hooks/accounts/useChartOfAccounts";
 import useLedgerChartOfAccounts from "../../../hooks/accounts/useLedgerChartOfAccounts";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
+import { Budget } from "../../../redux/slices/types/budgets/Budget";
+import useAssetsAccounts from "../../../hooks/accounts/useAssetsAccounts";
 
 interface BudgetItem {
   name: string;
@@ -25,28 +27,31 @@ interface BudgetItem {
 }
 
 interface Props {
+  budget: Budget;
+  refresh: any;
   id: any;
   visible: boolean;
   onHide: () => void;
-  onSubmit: (data: BudgetItem[]) => void;
 }
 
 const BudgetItemsModal: React.FC<Props> = ({
+  budget,
   id,
   visible,
+  refresh,
   onHide,
-  onSubmit,
 }) => {
   const token = useSelector(
     (state: RootState) => state.userAuth.token.access_token
   );
   const { data: chartOfAccounts } = useChartOfAccounts();
+
   const [formState, setFormState] = useState<BudgetItem[]>([
     {
       name: "",
       type: "",
       amount: "",
-      currency_id: 1,
+      currency_id: budget.currency_id,
       chart_of_account_id: "",
       budget_allocation_id: "", // Nullable
       description: "",
@@ -55,6 +60,7 @@ const BudgetItemsModal: React.FC<Props> = ({
   const { data: incomeChartOfAccounts } = useLedgerChartOfAccounts({
     accountType: AccountType.INCOME,
   });
+  const { expenseAccounts, incomeAccounts } = useAssetsAccounts();
 
   const handleItemChange = (
     index: number,
@@ -73,7 +79,7 @@ const BudgetItemsModal: React.FC<Props> = ({
         name: "",
         type: "",
         amount: "",
-        currency_id: 1,
+        currency_id: budget.currency_id,
         chart_of_account_id: "",
         budget_allocation_id: "", // Nullable
         description: "",
@@ -88,7 +94,7 @@ const BudgetItemsModal: React.FC<Props> = ({
   const handleSubmit = async () => {
     try {
       const response = await axios.post(
-        `${baseURL}/erp/accounts/budgets/${id}/budgetitems/create`,
+        `${baseURL}/accounts/budgets/${id}/budgetitems/create`,
         {
           budget_items: formState,
         },
@@ -103,14 +109,14 @@ const BudgetItemsModal: React.FC<Props> = ({
 
       if (response.data.success) {
         toast.success(response.data.message);
+        refresh();
       } else {
         toast.error(response.data.message);
       }
 
-      onSubmit(response.data);
       onHide();
     } catch (error) {
-      console.error("Error submitting budget items:", error);
+      console.log("Error submitting budget items:", error);
       toast.error("An error occurred while submitting the budget items."); // Show error toast
     }
   };
@@ -139,19 +145,17 @@ const BudgetItemsModal: React.FC<Props> = ({
               />
               <Dropdown
                 filter
-                placeholder="Chart of Account"
-                value={item.chart_of_account_id}
-                options={(item.type == "revenue"
-                  ? incomeChartOfAccounts
-                  : chartOfAccounts
-                ).map((coa) => ({
-                  label: coa.name,
-                  value: coa.id,
-                }))}
+                value={item.chart_of_account_id} // Changed from formState to item
+                options={(item.type === "revenue" // Changed from formState to item
+                  ? incomeAccounts
+                  : expenseAccounts || []
+                ).map((acc) => ({ label: acc.name, value: acc.id }))}
                 onChange={(e) =>
                   handleItemChange(index, "chart_of_account_id", e.value)
                 }
+                placeholder="Select Account"
               />
+
               <InputNumber
                 placeholder="Amount"
                 value={item.amount}

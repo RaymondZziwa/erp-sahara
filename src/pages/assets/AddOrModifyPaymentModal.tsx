@@ -5,12 +5,13 @@ import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Calendar } from "primereact/calendar";
 import { Dropdown } from "primereact/dropdown";
-import { ProgressSpinner } from "primereact/progressspinner";
 import { toast } from "react-toastify";
 import axios from "axios";
 import useAuth from "../../hooks/useAuth";
 import { ASSETSENDPOINTS } from "../../api/assetEndpoints";
 import { baseURL } from "../../utils/api";
+import useCurrencies from "../../hooks/procurement/useCurrencies";
+import useAssets from "../../hooks/assets/useAssets";
 
 // Centralized API configuration
 const api = axios.create({
@@ -21,9 +22,11 @@ const api = axios.create({
 });
 
 interface PaymentForm {
+  currency_id: string;
   amount: number;
   narrative: string;
   transaction_date: string;
+  payment_method_id: string;
   fund_source_account_id: number | null;
 }
 
@@ -41,6 +44,8 @@ interface AddOrModifyPaymentModalProps {
   onSave: () => void;
 }
 
+
+
 const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
   visible,
   onClose,
@@ -48,12 +53,19 @@ const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
   onSave,
 }) => {
   const { token } = useAuth();
-  const [paymentForm, setPaymentForm] = useState<PaymentForm>({
+  const { data: currencies } = useCurrencies();
+  const {refresh} = useAssets()
+
+  const defaultPaymentForm: PaymentForm = {
     amount: 0,
     narrative: "",
+    currency_id: "",
     transaction_date: "",
+    payment_method_id: "",
     fund_source_account_id: null,
-  });
+  };
+
+  const [paymentForm, setPaymentForm] = useState<PaymentForm>(defaultPaymentForm);
 
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +103,7 @@ const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
   // Fetch payment methods
   const fetchPaymentMethods = async () => {
     try {
-      const response = await api.get("/erp/accounts/paymentmethod");
+      const response = await api.get("/accounts/paymentmethod");
       if (!response.data?.success) {
         throw new Error("Failed to fetch payment methods.");
       }
@@ -137,8 +149,7 @@ const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
     // Validate mandatory fields
     if (
       !paymentForm.amount ||
-      !paymentForm.transaction_date ||
-      !paymentForm.fund_source_account_id
+      !paymentForm.transaction_date
     ) {
       toast.warn("Please fill in all mandatory fields.");
       setIsSubmitting(false);
@@ -151,38 +162,18 @@ const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
         paymentForm
       );
       toast.success("Payment added successfully.");
+      setPaymentForm(defaultPaymentForm)
+      refresh()
       onSave();
       onClose();
     } catch (error) {
       console.error("Error saving payment:", error);
-      toast.error("Failed to add payment.");
+      toast.error(error?.response?.data.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-32">
-        <ProgressSpinner />
-      </div>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="p-4 bg-red-100 text-red-700 rounded-lg">
-        {error}
-        <Button
-          label="Retry"
-          className="p-button-text ml-2"
-          onClick={() => window.location.reload()}
-        />
-      </div>
-    );
-  }
 
   return (
     <Dialog
@@ -212,6 +203,25 @@ const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
     >
       <form onSubmit={handleSavePayment}>
         <div className="p-fluid grid grid-cols-1 gap-4">
+          <div className="p-field">
+            <label htmlFor="currency_id">
+              Currency<span className="text-red-500">*</span>
+            </label>
+            <Dropdown
+              id="currency_id"
+              name="currency_id"
+              value={paymentForm.currency_id}
+              options={currencies.map((method) => ({
+                value: method.id,
+                name: method.name, // Use payment method name for display
+              }))}
+              onChange={(e) => handleDropdownChange("currency_id", e.value)}
+              optionLabel="name"
+              optionValue="value"
+              placeholder="Select Currency"
+              required
+            />
+          </div>
           <div className="p-field">
             <label htmlFor="amount">
               Amount<span className="text-red-500">*</span>
@@ -253,18 +263,20 @@ const AddOrModifyPaymentModal: React.FC<AddOrModifyPaymentModalProps> = ({
             />
           </div>
           <div className="p-field">
-            <label htmlFor="fund_source_account_id">
+            <label htmlFor="payment_method_id">
               Payment Method<span className="text-red-500">*</span>
             </label>
             <Dropdown
-              id="fund_source_account_id"
-              name="fund_source_account_id"
-              value={paymentForm.fund_source_account_id}
+              id="payment_method_id"
+              name="payment_method_id"
+              value={paymentForm.payment_method_id}
               options={paymentMethods.map((method) => ({
-                value: method.chart_of_account_id, // Use chart_of_account_id as the value
-                name: method.name, // Use payment method name for display
+                value: method.id, 
+                name: method.name,
               }))}
-              onChange={(e) => handleDropdownChange("fund_source_account_id", e.value)}
+              onChange={(e) =>
+                handleDropdownChange("payment_method_id", e.value)
+              }
               optionLabel="name"
               optionValue="value"
               placeholder="Select Payment Method"

@@ -38,6 +38,7 @@ interface ChartofAccountAdd {
   account_sub_category_id: number;
   opening_balance?: number | null;
   currency_id: number | null;
+  code: string;
   cash_flow_type: string | null;
   transaction_date: string;
   is_contra: 1 | 0;
@@ -53,6 +54,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     name: "",
     ac_code: "",
     description: "",
+    code: "",
     is_contra: 0,
   });
   const [accountType, setAccountType] = useState<number | undefined>();
@@ -148,10 +150,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       // Basic validation
       if (
         !formState.name ||
-        !formState.account_sub_category_id ||
-        (formState?.opening_balance &&
-          +formState?.opening_balance > 0 &&
-          !formState.currency_id)
+        !formState.account_sub_category_id
       ) {
         setIsSubmitting(false);
         return; // Handle validation error here
@@ -166,6 +165,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         cash_flow_type: formState.cash_flow_type ?? null,
         opening_balance: formState.opening_balance,
         currency_id: formState.currency_id ?? null,
+        code: formState.ac_code ?? '',
         is_contra: formState.is_contra ?? 0,
       };
       const method = item?.id ? "PUT" : "POST";
@@ -306,7 +306,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               onChange={(e) =>
                 setFormState({ ...formState, opening_balance: e.value ?? null })
               }
-              required={!(accountType == 4 || accountType == 5)}
               className="w-full"
             />
           </div>

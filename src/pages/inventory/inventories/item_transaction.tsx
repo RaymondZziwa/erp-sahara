@@ -31,7 +31,7 @@ const ItemTransactionsRecords: React.FC = () => {
 
   useEffect(()=> {
       const getStockOutRecords = async (id: any) => {
-        const response = await axios.get(`${baseURL}/erp/inventories/${id}/inventorymovements`, {
+        const response = await axios.get(`${baseURL}/inventories/${id}/inventorymovements`, {
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,
@@ -49,7 +49,7 @@ const ItemTransactionsRecords: React.FC = () => {
 
   useEffect(()=> {
     const getStockOutRecords = async (id: any) => {
-      const response = await axios.get(`${baseURL}/erp/inventories/${id}/inventorymovements`, {
+      const response = await axios.get(`${baseURL}/inventories/${id}/inventorymovements`, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,

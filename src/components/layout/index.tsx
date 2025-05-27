@@ -6,11 +6,10 @@ import Header from "./Header";
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  
   return (
     <div className="flex w-full h-screen bg-bg">
       <ToastContainer />
-
       {/* Mobile Sidebar Button */}
       <button
         className="md:hidden fixed top-4 left-4 bg-white p-2 rounded-lg shadow-lg z-50"
@@ -31,6 +30,7 @@ export default function Layout() {
       {/* Main Content */}
       <div className="flex flex-col w-full h-full md:w-4/4">
         <Header />
+
         <div className="bg-bg flex-1 h-0 rounded-2xl m-auto w-full overflow-auto px-4">
           <div className="max-w-8xl mx-auto w-full">
             <Outlet />

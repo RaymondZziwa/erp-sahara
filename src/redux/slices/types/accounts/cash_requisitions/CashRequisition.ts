@@ -72,3 +72,36 @@ interface Item {
   shell_life: string;
   description: string;
 }
+
+export interface FuelRequisition {
+  id: string;
+  requisition_no: string;
+  department_id: string;
+  truck_id: string;
+  budget_item_id: string | null;
+  project_id: string | null;
+  amount: number;
+  trip: string;
+  status: string;
+  total_round_kilometers: number;
+  reason: string;
+  last_quantity_fuel_used: string;
+  last_mileage: string;
+}
+
+export interface StoreRequisition {
+  requisition_no: string;
+  department_id: string;
+  requested_by: string;
+  priority: 'low' | 'medium' | 'high'; // Assuming priority can only be one of these
+  items: RequisitionItem[];
+}
+
+export interface RequisitionItem {
+  item_id: string;
+  uom_id: string;
+  requested_quantity: number;
+  warehouse_id: string;
+  specification: string;
+  purpose: string;
+}

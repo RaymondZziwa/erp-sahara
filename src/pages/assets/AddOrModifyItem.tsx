@@ -3,7 +3,6 @@ import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
-import { ProgressSpinner } from "primereact/progressspinner";
 import axios from "axios";
 import useAuth from "../../hooks/useAuth";
 import useAssetCategories from "../../hooks/assets/useAssetCategories";
@@ -11,6 +10,8 @@ import useSuppliers from "../../hooks/inventory/useSuppliers";
 import { baseURL } from "../../utils/api";
 import { ASSETSENDPOINTS } from "../../api/assetEndpoints";
 import { Asset } from "../../redux/slices/types/mossApp/assets/asset";
+import useCurrencies from "../../hooks/procurement/useCurrencies";
+import { toast } from "react-toastify";
 
 // Centralized API configuration
 const api = axios.create({
@@ -36,6 +37,24 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   const { token } = useAuth();
   const { data: suppliers } = useSuppliers();
   const { data: assetCats } = useAssetCategories();
+  const {data: currencies} = useCurrencies();
+  const [currencyOptions, setCurrencyOptions] = useState<{
+    name: string;
+    value: string;
+  }[]>([]);
+
+  useEffect(()=> {
+    const mapped = currencies.map(
+      (currency) => (
+        console.log(currency.name),
+        {
+          name: currency.name,
+          value: currency.id,
+        }
+      )
+    );
+    setCurrencyOptions(mapped)
+  }, [currencies])
 
   const [formState, setFormState] = useState<Partial<Asset>>({
     name: "",
@@ -48,7 +67,7 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
     date_put_to_use: "",
     purchase_cost: undefined,
     current_value: undefined,
-    date_when: "",
+    currency_id: 0,
     depreciation_account_id: undefined,
     depreciation_loss_account_id: undefined,
     depreciation_gain_account_id: undefined,
@@ -104,7 +123,7 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   // Fetch income accounts
   const getIncomeAccounts = async () => {
     try {
-      const response = await api.get("/erp/accounts/get-income-accounts");
+      const response = await api.get("/accounts/get-income-accounts");
       console.log("Income Accounts Response:", response.data);
 
       const incomeData = response.data?.data || [];
@@ -121,7 +140,7 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   // Fetch expense accounts
   const getExpenseAccounts = async () => {
     try {
-      const response = await api.get("/erp/accounts/get-expense-accounts");
+      const response = await api.get("/accounts/get-expense-accounts");
       console.log("Expense Accounts Response:", response.data);
 
       const expenseData = response.data?.data || [];
@@ -138,7 +157,7 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   // Fetch asset accounts
   const getAssetAccounts = async () => {
     try {
-      const response = await api.get("/erp/accounts/get-asset-accounts");
+      const response = await api.get("/accounts/get-asset-accounts");
       console.log("Asset Accounts Response:", response.data);
 
       const assetData = response.data?.data || [];
@@ -191,7 +210,7 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
         date_put_to_use: "",
         purchase_cost: undefined,
         current_value: undefined,
-        date_when: "",
+        currency_id: 0,
         depreciation_account_id: undefined,
         depreciation_loss_account_id: undefined,
         depreciation_gain_account_id: undefined,
@@ -260,7 +279,6 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       "purchase_cost",
       "current_value",
       "date_put_to_use",
-      "date_when",
       "salvage_value",
       "useful_life",
       "description",
@@ -291,8 +309,33 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
         url: endpoint,
         data: formState,
       });
-
-      console.log("Save successful:", response.data);
+      setFormState({
+        name: "",
+        supplier: "",
+        asset_type: "",
+        asset_account_id: undefined,
+        asset_category_id: undefined,
+        identity_no: "",
+        purchase_date: "",
+        date_put_to_use: "",
+        purchase_cost: undefined,
+        current_value: undefined,
+        currency_id: 0,
+        depreciation_account_id: undefined,
+        depreciation_loss_account_id: undefined,
+        depreciation_gain_account_id: undefined,
+        expense_account_id: undefined,
+        depreciation_method: "straight_line",
+        depreciation_rate: undefined,
+        income_account_id: undefined,
+        appreciation_account_id: undefined,
+        appreciation_loss_account_id: undefined,
+        appreciation_gain_account_id: undefined,
+        appreciation_rate: undefined,
+        salvage_value: undefined,
+        useful_life: undefined,
+        description: "",
+      });
 
       onSave();
       onClose();
@@ -323,17 +366,49 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   // Always visible fields
   const alwaysVisibleFields = [
     { key: "name", label: "Name", type: "text" },
-    { key: "supplier", label: "Supplier", type: "dropdown", options: supplierOptions },
-    { key: "identity_no", label: "Serial Number", type: "text" },
-    { key: "asset_category_id", label: "Asset Category", type: "dropdown", options: assetCatOptions },
+    {
+      key: "supplier",
+      label: "Supplier",
+      type: "dropdown",
+      options: supplierOptions,
+    },
+    {
+      key: "currency_id",
+      label: "currency",
+      type: "dropdown",
+      options: currencyOptions,
+    },
+    { key: "identity_no", label: "Identity No.", type: "text" },
+    {
+      key: "asset_category_id",
+      label: "Asset Category",
+      type: "dropdown",
+      options: assetCatOptions,
+    },
     { key: "purchase_date", label: "Purchase Date", type: "date" },
     { key: "purchase_cost", label: "Purchase Cost", type: "number" },
     { key: "current_value", label: "Current Value", type: "number" },
     { key: "date_put_to_use", label: "Date Put To Use", type: "date" },
-    { key: "date_when", label: "Date When", type: "date" },
     { key: "salvage_value", label: "Salvage Value", type: "number" },
     { key: "useful_life", label: "Useful Life", type: "number" },
-    { key: "asset_account_id", label: "Asset Account", type: "dropdown", options: assetAccounts },
+    {
+      key: "asset_account_id",
+      label: "Asset Account",
+      type: "dropdown",
+      options: assetAccounts,
+    },
+    {
+      key: "expense_account_id",
+      label: "Expense Account",
+      type: "dropdown",
+      options: expenseAccounts,
+    },
+    {
+      key: "income_account_id",
+      label: "Income Account",
+      type: "dropdown",
+      options: incomeAccounts,
+    },
     { key: "description", label: "Description", type: "text" },
   ];
 
@@ -354,12 +429,6 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       label: "Depreciation Account",
       type: "dropdown",
       options: assetAccounts,
-    },
-    {
-      key: "expense_account_id",
-      label: "Expense Account",
-      type: "dropdown",
-      options: expenseAccounts,
     },
     {
       key: "depreciation_loss_account_id",
@@ -426,29 +495,6 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       />
     </div>
   );
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-32">
-        <ProgressSpinner />
-      </div>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="p-4 bg-red-100 text-red-700 rounded-lg">
-        {error}
-        <Button
-          label="Retry"
-          className="p-button-text ml-2"
-          onClick={() => window.location.reload()}
-        />
-      </div>
-    );
-  }
 
   // Main form
   return (

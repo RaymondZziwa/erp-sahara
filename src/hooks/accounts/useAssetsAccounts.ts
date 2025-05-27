@@ -21,6 +21,10 @@ const useAssetsAccounts = () => {
   const [expenseAccounts, setExpenseAccounts] = useState<any[]>([])
   const [cashAccounts, setCashAccounts] = useState<any[]>([])
   const [incomeAccounts, setIncomeAccounts] = useState<any[]>([])
+  const [payableAccounts, setPayableAccounts] = useState<any[]>([])
+  const [receivableAccounts, setRecievableAccounts] = useState<any[]>([])
+  const [prepaidAccounts, setPrepaidAccounts] = useState<any[]>([])
+  const [liabilityAccounts, setLiabilityAccounts] = useState<any[]>([])
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken) return;
@@ -37,21 +41,49 @@ const useAssetsAccounts = () => {
       );
 
       const resOne = await apiRequest<ServerResponse<ChartofAccount[]>>(
-        "/erp/accounts/get-expense-accounts",
+        "/accounts/get-expense-accounts",
         //ACCOUNTS_ENDPOINTS.GET_ALL_ACCOUNTS,
         "GET",
         token.access_token
       );
 
       const resTwo = await apiRequest<ServerResponse<ChartofAccount[]>>(
-        "/erp/accounts/get-cash-accounts",
+        "/accounts/get-cash-accounts",
         //ACCOUNTS_ENDPOINTS.GET_ALL_ACCOUNTS,
         "GET",
         token.access_token
       );
 
       const resThree = await apiRequest<ServerResponse<ChartofAccount[]>>(
-        "/erp/accounts/get-income-accounts",
+        "/accounts/get-income-accounts",
+        //ACCOUNTS_ENDPOINTS.GET_ALL_ACCOUNTS,
+        "GET",
+        token.access_token
+      );
+
+      const resFour = await apiRequest<ServerResponse<ChartofAccount[]>>(
+        "/accounts/get-prepaid-accounts",
+        //ACCOUNTS_ENDPOINTS.GET_ALL_ACCOUNTS,
+        "GET",
+        token.access_token
+      );
+
+      const resFive = await apiRequest<ServerResponse<ChartofAccount[]>>(
+        "/accounts/get-receivable-accounts",
+        //ACCOUNTS_ENDPOINTS.GET_ALL_ACCOUNTS,
+        "GET",
+        token.access_token
+      );
+
+      const resSix = await apiRequest<ServerResponse<ChartofAccount[]>>(
+        "/accounts/get-payable-accounts",
+        //ACCOUNTS_ENDPOINTS.GET_ALL_ACCOUNTS,
+        "GET",
+        token.access_token
+      );
+
+      const resSeven = await apiRequest<ServerResponse<ChartofAccount[]>>(
+        "/accounts/get-liability-accounts",
         //ACCOUNTS_ENDPOINTS.GET_ALL_ACCOUNTS,
         "GET",
         token.access_token
@@ -60,7 +92,10 @@ const useAssetsAccounts = () => {
       setIncomeAccounts(resThree.data)
       setExpenseAccounts(resOne.data)
       setCashAccounts(resTwo.data)
-
+      setPrepaidAccounts(resFour.data)
+      setRecievableAccounts(resFive.data)
+      setPayableAccounts(resSix.data)
+      setLiabilityAccounts(resSeven.data)
       dispatch(fetchDataSuccess(response.data)); // Dispatch action with fetched data on success
     } catch (error) {
       dispatch(
@@ -76,7 +111,7 @@ const useAssetsAccounts = () => {
 
   const data = useAppSelector((state) => state.assetsAccounts.data);
 
-  return { cashAccounts, expenseAccounts, incomeAccounts, data, refresh: fetchDataFromApi };
+  return { liabilityAccounts, payableAccounts, receivableAccounts, prepaidAccounts, cashAccounts, expenseAccounts, incomeAccounts, data, refresh: fetchDataFromApi };
 };
 
 export default useAssetsAccounts;
