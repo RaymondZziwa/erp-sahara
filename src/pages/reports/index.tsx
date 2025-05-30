@@ -12,23 +12,26 @@ const reportsData = [
         link: "/trial-balance-comparisons",
       },
       { name: "Income Statement", link: "/income-statement-report" },
+      {
+        name: "Balance Sheet Comparisons",
+        link: "/balance-sheet-comparisons",
+      },
       // {
       //   name: "Income Statement Comparisons",
       //   link: "/income-statement-report-comparisons",
       // },
       { name: "Balance Sheet", link: "/balance-sheet" },
       // { name: "Budget Comparison Report", link: "/budget-comparison-report" },
-      {
-        name: "Balance Sheet Comparisons",
-        link: "/balance-sheet-comparisons",
-      },
+
       { name: "Cash Flow", link: "/cashflow-report" },
       // { name: "Owner's equity", link: "/owner-equity" },
       { name: "Owner's equity summary", link: "/owners-equity" },
+
       { name: "Detailed Owner's equity", link: "/detailed-owners-equity" },
-      { name: "Cash book", link: "/cash-book" },
       { name: "General Ledger", link: "/general-ledger-book" },
       { name: "Budget comparison", link: "/budget-comparison-report" },
+      { name: "Cash book", link: "/cash-book" },
+
       // { name: "Ledger book", link: "#" },
       // { name: "Petty cash book", link: "#" },
       // { name: "Statement of Changes in Equity", link: "#" },

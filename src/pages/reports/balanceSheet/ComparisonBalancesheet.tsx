@@ -1,10 +1,12 @@
-//@ts-nocheck
 import React, { useState, useRef, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { useReactToPrint } from "react-to-print";
 import Header from "../../../components/custom/print_header";
 import useBalanceSheetComparison from "../../../hooks/reports/useBalanceSheetComparison";
-
+import axios from "axios";
+import { baseURL } from "../../../utils/api";
+import useAuth from "../../../hooks/useAuth";
+import { BarLoader } from "react-spinners";
 interface Account {
   account_code: string;
   account_name: string;
@@ -24,6 +26,7 @@ interface SubCategoryItem {
 
 function ComparisonBalanceSheet() {
   const { data, refresh, isLoading } = useBalanceSheetComparison();
+  const { token } = useAuth();
   const [openModalData, setOpenModalData] = useState<Account[] | null>(null);
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -42,11 +45,27 @@ function ComparisonBalanceSheet() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <BarLoader />
+      </div>
+    );
   }
 
   if (!data || data.length === 0) {
-    return <div>No data available</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-center">
+          <p className="text-lg text-gray-600">No data available</p>
+          <button
+            onClick={refresh}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const currentAssetsTotal =
@@ -90,28 +109,26 @@ function ComparisonBalanceSheet() {
   const previousTotal =
     previousLiabilitiesTotal + previousEquityTotal + previousProfitLoss;
 
-    const print = async () => {
-      try {
-        const response = await axios.get(
-          `${baseURL}/reports/accounting/balance-sheet-comparison/pdf`,
-          {
-            responseType: "blob",
-            headers: {
-              Authorization: `Bearer ${token.access_token || ""}`,
-            },
-          }
-        );
+  const print = async () => {
+    try {
+      const response = await axios.get(
+        `${baseURL}/reports/accounting/balance-sheet-comparison/pdf`,
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${token.access_token || ""}`,
+          },
+        }
+      );
 
-        // Explicitly set the MIME type as PDF
-        const file = new Blob([response.data], { type: "application/pdf" });
-        const fileURL = URL.createObjectURL(file);
+      const file = new Blob([response.data], { type: "application/pdf" });
+      const fileURL = URL.createObjectURL(file);
+      window.open(fileURL, "_blank");
+    } catch (error) {
+      console.error("Error previewing the balance sheet report:", error);
+    }
+  };
 
-        // Open the file in a new browser tab
-        window.open(fileURL, "_blank");
-      } catch (error) {
-        console.error("Error previewing the balance sheet report:", error);
-      }
-    };
   return (
     <div className="bg-white p-3">
       <div className="flex justify-end items-center mb-4">
@@ -306,10 +323,10 @@ function ComparisonBalanceSheet() {
                         {account.account_name}
                       </td>
                       <td className="px-6 py-4 text-gray-500">
-                        {account.current_amount}
+                        {account.balance?.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 text-gray-500">
-                        {account.previous_amount}
+                        {account.previous_amount?.toLocaleString()}
                       </td>
                     </tr>
                   ))}

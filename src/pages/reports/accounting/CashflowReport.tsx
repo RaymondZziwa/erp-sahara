@@ -65,7 +65,7 @@ function Cashflow() {
       const response = await axios.get(
         `${baseURL}/reports/accounting/cash-flow-statement-indirect-download`,
         {
-          responseType: "pdf",
+          responseType: "blob",
           headers: {
             Authorization: `Bearer ${token.access_token || ""}`,
           },
@@ -75,165 +75,212 @@ function Cashflow() {
       const fileURL = URL.createObjectURL(file);
       window.open(fileURL, "_blank");
     } catch (error) {
-      console.error("Error previewing the trial balance report:", error);
+      console.error("Error previewing the cash flow report:", error);
     }
   };
 
   const formatAmount = (amount: number) => {
-    return amount.toFixed(2);
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'TZS',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
   };
 
-  return (
-    <div className="bg-white p-3">
-      <div className="flex justify-between items-center mb-4">
-        <div className="text-center">
-          <h1 className="text-xl font-bold">SAHARA</h1>
-          <p className="text-sm">mplat84@gmail.com</p>
-          <h2 className="text-lg font-bold mt-2">STATEMENT OF CASH FLOWS</h2>
-          <p className="text-sm">
-            As of May 7, 2025 | Currency: UGX
-            <br />
-            For the Period from Apr 1, 2025 to Mar 31, 2026
-          </p>
+  const getAmountColor = (amount: number) => {
+    return amount < 0 ? 'text-red-600' : 'text-green-600';
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading......</p>
+      </div>
+    );
+  }
+
+  if (!cashFlow) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-center p-6 bg-white rounded-lg shadow-md">
+          <p className="text-lg text-gray-600 mb-4">No cash flow data available</p>
+          <button
+            onClick={fetchDataFromApi}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          >
+            Retry
+          </button>
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Cash Flow Statement</h1>
         <button
-          className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
+          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white flex gap-2 items-center transition-colors"
           onClick={print}
         >
           <Icon icon="solar:printer-bold" fontSize={20} />
-          Print
+          Print Report
         </button>
       </div>
 
-      {isLoading ? (
-        "Loading..."
-      ) : (
-        <div className="font-mono text-sm">
-          {/* Operating Activities */}
-          <div className="mb-6">
-            <div className="font-bold border-b border-black mb-2">
-              CASH FLOWS FROM OPERATING ACTIVITIES
-            </div>
-
-            <div className="flex justify-between">
-              <div>Net Income</div>
-              <div
-                className={
-                  cashFlow?.net_income < 0 ? "text-red-600" : "text-green-600"
-                }
-              >
-                {formatAmount(cashFlow?.net_income || 0)}
-              </div>
-            </div>
-
-            <div className="ml-4 mt-2">
-              <div className="font-semibold">
-                Adjustments to reconcile net income to net cash:
-              </div>
-              {cashFlow?.adjustments.map((item, index) => (
-                <div key={index} className="flex justify-between">
-                  <div>{item.description}</div>
-                  <div>{formatAmount(item.amount)}</div>
-                </div>
-              ))}
-            </div>
-
-            <div className="ml-4 mt-2">
-              <div className="font-semibold">Changes in working capital:</div>
-              {cashFlow?.working_capital_changes.map((item, index) => (
-                <div key={index} className="flex justify-between">
-                  <div>{item.description}</div>
-                  <div>{formatAmount(item.amount)}</div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-between font-bold border-t border-black mt-2">
-              <div>Net Cash Provided by Operating Activities</div>
-              <div>{formatAmount(cashFlow?.net_income || 0)}</div>
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <Header title="Cash Flow Statement" />
+        
+        {/* Operating Activities */}
+        <div className="border-b border-gray-200 p-4 bg-gray-50">
+          <div className="font-bold text-lg text-gray-700 mb-3">
+            CASH FLOWS FROM OPERATING ACTIVITIES
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 mb-2">
+            <div>Net Income</div>
+            <div className={`text-right font-medium ${getAmountColor(cashFlow.net_income)}`}>
+              {formatAmount(cashFlow.net_income)}
             </div>
           </div>
 
-          {/* Investing Activities */}
-          <div className="mb-6">
-            <div className="font-bold border-b border-black mb-2">
-              CASH FLOWS FROM INVESTING ACTIVITIES
+          <div className="ml-4 mt-3">
+            <div className="font-semibold text-gray-600 mb-2">
+              Adjustments to reconcile net income to net cash:
             </div>
-
-            {cashFlow?.investing_activities.map((item, index) => (
-              <div key={index} className="flex justify-between">
-                <div>{item.description}</div>
-                <div>{formatAmount(item.amount)}</div>
+            {cashFlow.adjustments.map((item, index) => (
+              <div key={index} className="grid grid-cols-2 gap-4 mb-1">
+                <div className="pl-4">{item.description}</div>
+                <div className={`text-right ${getAmountColor(item.amount)}`}>
+                  {formatAmount(item.amount)}
+                </div>
               </div>
             ))}
-
-            <div className="flex justify-between font-bold border-t border-black mt-2">
-              <div>Net Cash Used in Investing Activities</div>
-              <div>
-                {formatAmount(
-                  cashFlow?.investing_activities.reduce(
-                    (sum, item) => sum + item.amount,
-                    0
-                  ) || 0
-                )}
-              </div>
-            </div>
           </div>
 
-          {/* Financing Activities */}
-          <div className="mb-6">
-            <div className="font-bold border-b border-black mb-2">
-              CASH FLOWS FROM FINANCING ACTIVITIES
+          <div className="ml-4 mt-3">
+            <div className="font-semibold text-gray-600 mb-2">
+              Changes in working capital:
             </div>
-
-            {cashFlow?.financing_activities.length ? (
-              cashFlow.financing_activities.map((item, index) => (
-                <div key={index} className="flex justify-between">
-                  <div>{item.description}</div>
-                  <div>{formatAmount(item.amount)}</div>
+            {cashFlow.working_capital_changes.map((item, index) => (
+              <div key={index} className="grid grid-cols-2 gap-4 mb-1">
+                <div className="pl-4">{item.description}</div>
+                <div className={`text-right ${getAmountColor(item.amount)}`}>
+                  {formatAmount(item.amount)}
                 </div>
-              ))
-            ) : (
-              <div className="flex justify-between">
-                <div>No financing activities</div>
-                <div>0.00</div>
               </div>
-            )}
-
-            <div className="flex justify-between font-bold border-t border-black mt-2">
-              <div>Net Cash Provided by Financing Activities</div>
-              <div>
-                {formatAmount(
-                  cashFlow?.financing_activities.reduce(
-                    (sum, item) => sum + item.amount,
-                    0
-                  ) || 0
-                )}
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* Cash Summary */}
-          <div className="mb-6">
-            <div className="flex justify-between font-bold">
-              <div>Net Increase in Cash and Cash Equivalents</div>
-              <div>{formatAmount(cashFlow?.net_cash_increase || 0)}</div>
-            </div>
-
-            <div className="flex justify-between">
-              <div>Cash and Cash Equivalents at Beginning of Period</div>
-              <div>{formatAmount(cashFlow?.cash_balances.beginning || 0)}</div>
-            </div>
-
-            <div className="flex justify-between font-bold border-t border-black mt-2">
-              <div>Cash and Cash Equivalents at End of Period</div>
-              <div>{formatAmount(cashFlow?.cash_balances.ending || 0)}</div>
+          <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-gray-200 font-bold">
+            <div>Net Cash Provided by Operating Activities</div>
+            <div className={`text-right ${getAmountColor(cashFlow.net_income)}`}>
+              {formatAmount(cashFlow.net_income)}
             </div>
           </div>
-
-          <div className="text-xs mt-4">Generated on May 7, 2025</div>
         </div>
-      )}
+
+        {/* Investing Activities */}
+        <div className="border-b border-gray-200 p-4 bg-gray-50">
+          <div className="font-bold text-lg text-gray-700 mb-3">
+            CASH FLOWS FROM INVESTING ACTIVITIES
+          </div>
+
+          {cashFlow.investing_activities.length > 0 ? (
+            cashFlow.investing_activities.map((item, index) => (
+              <div key={index} className="grid grid-cols-2 gap-4 mb-1">
+                <div>{item.description}</div>
+                <div className={`text-right ${getAmountColor(item.amount)}`}>
+                  {formatAmount(item.amount)}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="grid grid-cols-2 gap-4 mb-1 text-gray-500">
+              <div>No investing activities</div>
+              <div className="text-right">0.00</div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-gray-200 font-bold">
+            <div>Net Cash Used in Investing Activities</div>
+            <div className={`text-right ${getAmountColor(
+              cashFlow.investing_activities.reduce((sum, item) => sum + item.amount, 0)
+  )}`}>
+              {formatAmount(
+                cashFlow.investing_activities.reduce((sum, item) => sum + item.amount, 0)
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Financing Activities */}
+        <div className="border-b border-gray-200 p-4 bg-gray-50">
+          <div className="font-bold text-lg text-gray-700 mb-3">
+            CASH FLOWS FROM FINANCING ACTIVITIES
+          </div>
+
+          {cashFlow.financing_activities.length > 0 ? (
+            cashFlow.financing_activities.map((item, index) => (
+              <div key={index} className="grid grid-cols-2 gap-4 mb-1">
+                <div>{item.description}</div>
+                <div className={`text-right ${getAmountColor(item.amount)}`}>
+                  {formatAmount(item.amount)}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="grid grid-cols-2 gap-4 mb-1 text-gray-500">
+              <div>No financing activities</div>
+              <div className="text-right">0.00</div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-gray-200 font-bold">
+            <div>Net Cash Provided by Financing Activities</div>
+            <div className={`text-right ${getAmountColor(
+              cashFlow.financing_activities.reduce((sum, item) => sum + item.amount, 0)
+  )}`}>
+              {formatAmount(
+                cashFlow.financing_activities.reduce((sum, item) => sum + item.amount, 0)
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Cash Summary */}
+        <div className="p-4 bg-blue-50">
+          <div className="grid grid-cols-2 gap-4 mb-2 font-bold">
+            <div>Net Increase in Cash and Cash Equivalents</div>
+            <div className={`text-right ${getAmountColor(cashFlow.net_cash_increase)}`}>
+              {formatAmount(cashFlow.net_cash_increase)}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-2">
+            <div>Cash and Cash Equivalents at Beginning of Period</div>
+            <div className="text-right">
+              {formatAmount(cashFlow.cash_balances.beginning)}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-gray-300 font-bold">
+            <div>Cash and Cash Equivalents at End of Period</div>
+            <div className="text-right">
+              {formatAmount(cashFlow.cash_balances.ending)}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 text-sm text-gray-500 text-center border-t border-gray-200">
+          Generated on {new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}
+        </div>
+      </div>
     </div>
   );
 }

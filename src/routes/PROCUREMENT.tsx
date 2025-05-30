@@ -99,26 +99,26 @@ const PROCUREMENT_ROUTES = [
       //     </Suspense>
       //   ),
       // },
-      // {
-      //   name: "Purchase Orders",
-      //   icon: <Icon icon="solar:cart-line-duotone" fontSize={24} />,
-      //   path: "/purchaseorders",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <PurchaseOrders />
-      //     </Suspense>
-      //   ),
-      // },
-      // {
-      //   name: "Goods Received",
-      //   icon: <Icon icon="solar:box-outline" fontSize={20} />,
-      //   path: "/goodsreceived",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <GoodsReceived />
-      //     </Suspense>
-      //   ),
-      // },
+       {
+        name: "Purchase Orders",
+        icon: <Icon icon="solar:cart-line-duotone" fontSize={24} />,
+        path: "/purchaseorders",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <PurchaseOrders />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Goods Received",
+        icon: <Icon icon="solar:box-outline" fontSize={20} />,
+        path: "/goodsreceived",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <GoodsReceived />
+          </Suspense>
+        ),
+      },
     ],
   },
   {

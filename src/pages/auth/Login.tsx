@@ -7,7 +7,7 @@ import useAuth from "../../hooks/useAuth";
 import { useAppDispatch } from "../../redux/hooks";
 //import { useTranslation } from "react-i18next";
 import saharaLogo from '../../assets/images/sahara.jpeg';
-import latcuLogo from '../../assets/images/logos/ltcu.jpeg'
+import latcuLogo from '../../assets/images/logos/shrecu.jpeg'
 import { org } from "../../utils/api";
 import axios from "axios";
 import { baseURL } from "../../utils/api";
@@ -73,11 +73,11 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           {/* Logo */}
           <div className="flex flex-col items-center">
             {/* <div className="w-8 h-8 rounded bg-gradient-to-r from-purple-500 to-teal-500" /> */}
-            {/* <img
+            <img
               src={org === "latcu" ? latcuLogo : saharaLogo}
               alt=""
-              className=" w-60 h-48"
-            /> */}
+              className=" w-58 h-48"
+            />
             
             {org === "sahara" && (
               <p className="font-bold text-6xl -mt-8 mb-4">SPICE HUB</p>

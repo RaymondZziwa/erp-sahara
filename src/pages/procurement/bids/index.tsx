@@ -7,11 +7,16 @@ import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog"
 import Table from "../../../components/table";
 import BreadCrump from "../../../components/layout/bread_crump";
 import AddOrModifyItem from "./AddOrModifyItem";
-import EvaluationForm  from "../bidEvaluation/AddOrModifyItem";
+import EvaluationForm from "../bidEvaluation/AddOrModifyItem";
 
 import { API_ENDPOINTS } from "../../../api/apiEndpoints";
 import { Bid } from "../../../redux/slices/types/procurement/Bid";
 import useBids from "../../../hooks/procurement/useBids";
+import { formatDate } from "../../../utils/dateUtils";
+import { baseURL } from "../../../utils/api";
+import axios from "axios";
+import useAuth from "../../../hooks/useAuth";
+
 
 const Bids: React.FC = () => {
   const location = useLocation();
@@ -20,11 +25,19 @@ const Bids: React.FC = () => {
 
   const { data: allBids, refresh } = useBids();
   const tableRef = useRef<any>(null);
+  const { token } = useAuth();
+  const axiosInstance = axios.create({
+    baseURL: `${baseURL}/supplier-evaluations`,
+    headers: {
+      Authorization: `Bearer ${token.access_token}`, // fixed typo: access_tooken → access_token
+      "Content-Type": "application/json",
+    },
+  });
 
   // Filter bids by RFQ ID if provided
-  const data = rfqId
-    ? allBids?.filter((bid) => bid.rfq_id === rfqId)
-    : allBids;
+  const data = rfqId ? allBids?.filter((bid) => bid.rfq_id === rfqId) : allBids;
+
+  const rfqTitle = data?.[0]?.rfq?.title;
 
   // Find the bid with highest score
   const highestScoreBid = data?.reduce((max, bid) => {
@@ -42,10 +55,9 @@ const Bids: React.FC = () => {
     currentAction: "delete" | "edit" | "add" | "evaluate" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
-  // Custom cell style for highlighting the best bid
   const getRowStyle = (params: any) => {
     if (params.data?.id === highestScoreBid?.id && params.data?.evaluation) {
-      return { backgroundColor: "rgba(144, 238, 144, 0.3)" }; // Light green background
+      return { backgroundColor: "rgba(144, 238, 144, 0.3)" };
     }
     return null;
   };
@@ -55,6 +67,13 @@ const Bids: React.FC = () => {
       tableRef.current.exportPDF();
     }
   };
+async function approveBid(bidId: number) {
+  return await axiosInstance.post(`/${bidId}/approve`);
+}
+
+async function rejectBid(bidId: number) {
+  return await axiosInstance.post(`/${bidId}/reject`);
+}
 
   const columnDefinitions: ColDef<Bid>[] = [
     {
@@ -62,6 +81,7 @@ const Bids: React.FC = () => {
       field: "quotation_date",
       sortable: true,
       filter: true,
+      valueGetter: (params) => formatDate(params.data?.quotation_date),
       cellStyle: { whiteSpace: "normal" },
       autoHeight: true,
     },
@@ -84,8 +104,10 @@ const Bids: React.FC = () => {
       field: "technical_score",
       sortable: true,
       filter: true,
-      valueGetter: (params) =>
-        params.data?.quotation_evaluations[0].technical_score || "N/A",
+      valueGetter: (params) => {
+        const evaluation = params.data?.quotation_evaluations?.[0];
+        return evaluation ? evaluation.technical_score : "N/A";
+      },
       cellStyle: (params) => {
         if (params.data?.id === highestScoreBid?.id) {
           return { fontWeight: "bold" };
@@ -98,8 +120,10 @@ const Bids: React.FC = () => {
       field: "commercial_score",
       sortable: true,
       filter: true,
-      valueGetter: (params) =>
-        params.data?.quotation_evaluations[0].commercial_score || "N/A",
+      valueGetter: (params) => {
+        const evaluation = params.data?.quotation_evaluations?.[0];
+        return evaluation ? evaluation.commercial_score : "N/A";
+      },
       cellStyle: (params) => {
         if (params.data?.id === highestScoreBid?.id) {
           return { fontWeight: "bold" };
@@ -107,22 +131,6 @@ const Bids: React.FC = () => {
         return null;
       },
     },
-    // {
-    //   headerName: "Total Score",
-    //   field: "total_score",
-    //   sortable: true,
-    //   filter: true,
-    //   valueGetter: (params) => {
-    //     const eval = params.data?.evaluation;
-    //     return eval ? eval.technical_score + eval.commercial_score : "N/A";
-    //   },
-    //   cellStyle: (params) => {
-    //     if (params.data?.id === highestScoreBid?.id) {
-    //       return { fontWeight: "bold" };
-    //     }
-    //     return null;
-    //   },
-    // },
     {
       headerName: "Status",
       field: "status",
@@ -142,53 +150,93 @@ const Bids: React.FC = () => {
       field: "id",
       sortable: false,
       filter: false,
-      cellRenderer: (params: ICellRendererParams<Bid>) => (
-        <div className="flex items-center gap-2">
-          {!params.data?.quotation_evaluations === 0 && (
-            <>
-              <button
-                className="bg-blue-500 hover:bg-blue-600 px-2 py-1 rounded text-white text-sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDialogState({
-                    ...dialogState,
-                    currentAction: "evaluate",
-                    selectedItem: params.data,
-                  });
-                }}
-              >
-                Evaluate
-              </button>
-              <button
-                className="bg-gray-500 hover:bg-gray-600 px-2 py-1 rounded text-white text-sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDialogState({
-                    ...dialogState,
-                    currentAction: "edit",
-                    selectedItem: params.data,
-                  });
-                }}
-              >
-                Edit
-              </button>
-            </>
-          )}
-          <Icon
-            onClick={(e) => {
-              e.stopPropagation();
-              setDialogState({
-                ...dialogState,
-                currentAction: "delete",
-                selectedItem: params.data,
-              });
-            }}
-            icon="solar:trash-bin-trash-bold"
-            className="text-red-500 cursor-pointer hover:text-red-600"
-            fontSize={20}
-          />
-        </div>
-      ),
+      cellRenderer: (params: ICellRendererParams<Bid>) => {
+        const bid = params.data;
+        if (!bid) return null;
+
+        const hasEvaluations = bid.quotation_evaluations.length > 0;
+
+        return (
+          <div className="flex items-center gap-2">
+            {!hasEvaluations ? (
+              <>
+                <button
+                  className="bg-blue-500 hover:bg-blue-600 px-2 py-1 rounded text-white text-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDialogState({
+                      ...dialogState,
+                      currentAction: "evaluate",
+                      selectedItem: bid,
+                    });
+                  }}
+                >
+                  Evaluate
+                </button>
+                <button
+                  className="bg-gray-500 hover:bg-gray-600 px-2 py-1 rounded text-white text-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDialogState({
+                      ...dialogState,
+                      currentAction: "edit",
+                      selectedItem: bid,
+                    });
+                  }}
+                >
+                  Edit
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="bg-green-600 hover:bg-green-700 px-2 py-1 rounded text-white text-sm"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      await approveBid(bid.id);
+                      toast.success("Bid approved successfully");
+                      refetchBids(); // Refresh grid data
+                    } catch (error) {
+                      toast.error("Approval failed");
+                    }
+                  }}
+                >
+                  Approve
+                </button>
+                <button
+                  className="bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-white text-sm"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      await rejectBid(bid.id);
+                      toast.success("Bid rejected successfully");
+                      refetchBids(); // Refresh grid data
+                    } catch (error) {
+                      toast.error("Rejection failed");
+                    }
+                  }}
+                >
+                  Reject
+                </button>
+              </>
+            )}
+            <Icon
+              onClick={(e) => {
+                e.stopPropagation();
+                setDialogState({
+                  ...dialogState,
+                  currentAction: "delete",
+                  selectedItem: bid,
+                });
+              }}
+              icon="solar:trash-bin-trash-bold"
+              className="text-red-500 cursor-pointer hover:text-red-600"
+              fontSize={20}
+            />
+          </div>
+        );
+      },
     },
   ];
 
@@ -211,7 +259,7 @@ const Bids: React.FC = () => {
       {dialogState.currentAction === "add" && (
         <AddOrModifyItem
           onSave={refresh}
-          visible={dialogState.currentAction === "add"}
+          visible
           onClose={() =>
             setDialogState({ currentAction: "", selectedItem: undefined })
           }
@@ -222,7 +270,7 @@ const Bids: React.FC = () => {
         <AddOrModifyItem
           onSave={refresh}
           item={dialogState.selectedItem}
-          visible={!!dialogState.selectedItem}
+          visible
           onClose={() =>
             setDialogState({ currentAction: "", selectedItem: undefined })
           }
@@ -245,8 +293,8 @@ const Bids: React.FC = () => {
 
       <BreadCrump
         name={
-          data.rfq_number
-            ? `Quotations for RFQ ${data.rfq_number}`
+          rfqTitle
+            ? `Quotations for RFQ ${rfqTitle}`
             : "All Supplier Quotations"
         }
         pageName="Supplier Quotation"
@@ -256,11 +304,11 @@ const Bids: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">
-              {data.rfq_number
-                ? `Quotations for RFQ ${data.rfq_number}`
+              {rfqTitle
+                ? `Quotations for RFQ ${rfqTitle}`
                 : "All Supplier Quotations"}
             </h1>
-            {highestScoreBid?.evaluation && (
+            {highestScoreBid?.quotation_evaluation && (
               <p className="text-sm text-gray-600 mt-1">
                 Highest scoring bid:{" "}
                 <span className="font-semibold">
@@ -302,9 +350,9 @@ const Bids: React.FC = () => {
           data={data}
           ref={tableRef}
           getRowStyle={getRowStyle}
-          pagination={true}
+          pagination
           paginationPageSize={10}
-          suppressCellFocus={true}
+          suppressCellFocus
           domLayout="autoHeight"
         />
       </div>

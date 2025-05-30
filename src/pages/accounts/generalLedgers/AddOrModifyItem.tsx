@@ -1,4 +1,3 @@
-
 //@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
@@ -31,6 +30,7 @@ interface AddOrModifyItemProps {
   debitAccountType: AccountType;
   creditAccountType: AccountType;
   endpoint: string;
+  title?: string;
   journalType: string;
   creditAccountsHeader: string;
   debitAccountsHeader: string;
@@ -59,6 +59,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   visible,
   onClose,
   item,
+  title,
   onSave,
   endpoint,
   journalType,
@@ -154,24 +155,23 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
 
-    
-  const data = {
-    ...formState,
-    transaction_date:
-      formState.transaction_date?.toISOString().slice(0, 10) ?? "",
-    reference: formState.reference ?? "",
-    journal_type_id: formState.journal_type_id,
-    description: formState.description ?? "",
-    currency_id: formState.currency_id,
-    lines: formState?.lines.map((line) => ({
-      debit_account_id: line.debit_account_id,
-      credit_account_id: line.credit_account_id,
-      amount: line.amount,
-      currency_id: formState.currency_id!,
-      budget_item_id: line.budget_item_id, // Include budget_item_id in payload
-    })),
-    supporting_files: formState.supporting_files,
-  };
+    const data = {
+      ...formState,
+      transaction_date:
+        formState.transaction_date?.toISOString().slice(0, 10) ?? "",
+      reference: formState.reference ?? "",
+      journal_type_id: formState.journal_type_id,
+      description: formState.description ?? "",
+      currency_id: formState.currency_id,
+      lines: formState?.lines.map((line) => ({
+        debit_account_id: line.debit_account_id,
+        credit_account_id: line.credit_account_id,
+        amount: line.amount,
+        currency_id: formState.currency_id!,
+        budget_item_id: line.budget_item_id, // Include budget_item_id in payload
+      })),
+      supporting_files: formState.supporting_files,
+    };
 
     const method = item?.id ? "PUT" : "POST";
     const endPoint = item?.id
@@ -180,13 +180,14 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
     try {
       await createRequest(endPoint, token.access_token, data, onSave, method);
+      //toast.success('Record saved successfully')
       setIsSubmitting(false);
 
       onSave();
       onClose();
     } catch (error) {
       console.error("Error saving transaction:", error);
-      toast.error("An error occurred while saving the transaction.");
+      toast.error(error?.response?.data?.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -215,53 +216,52 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     </div>
   );
 
-const handleItemChange = (
-  index: number,
-  field: keyof (typeof formState.lines)[0],
-  value: number
-) => {
-  const updatedLines = [...(formState.lines ?? [])];
-  updatedLines[index] = { ...updatedLines[index], [field]: value };
+  const handleItemChange = (
+    index: number,
+    field: keyof (typeof formState.lines)[0],
+    value: number
+  ) => {
+    const updatedLines = [...(formState.lines ?? [])];
+    updatedLines[index] = { ...updatedLines[index], [field]: value };
 
-  // If we have a budget selected
-  if (formState.budget_id) {
-    let selectedBudgetItem;
+    // If we have a budget selected
+    if (formState.budget_id) {
+      let selectedBudgetItem;
 
-    // For expense journals, look at debit account
-    if (
-      field === "debit_account_id" &&
-      journalType.toLowerCase().includes("expense")
-    ) {
-      selectedBudgetItem = budgetItems.find(
-        (item) => item.chart_of_account_id === value
-      );
+      // For expense journals, look at debit account
+      if (
+        field === "debit_account_id" &&
+        journalType.toLowerCase().includes("expense")
+      ) {
+        selectedBudgetItem = budgetItems.find(
+          (item) => item.chart_of_account_id === value
+        );
+      }
+      // For sale journals, look at credit account
+      else if (
+        field === "credit_account_id" &&
+        journalType.toLowerCase().includes("sale")
+      ) {
+        selectedBudgetItem = budgetItems.find(
+          (item) => item.chart_of_account_id === value
+        );
+      }
+
+      if (selectedBudgetItem) {
+        setSelectedBudgetItemMaxAmounts((prev) => ({
+          ...prev,
+          [index]: selectedBudgetItem.amount,
+        }));
+        // Add the budget_item_id to the line
+        updatedLines[index].budget_item_id = selectedBudgetItem.id;
+      }
     }
-    // For sale journals, look at credit account
-    else if (
-      field === "credit_account_id" &&
-      journalType.toLowerCase().includes("sale")
-    ) {
-      selectedBudgetItem = budgetItems.find(
-        (item) => item.chart_of_account_id === value
-      );
-    }
 
-    if (selectedBudgetItem) {
-      setSelectedBudgetItemMaxAmounts((prev) => ({
-        ...prev,
-        [index]: selectedBudgetItem.amount,
-      }));
-      // Add the budget_item_id to the line
-      updatedLines[index].budget_item_id = selectedBudgetItem.id;
-    }
-  }
-
-  setFormState((prevState) => ({
-    ...prevState,
-    lines: updatedLines,
-  }));
-};
-
+    setFormState((prevState) => ({
+      ...prevState,
+      lines: updatedLines,
+    }));
+  };
 
   const removeItem = (index: number) => {
     const updatedLines = [...(formState.lines ?? [])];
@@ -326,7 +326,7 @@ const handleItemChange = (
 
   return (
     <Dialog
-      header={item?.id ? `${journalType ?? ""}` : `${journalType}`}
+      header={title}
       visible={visible}
       className="max-w-full md:max-w-screen-lg px-2 md:w-[1024px]"
       footer={footer}
@@ -399,7 +399,8 @@ const handleItemChange = (
           />
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 col-span-full gap-2">
-          {!journalType.includes("Banking") && (
+          {(journalType.toLowerCase().includes("expense") ||
+            journalType.toLowerCase().includes("sale")) && (
             <>
               <div className="">
                 <label htmlFor="account type">Project (Optional)</label>
@@ -440,17 +441,8 @@ const handleItemChange = (
             </>
           )}
         </div>
-        <div className="col-span-full h-24">
-          <h4 className="text-xl font-bold my-2">Support Files</h4>
-          <FileUploadInput
-            uploadVisible={false}
-            onFilesChange={(files) =>
-              setFormState({ ...formState, supporting_files: files })
-            }
-          />
-        </div>
-        <div className="col-span-full mt-24">
-          <h3 className="font-bold text-xl">Entry</h3>
+        <div className="col-span-full mt-2">
+          <h3 className="font-bold text-xl">Entries</h3>
           <DataTable
             size="small"
             value={formState.lines}
@@ -494,82 +486,66 @@ const handleItemChange = (
                   options={
                     formState.budget_id &&
                     journalType.toLowerCase().includes("expense")
-                      ? budgetItems.map((item) => ({
-                          value: item.chart_of_account_id,
-                          label: `${item.name} (Budget: ${item.remaining_balance_amount})`,
-                        }))
-                      : journalType.toLowerCase().includes("clear prepaid")
+                      ? budgetItems
+                          .filter((it) => it.type.toLowerCase() === "expense")
+                          .map((item) => ({
+                            value: item.chart_of_account_id,
+                            label: `${item.name} (Budget: ${item.remaining_balance_amount})`,
+                          }))
+                      : journalType.toLowerCase().includes("clear prepaid") ||
+                        journalType.toLowerCase().includes("add prepaid") ||
+                        journalType
+                          .toLowerCase()
+                          .includes("clear receivable") ||
+                        journalType.toLowerCase().includes("add receivable") ||
+                        journalType.toLowerCase().includes("clear payable") ||
+                        journalType.toLowerCase().includes("add payable")
                       ? getDebitAccountOptions().map((account) => ({
                           value: account.id,
-                          label: account.name,
-                        }))
-                      : journalType.toLowerCase().includes("add prepaid")
-                      ? getDebitAccountOptions().map((account) => ({
-                          value: account.id,
-                          label: account.name,
-                        }))
-                      : journalType.toLowerCase().includes("clear receivable")
-                      ? getDebitAccountOptions().map((account) => ({
-                          value: account.id,
-                          label: account.name,
-                        }))
-                      : journalType.toLowerCase().includes("add receivable")
-                      ? getDebitAccountOptions().map((account) => ({
-                          value: account.id,
-                          label: account.name,
-                        }))
-                      : journalType.toLowerCase().includes("clear payable")
-                      ? getDebitAccountOptions().map((account) => ({
-                          value: account.id,
-                          label: account.name,
-                        }))
-                      : journalType.toLowerCase().includes("add payable")
-                      ? getDebitAccountOptions().map((account) => ({
-                          value: account.id,
-                          label: account.name,
+                          label: `${account.name} (${account.balance})`,
                         }))
                       : journalType.toLowerCase().includes("expense")
                       ? data
                           .filter(
                             (acc) =>
-                              acc.account_sub_category.account_category.name ==
+                              acc.account_sub_category.account_category.name ===
                               "Expenses"
                           )
                           .map((account) => ({
                             value: account.id,
-                            label: account.name,
+                            label: `${account.name}`,
                           }))
                       : journalType.toLowerCase().includes("income") ||
                         journalType.toLowerCase().includes("clear")
                       ? data
                           .filter(
                             (acc) =>
-                              acc.account_sub_category.account_category.name ==
+                              acc.account_sub_category.account_category.name ===
                               "Assets"
                           )
                           .map((account) => ({
                             value: account.id,
-                            label: account.name,
+                            label: `${account.name} (${account.balance})`,
                           }))
                       : journalType.toLowerCase().includes("general")
                       ? data.map((account) => ({
                           value: account.id,
-                          label: account.name,
+                          label: `${account.name} (${account.balance})`,
                         }))
                       : journalType.toLowerCase().includes("payable")
                       ? data
                           .filter(
                             (acc) =>
-                              acc.account_sub_category.account_category.name ==
+                              acc.account_sub_category.account_category.name ===
                               "Liabilities"
                           )
                           .map((account) => ({
                             value: account.id,
-                            label: account.name,
+                            label: `${account.name} (${account.balance})`,
                           }))
                       : getDebitAccountOptions().map((account) => ({
                           value: account.id,
-                          label: account.name,
+                          label: `${account.name} (${account.balance})`,
                         }))
                   }
                   onChange={(e) =>
@@ -594,86 +570,66 @@ const handleItemChange = (
                   options={
                     formState.budget_id &&
                     journalType.toLowerCase().includes("sale")
-                      ? budgetItems.map((item) => ({
-                          value: item.chart_of_account_id,
-                          label: `${item.name} (Budget: ${item.remaining_amount})`,
-                        }))
-                      : journalType.toLowerCase().includes("clear prepaid")
+                      ? budgetItems
+                          .filter((it) => it.type.toLowerCase() === "income")
+                          .map((item) => ({
+                            value: item.chart_of_account_id,
+                            label: `${item.name} (Budget: ${item.remaining_amount})`,
+                          }))
+                      : journalType.toLowerCase().includes("clear prepaid") ||
+                        journalType.toLowerCase().includes("add prepaid") ||
+                        journalType
+                          .toLowerCase()
+                          .includes("clear receivable") ||
+                        journalType.toLowerCase().includes("add receivable") ||
+                        journalType.toLowerCase().includes("clear payable") ||
+                        journalType.toLowerCase().includes("add payable") ||
+                        journalType.toLowerCase().includes("expenses")
                       ? getCreditAccountOptions().map((account) => ({
                           value: account.id,
-                          label: account.name,
-                        }))
-                      : journalType.toLowerCase().includes("add prepaid")
-                      ? getCreditAccountOptions().map((account) => ({
-                          value: account.id,
-                          label: account.name,
-                        }))
-                      : journalType.toLowerCase().includes("clear receivable")
-                      ? getCreditAccountOptions().map((account) => ({
-                          value: account.id,
-                          label: account.name,
-                        }))
-                      : journalType.toLowerCase().includes("add receivable")
-                      ? getCreditAccountOptions().map((account) => ({
-                          value: account.id,
-                          label: account.name,
-                        }))
-                      : journalType.toLowerCase().includes("clear payable")
-                      ? getCreditAccountOptions().map((account) => ({
-                          value: account.id,
-                          label: account.name,
-                        }))
-                      : journalType.toLowerCase().includes("add payable")
-                      ? getCreditAccountOptions().map((account) => ({
-                          value: account.id,
-                          label: account.name,
-                        }))
-                      : journalType.toLowerCase().includes("expenses")
-                      ? getCreditAccountOptions().map((account) => ({
-                          value: account.id,
-                          label: account.name,
+                          label: `${account.name} (${account.balance})`,
                         }))
                       : journalType.toLowerCase().includes("clear")
                       ? data
                           .filter(
                             (acc) =>
-                              acc.account_sub_category.account_category.name ==
+                              acc.account_sub_category.account_category.name ===
                               "Assets"
                           )
                           .map((account) => ({
                             value: account.id,
-                            label: account.name,
+                            label: `${account.name} (${account.balance})`,
                           }))
                       : journalType.toLowerCase().includes("sales")
                       ? data
                           .filter(
                             (acc) =>
-                              acc.account_sub_category.account_category.name ==
+                              acc.account_sub_category.account_category.name ===
                               "Income"
                           )
                           .map((account) => ({
                             value: account.id,
-                            label: account.name,
+                            label: `${account.name}`,
                           }))
                       : journalType.toLowerCase().includes("general")
                       ? data.map((account) => ({
                           value: account.id,
-                          label: account.name,
+                          label: `${account.name} (${account.balance})`,
                         }))
                       : journalType.toLowerCase().includes("payable")
                       ? data
                           .filter(
                             (acc) =>
-                              acc.account_sub_category.account_category.name ==
+                              acc.account_sub_category.account_category.name ===
                               "Liabilities"
                           )
                           .map((account) => ({
                             value: account.id,
-                            label: account.name,
+                            label: `${account.name} (${account.balance})`,
                           }))
                       : getCreditAccountOptions().map((account) => ({
                           value: account.id,
-                          label: account.name,
+                          label: `${account.name} (${account.balance})`,
                         }))
                   }
                   onChange={(e) =>
@@ -747,6 +703,15 @@ const handleItemChange = (
               )}
             />
           </DataTable>
+        </div>
+        <div className="col-span-full h-24">
+          <h4 className="text-xl font-bold my-2">Support Files</h4>
+          <FileUploadInput
+            uploadVisible={false}
+            onFilesChange={(files) =>
+              setFormState({ ...formState, supporting_files: files })
+            }
+          />
         </div>
       </form>
     </Dialog>

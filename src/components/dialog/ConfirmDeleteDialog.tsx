@@ -1,8 +1,7 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { Dialog } from "primereact/dialog";
-import { Toast } from "primereact/toast";
 import { Button } from "primereact/button";
-
+import {toast} from "react-toastify"
 import { apiRequest } from "../../utils/api";
 import useAuth from "../../hooks/useAuth";
 import { ServerResponse } from "../../redux/slices/types/ServerResponse";
@@ -24,7 +23,6 @@ const ConfirmDeleteDialog: React.FC<ConfirmDeleteDialogProps> = ({
   //refresh,
   body,
 }) => {
-  const toast = useRef<Toast>(null);
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
 
@@ -38,22 +36,11 @@ const ConfirmDeleteDialog: React.FC<ConfirmDeleteDialogProps> = ({
         body
       );
 
-      toast.current?.show({
-        severity: "success",
-        summary: "Deleted",
-        detail: data.message ?? "Record deleted successfully",
-        life: 3000,
-      });
+      toast.success("Record deleted successfully");
+
       onConfirm(); // Notify parent component of success
     } catch (error) {
-      toast.current?.show({
-        severity: "error",
-        summary: "Error",
-        detail:
-          (error instanceof Error && error.message) ??
-          "Failed to delete record",
-        life: 3000,
-      });
+      toast.error(error?.response?.data?.message);
     } finally {
       setLoading(false);
       onClose(); // Close the modal
@@ -85,7 +72,6 @@ const ConfirmDeleteDialog: React.FC<ConfirmDeleteDialogProps> = ({
 
   return (
     <>
-      <Toast ref={toast} />
       <Dialog
         header="Delete Confirmation"
         visible={visible}

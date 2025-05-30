@@ -124,6 +124,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         name: item.name,
         description: item.description,
         account_sub_category_id: item.account_sub_category_id,
+        ac_code: item.code,
         // currency_id: ,
         //"cash_flow_type":"Operating",Nullable if specified should be either Operating,Investing,Financing',
         // transaction_date: item.cre,

@@ -17,7 +17,6 @@ const useBalanceSheet = () => {
   const { token, isFetchingLocalToken } = useAuth();
 
   const fetchDataFromApi = async () => {
-    if (isFetchingLocalToken) return;
     if (!token.access_token) return;
 
     dispatch(fetchDataStart());
@@ -39,9 +38,19 @@ const useBalanceSheet = () => {
     }
   };
 
-  useEffect(() => {
+useEffect(() => {
+  console.log("Hook effect running", { isFetchingLocalToken, accessToken: token.access_token });
+  if (isFetchingLocalToken === false && token.access_token) {
+    console.log("Conditions met, fetching data...");
     fetchDataFromApi();
-  }, [isFetchingLocalToken, token.access_token]);
+  } else {
+    console.log("Conditions not met:", {
+      isFetching: isFetchingLocalToken,
+      hasToken: !!token.access_token
+    });
+  }
+}, [isFetchingLocalToken, token.access_token]);
+
 
   const data = useAppSelector((state) => state.balanceSheet);
 

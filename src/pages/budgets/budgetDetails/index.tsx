@@ -101,19 +101,19 @@ const BudgetDetails: React.FC = () => {
 
           {/* Second Row: Budget Tabs */}
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white p-4 rounded-md shadow-sm text-center">
+            {/* <div className="bg-white p-4 rounded-md shadow-sm text-center">
               <h5 className="text-sm font-semibold text-gray-600">
                 Total Allocated
               </h5>
               <p className="text-lg font-bold">{budget.allocated_amount}</p>
-            </div>
+            </div> */}
 
-            <div className="bg-white p-4 rounded-md shadow-sm text-center">
+            {/* <div className="bg-white p-4 rounded-md shadow-sm text-center">
               <h5 className="text-sm font-semibold text-gray-600">
                 Total Remaining
               </h5>
               <p className="text-lg font-bold">{budgetUsage?.total_remaining}</p>
-            </div>
+            </div> */}
             <div className="bg-white p-4 rounded-md shadow-sm text-center">
               <h5 className="text-sm font-semibold text-gray-600">
                 Total Spent

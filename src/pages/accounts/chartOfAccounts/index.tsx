@@ -13,6 +13,7 @@ import { Button } from "primereact/button";
 import { Link } from "react-router-dom";
 import DepositBalance from "./deposit";
 import { InputText } from "primereact/inputtext";
+import { ToastContainer } from "react-toastify";
 
 const ChartOfAccounts: React.FC = () => {
   const { data, refresh } = useChartOfAccounts();
@@ -128,7 +129,7 @@ const ChartOfAccounts: React.FC = () => {
             </button>
           )}
           <button
-            className="bg-shade px-2 py-1 rounded text-white"
+            className="bg-shade px-1.5 py-0.5 rounded text-sm text-white"
             onClick={() =>
               setDialogState({
                 ...dialogState,
@@ -139,6 +140,7 @@ const ChartOfAccounts: React.FC = () => {
           >
             Edit
           </button>
+
           <Icon
             onClick={() =>
               setDialogState({
@@ -174,6 +176,7 @@ const ChartOfAccounts: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedItem}

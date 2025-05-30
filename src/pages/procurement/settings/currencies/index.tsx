@@ -8,6 +8,7 @@ import BreadCrump from "../../../../components/layout/bread_crump";
 import useCurrencies from "../../../../hooks/procurement/useCurrencies";
 import { Currency } from "../../../../redux/slices/types/procurement/Currency";
 import AddOrModifyItem from "./AddOrModifyItem";
+import { ToastContainer } from "react-toastify";
 
 const Currencies: React.FC = () => {
   const { data: categories, refresh } = useCurrencies();
@@ -25,13 +26,6 @@ const Currencies: React.FC = () => {
   };
 
   const columnDefinitions: ColDef<Currency>[] = [
-    {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
     {
       headerName: "Name",
       field: "name",
@@ -89,6 +83,7 @@ const Currencies: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedItem}
@@ -102,7 +97,7 @@ const Currencies: React.FC = () => {
         }
       />
       <ConfirmDeleteDialog
-        apiPath={`/procurement/item_categories/${dialogState.selectedItem?.id}/delete`}
+        apiPath={`/accounts/currencies/${dialogState.selectedItem?.id}/delete`}
         onClose={() =>
           setDialogState({ selectedItem: undefined, currentAction: "" })
         }
@@ -116,7 +111,7 @@ const Currencies: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Currencies Table</h1>
+            <h1 className="text-xl font-bold">Currencies</h1>
           </div>
           <div className="flex gap-2">
             <button

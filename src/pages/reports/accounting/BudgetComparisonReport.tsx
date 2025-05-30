@@ -6,22 +6,85 @@ import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import useBudgets from "../../../hooks/budgets/useBudgets";
 import Header from "../../../components/custom/print_header";
+import { toast } from "react-toastify";
 
+type PeriodType =
+  | "Weekly"
+  | "Monthly"
+  | "Quarterly"
+  | "Bi-Monthly"
+  | "Semi-Annually"
+  | "Yearly"
+  | "Custom";
 
 const BudgetComparisonReport = () => {
-  const [startDate, setStartDate] = useState('')
+  const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [reportData, setReportData] = useState<any[]>([]);
   const [budgetId, setBudgetId] = useState("");
+  const [periodType, setPeriodType] = useState<PeriodType>("Monthly");
   const { token, isFetchingLocalToken } = useAuth();
   const { data: budgets } = useBudgets();
 
-  useEffect(()=> {
-    const selectedBudget = budgets.filter((budget) => budget.id === budgetId);
-    setStartDate(selectedBudget[0]?.fiscal_year.start_date)
-    setEndDate(selectedBudget[0]?.fiscal_year.end_date);
-  }, [budgetId])
+  // Calculate dates based on period type
+  const calculatePeriodDates = (type: PeriodType) => {
+    const today = new Date();
+    const newStartDate = new Date(today); // Create a new date object based on today
+
+    switch (type) {
+      case "Weekly":
+        newStartDate.setDate(today.getDate() - 7);
+        break;
+      case "Monthly":
+        newStartDate.setMonth(today.getMonth() - 1);
+        break;
+      case "Quarterly":
+        newStartDate.setMonth(today.getMonth() - 3);
+        break;
+      case "Bi-Monthly":
+        newStartDate.setMonth(today.getMonth() - 2);
+        break;
+      case "Semi-Annually":
+        newStartDate.setMonth(today.getMonth() - 6);
+        break;
+      case "Yearly":
+        newStartDate.setFullYear(today.getFullYear() - 1);
+        break;
+      case "Custom":
+        // For Custom, we don't modify dates - they'll be manually set
+        break;
+      default:
+        break;
+    }
+
+    // Format dates as YYYY-MM-DD (ISO format for date inputs)
+    const formatDate = (date: Date) => date.toISOString().split("T")[0];
+
+    if (type !== "Custom") {
+      setStartDate(formatDate(newStartDate));
+      setEndDate(formatDate(today));
+    }
+  };
+
+  // When budget changes, set initial dates based on fiscal year
+  useEffect(() => {
+    const selectedBudget = budgets.find((budget) => budget.id === budgetId);
+    if (selectedBudget) {
+      setStartDate(selectedBudget.fiscal_year.start_date);
+      setEndDate(selectedBudget.fiscal_year.end_date);
+    }
+  }, [budgetId, budgets]);
+
+  // When period type changes, calculate new dates
+  useEffect(() => {
+    calculatePeriodDates(periodType);
+  }, [periodType]);
+
+  const handlePeriodTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value as PeriodType;
+    setPeriodType(value);
+  };
 
   const print = async () => {
     if (!budgetId) {
@@ -48,7 +111,10 @@ const BudgetComparisonReport = () => {
   };
 
   const fetchDataFromApi = async () => {
-    if (isFetchingLocalToken || !token.access_token || !budgetId) return;
+    if (isFetchingLocalToken || !token.access_token || !budgetId) {
+      toast.warn("Please select a budget")
+      return
+    }
     setIsLoading(true);
     try {
       const response = await apiRequest<ServerResponse<any[]>>(
@@ -72,13 +138,7 @@ const BudgetComparisonReport = () => {
     if (budgetId) {
       fetchDataFromApi();
     }
-  }, [
-    isFetchingLocalToken,
-    token.access_token,
-    budgetId,
-    startDate,
-    endDate
-  ]);
+  }, [isFetchingLocalToken, token.access_token, budgetId, startDate, endDate]);
 
   const calculateVariance = (budget: number, actual: number) => {
     return actual - budget;
@@ -127,6 +187,72 @@ const BudgetComparisonReport = () => {
               </option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="periodType"
+            style={{ display: "block", marginBottom: 5 }}
+          >
+            Period Filter
+          </label>
+          <select
+            id="periodType"
+            name="periodType"
+            value={periodType}
+            onChange={handlePeriodTypeChange}
+            style={{ padding: 8, minWidth: 200 }}
+          >
+            <option value="Weekly">Weekly</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Quarterly">Quarterly</option>
+            <option value="Bi-Monthly">Bi-Monthly</option>
+            <option value="Semi-Annually">Semi-Annually</option>
+            <option value="Yearly">Yearly</option>
+            <option value="Custom">Custom</option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="startDate"
+            style={{ display: "block", marginBottom: 5 }}
+          >
+            Start Date
+          </label>
+          <input
+            type="date"
+            id="startDate"
+            value={startDate}
+            onChange={(e) => {
+              setStartDate(e.target.value);
+              if (periodType !== "Custom") {
+                setPeriodType("Custom");
+              }
+            }}
+            style={{ padding: 8 }}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="endDate"
+            style={{ display: "block", marginBottom: 5 }}
+          >
+            End Date
+          </label>
+          <input
+            type="date"
+            id="endDate"
+            value={endDate}
+            onChange={(e) => {
+              setEndDate(e.target.value);
+              if (periodType !== "Custom") {
+                setPeriodType("Custom");
+              }
+            }}
+            style={{ padding: 8 }}
+          />
         </div>
 
         <div style={{ alignSelf: "flex-end" }}>

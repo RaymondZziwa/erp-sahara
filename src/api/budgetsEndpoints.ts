@@ -14,4 +14,10 @@ export const BUDGETS_ENDPOINTS = {
     DELETE: (id: string) => `/accounts/budgets/${id}/delete`,
     GET_USAGE_SUMMARY: ''
   },
+  BUDGET_CATEGORIES: {
+    GET_ALL: "/accounts/budgetcategories",
+    ADD: "/accounts/budgetcategories/create",
+    UPDATE: (id: string) => `/accounts/budgetcategories/${id}/update`,
+    DELETE: (id: string) => `/accounts/budgetcategories/${id}/delete`
+  }
 };
