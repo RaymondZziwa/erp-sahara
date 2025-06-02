@@ -7,7 +7,7 @@ import useAuth from "../../hooks/useAuth";
 import { useAppDispatch } from "../../redux/hooks";
 //import { useTranslation } from "react-i18next";
 import saharaLogo from '../../assets/images/sahara.jpeg';
-import latcuLogo from '../../assets/images/logos/shrecu.jpeg'
+import latcuLogo from '../../assets/images/logos/ltcu.jpeg'
 import { org } from "../../utils/api";
 import axios from "axios";
 import { baseURL } from "../../utils/api";
