@@ -348,14 +348,14 @@ const renderCategoryGroup = (group: any) => {
         renderFinancialItem(item, 0, categoryName)
       )}
 
-      
       <tr className="border-t border-gray-200">
         <td className="py-2 font-bold">Total {categoryName}</td>
         <td className="py-2 text-right pr-6 font-medium border-t-2 border-black">
-          {itemArray.reduce((sum, item) => sum + item.total_amount, 0)}
+          {itemArray
+            .reduce((sum, item) => sum + item.total_amount, 0)
+            .toLocaleString()}
         </td>
       </tr>
-     
     </React.Fragment>
   );
 };

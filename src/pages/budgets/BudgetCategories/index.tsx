@@ -1,24 +1,22 @@
 //@ts-nocheck
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
 
-import AddOrModifyItem from "./AddOrModifyItem";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import BreadCrump from "../../../components/layout/bread_crump";
 import Table from "../../../components/table";
 
 import { BUDGETS_ENDPOINTS } from "../../../api/budgetsEndpoints";
-import useBudgets from "../../../hooks/budgets/useBudgets";
-import { Budget } from "../../../redux/slices/types/budgets/Budget";
-import { formatDate } from "../../../utils/dateUtils";
-import { formatCurrency } from "../../../utils/formatCurrency";
-import { Link, useNavigate } from "react-router-dom";
+import { BudgetCategory } from "../../../redux/slices/types/budgets/Budget";
+import { useNavigate } from "react-router-dom";
+import useBudgetCategories from "../../../hooks/budgets/useBudgetCategories";
+import AddOrModifyItem from "./AddOrModify";
 
-const Budgets: React.FC = () => {
-  const { data, refresh } = useBudgets();
+const BudgetCategories: React.FC = () => {
+  const { data, refresh } = useBudgetCategories();
   const tableRef = useRef<any>(null);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [dialogState, setDialogState] = useState<{
     selectedItem: Budget | undefined;
     currentAction: "delete" | "edit" | "add" | "";
@@ -30,7 +28,7 @@ const Budgets: React.FC = () => {
     }
   };
 
-  const columnDefinitions: ColDef<Budget>[] = [
+  const columnDefinitions: ColDef<BudgetCategory>[] = [
     {
       headerName: "Name",
       field: "name",
@@ -43,26 +41,11 @@ const Budgets: React.FC = () => {
       },
     },
     {
-      headerName: "Fiscal Year",
-      field: "fiscal_year.financial_year",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
       headerName: "Description",
       field: "description",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
-    },
-    {
-      headerName: "Created At",
-      field: "created_at",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-      valueFormatter: (params) => formatDate(params.value),
     },
     {
       headerName: "Actions",
@@ -83,12 +66,6 @@ const Budgets: React.FC = () => {
           >
             Edit
           </button>
-          <Link
-            to={`budget-details/${params.data?.id.toString()}`}
-            className="bg-shade px-2 py-1 rounded text-white"
-          >
-            Details
-          </Link>
           <Icon
             onClick={() =>
               setDialogState({
@@ -124,7 +101,7 @@ const Budgets: React.FC = () => {
       )}
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={BUDGETS_ENDPOINTS.BUDGETS.DELETE(
+          apiPath={BUDGETS_ENDPOINTS.BUDGET_CATEGORIES.DELETE(
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>
@@ -141,7 +118,7 @@ const Budgets: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Budgets</h1>
+            <h1 className="text-xl font-bold">Budget Categories</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -154,7 +131,7 @@ const Budgets: React.FC = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add Budget
+              Add Budget Category
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
@@ -171,4 +148,4 @@ const Budgets: React.FC = () => {
   );
 };
 
-export default Budgets;
+export default BudgetCategories;

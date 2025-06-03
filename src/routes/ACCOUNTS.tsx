@@ -38,19 +38,19 @@ const ACCOUNTS_ROUTES = [
       //   element: <GeneralLedgers />,
       // },
       {
-        name: "Banking",
+        name: "Internal Bank Transfer",
         icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
         path: "/banking-transactions",
         element: <BankingLedgers />,
       },
       {
-        name: "Sales / Income",
+        name: "Income Transactions",
         icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
         path: "/sales-transactions",
         element: <SalesTransactions />,
       },
       {
-        name: "Expenses",
+        name: "Expense Transactions",
         icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
         path: "/expense-transactions",
         element: <ExpenseTransactions />,

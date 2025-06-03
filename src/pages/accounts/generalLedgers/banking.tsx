@@ -14,7 +14,7 @@ import { baseURL, createRequest } from "../../../utils/api";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 
 const BankingLedgers: React.FC = () => {
   const { refresh } = useGeneralLedgers();
@@ -163,11 +163,13 @@ const columnDefinitions: ColDef<any>[] = [
 
   return (
     <div>
+      <ToastContainer />
       {dialogState.currentAction !== "" && (
         <AddOrModifyItem
           creditAccountsHeader={dialogState.creditAccountHeader}
           debitAccountsHeader={dialogState.debitAccountHeader}
           journalType={dialogState.journalType}
+          title={"Internal Bank Transfer"}
           endpoint={dialogState.endpoint}
           debitAccountType={dialogState.debitAccountsType}
           creditAccountType={dialogState.creditAccountsType}
@@ -216,7 +218,7 @@ const columnDefinitions: ColDef<any>[] = [
           onConfirm={fetchRecords}
         />
       )}
-      <BreadCrump name="Banking Transactions" pageName="All" />
+      <BreadCrump name="Internal Bank Transfer" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="flex gap-2 my-2 ml-auto">
@@ -234,7 +236,7 @@ const columnDefinitions: ColDef<any>[] = [
                 })
               }
             >
-              Cash Transfer
+              Bank Transfer
             </button>
           </div>
         </div>

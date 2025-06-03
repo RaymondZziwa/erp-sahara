@@ -14,7 +14,7 @@ import { RootState } from "../../../redux/store";
 import { baseURL } from "../../../utils/api";
 import axios from "axios";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 
 const SalesTransactions: React.FC = () => {
   const { refresh } = useGeneralLedgers();
@@ -163,12 +163,14 @@ const SalesTransactions: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       {dialogState.currentAction !== "" && (
         <AddOrModifyItem
           creditAccountsHeader={dialogState.creditAccountHeader}
           debitAccountsHeader={dialogState.debitAccountHeader}
           journalType={dialogState.journalType}
           endpoint={dialogState.endpoint}
+          title={"Income Transaction"}
           debitAccountType={dialogState.debitAccountsType}
           creditAccountType={dialogState.creditAccountsType}
           onSave={fetchRecords}
@@ -216,7 +218,7 @@ const SalesTransactions: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Sales Transactions" pageName="All" />
+      <BreadCrump name="Income Transaction" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="flex gap-2 my-2 ml-auto">

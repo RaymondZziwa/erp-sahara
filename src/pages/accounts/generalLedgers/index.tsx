@@ -11,6 +11,7 @@ import { PROJECTS_ENDPOINTS } from "../../../api/projectsEndpoints";
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
 import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
+import { ToastContainer } from "react-toastify";
 
 const GeneralLedgers: React.FC = () => {
   const { refresh } = useGeneralLedgers();
@@ -123,6 +124,7 @@ const GeneralLedgers: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       {dialogState.currentAction !== "" && (
         <AddOrModifyItem
           creditAccountsHeader={dialogState.creditAccountHeader}

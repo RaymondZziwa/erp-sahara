@@ -67,9 +67,11 @@ import AssetMaintenanceReducer from "./slices/assets/assetMaintenanceSlice";
 import AssetDisposalReducer from "./slices/assets/assetDisposalSlice"
 import ProcurementTypesReducer from "./slices/procurement/procTypeSlice"
 import ServicesReducer from "./slices/procurement/serviceSlice"
+import BudgetCategoriesReducer from "./slices/budgets/budgetCategorySlice"
 
 const store = configureStore({
   reducer: {
+    budgetCategories: BudgetCategoriesReducer,
     services: ServicesReducer,
     procTypes: ProcurementTypesReducer,
     assetDisposal: AssetDisposalReducer,

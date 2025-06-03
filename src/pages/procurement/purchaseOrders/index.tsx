@@ -12,15 +12,55 @@ import { PurchaseOrder } from "../../../redux/slices/types/procurement/PurchaseO
 import usePurchaseOrders from "../../../hooks/procurement/usePurchaseOrders";
 import ConfirmApproveDialog from "../../../components/dialog/ConfirmApproveDialog";
 import { ToastContainer } from "react-toastify";
+import AcknowledgeModal from "./acknowledgeModal";
+import UpdateStatusModal from "./updateStatusModal";
+import axios from "axios";
+import { baseURL } from "../../../utils/api";
+import useAuth from "../../../hooks/useAuth";
 
 const PurchaseOrders: React.FC = () => {
   const { data, refresh } = usePurchaseOrders();
   const tableRef = useRef<any>(null);
+  const {token} = useAuth()
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: PurchaseOrder | undefined;
     currentAction: "delete" | "edit" | "add" | "review" | "approve" | "";
   }>({ selectedItem: undefined, currentAction: "" });
+
+  type DialogAction =
+    | "edit"
+    | "approve"
+    | "delete"
+    | "updateStatus"
+    | "acknowledge"
+    | null;
+  const [newStatus, setNewStatus] = useState("");
+
+  const handleClose = () =>
+    setDialogState({ currentAction: null, selectedItem: null });
+
+  const handleStatusUpdate = async () => {
+    if (!dialogState.selectedItem || !newStatus) return;
+    await axios.post(
+      `${baseURL}/procurement/purchase_orders/${dialogState.selectedItem.id}/updatestatus`,
+      { status: newStatus },
+      { headers: { Authorization: `Bearer ${token.access_token}` } }
+    );
+    handleClose();
+    // Optionally refresh data
+  };
+
+  const handleAcknowledge = async () => {
+    if (!dialogState.selectedItem) return;
+    await axios.post(
+      `${baseURL}/procurement/purchase_orders/${dialogState.selectedItem.id}/acknowledge`,
+      {},
+      { headers: { Authorization: `Bearer ${token.access_token}` } }
+    );
+    handleClose();
+    // Optionally refresh data
+  };
 
   const handleExportPDF = () => {
     if (tableRef.current) {
@@ -30,11 +70,11 @@ const PurchaseOrders: React.FC = () => {
 
   const columnDefinitions: ColDef<PurchaseOrder>[] = [
     {
-      headerName: "ID",
-      field: "id",
+      headerName: "Source",
+      field: "source",
       sortable: true,
       filter: true,
-      width: 100,
+      suppressSizeToFit: true,
     },
     {
       headerName: "Purchase Order No",
@@ -44,8 +84,8 @@ const PurchaseOrders: React.FC = () => {
       suppressSizeToFit: true,
     },
     {
-      headerName: "Bid No",
-      field: "bid.bid_no",
+      headerName: "Payment Terms",
+      field: "payment_terms",
       sortable: true,
       filter: true,
     },
@@ -58,24 +98,35 @@ const PurchaseOrders: React.FC = () => {
     },
     {
       headerName: "Total Amount",
-      field: "total_amount",
+      field: "total_price",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
     },
     {
-      headerName: "Items Count",
-      field: "total_amount",
+      headerName: "Tax Amount",
+      field: "tax_amount",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
-      cellRenderer: (params: ICellRendererParams<PurchaseOrder>) => (
-        <div>{params.data?.purchase_order_items.length}</div>
-      ),
+    },
+    {
+      headerName: "Order Date",
+      field: "order_date",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
     },
     {
       headerName: "Delivery Date",
-      field: "develivery_date",
+      field: "expected_delivery_date",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "Supplier",
+      field: "supplier.supplier_name",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
@@ -95,7 +146,8 @@ const PurchaseOrders: React.FC = () => {
       filter: false,
       cellRenderer: (params: ICellRendererParams<PurchaseOrder>) => (
         <div className="flex items-center gap-2 h-10">
-          {params.data?.status == "pending" ? (
+          {/* Edit */}
+          {params.data?.status.toLowerCase() === "draft" && (
             <button title="Edit">
               <Icon
                 onClick={() =>
@@ -110,8 +162,10 @@ const PurchaseOrders: React.FC = () => {
                 fontSize={20}
               />
             </button>
-          ) : null}
-          {params.data?.status == "pending" ? (
+          )}
+
+          {/* Approve */}
+          {params.data?.status.toLowerCase() === "pending" && (
             <button title="Approve">
               <Icon
                 onClick={() =>
@@ -126,19 +180,55 @@ const PurchaseOrders: React.FC = () => {
                 fontSize={20}
               />
             </button>
-          ) : null}
-          <Icon
-            onClick={() =>
-              setDialogState({
-                ...dialogState,
-                currentAction: "delete",
-                selectedItem: params.data,
-              })
-            }
-            icon="solar:trash-bin-trash-bold"
-            className="text-red-500 cursor-pointer"
-            fontSize={20}
-          />
+          )}
+
+          {/* Update Status */}
+          <button title="Update Status">
+            <Icon
+              onClick={() =>
+                setDialogState({
+                  ...dialogState,
+                  currentAction: "updateStatus",
+                  selectedItem: params.data,
+                })
+              }
+              icon="solar:refresh-circle-bold-duotone"
+              className="text-yellow-500 cursor-pointer"
+              fontSize={20}
+            />
+          </button>
+
+          {/* Acknowledge */}
+          <button title="Acknowledge">
+            <Icon
+              onClick={() =>
+                setDialogState({
+                  ...dialogState,
+                  currentAction: "acknowledge",
+                  selectedItem: params.data,
+                })
+              }
+              icon="solar:check-circle-bold-duotone"
+              className="text-purple-500 cursor-pointer"
+              fontSize={20}
+            />
+          </button>
+
+          {/* Delete */}
+          <button title="Delete">
+            <Icon
+              onClick={() =>
+                setDialogState({
+                  ...dialogState,
+                  currentAction: "delete",
+                  selectedItem: params.data,
+                })
+              }
+              icon="solar:trash-bin-trash-bold"
+              className="text-red-500 cursor-pointer"
+              fontSize={20}
+            />
+          </button>
         </div>
       ),
     },
@@ -194,7 +284,7 @@ const PurchaseOrders: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Purchase Orders Table</h1>
+            <h1 className="text-xl font-bold">Purchase Orders</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -220,6 +310,17 @@ const PurchaseOrders: React.FC = () => {
         </div>
         <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />
       </div>
+      <AcknowledgeModal
+        visible={dialogState.currentAction === "acknowledge"}
+        onClose={handleClose}
+        onAcknowledge={handleAcknowledge}
+      />
+
+      <UpdateStatusModal
+        visible={dialogState.currentAction === "updateStatus"}
+        onClose={handleClose}
+        onUpdate={handleStatusUpdate}
+      />
     </div>
   );
 };

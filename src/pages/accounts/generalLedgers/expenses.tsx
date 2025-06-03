@@ -14,7 +14,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { baseURL } from "../../../utils/api";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 
 const ExpenseTransactions: React.FC = () => {
   const { refresh } = useGeneralLedgers();
@@ -160,11 +160,13 @@ const ExpenseTransactions: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       {dialogState.currentAction !== "" && (
         <AddOrModifyItem
           creditAccountsHeader={dialogState.creditAccountHeader}
           debitAccountsHeader={dialogState.debitAccountHeader}
           journalType={dialogState.journalType}
+          title="Expense Transactions"
           endpoint={dialogState.endpoint}
           debitAccountType={dialogState.debitAccountsType}
           creditAccountType={dialogState.creditAccountsType}
@@ -213,7 +215,7 @@ const ExpenseTransactions: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Expenses Transactions" pageName="All" />
+      <BreadCrump name="Expense Transactions" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="flex gap-2 my-2 ml-auto">
@@ -230,7 +232,7 @@ const ExpenseTransactions: React.FC = () => {
                 })
               }
             >
-              Save Expense
+              Add Expense
             </button>
           </div>
         </div>

@@ -76,40 +76,40 @@ const FiscalYears: React.FC = () => {
       suppressSizeToFit: true,
     },
 
-    {
-      headerName: "Actions",
-      field: "id",
-      sortable: false,
-      filter: false,
-      cellRenderer: (params: ICellRendererParams<FiscalYear>) => (
-        <div className="flex items-center gap-2">
-          <button
-            className="bg-shade px-2 py-1 rounded text-white"
-            onClick={() =>
-              setDialogState({
-                ...dialogState,
-                currentAction: "edit",
-                selectedItem: params.data,
-              })
-            }
-          >
-            Edit
-          </button>
-          <Icon
-            onClick={() =>
-              setDialogState({
-                ...dialogState,
-                currentAction: "delete",
-                selectedItem: params.data,
-              })
-            }
-            icon="solar:trash-bin-trash-bold"
-            className="text-red-500 cursor-pointer"
-            fontSize={20}
-          />
-        </div>
-      ),
-    },
+    // {
+    //   headerName: "Actions",
+    //   field: "id",
+    //   sortable: false,
+    //   filter: false,
+    //   cellRenderer: (params: ICellRendererParams<FiscalYear>) => (
+    //     <div className="flex items-center gap-2">
+    //       <button
+    //         className="bg-shade px-2 py-1 rounded text-white"
+    //         onClick={() =>
+    //           setDialogState({
+    //             ...dialogState,
+    //             currentAction: "edit",
+    //             selectedItem: params.data,
+    //           })
+    //         }
+    //       >
+    //         Edit
+    //       </button>
+    //       <Icon
+    //         onClick={() =>
+    //           setDialogState({
+    //             ...dialogState,
+    //             currentAction: "delete",
+    //             selectedItem: params.data,
+    //           })
+    //         }
+    //         icon="solar:trash-bin-trash-bold"
+    //         className="text-red-500 cursor-pointer"
+    //         fontSize={20}
+    //       />
+    //     </div>
+    //   ),
+    // },
   ];
 
   return (
@@ -148,7 +148,7 @@ const FiscalYears: React.FC = () => {
             <h1 className="text-xl font-bold">Fiscal Years Table</h1>
           </div>
           <div className="flex gap-2">
-            <button
+            {/* <button
               onClick={() =>
                 setDialogState({
                   selectedItem: undefined,
@@ -159,7 +159,7 @@ const FiscalYears: React.FC = () => {
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Yaer
-            </button>
+            </button> */}
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
               onClick={handleExportPDF}
