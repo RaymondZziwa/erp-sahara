@@ -2,15 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
+import { Dropdown } from "primereact/dropdown";
+import { InputNumber } from "primereact/inputnumber";
+import { MultiSelect } from "primereact/multiselect";
+import { ToastContainer, toast } from "react-toastify";
 
 import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
-
-import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints";
-import { Equipment } from "../../../redux/slices/types/manufacturing/Equipment";
-import { Dropdown } from "primereact/dropdown";
 import useWorkCenters from "../../../hooks/manufacturing/workCenter/useWorkCenters";
-import { toast, ToastContainer } from "react-toastify";
+
+import { Equipment } from "../../../redux/slices/types/manufacturing/Equipment";
+import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -19,91 +21,121 @@ interface AddOrModifyItemProps {
   onSave: () => void;
 }
 
+const capabilityOptions = [
+  { label: "Cutting", value: "cutting" },
+  { label: "Drilling", value: "drilling" },
+  { label: "Welding", value: "welding" },
+  { label: "Polishing", value: "polishing" },
+];
+
+const statusOptions = [
+  { label: "Operational", value: "operational" },
+  { label: "Under Maintenance", value: "under_maintenance" },
+  { label: "Out of Order", value: "out_of_order" },
+];
+
 const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   visible,
   onClose,
   item,
   onSave,
 }) => {
+  const { token } = useAuth();
+  const { data: workCenters, loading: workCentersLoading } = useWorkCenters();
+
   const [formState, setFormState] = useState<Partial<Equipment>>({
     name: "",
+    code: "",
+    workstation_id: "",
+    status: "operational",
+    capabilities: [],
+    hourly_rate: 0,
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { token } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (item) {
-      setFormState({
-        ...item,
-      });
+      setFormState({ ...item });
     } else {
-      setFormState({}); // Reset formState when adding a new item
+      setFormState({
+        name: "",
+        code: "",
+        workstation_id: "",
+        status: "operational",
+        capabilities: [],
+        hourly_rate: 0,
+      });
     }
   }, [item]);
 
-  const handleSelectChange = (name: keyof Equipment, value: any) => {
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Basic validation
-    if (!formState.name || !formState.maintenance_every_after) {
+    const { name, code, workstation_id, status, capabilities, hourly_rate } = formState;
+
+    if (!name || !code || !workstation_id || !status || !capabilities?.length || !hourly_rate) {
+      toast.warn("Please fill all required fields");
       setIsSubmitting(false);
-      toast.warn("Please fill in all mandatory fields")
-      return; // Handle validation error here
+      return;
     }
 
-    const data = { ...formState };
-    const method = item?.id ? "PUT" : "POST";
-    const endpoint = item?.id
-      ? MANUFACTURING_ENDPOINTS.EQUIPMENT.UPDATE(item.id.toString())
-      : MANUFACTURING_ENDPOINTS.EQUIPMENT.ADD;
-    await createRequest(
-      endpoint,
-      token.access_token,
-      { ...data, mantenance_every_after: formState.maintenance_every_after },
-      onSave,
-      method
-    );
-    setIsSubmitting(false);
-    onSave();
-    onClose(); // Close the modal after saving
+    try {
+      const method = item?.id ? "PUT" : "POST";
+      const endpoint = item?.id
+        ? MANUFACTURING_ENDPOINTS.EQUIPMENT.UPDATE(item.id.toString())
+        : MANUFACTURING_ENDPOINTS.EQUIPMENT.ADD;
+
+      const payload = {
+        name,
+        code,
+        workstation_id,
+        status,
+        capabilities,
+        hourly_rate: parseFloat(hourly_rate?.toString() || "0"),
+      };
+
+      await createRequest(endpoint, token.access_token, payload, onSave, method);
+      setFormState({
+        name: "",
+        code: "",
+        workstation_id: "",
+        status: "operational",
+        capabilities: [],
+        hourly_rate: 0,
+      });
+      onSave();
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save equipment.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  const { data: workCenters, loading: workCentersLoading } = useWorkCenters();
 
   const footer = (
     <div className="flex justify-end space-x-2">
       <Button
         label="Cancel"
         icon="pi pi-times"
-        onClick={onClose}
         className="p-button-text !bg-red-500 hover:bg-red-400"
+        onClick={onClose}
         size="small"
         disabled={isSubmitting}
       />
       <Button
-        loading={isSubmitting}
-        disabled={isSubmitting}
         label={item?.id ? "Update" : "Submit"}
         icon="pi pi-check"
+        loading={isSubmitting}
+        form="equipment-form"
         type="submit"
-        form="lead-form"
         size="small"
       />
     </div>
@@ -112,83 +144,87 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   return (
     <>
       <ToastContainer />
-    <Dialog
-      header={item?.id ? "Edit Equipment" : "Add Equipment"}
-      visible={visible}
-      style={{ width: "400px" }}
-      footer={footer}
-      onHide={onClose}
-    >
-      <p className="mb-6">
-          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
-       </p>
-      <form
-        id="lead-form"
-        onSubmit={handleSave}
-        className="p-fluid grid grid-cols-1 gap-4"
+      <Dialog
+        header={item?.id ? "Edit Equipment" : "Add Equipment"}
+        visible={visible}
+        onHide={onClose}
+        footer={footer}
+        style={{ width: "500px" }}
       >
-        <div className="p-field">
-          <label htmlFor="name">Name<span className="text-red-500">*</span></label>
-          <InputText
-            id="name"
-            name="name"
-            value={formState.name || ""}
-            onChange={handleInputChange}
-            required
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="work_center_id">Work Center<span className="text-red-500">*</span></label>
-          <Dropdown
-            id="work_center_id"
-            name="work_center_id"
-            value={formState.work_center_id}
-            options={workCenters.map((center) => ({
-              value: center.id,
-              label: center.name,
-            }))}
-            required
-            loading={workCentersLoading}
-            onChange={(e) => handleSelectChange("work_center_id", e.value)}
-            placeholder="Select a WorkCenter"
-            className="w-full"
-          />
-        </div>
+        <p className="mb-4">
+          Fields marked with <span className="text-red-500">*</span> are mandatory.
+        </p>
+        <form id="equipment-form" onSubmit={handleSave} className="grid gap-4">
+          <div>
+            <label>Name<span className="text-red-500">*</span></label>
+            <InputText
+              name="name"
+              value={formState.name || ""}
+              onChange={handleInputChange}
+              className="w-full"
+            />
+          </div>
 
-        <div className="p-field">
-          <label htmlFor="maintenance_every_after">
-            Maintenance every after<span className="text-red-500">*</span>
-          </label>
-          <InputText
-            id="maintenance_every_after"
-            name="maintenance_every_after"
-            type="number"
-            value={formState.maintenance_every_after?.toString() || ""}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
+          <div>
+            <label>Code<span className="text-red-500">*</span></label>
+            <InputText
+              name="code"
+              value={formState.code || ""}
+              onChange={handleInputChange}
+              className="w-full"
+            />
+          </div>
 
-        <div className="p-field">
-          <label htmlFor="work_center_id">Maintainance Period<span className="text-red-500">*</span></label>
-          <Dropdown
-            id="maintenance_period"
-            name="maintenance_period"
-            value={formState.maintenance_period}
-            options={["day", "month", "week", "year"].map((center) => ({
-              value: center,
-              label: center,
-            }))}
-            required
-            onChange={(e) => handleSelectChange("maintenance_period", e.value)}
-            placeholder="Select a period"
-            className="w-full"
-          />
-        </div>
-      </form>
-    </Dialog>
-  </>
+          <div>
+            <label>Workstation<span className="text-red-500">*</span></label>
+            <Dropdown
+              value={formState.workstation_id}
+              options={workCenters.map((w) => ({ label: w.name, value: w.id }))}
+              onChange={(e) => setFormState((prev) => ({ ...prev, workstation_id: e.value }))}
+              placeholder="Select Workstation"
+              loading={workCentersLoading}
+              className="w-full"
+            />
+          </div>
+
+          <div>
+            <label>Status<span className="text-red-500">*</span></label>
+            <Dropdown
+              value={formState.status}
+              options={statusOptions}
+              onChange={(e) => setFormState((prev) => ({ ...prev, status: e.value }))}
+              placeholder="Select Status"
+              className="w-full"
+            />
+          </div>
+
+          <div>
+            <label>Capabilities<span className="text-red-500">*</span></label>
+            <MultiSelect
+              value={formState.capabilities || []}
+              options={capabilityOptions}
+              onChange={(e) => setFormState((prev) => ({ ...prev, capabilities: e.value }))}
+              placeholder="Select Capabilities"
+              display="chip"
+              className="w-full"
+            />
+          </div>
+
+          <div>
+            <label>Hourly Rate<span className="text-red-500">*</span></label>
+            <InputNumber
+              value={formState.hourly_rate || 0}
+              onValueChange={(e) => setFormState((prev) => ({ ...prev, hourly_rate: e.value || 0 }))}
+              mode="decimal"
+              min={0}
+              className="w-full"
+              placeholder="0.00"
+              useGrouping={false}
+            />
+          </div>
+        </form>
+      </Dialog>
+    </>
   );
 };
 

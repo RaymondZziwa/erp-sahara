@@ -14,7 +14,7 @@ import { useAppDispatch, useAppSelector } from "../../../redux/hooks.ts";
 import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints.ts";
 import { ProductionPlan } from "../../../redux/slices/types/manufacturing/ProductionPlan.ts";
 
-const useProductionPlans = () => {
+const useProductionPlans = (id: string) => {
   const dispatch = useAppDispatch();
 
   const { token, isFetchingLocalToken } = useAuth();
@@ -27,7 +27,7 @@ const useProductionPlans = () => {
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
       const response = await apiRequest<ServerResponse<ProductionPlan[]>>(
-        MANUFACTURING_ENDPOINTS.PRODUCTION_PLANS.GET_ALL,
+        MANUFACTURING_ENDPOINTS.PRODUCTION_PLANS.GET_ALL(id),
         "GET",
         token.access_token
       );

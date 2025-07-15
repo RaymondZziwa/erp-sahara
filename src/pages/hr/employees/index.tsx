@@ -42,7 +42,7 @@ const Employees: React.FC = () => {
     },
     {
       headerName: "Department",
-      field: "department.name",
+      field: "designation.department.name",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,

@@ -30,13 +30,6 @@ const AllowanceTypes: React.FC = () => {
 
   const columnDefinitions: ColDef<AllowanceType>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "Name",
       field: "name",
       sortable: true,

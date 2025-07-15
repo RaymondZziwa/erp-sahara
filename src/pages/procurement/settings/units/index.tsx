@@ -25,13 +25,7 @@ const UnitsOfMeasurement: React.FC = () => {
   };
 
   const columnDefinitions: ColDef<UnitOfMeasurement>[] = [
-    {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
+   
     {
       headerName: "Name",
       field: "name",
@@ -45,12 +39,7 @@ const UnitsOfMeasurement: React.FC = () => {
       filter: true,
       suppressSizeToFit: true,
     },
-    {
-      headerName: "Created",
-      field: "created_at",
-      sortable: true,
-      filter: true,
-    },
+    
     {
       headerName: "Actions",
       field: "id",
@@ -59,7 +48,7 @@ const UnitsOfMeasurement: React.FC = () => {
       cellRenderer: (params: ICellRendererParams<UnitOfMeasurement>) => (
         <div className="flex items-center gap-2">
           <button
-            className="bg-shade px-2 py-1 rounded text-white"
+            className="bg-shade px-2 h-10 rounded text-white"
             onClick={() =>
               setDialogState({
                 ...dialogState,
@@ -80,7 +69,7 @@ const UnitsOfMeasurement: React.FC = () => {
             }
             icon="solar:trash-bin-trash-bold"
             className="text-red-500 cursor-pointer"
-            fontSize={20}
+            fontSize={24}
           />
         </div>
       ),

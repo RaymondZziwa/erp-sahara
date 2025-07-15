@@ -407,8 +407,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   (po) => po.id === formState.purchase_order_id
                 );
                 const itemsOptions = selectedPurchaseOrder
-                  ? selectedPurchaseOrder.purchase_order_items.map((item) => ({
-                      label: item.item.name,
+                  ? selectedPurchaseOrder.items.map((item) => ({
+                      label: item.name,
                       value: item.id,
                     }))
                   : [];

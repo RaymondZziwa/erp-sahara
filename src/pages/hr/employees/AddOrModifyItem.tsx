@@ -187,7 +187,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+    console.log(formState)
     if (
       !formState.first_name || 
       !formState.last_name || 
@@ -216,6 +216,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
       : HUMAN_RESOURCE_ENDPOINTS.EMPLOYEES.ADD;
 
     try {
+      
       await createRequest(
         endpoint,
         token.access_token,

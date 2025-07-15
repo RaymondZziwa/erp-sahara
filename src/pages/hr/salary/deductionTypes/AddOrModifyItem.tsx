@@ -13,6 +13,7 @@ import useAuth from "../../../../hooks/useAuth";
 
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../../api/hrEndpoints";
 import { DeductionType } from "../../../../redux/slices/types/hr/salary/DeductionTypes";
+import useAssetsAccounts from "../../../../hooks/accounts/useAssetsAccounts";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -31,14 +32,23 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     deduction_name: "",
     description: "",
     is_tax: false,
-    deduction_accounting_type: "expense",
+    deduction_accounting_type: "Expense",
     account_id: 0,
-    calculation_method: "amount",
-    deduction_is: "mandatory",
+    calculation_method: "Amount",
+    deduction_is: "Mandatory",
     amount: 0,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { token } = useAuth();
+  const {
+    expenseAccounts,
+    cashAccounts,
+    payableAccounts,
+    receivableAccounts,
+    prepaidAccounts,
+    liabilityAccounts,
+    incomeAccounts,
+  } = useAssetsAccounts();
 
   useEffect(() => {
     if (item) {
@@ -50,10 +60,10 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         deduction_name: "",
         description: "",
         is_tax: false,
-        deduction_accounting_type: "expense",
+        deduction_accounting_type: "Expense",
         account_id: 0,
-        calculation_method: "amount",
-        deduction_is: "mandatory",
+        calculation_method: "Amount",
+        deduction_is: "Mandatory",
         amount: 0,
       });
     }
@@ -67,8 +77,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   };
 
   const handleDropdownChange = (name: keyof DeductionType, value: any) => {
-    setFormState((prev) => ({ ...prev, [name]: value }));
+    setFormState((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === "deduction_accounting_type" ? { account_id: null } : {}),
+    }));    
   };
+
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
@@ -82,20 +97,36 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     setFormState((prev) => ({ ...prev, [name]: value ?? 0 }));
   };
 
+  const getAccountOptions = () => {
+    switch (formState.deduction_accounting_type) {
+      case 'Expense':
+        return expenseAccounts;
+      case 'Income':
+        return incomeAccounts;
+      case 'Payable':
+        return payableAccounts;
+      case 'Asset':
+        return [...cashAccounts, ...receivableAccounts, ...prepaidAccounts, ...liabilityAccounts];
+      default:
+        return [];
+    }
+  };
+  
+
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!formState.deduction_name || !formState.description) return;
+    if (!formState.deduction_name || !formState.deduction_is) return;
 
     const data = {
       name: formState.deduction_name,
       description: formState.description,
       is_tax: formState.is_tax,
-      deduction_accounting_type: formState.deduction_accounting_type,
+      deduction_accounting_type: formState.deduction_accounting_type?.toLowerCase(),
       account_id: formState.account_id,
-      calculation_method: formState.calculation_method,
-      deduction_is: formState.deduction_is,
+      calculation_method: formState.calculation_method.toLowerCase(),
+      deduction_is: formState.deduction_is.toLowerCase(),
       amount: formState.amount,
     };
 
@@ -155,33 +186,33 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             required
           />
         </div>
-
         <div>
-          <label htmlFor="description">Description</label>
-          <InputTextarea
-            id="description"
-            name="description"
-            value={formState.description}
-            onChange={handleInputChange}
-            required
+          <label>Is Deduction</label>
+          <Dropdown
+            value={formState.deduction_is}
+            options={["Mandatory", "Optional", "Adjustable"]}
+            onChange={(e) => handleDropdownChange("deduction_is", e.value)}
+            placeholder="Select Deduction Type"
           />
         </div>
 
+        
+
         <div className="flex items-center gap-2">
+        <label htmlFor="is_tax">Is Tax?</label>
           <Checkbox
             inputId="is_tax"
             name="is_tax"
             checked={formState.is_tax}
             onChange={handleCheckboxChange}
           />
-          <label htmlFor="is_tax">Is Tax</label>
         </div>
 
         <div>
-          <label>Accounting Type</label>
+          <label>Category</label>
           <Dropdown
             value={formState.deduction_accounting_type}
-            options={["income", "expense", "payable", "asset"]}
+            options={["Income", "Expense", "Payable", "Asset"]}
             onChange={(e) =>
               handleDropdownChange("deduction_accounting_type", e.value)
             }
@@ -191,18 +222,25 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
         <div>
           <label>Account ID</label>
-          <InputNumber
+          <Dropdown
             value={formState.account_id}
-            onValueChange={(e) => handleNumberChange("account_id", e.value)}
-            useGrouping={false}
+            options={getAccountOptions().map(account => ({
+              label: account.name, // or however your account object is shaped
+              value: account.id
+            }))}
+            onChange={(e) => handleDropdownChange("account_id", e.value)}
+            placeholder="Select Account"
+            filter
+            showClear
           />
         </div>
+
 
         <div>
           <label>Calculation Method</label>
           <Dropdown
             value={formState.calculation_method}
-            options={["amount", "percent"]}
+            options={["Amount", "Percent"]}
             onChange={(e) =>
               handleDropdownChange("calculation_method", e.value)
             }
@@ -210,15 +248,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           />
         </div>
 
-        <div>
-          <label>Deduction Is</label>
-          <Dropdown
-            value={formState.deduction_is}
-            options={["mandatory", "optional", "adjustable"]}
-            onChange={(e) => handleDropdownChange("deduction_is", e.value)}
-            placeholder="Select Deduction Type"
-          />
-        </div>
+        
 
         <div>
           <label>Amount</label>
@@ -226,6 +256,16 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             value={formState.amount}
             onValueChange={(e) => handleNumberChange("amount", e.value)}
             useGrouping={false}
+          />
+        </div>
+        <div>
+          <label htmlFor="description">Description</label>
+          <InputTextarea
+            id="description"
+            name="description"
+            value={formState.description}
+            onChange={handleInputChange}
+            required
           />
         </div>
       </form>

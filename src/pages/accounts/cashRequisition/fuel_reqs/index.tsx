@@ -601,12 +601,7 @@ const handleApprove = async () => {
                 })
               }
             />
-            <Button
-              label="Print"
-              icon="pi pi-print"
-              className="p-button-secondary text-sm"
-              onClick={handleExportPDF}
-            />
+          
           </div>
         </div>
 

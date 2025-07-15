@@ -1,13 +1,13 @@
 //@ts-nocheck
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { useAppDispatch } from "../../redux/hooks";
 //import { useTranslation } from "react-i18next";
 import saharaLogo from '../../assets/images/sahara.jpeg';
-import latcuLogo from '../../assets/images/logos/ltcu.jpeg'
+import latcuLogo from '../../assets/images/kcje.jpeg'
 import { org } from "../../utils/api";
 import axios from "axios";
 import { baseURL } from "../../utils/api";
@@ -53,7 +53,10 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 
 
   return (
+    <>
+      <ToastContainer />
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
+      
       {/* Left section with illustration */}
       <div className="hidden lg:flex items-center justify-center bg-teal-50 p-8">
         <div className="relative w-full max-w-md h-96">
@@ -78,7 +81,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               alt=""
               className=" w-58 h-48"
             />
-            
             {org === "sahara" && (
               <p className="font-bold text-6xl -mt-8 mb-4">SPICE HUB</p>
             )}
@@ -173,6 +175,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           </form>
         </div>
       </div>
-    </div>
+      </div>
+      </>
   );
 }

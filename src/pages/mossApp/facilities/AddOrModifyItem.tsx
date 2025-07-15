@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
+import { MultiSelect } from "primereact/multiselect";
 
 import { createMossAppRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import { Facility } from "../../../redux/slices/types/mossApp/Facility";
 import { MOSS_APP_ENDPOINTS } from "../../../api/mossAppEndpoints";
+import useConditions from "../../../hooks/mossApp/useConditions";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -23,17 +25,27 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 }) => {
   const [formState, setFormState] = useState<Partial<Facility>>({
     name: "",
+    conditions: []
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const {data} = useConditions()
+
+  const handleMultiSelectChange = (name: keyof Facility, value: any) => {
+    setFormState((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
 
   const { token } = useAuth();
   useEffect(() => {
     if (item) {
       setFormState({
         ...item,
+        conditions: item.conditions || []
       });
     } else {
-      setFormState({ name: "" });
+      setFormState({ name: "", conditions: [] });
     }
   }, [item]);
 
@@ -93,7 +105,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
   return (
     <Dialog
-      header={item?.id ? "Edit Item" : "Add Category"}
+      header={item?.id ? "Edit Facility" : "Add Facility"}
       visible={visible}
       style={{ width: "400px" }}
       footer={footer}
@@ -118,6 +130,22 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               name="location"
               value={formState.location}
               onChange={handleInputChange}
+            />
+          </div>
+          <div className="p-field">
+            <label htmlFor="conditions">Conditions</label>
+            <MultiSelect
+              id="conditions"
+              name="conditions"
+              value={formState.conditions}
+              options={data.map((op) => ({
+                value: op.id,
+                label: op.name
+              }))}                        
+              onChange={(e) => handleMultiSelectChange("conditions", e.value)}
+              placeholder="Select Conditions"
+              filter
+              className="w-full"
             />
           </div>
           <div className="p-field">

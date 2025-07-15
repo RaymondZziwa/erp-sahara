@@ -46,7 +46,7 @@ const useRoles = () => {
       return;
     }
     try {
-      const response = await fetch(`https://tfc-api.efinanci.co.tz/api/roles/${roleId}/delete`, {
+      const response = await fetch(`${baseURL}/roles/${roleId}/delete`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

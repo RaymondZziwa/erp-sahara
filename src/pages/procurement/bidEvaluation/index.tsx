@@ -11,6 +11,7 @@ import { API_ENDPOINTS } from "../../../api/apiEndpoints";
 
 import useBidEvaluation from "../../../hooks/procurement/useBidEvaluation";
 import { BidEvaluation } from "../../../redux/slices/types/procurement/BidEvaluation";
+import { ToastContainer } from "react-toastify";
 
 const BidEvaluations: React.FC = () => {
   const { data, refresh } = useBidEvaluation();
@@ -104,6 +105,7 @@ const BidEvaluations: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       {dialogState.currentAction !== "" && (
         <AddOrModifyItem
           onSave={refresh}

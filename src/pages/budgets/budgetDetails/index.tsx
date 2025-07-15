@@ -75,8 +75,10 @@ const BudgetDetails: React.FC = () => {
   if (!budget) return <div>Loading...</div>;
 
   return (
-    <div className="p-fluid grid grid-cols-1 gap-4">
+    <>
       <ToastContainer />
+    <div className="p-fluid grid grid-cols-1 gap-4">
+      
       <div className="p-field">
         <h2 className="text-xl font-bold mb-4">Budget Details</h2>
         <div className="space-y-4">
@@ -156,7 +158,8 @@ const BudgetDetails: React.FC = () => {
           id={id}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

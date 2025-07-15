@@ -1,4 +1,7 @@
 export const API_ENDPOINTS = {
+  COUNTRIES: {
+    GET_ALL: "/people/countries"
+  },
   USERS: {
     GET_ALL: "/api/users",
     GET_BY_ID: (id: string) => `/api/users/${id}`,
@@ -59,6 +62,8 @@ export const API_ENDPOINTS = {
     ADD: "/procurement/evaluations/create",
     UPDATE: (id: string) => `/procurement/evaluations/${id}/update`,
     DELETE: (id: string) => `/procurement/quotation-evaluations/${id}/delete`,
+    APPROVE: (id: string) => `/procurement/quotation-evaluations/${id}/approve`,
+    REJECT: (id: string) => `/procurement/quotation-evaluations/${id}/decline`,
   },
   BID_EVALUATION_CRITERIA: {
     GET_ALL: "/procurement/evaluation-criteria",
@@ -95,5 +100,17 @@ export const API_ENDPOINTS = {
     ADD: '/services/create',
     MODIFY: (id: string) => `/services/${id}/update`,
     DELETE: (id: string) => `/services/${id}`
-  }
+  },
+  BRANCHES: {
+    GET_ALL: '/organisation/branches',
+    ADD: '/organisation/branches/create',
+    MODIFY: (id: string) => `/organisation/branches/${id}/update`,
+    DELETE: (id: string) => `/organisation/branches/${id}/delete`
+  },
+  BILLING_TERMS: {
+    GET_ALL: '/recruitment/billing-terms',
+    ADD: '/recruitment/billing-terms/create',
+    MODIFY: (id: string) => `/recruitment/billing-terms/${id}/update`,
+    DELETE: (id: string) => `/recruitment/billing-terms/${id}/delete`
+  },
 };

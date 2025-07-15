@@ -1,6 +1,5 @@
 import { Icon } from "@iconify/react";
 import { lazy, Suspense } from "react";
-import AddProduct from "../pages/inventory/items/add";
 // import InventoryDashboard from "../pages/inventory/inventories/InventoryDashboard";
 import InventoryDashboard from "../pages/inventory/inventories/InventoryDashboard";
 //import Dashboard from "../pages/inventory/inventories/new_dasboard";
@@ -26,67 +25,80 @@ const Loading = () => <div>Loading...</div>;
 
 const INVENTORY_ROUTES = [
   {
-    name: "General",
-    icon: <Icon icon="solar:layers-line-duotone" fontSize={24} />,
+    name: "Summary",
+    icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+    path: "/inventory",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <InventoryDashboard />
+      </Suspense>
+    ),
+  },
+  {
+    name: "Point Of Sale",
+    icon: <Icon icon="ph:house-simple-duotone" fontSize={20} />,
+    path: "/inventory/pos",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <POS />
+      </Suspense>
+    ),
+  },
+  // {
+  //   name: "Stock Transfer",
+  //   icon: <Icon icon="solar:archive-outline" fontSize={20} />,
+  //   path: "/stock",
+  //   element: (
+  //     <Suspense fallback={<Loading />}>
+  //       <StockMovements />
+  //     </Suspense>
+  //   ),
+  // },
+  {
+    name: "Stock In",
+    icon: <Icon icon="solar:archive-outline" fontSize={20} />,
+    path: "/inventory/record",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <Inventories />
+      </Suspense>
+    ),
+  },
+  {
+    name: "Stock Out",
+    icon: <Icon icon="solar:archive-outline" fontSize={20} />,
+    path: "/inventory/stock_out",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <StockOut />
+      </Suspense>
+    ),
+  },
+  {
+    name: "Configurations",
+    icon: <Icon icon="mdi:gear-outline" fontSize={24} />,
     path: "",
     items: [
       {
-        name: "Summary",
-        icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-        path: "/",
+        name: "Items",
+        icon: <Icon icon="solar:box-outline" fontSize={20} />,
+        path: "/items",
         element: (
           <Suspense fallback={<Loading />}>
-            <InventoryDashboard />
+            <Items />
           </Suspense>
         ),
       },
       {
-        name: "Point Of Sale",
-        icon: <Icon icon="ph:house-simple-duotone" fontSize={20} />,
-        path: "/pos",
+        name: "Item Categories",
+        icon: <Icon icon="solar:box-outline" fontSize={20} />,
+        path: "/itemscategories",
         element: (
           <Suspense fallback={<Loading />}>
-            <POS />
+            <ItemCategories />
           </Suspense>
         ),
       },
-      // {
-      //   name: "Stock Transfer",
-      //   icon: <Icon icon="solar:archive-outline" fontSize={20} />,
-      //   path: "/stock",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <StockMovements />
-      //     </Suspense>
-      //   ),
-      // },
-      {
-        name: "Stock In",
-        icon: <Icon icon="solar:archive-outline" fontSize={20} />,
-        path: "/record",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Inventories />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Stock Out",
-        icon: <Icon icon="solar:archive-outline" fontSize={20} />,
-        path: "/stock_out",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <StockOut />
-          </Suspense>
-        ),
-      },
-    ],
-  },
-  {
-    name: "More",
-    icon: <Icon icon="solar:archive-outline" fontSize={24} />,
-    path: "/inventory",
-    items: [
       {
         name: "Stores",
         icon: <Icon icon="ph:house-simple-duotone" fontSize={20} />,
@@ -137,26 +149,6 @@ const INVENTORY_ROUTES = [
           </Suspense>
         ),
       },
-      {
-        name: "Item Categories",
-        icon: <Icon icon="solar:box-outline" fontSize={20} />,
-        path: "/itemscategories",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <ItemCategories />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Items",
-        icon: <Icon icon="solar:box-outline" fontSize={20} />,
-        path: "/items",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Items />
-          </Suspense>
-        ),
-      },
 
       // {
       //   name: "Item Attributes",
@@ -168,18 +160,6 @@ const INVENTORY_ROUTES = [
       //     </Suspense>
       //   ),
       // },
-
-      {
-        name: "Items",
-        icon: <Icon icon="solar:box-outline" fontSize={20} />,
-        path: "/items/add",
-        hidden: true,
-        element: (
-          <Suspense fallback={<Loading />}>
-            <AddProduct />
-          </Suspense>
-        ),
-      },
       // {
       //   name: "Brands",
       //   icon: <Icon icon="tabler:brand-office" fontSize={20} />,

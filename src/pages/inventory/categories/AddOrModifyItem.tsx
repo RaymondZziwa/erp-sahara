@@ -67,7 +67,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();
-    onClose(); // Close the modal after saving
+    onClose(); 
+    setFormState({ name: "", description: "" });
   };
 
   const footer = (
@@ -104,22 +105,24 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       <form id="item-form" onSubmit={handleSave}>
         <div className="p-fluid">
           <div className="p-field">
-            <label htmlFor="name">Name<span className="text-red-500">*</span></label>
+            <label htmlFor="name" className="text-sm">Name<span className="text-red-500">*</span></label>
             <InputText
               id="name"
               name="name"
               value={formState.name}
               onChange={handleInputChange}
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
           <div className="p-field">
-            <label htmlFor="description">Description</label>
+            <label htmlFor="description" className="text-sm">Description</label>
             <InputTextarea
               id="description"
               name="description"
               value={formState.description}
               onChange={handleInputChange}
+              className="w-full p-inputtext-sm"
             />
           </div>
         </div>

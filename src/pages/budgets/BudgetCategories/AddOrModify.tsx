@@ -109,26 +109,27 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       onHide={onClose}
     >
       <form id="category-form" onSubmit={handleSave} className="grid gap-4">
+        <p>All fields marked with <span className="text-red-500">*</span> are mandatory.</p>
         <div className="p-field">
-          <label htmlFor="name">Category Name</label>
+          <label htmlFor="name" className="text-sm">Category Name <span className="text-red-500">*</span></label>
           <InputText
             id="name"
             name="name"
             value={formState.name || ""}
             onChange={handleInputChange}
             required
-            className="w-full"
+            className="w-full p-inputtext-sm"
           />
         </div>
 
         <div className="p-field">
-          <label htmlFor="description">Description</label>
+          <label htmlFor="description" className="text-sm">Description</label>
           <InputTextarea
             id="description"
             name="description"
             value={formState.description || ""}
             onChange={handleInputChange}
-            className="w-full"
+            className="w-full p-inputtext-sm"
             rows={3}
           />
         </div>

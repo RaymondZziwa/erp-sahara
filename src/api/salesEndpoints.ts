@@ -14,9 +14,9 @@ export const SALES_ENDPOINTS = {
     DELETE: (id: string) => `/sales/leads/${id}/delete`,
   },
   CUSTOMER_ORDERS: {
-    GET_ALL: "/sales/customer_orders",
+    GET_ALL: "/sales/customer-orders",
     GET_BY_ID: (id: string) => `/sales/customer_orders/${id}`,
-    ADD: "/sales/customer_orders/create",
+    ADD: "/sales/customer-orders/create",
     UPDATE: (id: string) => `/sales/customer_orders/${id}/update`,
     DELETE: (id: string) => `/sales/customer_orders/${id}/delete`,
   },
@@ -61,13 +61,19 @@ export const SALES_ENDPOINTS = {
     UPDATE: (id: string) => `/people/suppliers/${id}/update`,
     DELETE: (id: string) => `/people/suppliers/${id}`,
   },
-
   CUSTOMERS: {
     GET_ALL: "/people/customers",
     GET_BY_ID: (id: string) => `/people/customers/${id}`,
     ADD: "/people/customers/create",
     UPDATE: (id: string) => `/people/customers/${id}/update`,
-    DELETE: (id: string) => `/people/customers/${id}`,
+    DELETE: (id: string) => `/people/customers/${id}/delete`,
+  },
+  OPPORTUNITIES: {
+    GET_ALL: "/sales/opportunities",
+    GET_BY_ID: (id: string) => `/sales/opportunities/${id}`,
+    ADD: "/sales/opportunities/create",
+    UPDATE: (id: string) => `/sales/opportunities/${id}/update`,
+    DELETE: (id: string) => `/sales/opportunities/${id}/delete`,
   },
   TRUCKS: {
     GET_ALL: "/people/trucks",

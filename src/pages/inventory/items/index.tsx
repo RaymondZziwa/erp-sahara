@@ -11,8 +11,8 @@ import AddOrModifyItem from "./AddOrModifyItem";
 import useItems from "../../../hooks/inventory/useItems";
 import { InventoryItem } from "../../../redux/slices/types/inventory/Items";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
-import { useNavigate } from "react-router-dom";
 import { imageURL } from "../../../utils/api";
+import { ToastContainer } from "react-toastify";
 
 const ImagePreviewModal: React.FC<{
   visible: boolean;
@@ -52,8 +52,6 @@ const ImagePreviewModal: React.FC<{
 const Items: React.FC = () => {
   const { data, refresh } = useItems();
   const tableRef = useRef<any>(null);
-  const navigate = useNavigate();
-
   const [dialogState, setDialogState] = useState<{
     selectedItem: InventoryItem | undefined;
     currentAction: "delete" | "edit" | "add" | "";
@@ -76,7 +74,6 @@ const Items: React.FC = () => {
       field: "item_images",
       sortable: true,
       filter: true,
-      flex: 4,
       cellClass: "text-sm",
       cellRenderer: (params) => {
         if (!params.value || params.value.length === 0) return "-";
@@ -92,32 +89,22 @@ const Items: React.FC = () => {
           </div>
         );
       },
-      autoHeight: true, // Optional: Adjust row height to fit image
+      autoHeight: true,
     },
     {
       headerName: "Name",
       field: "name",
       sortable: true,
       filter: true,
-      flex: 4,
       cellClass: "text-sm",
       autoHeight: true,
     },
-    // {
-    //   headerName: "Description",
-    //   field: "description",
-    //   sortable: true,
-    //   filter: true,
-    //   flex: 1,
-    //   cellClass: "text-sm",
-    //   autoHeight: true,
-    // },
     {
       headerName: "Cost Price",
       field: "cost_price",
       sortable: true,
       filter: true,
-      width: 120,
+      width: 100,
       valueFormatter: (params) => `${Math.floor(params.value)}`,
       cellClass: "text-sm font-medium",
     },
@@ -130,65 +117,13 @@ const Items: React.FC = () => {
       valueFormatter: (params) => `${Math.floor(params.value)}`,
       cellClass: "text-sm font-medium",
     },
-    // {
-    //   headerName: "SKU",
-    //   field: "sku_unit",
-    //   sortable: true,
-    //   filter: true,
-    //   width: 120,
-    //   cellClass: "text-sm",
-    // },
-    // {
-    //   headerName: "Stock Alert",
-    //   field: "stock_alert_level",
-    //   sortable: true,
-    //   filter: true,
-    //   width: 120,
-    //   cellClass: "text-sm",
-    // },
-    // {
-    //   headerName: "Reference",
-    //   field: "reference",
-    //   sortable: true,
-    //   filter: true,
-    //   width: 120,
-    //   cellClass: "text-sm",
-    // },
-    // {
-    //   headerName: "Shell life",
-    //   field: "shell_life",
-    //   sortable: true,
-    //   filter: true,
-    //   width: 120,
-    //   cellClass: "text-sm",
-    // },
-    // {
-    //   headerName: "Images",
-    //   field: "item_images",
-    //   width: 120,
-    //   cellRenderer: (params: ICellRendererParams<InventoryItem>) => {
-    //     const images = params.data?.item_images || [];
-    //     return images.length > 0 ? (
-    //       <button
-    //         onClick={() => setImageModal({ visible: true, images })}
-    //         className="text-blue-600 hover:text-blue-800 transition-colors text-sm font-medium"
-    //       >
-    //         View ({images.length})
-    //       </button>
-    //     ) : (
-    //       <span className="text-gray-400 text-sm">No images</span>
-    //     );
-    //   },
-    // },
     {
       headerName: "Actions",
       field: "id",
-      width: 100, // reduced width
       cellRenderer: (params: ICellRendererParams<InventoryItem>) => (
-        <div className="flex items-center gap-1 pt-2">
-          <Button
-            icon="pi pi-pencil"
-            className="p-0 h-6 w-6 text-xs p-button-rounded p-button-text p-button-secondary"
+        <div className="flex items-center gap-2">
+          <button
+            className="bg-shade px-2 h-10 rounded text-white"
             onClick={() =>
               setDialogState({
                 ...dialogState,
@@ -196,12 +131,10 @@ const Items: React.FC = () => {
                 selectedItem: params.data,
               })
             }
-            tooltip="Edit"
-            tooltipOptions={{ position: "top" }}
-          />
-          <Button
-            icon="pi pi-trash"
-            className="p-0 h-6 w-6 text-xs p-button-rounded p-button-text p-button-danger"
+          >
+            Edit
+          </button>
+          <Icon
             onClick={() =>
               setDialogState({
                 ...dialogState,
@@ -209,9 +142,11 @@ const Items: React.FC = () => {
                 selectedItem: params.data,
               })
             }
-            tooltip="Delete"
-            tooltipOptions={{ position: "top" }}
+            icon="solar:trash-bin-trash-bold"
+            className="text-red-500 cursor-pointer"
+            fontSize={24}
           />
+         
         </div>
       ),
     },
@@ -219,6 +154,7 @@ const Items: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <ToastContainer />
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedItem}
@@ -268,7 +204,10 @@ const Items: React.FC = () => {
               label="Add Item"
               icon="pi pi-plus"
               className="p-button-primary"
-              onClick={() => navigate("/inventory/inventory/items/add")}
+              onClick={() => setDialogState({
+                currentAction: "add",
+                selectedItem: undefined
+              })}
             />
             <Button
               label="Export"

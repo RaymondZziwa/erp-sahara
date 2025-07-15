@@ -64,7 +64,7 @@ const Suppliers: React.FC = () => {
       cellRenderer: (params: ICellRendererParams<Supplier>) => (
         <div className="flex items-center gap-2">
           <button
-            className="bg-shade px-2 py-1 rounded text-white"
+            className="bg-shade px-2 rounded text-white h-10"
             onClick={() =>
               setDialogState({
                 ...dialogState,
@@ -85,7 +85,7 @@ const Suppliers: React.FC = () => {
             }
             icon="solar:trash-bin-trash-bold"
             className="text-red-500 cursor-pointer"
-            fontSize={20}
+            fontSize={24}
           />
         </div>
       ),

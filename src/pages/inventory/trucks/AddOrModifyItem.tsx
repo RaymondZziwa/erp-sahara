@@ -7,7 +7,7 @@ import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import { Truck } from "../../../redux/slices/types/mossApp/Trucks";
-import { RadioButton } from "primereact/radiobutton";
+//import { RadioButton } from "primereact/radiobutton";
 
 interface AddOrModifyTruckProps {
   visible: boolean;
@@ -61,7 +61,7 @@ const AddOrModifyTruck: React.FC<AddOrModifyTruckProps> = ({
     setIsSubmitting(true);
     // Basic validation
     if (!formState.license_plate || !formState.model) {
-      return; // Handle validation error here
+      return; 
     }
     const data = { ...formState };
     const method = item?.id ? "PUT" : "POST";
@@ -70,9 +70,14 @@ const AddOrModifyTruck: React.FC<AddOrModifyTruckProps> = ({
       : INVENTORY_ENDPOINTS.TRUCKS.ADD;
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
-    setFormState({});
     onSave();
-    onClose(); // Close the modal after saving
+    onClose();
+    setFormState({
+      license_plate: "",
+      model: "",
+      capacity: "",
+      status: "available",
+    });
   };
 
   const footer = (
@@ -101,7 +106,7 @@ const AddOrModifyTruck: React.FC<AddOrModifyTruckProps> = ({
     <Dialog
       header={item?.id ? "Edit Truck" : "Add Truck"}
       visible={visible}
-      style={{ width: "400px" }}
+      style={{ width: "300px" }}
       footer={footer}
       onHide={onClose}
     >
@@ -111,38 +116,38 @@ const AddOrModifyTruck: React.FC<AddOrModifyTruckProps> = ({
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="license_plate">License Plate</label>
+          <label htmlFor="license_plate" className="text-sm">License Plate<span className="text-red-500">*</span></label>
           <InputText
             id="license_plate"
             name="license_plate"
             value={formState.license_plate}
             onChange={handleInputChange}
             required
-            className="w-full"
+            className="w-full p-inputtext-sm"
           />
         </div>
         <div className="p-field">
-          <label htmlFor="model">Model</label>
+          <label htmlFor="model" className="text-sm">Model<span className="text-red-500">*</span></label>
           <InputText
             id="model"
             name="model"
             value={formState.model}
             onChange={handleInputChange}
             required
-            className="w-full"
+            className="w-full p-inputtext-sm"
           />
         </div>
         <div className="p-field">
-          <label htmlFor="capacity">Capacity</label>
+          <label htmlFor="capacity" className="text-sm">Capacity</label>
           <InputText
             id="capacity"
             name="capacity"
             value={formState.capacity}
             onChange={handleInputChange}
-            className="w-full"
+            className="w-full p-inputtext-sm"
           />
         </div>
-        {["available", "not-available"].map((status) => {
+        {/* {["available", "not-available"].map((status) => {
           return (
             <div key={status} className="flex align-items-center">
               <RadioButton
@@ -159,7 +164,7 @@ const AddOrModifyTruck: React.FC<AddOrModifyTruckProps> = ({
               </label>
             </div>
           );
-        })}
+        })} */}
       </form>
     </Dialog>
   );

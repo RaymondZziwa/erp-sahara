@@ -155,7 +155,7 @@ const DistributionOrders: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Distribution Orders" pageName="All" />
+      <BreadCrump name="Distribution Orders" pageName="Distribution Orders" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">

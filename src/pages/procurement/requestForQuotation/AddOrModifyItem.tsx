@@ -15,7 +15,6 @@ import usePurchaseRequests from "../../../hooks/procurement/usePurchaseRequests"
 import useSuppliers from "../../../hooks/procurement/useSuppliers";
 import useUnitsOfMeasurement from "../../../hooks/inventory/useUnitsOfMeasurement";
 
-
 interface RequestForQuotationAdd {
   purchase_request_id: string;
   rfq_type: "Open" | "Selective" | "Single Source";
@@ -44,6 +43,7 @@ interface Item {
 interface Supplier {
   supplier_id: string;
   invitation_status: "Pending" | "Invited";
+  email_supplier: "yes" | "no";
 }
 
 interface AddOrModifyItemProps {
@@ -106,8 +106,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         special_instructions: item.special_instructions ?? "",
         items:
           item.rfq_items && item.rfq_items.length > 0
-            ? item.rfq_items.map((i, index) => ({
-                index,
+            ? item.rfq_items.map((i) => ({
                 purchase_request_item_id: i.purchase_request_item_id,
                 quantity: i.quantity,
                 uom: i.uom ?? "",
@@ -121,6 +120,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             ? item.rfq_suppliers.map((s) => ({
                 supplier_id: s.supplier_id,
                 invitation_status: s.invitation_status ?? "Pending",
+                email_supplier: s.email_supplier === "yes" ? "yes" : "no",
               }))
             : [],
       });
@@ -179,10 +179,27 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     const selectedSuppliers = e.value.map((id: string) => ({
       supplier_id: id,
       invitation_status: "Pending",
+      email_supplier: "yes", // Default to "yes" when supplier is selected
     }));
     setFormState((prevState) => ({
       ...prevState,
       suppliers: selectedSuppliers,
+    }));
+  };
+
+  const handleEmailSupplierChange = (supplierId: string, value: "yes" | "no") => {
+    const updatedSuppliers = formState.suppliers.map((supplier) => {
+      if (supplier.supplier_id === supplierId) {
+        return {
+          ...supplier,
+          email_supplier: value,
+        };
+      }
+      return supplier;
+    });
+    setFormState((prevState) => ({
+      ...prevState,
+      suppliers: updatedSuppliers,
     }));
   };
 
@@ -388,6 +405,49 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             filter
             className="w-full"
           />
+          
+          {formState.suppliers.length > 0 && (
+            <div className="mt-4">
+              <h4 className="font-semibold mb-2">Supplier Email Preferences</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {formState.suppliers.map((supplier) => {
+                  const supplierInfo = suppliers.find(s => s.id === supplier.supplier_id);
+                  return (
+                    <div key={supplier.supplier_id} className="flex items-center p-2 border rounded">
+                      <span className="flex-grow">
+                        {supplierInfo?.supplier_name || supplier.supplier_id}
+                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span>Email Supplier:</span>
+                        <div className="flex items-center space-x-2">
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name={`email-${supplier.supplier_id}`}
+                              checked={supplier.email_supplier === "yes"}
+                              onChange={() => handleEmailSupplierChange(supplier.supplier_id, "yes")}
+                              className="mr-1"
+                            />
+                            Yes
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name={`email-${supplier.supplier_id}`}
+                              checked={supplier.email_supplier === "no"}
+                              onChange={() => handleEmailSupplierChange(supplier.supplier_id, "no")}
+                              className="mr-1"
+                            />
+                            No
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="p-field col-span-2">

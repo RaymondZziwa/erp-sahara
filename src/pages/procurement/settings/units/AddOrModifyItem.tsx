@@ -80,7 +80,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     await createRequest(endpoint, token.access_token, data, onSave, method);
 
     onSave();
-    onClose(); // Close the modal after saving
+    onClose(); 
+    setFormState({ name: "", type: "", abbreviation: "" });
   };
 
   const footer = (
@@ -116,21 +117,23 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       <form id="item-form" onSubmit={handleSave}>
         <div className="p-fluid">
           <div className="p-field">
-            <label htmlFor="name">Name<span className="text-red-500">*</span></label>
+            <label htmlFor="name" className="text-sm">Name<span className="text-red-500">*</span></label>
             <InputText
               id="name"
               name="name"
               value={formState.name}
               onChange={handleInputChange}
-              required
+                required
+                className="w-full p-inputtext-sm"
             />
           </div>
           <div className="p-field">
-            <label htmlFor="item_category_id">Unit Type<span className="text-red-500">*</span></label>
+            <label htmlFor="item_category_id" className="text-sm">Unit Type<span className="text-red-500">*</span></label>
             <div className="card flex justify-content-center">
               <Dropdown
                 required
-                value={formState.type}
+                  value={formState.type}
+                  className="w-full p-inputtext-sm"
                 onChange={(e: DropdownChangeEvent) => {
                   setFormState({ ...formState, type: e.value });
                 }}
@@ -140,17 +143,17 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                 }))}
                 placeholder="Select a Unit Type"
                 filter
-                className="w-full md:w-14rem"
               />
             </div>
           </div>
           <div className="p-field">
-            <label htmlFor="abbreviation">Abbreviation<span className="text-red-500">*</span></label>
+            <label htmlFor="abbreviation" className="text-sm">Abbreviation<span className="text-red-500">*</span></label>
             <InputText
               id="abbreviation"
               name="abbreviation"
               value={formState.abbreviation}
-              onChange={handleInputChange}
+                onChange={handleInputChange}
+                className="w-full p-inputtext-sm"
             />
           </div>
         </div>

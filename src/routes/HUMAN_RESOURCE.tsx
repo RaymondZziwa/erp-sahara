@@ -21,74 +21,57 @@ const Deductions = lazy(() => import("../pages/hr/salary/deductions"));
 const Loading = () => <div>Loading...</div>;
 
 const HUMAN_RESOURCE_ROUTES = [
+ 
   {
-    name: "General",
-    icon: <Icon icon="mdi:view-dashboard-outline" fontSize={24} />,
-    path: "/",
-    items: [
-      {
-        name: "Main Dashboard",
-        icon: <Icon icon="mdi:chart-bar" fontSize={20} />,
-        path: "/",
-        hidden: true,
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Employees />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Employees",
-        icon: <Icon icon="mdi:account-outline" fontSize={20} />,
-        path: "/employees",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Employees />
-          </Suspense>
-        ),
-      },
+    name: "Employees",
+    icon: <Icon icon="mdi:account-outline" fontSize={20} />,
+    path: "/employees",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <Employees />
+      </Suspense>
+    ),
+  },
 
-      {
-        name: "Attendance",
-        icon: <Icon icon="mdi:calendar-check-outline" fontSize={20} />,
-        path: "/attendencies",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Attendencies />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Allowances",
-        icon: <Icon icon="mdi:cash-check" fontSize={20} />,
-        path: "/allowances",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Allowances />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Deductions",
-        icon: <Icon icon="mdi:minus-circle-outline" fontSize={20} />,
-        path: "/deductions",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Deductions />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Leave Applications",
-        icon: <Icon icon="mdi:clipboard-text-outline" fontSize={20} />,
-        path: "/leaveapplications",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <LeaveApplications />
-          </Suspense>
-        ),
-      },
-    ],
+  {
+    name: "Attendance",
+    icon: <Icon icon="mdi:calendar-check-outline" fontSize={20} />,
+    path: "/attendencies",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <Attendencies />
+      </Suspense>
+    ),
+  },
+  {
+    name: "Allowances",
+    icon: <Icon icon="mdi:cash-check" fontSize={20} />,
+    path: "/allowances",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <Allowances />
+      </Suspense>
+    ),
+  },
+  {
+    name: "Deductions",
+    icon: <Icon icon="mdi:minus-circle-outline" fontSize={20} />,
+    path: "/deductions",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <Deductions />
+      </Suspense>
+    ),
+  },
+  {
+    name: "Leave Applications",
+    icon: <Icon icon="mdi:clipboard-text-outline" fontSize={20} />,
+    path: "/leaveapplications",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <LeaveApplications />
+      </Suspense>
+    ),
   },
 
   {

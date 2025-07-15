@@ -1,24 +1,29 @@
-export interface Quotation {
-  id: number;
-  qoutation_no: string;
-  title: string;
-  organisation_id: number;
-  customer_id: number;
-  lead_id: number;
-  currency_id: number;
-  issue_date: string;
-  expiry_date: string;
-  net_amount: string;
-  vat_rate: string;
-  total_amount: string;
-  notes: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
-  quotation_items: Quotationitem[];
-  lead: Lead;
-  customer: Customer;
+export interface QuotationItem {
+  item_type: 'item' | 'service' | 'custom'; // Must match the parent q_type
+  name: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  tax_rate: number; // In percentage, e.g., 5 = 5%
+  item_sku: string;
+  warehouse_location: string;
+  sort_order: number;
+  // Optional fields (commented in your example)
+  item_id?: string;
+  uom?: string; // Unit of Measure ID (optional)
 }
+
+export interface Quotation {
+  q_type: 'item' | 'service' | 'custom';
+  customer_id: string;
+  opportunity_id?: string | null; // Nullable
+  issue_date: string; // ISO format: YYYY-MM-DD
+  expiry_date: string;
+  notes: string;
+  status?: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired'; // Nullable
+  items: QuotationItem[];
+}
+
 
 interface Customer {
   id: number;

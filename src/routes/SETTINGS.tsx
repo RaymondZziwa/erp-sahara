@@ -4,12 +4,13 @@ import RoleManagement from "../pages/settings/permissions";
 import ApprovalLevels from "../pages/settings/approval_levels";
 import ProfilePage from "../pages/settings/profile";
 import UserProfile from "../pages/settings/user_settings";
+import Branches from "../pages/settings/branches";
 
 const SETTINGS_ROUTES = [
   {
     name: "General",
     icon: <Icon icon="solar:layers-line-duotone" fontSize={24} />,
-    path: "/",
+    path: "",
     items: [
       {
         name: "User Roles",
@@ -20,19 +21,25 @@ const SETTINGS_ROUTES = [
       {
         name: "Approval levels",
         icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-        path: "approvallevels",
+        path: "/approvallevels",
         element: <ApprovalLevels />,
+      },
+      {
+        name: "Branches",
+        icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+        path: "/branches",
+        element: <Branches />,
       },
       {
         name: "Company profile",
         icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-        path: "profile",
+        path: "/profile",
         element: <ProfilePage />,
       },
       {
         name: "User profile",
         icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-        path: "user_profile",
+        path: "/user_profile",
         element: <UserProfile />,
       },
     ],

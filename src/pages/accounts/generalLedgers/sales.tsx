@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ColDef } from "ag-grid-community";
-import AddOrModifyItem from "./AddOrModifyItem";
+import AddOrModifyItem from "./incomeTransactionForm";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import Table from "../../../components/table";
 

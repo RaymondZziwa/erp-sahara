@@ -12,6 +12,7 @@ import { BudgetCategory } from "../../../redux/slices/types/budgets/Budget";
 import { useNavigate } from "react-router-dom";
 import useBudgetCategories from "../../../hooks/budgets/useBudgetCategories";
 import AddOrModifyItem from "./AddOrModify";
+import { ToastContainer } from "react-toastify";
 
 const BudgetCategories: React.FC = () => {
   const { data, refresh } = useBudgetCategories();
@@ -85,6 +86,7 @@ const BudgetCategories: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       {dialogState.currentAction !== "" && (
         <AddOrModifyItem
           onSave={refresh}

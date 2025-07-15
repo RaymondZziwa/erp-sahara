@@ -1,4 +1,4 @@
-//@ts-nocheck
+
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
@@ -6,34 +6,28 @@ import PosItemCard from "./item_card";
 import CartItem from "./cart_item";
 import CategoryNav from "./nav/category_filter";
 import { toast } from "react-toastify";
-import { createRequest } from "../../../utils/api";
+import { createRequest, imageURL } from "../../../utils/api";
 import { useReactToPrint } from "react-to-print";
 import { PrintableContent } from "./receipt";
 import PaymentComponent from "./payment_component";
 import { useWindowSize } from "../../../hooks/useWindowSize";
 import useItems from "../../../hooks/inventory/useItems";
 
+
 interface Props {
   query: string;
 }
 
 const PosModal: React.FC<Props> = ({ query }) => {
-  //const items = useSelector((state: RootState) => state.inventoryItems.data);
-  const {data: items, refresh: getItems} = useItems()
+  const { data: items, refresh: getItems } = useItems()
+  const businessName = useSelector(
+    (state: RootState) => state.userAuth.user?.organisation?.organisation_name
+  );
+  
 
-  useEffect(()=> {
-    if(!items) {
-      getItems()
-    }
-  }, [])
-
-  const businessName = 'Spice hub'
-  // const businessName = useSelector(
-  //   (state: RootState) => state.userAuth.organisation.organisation_name
-  // );
   const [selectedCategory, setSelectedCategory] = useState<number | string>(0);
   const [customer, setCustomer] = useState<string | number | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<number | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>("");
   const [searchedItems, setSearchedItems] = useState<CartItemType[]>([]);
   const [cart, setCart] = useState<CartItemType[]>([]);
   const [total, setTotal] = useState(0);
@@ -42,6 +36,7 @@ const PosModal: React.FC<Props> = ({ query }) => {
   const token = useSelector(
     (state: RootState) => state.userAuth.token.access_token
   );
+
   const { width } = useWindowSize();
   const isMobile = width < 768;
 
@@ -50,11 +45,10 @@ const PosModal: React.FC<Props> = ({ query }) => {
 
   const [formState, setFormState] = useState({
     cashier_id: user.id,
-    cashier_name: user.full_name,
+    cashier_name: user.first_name,
     customer_id: typeof customer === "number" ? customer : 0,
     customer_name: typeof customer === "string" ? customer : "",
-    warehouse_id: 1,
-    chart_of_account_id: 1,
+    warehouse_id: localStorage.getItem('store'),
     items: [],
     payment_method_id: paymentMethod,
     amount_paid: total,
@@ -62,7 +56,6 @@ const PosModal: React.FC<Props> = ({ query }) => {
     currency_id: 1,
   });
 
-  // Filter items by category
   const filteredItems = useMemo(() => {
     let result = items;
     if (selectedCategory !== 0) {
@@ -73,20 +66,17 @@ const PosModal: React.FC<Props> = ({ query }) => {
     return result;
   }, [items, selectedCategory]);
 
-  // Apply search filter to category-filtered items
-useEffect(() => {
-  if (query.trim() !== "") {
-    const result = items.filter((item) =>
-      item.name.toLowerCase().includes(query.toLowerCase())
-    );
-    setSearchedItems(result);
-  } else {
-    // When search is empty, show items filtered by category only
-    setSearchedItems(filteredItems);
-  }
-}, [query, items, filteredItems]);
+  useEffect(() => {
+    if (query.trim() !== "") {
+      const result = items.filter((item) =>
+        item.name.toLowerCase().includes(query.toLowerCase())
+      );
+      setSearchedItems(result);
+    } else {
+      setSearchedItems(filteredItems);
+    }
+  }, [query, items, filteredItems]);
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
   const totalPages = Math.ceil(searchedItems.length / itemsPerPage);
@@ -95,7 +85,6 @@ useEffect(() => {
     currentPage * itemsPerPage
   );
 
-  // Cart functions
   const addItemToCart = (item: CartItemType) => {
     setCart((prev) => {
       const exists = prev.find((cartItem) => cartItem.id === item.id);
@@ -123,7 +112,6 @@ useEffect(() => {
   };
 
   const updateQuantity = (id: number, quantity: number) => {
-    //if (quantity < 1) return;
     setCart((prev) =>
       prev.map((item) => (item.id === id ? { ...item, quantity } : item))
     );
@@ -145,7 +133,6 @@ useEffect(() => {
     );
   };
 
-  // Calculate total
   const totalAmount = useMemo(() => {
     const result = cart.reduce((sum, item) => {
       return (
@@ -158,7 +145,6 @@ useEffect(() => {
     return result;
   }, [cart]);
 
-  // Checkout functions
   const handleCheckout = () => {
     if (cart.length === 0) {
       toast.warn("Cart is empty. Please add items to checkout.");
@@ -168,6 +154,11 @@ useEffect(() => {
   };
 
   const processCheckout = async (printReceipt: boolean) => {
+
+    if (!localStorage.getItem('store') || !localStorage.getItem('currency')) {
+      toast.warn('Please select the warehouse you are selling from and currency');
+      return;
+    }
     const formattedItems = cart.map((item) => ({
       item_id: item.id,
       quantity: item.quantity,
@@ -177,314 +168,228 @@ useEffect(() => {
     const requestData = {
       ...formState,
       items: formattedItems,
+      payment_method_id: paymentMethod,
+      warehouse_id: localStorage.getItem('store'),
+      amount: total,
+      currency_id: localStorage.getItem('currency')
     };
 
-    const response = await createRequest(
+    await createRequest(
       "/inventories/pointsofsale",
       token,
       requestData,
-      "POST"
+      ()=> {},
+      "POST",
     );
 
-    if (response.success) {
-      toast.success("Sale completed successfully!");
+    setShowConfirmationModal(false)
       if (printReceipt) {
         setTimeout(reactToPrintFn, 300);
       }
       setCart([]);
-      setShowConfirmationModal(false);
-    } else {
-      toast.error("Error processing sale. Please try again.");
-    }
+    setShowConfirmationModal(false);
+    reactToPrintFn()
   };
 
-    return (
-      <div
-        className={`flex ${
-          isMobile ? "flex-col" : "flex-row"
-        } h-full bg-gray-50 ${
-          isMobile ? "rounded-none" : "rounded-lg"
-        } shadow-lg overflow-hidden`}
-      >
-        {/* Products Section */}
-        <div
-          className={`${
-            isMobile ? "w-full" : "w-3/5"
-          } flex flex-col border-r border-gray-200 bg-white`}
-        >
-          {/* Category Filter - Mobile optimized */}
-          <div className={`p-${isMobile ? "2" : "4"} border-b`}>
-            <CategoryNav
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-              isMobile={isMobile}
-            />
-          </div>
+  return (
+    <div className={`z-70 flex ${isMobile ? "flex-col" : "flex-row"} h-full bg-gray-50 ${isMobile ? "rounded-none" : "rounded-xl"} overflow-hidden`}>
+      {/* Products Section */}
+      <div className={`${isMobile ? "w-full" : "w-3/5"} flex flex-col border-r border-gray-200 bg-white`}>
+        {/* Category Filter */}
+        <div className="p-4 border-b border-gray-100">
+          <CategoryNav
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+            isMobile={isMobile}
+          />
+        </div>
 
-          {/* Products Grid - Responsive columns */}
-          <div className="flex-1 overflow-y-auto p-2 sm:p-4">
-            <div
-              className={`grid ${
-                isMobile ? "grid-cols-2" : "grid-cols-3 md:grid-cols-4"
-              } gap-2 sm:gap-4`}
-            >
-              {paginatedItems.length > 0 ? (
-                paginatedItems.map((item) => (
-                  <PosItemCard
-                    key={item.item_id}
-                    image={
-                      item.item_images.length > 0
-                        ? `https://saharaauth.efinanci.com/storage/${item.item_images[0]?.image_url}`
-                        : "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' fill='%236b7280' font-family='sans-serif' font-size='16' text-anchor='middle' dominant-baseline='middle'%3ENo Photo%3C/text%3E%3C/svg%3E"
-                    }
-                    name={item.name}
-                    item={item}
-                    price={Math.floor(item.selling_price)}
-                    addItem={() => addItemToCart(item)}
-                    isMobile={isMobile}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full text-center py-8 text-gray-500">
-                  No items found
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Pagination - Mobile optimized */}
-          {totalPages > 1 && (
-            <div
-              className={`p-${
-                isMobile ? "2" : "4"
-              } border-t bg-white sticky bottom-0`}
-            >
-              <div className="flex justify-center items-center">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-100 rounded-l-md disabled:opacity-50 text-sm sm:text-base"
-                >
-                  Previous
-                </button>
-                <span className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-100 text-sm sm:text-base">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+        {/* Products Grid */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {paginatedItems.length > 0 ? (
+            <div className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-3 lg:grid-cols-4"} gap-4`}>
+              {paginatedItems.map((item) => (
+                <PosItemCard
+                  key={item.item_id}
+                  image={
+                    item.item_images.length > 0
+                      ? `${imageURL}/${item.item_images[0]?.image_url}`
+                      : "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%23f3f4f6'/%3E%3Ctext x='50%' y='50%' fill='%239ca3af' font-family='sans-serif' font-size='16' text-anchor='middle' dominant-baseline='middle'%3ENo Image%3C/text%3E%3C/svg%3E"
                   }
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-100 rounded-r-md disabled:opacity-50 text-sm sm:text-base"
-                >
-                  Next
-                </button>
-              </div>
+                  name={item.name}
+                  item={item}
+                  price={Math.floor(item.selling_price)}
+                  addItem={() => addItemToCart(item)}
+                  isMobile={isMobile}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-gray-400">
+              <svg className="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-lg">No items found</p>
             </div>
           )}
         </div>
 
-        {/* Cart Section - Mobile optimized */}
-        <div
-          className={`${
-            isMobile ? "w-full" : "w-2/5"
-          } flex flex-col bg-gray-50 border-t ${
-            isMobile ? "" : "border-l"
-          } border-gray-200`}
-        >
-          <div className="flex-1 flex flex-col">
-            {/* Cart Header */}
-            <div
-              className={`p-${
-                isMobile ? "2" : "4"
-              } border-b bg-white sticky top-0 z-10`}
-            >
-              <h2 className={`font-bold ${isMobile ? "text-md" : "text-lg"}`}>
-                Order Summary
-              </h2>
-            </div>
-
-            {/* Cart Items - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 sm:space-y-3">
-              {cart.length > 0 ? (
-                cart.map((item) => (
-                  <CartItem
-                    key={item.item_id}
-                    item={item}
-                    updateQuantity={updateQuantity}
-                    updateSellingPrice={updateSellingPrice}
-                    updateDiscount={updateDiscount}
-                    removeItemFromCart={removeItemFromCart}
-                    isMobile={isMobile}
-                  />
-                ))
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  Your cart is empty
-                </div>
-              )}
-            </div>
-
-            {/* Fixed Footer - Mobile optimized */}
-            <div
-              className={`p-${
-                isMobile ? "2" : "4"
-              } border-t bg-white sticky bottom-0`}
-            >
-              <div
-                className={`flex justify-between items-center mb-${
-                  isMobile ? "2" : "4"
-                }`}
-              >
-                <span className={`font-semibold ${isMobile ? "text-sm" : ""}`}>
-                  Total:
-                </span>
-                <span
-                  className={`font-bold ${isMobile ? "text-md" : "text-lg"}`}
-                >
-                  UGX {totalAmount.toFixed(2)}
-                </span>
-              </div>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-gray-100 bg-white sticky bottom-0">
+            <div className="flex justify-center items-center space-x-2">
               <button
-                onClick={handleCheckout}
-                disabled={cart.length === 0}
-                className={`w-full ${
-                  isMobile ? "py-2" : "py-3"
-                } bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors text-sm sm:text-base`}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-white border border-gray-200 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Checkout
+                Previous
+              </button>
+              <span className="px-4 py-2 bg-blue-50 text-blue-600 rounded-md text-sm font-medium">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-white border border-gray-200 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
               </button>
             </div>
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* Confirmation Modal - Mobile optimized */}
-        {showConfirmationModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-            <div
-              className={`bg-white rounded-lg ${
-                isMobile ? "w-full" : "max-w-md"
-              } max-h-[90vh] overflow-y-auto`}
-            >
-              <div className="p-4 sm:p-6">
-                <h2
-                  className={`${
-                    isMobile ? "text-lg" : "text-xl"
-                  } font-bold mb-${isMobile ? "2" : "4"}`}
-                >
-                  Confirm Order
-                </h2>
+      {/* Cart Section */}
+      <div className={`${isMobile ? "w-full" : "w-2/5"} flex flex-col bg-gray-50 border-l border-gray-200 z-60`}>
+        <div className="flex-1 flex flex-col">
+          {/* Cart Header */}
+          <div className="p-4 border-b border-gray-100 bg-white sticky top-0 z-10 space-y-3">
+            <h2 className="text-xl font-bold text-gray-800">Order Summary</h2>
+            <div className="space-y-2">
+              
+            </div>
+          </div>
 
-                {/* Client and Payment Selection - Mobile optimized */}
-                <PaymentComponent
-                  setClientName={setCustomer}
-                  setPaymentMethod={setPaymentMethod}
+          {/* Cart Items */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {cart.length > 0 ? (
+              cart.map((item) => (
+                <CartItem
+                  key={item.item_id}
+                  item={item}
+                  updateQuantity={updateQuantity}
+                  updateSellingPrice={updateSellingPrice}
+                  updateDiscount={updateDiscount}
+                  removeItemFromCart={removeItemFromCart}
                   isMobile={isMobile}
                 />
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                <svg className="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <p className="text-lg">Your cart is empty</p>
+                <p className="text-sm mt-1">Add items to get started</p>
+              </div>
+            )}
+          </div>
 
-                {/* Order Summary */}
-                <div className={`mb-${isMobile ? "4" : "6"}`}>
-                  <h3
-                    className={`font-semibold mb-${isMobile ? "1" : "2"} ${
-                      isMobile ? "text-sm" : ""
-                    }`}
-                  >
-                    Order Items ({cart.length})
-                  </h3>
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {cart.map((item) => (
-                      <div
-                        key={item.id}
-                        className={`flex justify-between py-${
-                          isMobile ? "1" : "2"
-                        } border-b`}
-                      >
-                        <span
-                          className={`truncate ${
-                            isMobile ? "max-w-[120px]" : "max-w-xs"
-                          } text-sm sm:text-base`}
-                        >
-                          {item.name} × {item.quantity}
-                        </span>
-                        <span className={`font-medium text-sm sm:text-base`}>
-                          UGX{" "}
-                          {(
-                            item.quantity *
-                              parseFloat(item.actual_selling_price) -
-                            item.discount
-                          ).toFixed(2)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div
-                    className={`flex justify-between mt-${
-                      isMobile ? "2" : "4"
-                    } pt-${isMobile ? "1" : "2"} border-t font-bold`}
-                  >
-                    <span className={isMobile ? "text-sm" : ""}>Total:</span>
-                    <span className={isMobile ? "text-md" : "text-lg"}>
-                      UGX {totalAmount.toFixed(2)}
-                    </span>
-                  </div>
+          {/* Cart Footer */}
+          <div className="p-4 border-t border-gray-100 bg-white sticky bottom-0">
+            <div className="flex justify-between items-center mb-4">
+              <span className="font-semibold text-gray-700">Total:</span>
+              <span className="font-bold text-xl text-blue-600">
+                UGX {totalAmount.toFixed(2)}
+              </span>
+            </div>
+            <button
+              onClick={handleCheckout}
+              disabled={cart.length === 0}
+              className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                cart.length > 0 
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              Checkout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Confirm Order</h2>
+
+              <PaymentComponent
+                setClientName={setCustomer}
+                paymentMethod={paymentMethod}
+                setPaymentMethod={setPaymentMethod}
+                isMobile={isMobile}
+              />
+
+              <div className="mt-6 pt-4 border-t border-gray-100">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="font-medium text-gray-700">Subtotal:</span>
+                  <span className="font-medium">UGX {totalAmount.toFixed(2)}</span>
                 </div>
+                <div className="flex justify-between items-center font-bold text-lg">
+                  <span>Total:</span>
+                  <span className="text-blue-600">UGX {totalAmount.toFixed(2)}</span>
+                </div>
+              </div>
 
-                {/* Action Buttons - Stacked on mobile */}
-                <div
-                  className={`flex ${
-                    isMobile ? "flex-col" : "space-x-3"
-                  } space-y-2 ${isMobile ? "" : "space-y-0"}`}
+              <div className={`flex ${isMobile ? "flex-col space-y-3" : "space-x-3"} mt-8`}>
+                <button
+                  onClick={() => setShowConfirmationModal(false)}
+                  className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
                 >
-                  <button
-                    onClick={() => setShowConfirmationModal(false)}
-                    className={`${
-                      isMobile ? "w-full" : "flex-1"
-                    } py-2 bg-gray-200 rounded-md hover:bg-gray-300 text-sm sm:text-base`}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => processCheckout(false)}
-                    className={`${
-                      isMobile ? "w-full" : "flex-1"
-                    } py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm sm:text-base`}
-                  >
-                    Complete Order
-                  </button>
-                  <button
-                    onClick={() => processCheckout(true)}
-                    className={`${
-                      isMobile ? "w-full" : "flex-1"
-                    } py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm sm:text-base`}
-                  >
-                    Print Receipt
-                  </button>
-                </div>
+                  Cancel
+                </button>
+                <button
+                  onClick={() => processCheckout(false)}
+                  className="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  Complete Order
+                </button>
+                <button
+                  onClick={() => reactToPrintFn()} 
+                  className="flex-1 py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  Print Receipt
+                </button>
               </div>
             </div>
           </div>
-        )}
-
-        {/* Hidden Print Content */}
-        <div ref={contentRef} className="print-content">
-          <PrintableContent
-            paymentMethod={paymentMethod}
-            total={total}
-            cart={cart}
-            businessName={businessName}
-            isMobile={isMobile}
-          />
-          <style>
-            {`
-            @media print {
-              .print-content { display: block !important; }
-            }
-            .print-content { display: none; }
-          `}
-          </style>
         </div>
+      )}
+
+      {/* Hidden Print Content */}
+      <div ref={contentRef} className="print-content">
+        <PrintableContent
+          paymentMethod={paymentMethod}
+          servedBy={user.full_name}
+          total={total}
+          cart={cart}
+          businessName={businessName}
+          isMobile={isMobile}
+        />
+        <style>
+          {`
+          @media print {
+            .print-content { display: block !important; }
+          }
+          .print-content { display: none; }
+        `}
+        </style>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
 export default PosModal;

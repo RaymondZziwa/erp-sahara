@@ -340,7 +340,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             name="ac_code"
             value={formState.ac_code}
             onChange={handleInputChange}
-            required
             className="w-full"
           />
         </div>

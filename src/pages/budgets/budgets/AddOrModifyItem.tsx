@@ -182,7 +182,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       ...formState,
       parent_id: formState.parent_id ?? null,
       allocations,
-      items,
+      budget_items: items,
     };
 
     await createRequest(endpoint, token.access_token, payload, onSave, method);
@@ -207,7 +207,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         label={item?.id ? "Update" : "Submit"}
         icon="pi pi-check"
         loading={isSubmitting}
-        disabled={isSubmitting}
+        disabled={isSubmitting || items.length == 0}
         size="small"
       />
     </div>
@@ -427,8 +427,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             <InputNumber
               value={item.amount}
               onValueChange={(e) => handleItemChange(index, "amount", e.value || "")}
-              mode="currency"
-              currency="TZS"
               required
             />
           </div>

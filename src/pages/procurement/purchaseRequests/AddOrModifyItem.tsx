@@ -330,23 +330,23 @@ const handleTypeChange = (
       visible={visible}
       onHide={onClose}
       className="w-[80vw]"
-      style={{ width: "90vw", maxWidth: "1200px" }}
+      style={{  maxWidth: "800px" }}
     >
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="font-semibold">
+            <label className="font-semibold text-sm">
               Title <span className="text-red-700">*</span>
             </label>
             <InputText
               value={formState.title}
               onChange={(e) => handleChange("title", e.target.value)}
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
           <div>
-            <label className="font-semibold">
+            <label className="font-semibold text-sm">
               Requisition Type <span className="text-red-700">*</span>
             </label>
             <Dropdown
@@ -359,12 +359,12 @@ const handleTypeChange = (
               }
               onChange={(e) => handleChange("type", e.value)}
               placeholder="Select Requisition Type"
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
           <div>
-            <label className="font-semibold">
+            <label className="font-semibold text-sm">
               Priority <span className="text-red-700">*</span>
             </label>
             <Dropdown
@@ -372,12 +372,12 @@ const handleTypeChange = (
               options={priorityOptions}
               onChange={(e) => handleChange("priority", e.value)}
               placeholder="Select Priority"
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
           <div>
-            <label className="font-semibold">
+            <label className="font-semibold text-sm">
               Department <span className="text-red-700">*</span>
             </label>
             <Dropdown
@@ -385,7 +385,7 @@ const handleTypeChange = (
               options={departmentOptions}
               onChange={(e) => handleChange("department_id", e.value)}
               placeholder="Select Department"
-              className="w-full"
+              className="w-full p-inputtext-sm"
               filter
               optionLabel="label"
               optionValue="value"
@@ -393,13 +393,13 @@ const handleTypeChange = (
             />
           </div>
           <div>
-            <label className="font-semibold">Budget</label>
+            <label className="font-semibold text-sm" >Budget</label>
             <Dropdown
               value={formState.budget_id}
               options={budgetOptions}
               onChange={(e) => handleChange("budget_id", e.value)}
               placeholder="Select Budget"
-              className="w-full"
+              className="w-full p-inputtext-sm"
               filter
               optionLabel="label"
               optionValue="value"
@@ -407,7 +407,7 @@ const handleTypeChange = (
             />
           </div>
           <div>
-            <label className="font-semibold">
+            <label className="font-semibold text-sm">
               Requested By <span className="text-red-700">*</span>
             </label>
             <Dropdown
@@ -415,7 +415,7 @@ const handleTypeChange = (
               options={employeeOptions}
               onChange={(e) => handleChange("employee_id", e.value)}
               placeholder="Select Employee"
-              className="w-full"
+              className="w-full p-inputtext-sm"
               filter
               optionLabel="label"
               optionValue="value"
@@ -425,22 +425,22 @@ const handleTypeChange = (
         </div>
 
         <div>
-          <label className="font-semibold">Description</label>
+          <label className="font-semibold text-sm">Description</label>
           <InputTextarea
             value={formState.description}
             onChange={(e) => handleChange("description", e.target.value)}
-            className="w-full"
+            className="w-full p-inputtext-sm"
             rows={3}
           />
         </div>
 
         <div>
-          <label className="font-semibold">Attachments</label>
+          <label className="font-semibold text-sm">Attachments</label>
           <input
             type="file"
             multiple
             onChange={handleFileChange}
-            className="w-full border p-2 rounded"
+            className="w-full border p-2 rounded p-inputtext-sm"
           />
           {attachments.length > 0 && (
             <ul className="mt-2 list-disc pl-5 text-sm text-gray-600">
@@ -452,7 +452,7 @@ const handleTypeChange = (
         </div>
 
         <div className="mt-4">
-          <h3 className="font-semibold mb-2">Items *</h3>
+          <h3 className="font-semibold mb-2 text-sm">Items *</h3>
           <div className="overflow-x-auto">
             <table className="min-w-max table-auto w-full">
               <thead>
@@ -541,7 +541,7 @@ const handleTypeChange = (
                             setFormState({ ...formState, items: updatedItems });
                           }}
                           placeholder="Enter item name"
-                          className="w-full"
+                          className="w-full p-inputtext-sm"
                         />
                       ) : (
                         <Dropdown
@@ -556,7 +556,7 @@ const handleTypeChange = (
                           optionValue="id"
                           placeholder={`Select ${item.item_type}`}
                           filter
-                          className="w-full"
+                          className="w-full p-inputtext-sm"
                         />
                       )}
                     </td>
@@ -570,7 +570,7 @@ const handleTypeChange = (
                           updatedItems[index].quantity = e.value || 0;
                           setFormState({ ...formState, items: updatedItems });
                         }}
-                        className="w-full"
+                        className="w-full p-inputtext-sm"
                         min={1}
                         showButtons
                       />
@@ -588,7 +588,7 @@ const handleTypeChange = (
                         optionLabel="label"
                         optionValue="value"
                         placeholder="Select uom"
-                        className="w-full"
+                        className="w-full p-inputtext-sm"
                       />
                     </td>
                     <td className="border px-4 py-2 min-w-[150px]">
@@ -602,7 +602,7 @@ const handleTypeChange = (
                         optionValue="id"
                         placeholder="Select an item"
                         filter
-                        className="w-full"
+                        className="w-full p-inputtext-sm"
                         disabled={!selectedBudget}
                       />
                     </td>
@@ -611,7 +611,7 @@ const handleTypeChange = (
                         name="specifications"
                         value={item.specifications}
                         onChange={(e) => handleInputChange(e, index)}
-                        className="w-full"
+                        className="w-full p-inputtext-sm"
                       />
                     </td>
                     <td className="border px-4 py-2 min-w-[250px]">
@@ -620,7 +620,7 @@ const handleTypeChange = (
                         value={item.description}
                         onChange={(e) => handleInputChange(e, index)}
                         rows={1}
-                        className="w-full"
+                        className="w-full p-inputtext-sm"
                       />
                     </td>
                     <td className="border px-4 py-2 min-w-[150px]">
@@ -633,7 +633,7 @@ const handleTypeChange = (
                             e.value || 0;
                           setFormState({ ...formState, items: updatedItems });
                         }}
-                        className="w-full"
+                        className="w-full p-inputtext-sm"
                         mode="currency"
                         currency={
                           currencies?.find((c) => c.id === item.currency_id)
@@ -650,7 +650,7 @@ const handleTypeChange = (
                           handleDropdownChange(e, index, "currency_id")
                         }
                         placeholder="Select Currency"
-                        className="w-full"
+                        className="w-full p-inputtext-sm"
                         optionLabel="label"
                         optionValue="value"
                         disabled={!currencyOptions.length}

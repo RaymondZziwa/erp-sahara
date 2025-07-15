@@ -22,27 +22,27 @@ export interface CustomerOrder {
   customer: Customer;
 }
 
-interface Customer {
-  id: number;
-  organisation_id: number;
+export interface Customer {
   organization_name: string;
+  first_name: string;
+  last_name: string;
+  other_name: string;
+  phone: string;
   email: string;
-  organization_type: string;
   industry: string;
-  primary_contact_person: string;
-  contact_person_title: string;
-  phone_number: string;
   headquarters_address: string;
+  organization_type: 'Corporation' | 'Partnership' | 'LLC' | 'Sole Proprietorship';
+  salutation?: 'Mr' | 'Mrs' | 'Ms' | 'Miss' | 'Dr' | 'Prof' | 'Rev' | null; // Nullable
+  status: 'active' | 'inactive' | 'suspended';
   billing_address: string;
   shipping_address: string;
-  payment_terms: string;
-  credit_limit: string;
-  status: string;
-  bank_details: string;
+  credit_limit: string; // Consider changing to number if it's numeric
+  payment_terms: 'DOR' | 'Net7' | 'Net30' | 'Net60' | 'Net90' | 'Prepaid' | 'COD' | 'CIA' | 'EOM' | 'Custom';
+  bank_details: number; // Assuming this is an ID reference
   tax_identification_number: string;
-  created_at: string;
-  updated_at: string;
+  description: string;
 }
+
 
 interface Currency {
   id: number;

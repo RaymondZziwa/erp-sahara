@@ -9,6 +9,7 @@ import useAuth from "../../../hooks/useAuth";
 import { Supplier } from "../../../redux/slices/types/inventory/Suppliers";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import { ToastContainer } from "react-toastify";
+import { InputTextarea } from "primereact/inputtextarea";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -119,7 +120,20 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();
-    onClose(); // Close the modal after saving
+    onClose();
+    setFormState({
+      supplier_name: "",
+      email: "",
+      supplier_address: "",
+      supplier_type: "Local",
+      contact_person: "",
+      contact_person_title: "",
+      phone_number: "",
+      company_registration_number: "",
+      tax_identification_number: "",
+      credit_limit: "",
+      notes: "",
+    });
   };
 
   const footer = (
@@ -150,7 +164,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       <Dialog
         header={item?.id ? "Edit Supplier" : "Add Supplier"}
         visible={visible}
-        style={{ width: "720px" }}
+        style={{ width: "600px" }}
         footer={footer}
         onHide={onClose}
       >
@@ -164,7 +178,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           className="p-fluid grid grid-cols-1 lg:grid-cols-2 gap-4"
         >
           <div className="p-field">
-            <label htmlFor="supplier_name">
+            <label htmlFor="supplier_name" className="text-sm">
               Supplier Name<span className="text-red-500">*</span>
             </label>
             <InputText
@@ -173,21 +187,21 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               value={formState.supplier_name}
               onChange={handleInputChange}
               required
-              className="w-full"
+              className="w-full p-inputtext-sm"
             />
           </div>
           <div className="p-field">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email" className="text-sm">Email</label>
             <InputText
               id="email"
               name="email"
               value={formState.email}
               onChange={handleInputChange}
-              className="w-full"
+              className="w-full p-inputtext-sm"
             />
           </div>
           <div className="p-field">
-            <label htmlFor="supplier_address">
+            <label htmlFor="supplier_address" className="text-sm">
               Supplier Address<span className="text-red-500">*</span>
             </label>
             <InputText
@@ -195,12 +209,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               name="supplier_address"
               value={formState.supplier_address}
               onChange={handleInputChange}
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
           <div className="p-field">
-            <label htmlFor="supplier_type">
+            <label htmlFor="supplier_type" className="text-sm">
               Supplier Type<span className="text-red-500">*</span>
             </label>
             <Dropdown
@@ -209,12 +223,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               value={formState.supplier_type}
               options={supplierTypes}
               onChange={handleDropdownChange}
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
           <div className="p-field">
-            <label htmlFor="contact_person">
+            <label htmlFor="contact_person" className="text-sm">
               Contact Person<span className="text-red-500">*</span>
             </label>
             <InputText
@@ -222,12 +236,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               name="contact_person"
               value={formState.contact_person}
               onChange={handleInputChange}
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
           <div className="p-field">
-            <label htmlFor="contact_person_title">
+            <label htmlFor="contact_person_title" className="text-sm">
               Contact Person Title<span className="text-red-500">*</span>
             </label>
             <InputText
@@ -235,12 +249,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               name="contact_person_title"
               value={formState.contact_person_title}
               onChange={handleInputChange}
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
           <div className="p-field">
-            <label htmlFor="phone_number">
+            <label htmlFor="phone_number" className="text-sm">
               Phone Number<span className="text-red-500">*</span>
             </label>
             <InputText
@@ -248,12 +262,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               name="phone_number"
               value={formState.phone_number}
               onChange={handleInputChange}
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
           <div className="p-field">
-            <label htmlFor="company_registration_number">
+            <label htmlFor="company_registration_number" className="text-sm">
               Company Registration Number
             </label>
             <InputText
@@ -261,11 +275,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               name="company_registration_number"
               value={formState.company_registration_number}
               onChange={handleInputChange}
-              className="w-full"
+              className="w-full p-inputtext-sm"
             />
           </div>
           <div className="p-field">
-            <label htmlFor="tax_identification_number">
+            <label htmlFor="tax_identification_number" className="text-sm">
               Tax Identification Number
             </label>
             <InputText
@@ -273,11 +287,11 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               name="tax_identification_number"
               value={formState.tax_identification_number}
               onChange={handleInputChange}
-              className="w-full"
+              className="w-full p-inputtext-sm"
             />
           </div>
           <div className="p-field">
-            <label htmlFor="credit_limit">
+            <label htmlFor="credit_limit" className="text-sm">
               Credit Limit<span className="text-red-700">*</span>
             </label>
             <InputText
@@ -285,17 +299,18 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               name="credit_limit"
               value={formState.credit_limit}
               onChange={handleInputChange}
-              className="w-full"
+              className="w-full p-inputtext-sm"
             />
           </div>
           <div className="p-field lg:col-span-2">
-            <label htmlFor="notes">Notes</label>
-            <InputText
+            <label htmlFor="notes" className="text-sm">Notes</label>
+            <InputTextarea
               id="notes"
               name="notes"
               value={formState.notes}
               onChange={handleInputChange}
-              className="w-full"
+              rows={3}
+              className="w-full p-inputtext-sm"
             />
           </div>
         </form>

@@ -62,6 +62,7 @@ const Assets: React.FC = () => {
       field: "name",
       sortable: true,
       filter: true,
+      cellClass: 'hover:underline cursor-pointer',
       onCellClicked: (params) => {
         navigate(`/assets/asset_details/${params?.data?.id}`);
       },
@@ -109,61 +110,62 @@ const Assets: React.FC = () => {
       width: 380, // Increased width to accommodate new button
       cellRenderer: (params: ICellRendererParams<Asset>) => (
         <div className="flex items-center gap-1">
-          <button
-            className="bg-shade px-2 py-1 rounded text-white"
-            onClick={() => navigate(`asset_details/${params.data?.id}`)}
-          >
-            Manage
-          </button>
-          <button
-            className="bg-shade px-2 py-1 rounded text-white"
-            onClick={() =>
-              setDialogState({
-                currentAction: "edit",
-                selectedItem: params.data,
-              })
-            }
-          >
-            Edit
-          </button>
-          <button
-            className="bg-shade px-2 py-1 rounded text-white"
-            onClick={() =>
-              processAppreciationOrDepreciation(
-                params.data?.id,
-                params.data?.asset_type
-              )
-            }
-          >
-            {params.data?.asset_type === "appreciating"
-              ? "Appreciate"
-              : "Depreciate"}
-          </button>
-          {params.data?.status !== "Disposed" && (
-            <button
-              className="bg-orange-500 px-2 py-1 rounded text-white"
-              onClick={() =>
-                setDialogState({
-                  currentAction: "dispose",
-                  selectedItem: params.data,
-                })
-              }
-            >
-              Dispose
-            </button>
-          )}
-          <Icon
-            onClick={() =>
-              setDialogState({
-                currentAction: "delete",
-                selectedItem: params.data,
-              })
-            }
-            icon="solar:trash-bin-trash-bold"
-            className="text-red-500 cursor-pointer"
-            fontSize={20}
-          />
-        </div>
+  <button
+    className="bg-shade px-2 py-0.5 text-sm rounded text-white mt-2"
+    onClick={() => navigate(`asset_details/${params.data?.id}`)}
+  >
+    Manage
+  </button>
+  <button
+    className="bg-shade px-2 py-0.5 text-sm rounded text-white mt-2"
+    onClick={() =>
+      setDialogState({
+        currentAction: "edit",
+        selectedItem: params.data,
+      })
+    }
+  >
+    Edit
+  </button>
+  <button
+    className="bg-shade px-2 py-0.5 text-sm rounded text-white mt-2"
+    onClick={() =>
+      processAppreciationOrDepreciation(
+        params.data?.id,
+        params.data?.asset_type
+      )
+    }
+  >
+    {params.data?.asset_type === "appreciating"
+      ? "Appreciate"
+      : "Depreciate"}
+  </button>
+  {params.data?.status !== "Disposed" && (
+    <button
+      className="bg-orange-500 px-2 py-0.5 text-sm rounded text-white mt-2"
+      onClick={() =>
+        setDialogState({
+          currentAction: "dispose",
+          selectedItem: params.data,
+        })
+      }
+    >
+      Dispose
+    </button>
+  )}
+  <Icon
+    onClick={() =>
+      setDialogState({
+        currentAction: "delete",
+        selectedItem: params.data,
+      })
+    }
+    icon="solar:trash-bin-trash-bold"
+    className="text-red-500 cursor-pointer"
+    fontSize={18}
+  />
+</div>
+
       ),
     },
   ];

@@ -3,10 +3,8 @@ import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
-
 import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
-
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import { Customer } from "../../../redux/slices/types/inventory/Customers";
 
@@ -24,108 +22,60 @@ const organizationTypes = [
   { label: "Sole Proprietorship", value: "Sole Proprietorship" },
 ];
 
-const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
-  visible,
-  onClose,
-  item,
-  onSave,
-}) => {
-  const [formState, setFormState] = useState<{
-    organization_name: string;
-    email: string;
-    industry: string;
-    headquarters_address: string;
-    organization_type: string;
-    primary_contact_person: string;
-    contact_person_title: string;
-    phone_number: string;
-    billing_address: string;
-    shipping_address: string;
-    credit_limit: string;
-    payment_terms: string;
-    bank_details: string; // Assuming bank_details is a string here, adjust as needed
-    tax_identification_number: string;
-  }>({
-    organization_name: "",
-    email: "",
-    industry: "",
-    headquarters_address: "",
-    organization_type: "Corporation",
-    primary_contact_person: "",
-    contact_person_title: "",
-    phone_number: "",
-    billing_address: "",
-    shipping_address: "",
-    credit_limit: "",
-    payment_terms: "",
-    bank_details: "",
-    tax_identification_number: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const salutations = ["Mr", "Mrs", "Ms", "Miss", "Dr", "Prof", "Rev"].map((s) => ({ label: s, value: s }));
 
+const statuses = ["active", "inactive", "suspended"].map((s) => ({ label: s, value: s }));
+
+const paymentTerms = [
+  "DOR", "Net7", "Net30", "Net60", "Net90", "Prepaid",
+  "COD", "CIA", "EOM", "Custom",
+].map((p) => ({ label: p, value: p }));
+
+const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({ visible, onClose, item, onSave }) => {
+  const [formState, setFormState] = useState<any>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { token } = useAuth();
 
   useEffect(() => {
     if (item) {
-      setFormState({
-        organization_name: item.organization_name || "",
-        email: item.email || "",
-        industry: item.industry || "",
-        headquarters_address: item.headquarters_address || "",
-        organization_type: item.organization_type || "Corporation",
-        primary_contact_person: item.primary_contact_person || "",
-        contact_person_title: item.contact_person_title || "",
-        phone_number: item.phone_number || "",
-        billing_address: item.billing_address || "",
-        shipping_address: item.shipping_address || "",
-        credit_limit: item.credit_limit || "",
-        payment_terms: item.payment_terms || "",
-        bank_details: item.bank_details || "",
-        tax_identification_number: item.tax_identification_number || "",
-      });
+      setFormState({ ...item });
     } else {
       setFormState({
         organization_name: "",
+        first_name: "",
+        last_name: "",
+        other_name: "",
+        phone: "",
         email: "",
         industry: "",
         headquarters_address: "",
         organization_type: "Corporation",
-        primary_contact_person: "",
-        contact_person_title: "",
-        phone_number: "",
+        salutation: "",
+        status: "active",
         billing_address: "",
         shipping_address: "",
         credit_limit: "",
         payment_terms: "",
         bank_details: "",
         tax_identification_number: "",
+        description: "",
       });
     }
   }, [item]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    setFormState((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const handleDropdownChange = (e: { value: string }) => {
-    setFormState((prevState) => ({
-      ...prevState,
-      organization_type: e.value,
-    }));
+  const handleDropdownChange = (name: string, value: any) => {
+    setFormState((prev: any) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Basic validation
-    if (!formState.organization_name) {
-      return; // Handle validation error here
-    }
-    const data = { ...formState };
+    const data = { ...formState, bank_details: Number(formState.bank_details) };
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? INVENTORY_ENDPOINTS.CUSTOMERS.UPDATE(item.id.toString())
@@ -133,194 +83,63 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();
-    onClose(); // Close the modal after saving
+    onClose();
   };
 
   const footer = (
     <div className="flex justify-end space-x-2">
-      <Button
-        label="Cancel"
-        icon="pi pi-times"
-        onClick={onClose}
-        className="p-button-text !bg-red-500 hover:bg-red-400"
-        size="small"
-        disabled={isSubmitting}
-      />
-      <Button
-        loading={isSubmitting}
-        disabled={isSubmitting}
-        label={item?.id ? "Update" : "Submit"}
-        icon="pi pi-check"
-        type="submit"
-        form="item-form"
-        size="small"
-      />
+      <Button label="Cancel" icon="pi pi-times" onClick={onClose} className="p-button-text !bg-red-500 hover:bg-red-400" size="small" disabled={isSubmitting} />
+      <Button loading={isSubmitting} disabled={isSubmitting} label={item?.id ? "Update" : "Submit"} icon="pi pi-check" type="submit" form="item-form" size="small" />
     </div>
   );
 
   return (
-    <Dialog
-      header={item?.id ? "Edit Customer" : "Add Customer"}
-      visible={visible}
-      style={{ width: "720px" }}
-      footer={footer}
-      onHide={onClose}
-    >
-      <form
-        id="item-form"
-        onSubmit={handleSave}
-        className="p-fluid grid grid-cols-1 lg:grid-cols-2 gap-4"
-      >
-        <div className="p-field">
-          <label htmlFor="organization_name">Organization Name</label>
-          <InputText
-            id="organization_name"
-            name="organization_name"
-            value={formState.organization_name}
-            onChange={handleInputChange}
-            className="w-full"
-            required
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="email">Email</label>
-          <InputText
-            id="email"
-            name="email"
-            value={formState.email}
-            onChange={handleInputChange}
-            className="w-full"
-            required
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="industry">Industry</label>
-          <InputText
-            id="industry"
-            name="industry"
-            value={formState.industry}
-            onChange={handleInputChange}
-            className="w-full"
-            required
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="headquarters_address">Headquarters Address</label>
-          <InputText
-            id="headquarters_address"
-            name="headquarters_address"
-            value={formState.headquarters_address}
-            onChange={handleInputChange}
-            className="w-full"
-            required
-          />
-        </div>
+    <Dialog header={item?.id ? "Edit Customer" : "Add Customer"} visible={visible} style={{ width: "720px" }} footer={footer} onHide={onClose}>
+      <form id="item-form" onSubmit={handleSave} className="p-fluid grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {[
+          "organization_name",
+          "first_name",
+          "last_name",
+          "other_name",
+          "phone",
+          "email",
+          "industry",
+          "headquarters_address",
+          "billing_address",
+          "shipping_address",
+          "credit_limit",
+          "tax_identification_number",
+          "description",
+        ].map((field) => (
+          <div className="p-field" key={field}>
+            <label htmlFor={field}>{field.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}</label>
+            <InputText id={field} name={field} value={formState[field] || ""} onChange={handleInputChange} className="w-full" />
+          </div>
+        ))}
+
         <div className="p-field">
           <label htmlFor="organization_type">Organization Type</label>
-          <Dropdown
-            id="organization_type"
-            name="organization_type"
-            value={formState.organization_type}
-            options={organizationTypes}
-            onChange={handleDropdownChange}
-            className="w-full"
-            required
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="primary_contact_person">Primary Contact Person</label>
-          <InputText
-            id="primary_contact_person"
-            name="primary_contact_person"
-            value={formState.primary_contact_person}
-            onChange={handleInputChange}
-            className="w-full"
-            required
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="contact_person_title">Contact Person Title</label>
-          <InputText
-            id="contact_person_title"
-            name="contact_person_title"
-            value={formState.contact_person_title}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="phone_number">Phone Number</label>
-          <InputText
-            id="phone_number"
-            name="phone_number"
-            value={formState.phone_number}
-            onChange={handleInputChange}
-            className="w-full"
-            required
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="billing_address">Billing Address</label>
-          <InputText
-            id="billing_address"
-            name="billing_address"
-            value={formState.billing_address}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="shipping_address">Shipping Address</label>
-          <InputText
-            id="shipping_address"
-            name="shipping_address"
-            value={formState.shipping_address}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="credit_limit">Credit Limit</label>
-          <InputText
-            id="credit_limit"
-            name="credit_limit"
-            value={formState.credit_limit}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="payment_terms">Payment Terms</label>
-          <InputText
-            id="payment_terms"
-            name="payment_terms"
-            value={formState.payment_terms}
-            onChange={handleInputChange}
-            className="w-full"
-          />
+          <Dropdown id="organization_type" value={formState.organization_type} options={organizationTypes} onChange={(e) => handleDropdownChange("organization_type", e.value)} className="w-full" required />
         </div>
 
         <div className="p-field">
-          <label htmlFor="bank_details">Bank Details</label>
-          <InputText
-            id="bank_details"
-            name="bank_details"
-            value={formState.bank_details}
-            onChange={handleInputChange}
-            className="w-full"
-          />
+          <label htmlFor="salutation">Salutation</label>
+          <Dropdown id="salutation" value={formState.salutation} options={salutations} onChange={(e) => handleDropdownChange("salutation", e.value)} className="w-full" />
         </div>
+
         <div className="p-field">
-          <label htmlFor="tax_identification_number">
-            Tax Identification Number
-          </label>
-          <InputText
-            id="tax_identification_number"
-            name="tax_identification_number"
-            value={formState.tax_identification_number}
-            onChange={handleInputChange}
-            className="w-full"
-          />
+          <label htmlFor="status">Status</label>
+          <Dropdown id="status" value={formState.status} options={statuses} onChange={(e) => handleDropdownChange("status", e.value)} className="w-full" />
+        </div>
+
+        <div className="p-field">
+          <label htmlFor="payment_terms">Payment Terms</label>
+          <Dropdown id="payment_terms" value={formState.payment_terms} options={paymentTerms} onChange={(e) => handleDropdownChange("payment_terms", e.value)} className="w-full" />
+        </div>
+
+        <div className="p-field">
+          <label htmlFor="bank_details">Bank Details (ID)</label>
+          <InputText id="bank_details" name="bank_details" value={formState.bank_details} onChange={handleInputChange} className="w-full" />
         </div>
       </form>
     </Dialog>

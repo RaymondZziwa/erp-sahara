@@ -68,6 +68,31 @@ const reportsData = [
       },
     ],
   },
+  {
+    category: "Recruitment",
+    reports: [
+      {
+        name: "Application Source Report",
+        link: "/application-source-report",
+      },
+      {
+        name: "Offers Report",
+        link: "/job-offers-report",
+      },
+      {
+        name: "Interview Activities Report",
+        link: "/interview-activities-report",
+      },
+      {
+        name: "Application pipeline Report",
+        link: "/application-pipeline-report",
+      },
+      {
+        name: "Recruitment Summary Report",
+        link: "/recruitment-summary-report",
+      },
+    ],
+  },
 ];
 
 const Reports = () => {

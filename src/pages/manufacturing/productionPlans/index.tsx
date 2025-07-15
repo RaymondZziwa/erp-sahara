@@ -8,12 +8,13 @@ import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog"
 import BreadCrump from "../../../components/layout/bread_crump";
 import Table from "../../../components/table";
 import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import useProductionPlans from "../../../hooks/manufacturing/workCenter/useProductionPlans";
 import { ProductionPlan } from "../../../redux/slices/types/manufacturing/ProductionPlan";
 
 const ProductionPlans: React.FC = () => {
-  const { data, refresh } = useProductionPlans();
+  const {id} = useParams()
+  const { data, refresh } = useProductionPlans(id);
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
@@ -29,61 +30,56 @@ const ProductionPlans: React.FC = () => {
 
   const columnDefinitions: ColDef<ProductionPlan>[] = [
     {
-      headerName: "ID",
+      headerName: "Id",
       field: "id",
       sortable: true,
       filter: true,
-      width: 100,
-      cellRenderer: (params: ICellRendererParams<ProductionPlan>) => {
-        return (
-          <Link
-            className="text-teal-500"
-            to={`/manufacturing/workcenters/productionplans/${params.data?.id}`}
-          >
-            {params?.data?.id.toString()}
-          </Link>
-        );
+      suppressSizeToFit: true,
+       cellClass:"hover:underline",
+            cellRenderer: (params: ICellRendererParams<ProductionPlan>) => {
+              return (
+                <Link
+                  className="text-teal-500"
+                  to={`/manufacturing/workcenters/workorders/workschedule/${params.data?.id}`}
+                >
+                  {params?.data?.id}
+                </Link>
+              );
+            },
+    },
+    {
+      headerName: "Start Date",
+      field: "start_time",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "End Date",
+      field: "end_time",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "Operator",
+      valueGetter: (params) => {
+        const operator = params.data.operator;
+        return operator ? `${operator.first_name} ${operator.last_name}` : '';
       },
-    },
-    {
-      headerName: "Name",
       sortable: true,
       filter: true,
-      cellRenderer: (params: ICellRendererParams<ProductionPlan>) => {
-        return (
-          <Link
-            className="text-teal-500"
-            to={`/manufacturing/workcenters/productionplans/${params.data?.id}`}
-          >
-            {params?.data?.id}
-          </Link>
-        );
-      },
-    },
+    },    
     {
-      headerName: "Planned End",
-      field: "planned_end_date",
+      headerName: "Shift",
+      field: "shift",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
     },
     {
-      headerName: "Planned Start Date",
-      field: "planned_start_date",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Status",
-      field: "status",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Description",
-      field: "description",
+      headerName: "Machine",
+      field: "machine.name",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
@@ -160,11 +156,11 @@ const ProductionPlans: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Production Plans" pageName="All" />
+      <BreadCrump name="Production Schedules" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Production Plans Table</h1>
+            <h1 className="text-xl font-bold">Production Schedules</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -177,7 +173,7 @@ const ProductionPlans: React.FC = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add Center
+              Add Production Schedule
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"

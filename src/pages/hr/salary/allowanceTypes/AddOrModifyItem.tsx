@@ -140,19 +140,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             className="w-full"
           />
         </div>
-
-        <div className="p-field">
-          <label htmlFor="description">Description</label>
-          <InputTextarea
-            id="description"
-            name="description"
-            value={formState.description}
-            onChange={handleInputChange}
-            required
-            className="w-full"
-          />
-        </div>
-
         <div className="p-field">
           <label htmlFor="calculation_method">Calculation Method</label>
           <select
@@ -168,7 +155,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="allowance_is">Allowance Type</label>
+          <label htmlFor="allowance_is">Is Allowance</label>
           <select
             id="allowance_is"
             name="allowance_is"
@@ -189,6 +176,17 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             name="amount"
             type="number"
             value={formState.amount}
+            onChange={handleInputChange}
+            required
+            className="w-full"
+          />
+        </div>
+        <div className="p-field">
+          <label htmlFor="description">Description</label>
+          <InputTextarea
+            id="description"
+            name="description"
+            value={formState.description}
             onChange={handleInputChange}
             required
             className="w-full"

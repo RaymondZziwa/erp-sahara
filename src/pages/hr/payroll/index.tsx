@@ -15,7 +15,6 @@ import {
   PayRollPeriod,
 } from "../../../redux/slices/types/hr/salary/PayRollPeriod";
 import { useReactToPrint } from "react-to-print";
-import { PrintableContent } from "./payroll_print";
 
 const PayrollPage: React.FC = () => {
   const { data, refresh } = usePayroll();
@@ -37,23 +36,12 @@ const PayrollPage: React.FC = () => {
       width: 100,
     },
     {
-      headerName: "Name",
-      field: "employee",
-      sortable: true,
-      filter: true,
-      cellRenderer: (params: ICellRendererParams<Payroll>) => (
-        <div>
-          {params.data?.employee?.first_name} {params.data?.employee?.last_name}
-        </div>
-      ),
-    },
-    {
       headerName: "Start Date",
       field: "start_date",
       sortable: true,
       filter: true,
       cellRenderer: (params: ICellRendererParams<PayRollPeriod>) => (
-        <div>{params.data?.payroll_period.start_date}</div>
+        <div>{params.data?.start_date}</div>
       ),
     },
     {
@@ -62,7 +50,7 @@ const PayrollPage: React.FC = () => {
       sortable: true,
       filter: true,
       cellRenderer: (params: ICellRendererParams<PayRollPeriod>) => (
-        <div>{params.data?.payroll_period.end_date}</div>
+        <div>{params.data?.end_date}</div>
       ),
     },
     {
@@ -171,7 +159,7 @@ const PayrollPage: React.FC = () => {
         </div>
         <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />
       </div>
-      <div ref={contentRef} className="print-content">
+      {/* <div ref={contentRef} className="print-content">
         <PrintableContent reportName={"Payroll"} data={data} />
         <style>
           {`
@@ -185,7 +173,7 @@ const PayrollPage: React.FC = () => {
                           }
                       `}
         </style>
-      </div>
+      </div> */}
     </div>
   );
 };

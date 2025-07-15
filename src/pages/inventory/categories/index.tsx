@@ -10,6 +10,7 @@ import BreadCrump from "../../../components/layout/bread_crump";
 import AddOrModifyItem from "./AddOrModifyItem";
 import { ItemCategory } from "../../../redux/slices/types/inventory/ItemCategory";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
+import { ToastContainer } from "react-toastify";
 
 const ItemCategories: React.FC = () => {
   const { data: categories, refresh } = useItemCategories();
@@ -27,13 +28,6 @@ const ItemCategories: React.FC = () => {
   };
 
   const columnDefinitions: ColDef<ItemCategory>[] = [
-    {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
     {
       headerName: "Name",
       field: "name",
@@ -65,7 +59,7 @@ const ItemCategories: React.FC = () => {
       cellRenderer: (params: ICellRendererParams<Category>) => (
         <div className="flex items-center gap-2">
           <button
-            className="bg-shade px-2 py-1 rounded text-white"
+            className="bg-shade px-2 h-10 rounded text-white"
             onClick={() =>
               setDialogState({
                 ...dialogState,
@@ -86,7 +80,7 @@ const ItemCategories: React.FC = () => {
             }
             icon="solar:trash-bin-trash-bold"
             className="text-red-500 cursor-pointer"
-            fontSize={20}
+            fontSize={24}
           />
         </div>
       ),
@@ -95,6 +89,7 @@ const ItemCategories: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedCategory}

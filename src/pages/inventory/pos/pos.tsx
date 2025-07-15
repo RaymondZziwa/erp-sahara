@@ -13,13 +13,18 @@ const POS = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex mt-2 items-center justify-center bg-black overflow-y-auto bg-opacity-50">
-      <div className="bg-gray-100 p-6 rounded-lg shadow-lg min-h-screen min-w-full overflow-auto">
+      <div className="relative bg-gray-100 p-6 rounded-lg shadow-lg min-h-screen min-w-full overflow-visible">
+      <div className="relative z-50">
         <PosNavbar
           onClose={() => navigate("/inventory")}
           onSearch={queryHandler}
         />
+      </div>
+      <div className="z-10">
         <PosModal query={searchQuery} />
       </div>
+    </div>
+
     </div>
   );
 };

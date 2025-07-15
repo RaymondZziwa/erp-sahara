@@ -21,63 +21,46 @@ const Loading = () => <div>Loading...</div>;
 
 const ACCOUNTS_ROUTES = [
   {
-    name: "General",
-    icon: <Icon icon="mdi:view-dashboard-outline" fontSize={24} />,
-    path: "",
-    items: [
-      // {
-      //   name: "Expense Requsitions",
-      //   icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
-      //   path: "/expense-requisitions",
-      //   element: <CashRequisitions />,
-      // },
-      // {
-      //   name: "Journal transactions",
-      //   icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
-      //   path: "/journal-transactions",
-      //   element: <GeneralLedgers />,
-      // },
-      {
-        name: "Internal Bank Transfer",
-        icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
-        path: "/banking-transactions",
-        element: <BankingLedgers />,
-      },
-      {
-        name: "Income Transactions",
-        icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
-        path: "/sales-transactions",
-        element: <SalesTransactions />,
-      },
-      {
-        name: "Expense Transactions",
-        icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
-        path: "/expense-transactions",
-        element: <ExpenseTransactions />,
-      },
-      {
-        name: "Other transactions",
-        icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
-        path: "/journal-transactions",
-        element: <OtherTransactions />,
-      },
-      {
-        name: "Chart of Accounts",
-        icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
-        path: "/",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <ChartOfAccounts />
-          </Suspense>
-        ),
-      },
-    ],
+    name: "Expense Transactions",
+    icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
+    path: "/accounts/expense-transactions",
+    element: <ExpenseTransactions />,
+  },
+  {
+    name: "Income Transactions",
+    icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
+    path: "/accounts/sales-transactions",
+    element: <SalesTransactions />,
+  },
+  {
+    name: "Internal Cash Transfer",
+    icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
+    path: "/accounts/banking-transactions",
+    element: <BankingLedgers />,
+  },
+  
+  
+  {
+    name: "Other transactions",
+    icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,
+    path: "/accounts/journal-transactions",
+    element: <OtherTransactions />,
+  },
+  {
+    name: "Chart of Accounts",
+    icon: <Icon icon="mdi:chart-timeline" fontSize={20} />,
+    path: "/accounts/chart-of-accounts",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <ChartOfAccounts />
+      </Suspense>
+    ),
   },
 
   {
-    name: "More",
-    icon: <Icon icon="mdi:account-cash" fontSize={24} />,
-    path: "/accounts",
+    name: "Configurations",
+    icon: <Icon icon="mdi:gear-outline" fontSize={24} />,
+    path: "",
     items: [
       {
         name: "Categories",
@@ -109,28 +92,17 @@ const ACCOUNTS_ROUTES = [
           </Suspense>
         ),
       },
-      {
-        name: "Sub Categories",
-        icon: <Icon icon="mdi:folder-multiple-outline" fontSize={20} />,
-        path: "/subcategories/:id",
-        hidden: true,
-        element: (
-          <Suspense fallback={<Loading />}>
-            <ChartOfAccountDetails />
-          </Suspense>
-        ),
-      },
       // {
-      //   name: "Cash Requisitions",
+      //   name: "Sub Categories",
       //   icon: <Icon icon="mdi:folder-multiple-outline" fontSize={20} />,
-      //   path: "/cashreq",
+      //   path: "/subcategories/:id",
+      //   hidden: true,
       //   element: (
       //     <Suspense fallback={<Loading />}>
-      //       <CashRequisitions />
+      //       <ChartOfAccountDetails />
       //     </Suspense>
       //   ),
       // },
-
       {
         name: "Currencies",
         icon: <Icon icon="tdesign:money" fontSize={20} />,
@@ -144,7 +116,7 @@ const ACCOUNTS_ROUTES = [
       {
         name: "Payment Methods",
         icon: <Icon icon="tdesign:money" fontSize={20} />,
-        path: "/payment_methods",
+        path: "/accounts/payment_methods",
         element: (
           <Suspense fallback={<Loading />}>
             <PaymentMethods />

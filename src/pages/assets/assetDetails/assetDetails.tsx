@@ -10,9 +10,10 @@ import AddOrModifyIncomeModal from ".././AddOrModifyIncomeModal";
 import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 import { ASSETSENDPOINTS } from "../../../api/assetEndpoints";
-import { baseURL } from "../../../utils/api";
+import { baseURL, imageURL } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import AddOrModifyValuationModal from "../AddOrModifyValuationModal";
+import AddOrModifyAttachmentModal from "../AddOrModifyAttachment";
 
 const AssetDetails: React.FC = () => {
   const {token} = useAuth()
@@ -24,6 +25,7 @@ const AssetDetails: React.FC = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showIncomeModal, setShowIncomeModal] = useState(false);
+  const [showAttachmentModal, setShowAttachmentModal] = useState(false);
   const [valuationDialogOpen, setValuationDialogOpen] = useState(false)
 
   const [history, setHistory] = useState<any[]>([])
@@ -113,7 +115,7 @@ const AssetDetails: React.FC = () => {
         (selectedAsset?.current_value || 0) -
         (selectedAsset?.purchase_cost || 0),
     },
-    { title: "Total Expense", value: selectedAsset?.total_expense || 0 },
+    { title: "Total Expense", value: selectedAsset?.total_expenses || 0 },
     { title: "Total Income", value: selectedAsset?.total_income || 0 },
   ];
 
@@ -165,9 +167,9 @@ const AssetDetails: React.FC = () => {
         </div>
 
         {/* Content Area */}
-        <div className="p-6">
+        <div className="p-6 flex flex-col">
           {/* Action Buttons */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-2 mb-6 justify-end">
             {activeTab === "payments" && (
               <Button
                 label="Add Payment"
@@ -197,7 +199,7 @@ const AssetDetails: React.FC = () => {
                 label="Add Attachment"
                 icon="pi pi-plus"
                 className="p-button-info w-48"
-                onClick={() => setShowIncomeModal(true)}
+                onClick={() => setShowAttachmentModal(true)}
               />
             )}
             {activeTab === "valuation" && (
@@ -265,24 +267,36 @@ const AssetDetails: React.FC = () => {
 
           {activeTab === "valuation" && (
             <DataTable
-              value={selectedAsset.valuations || []}
+              value={selectedAsset.asset_valuations || []}
               paginator
               rows={10}
             >
-              <Column field="date" header="Date" />
-              <Column field="type" header="Type" />
-              <Column field="amount" header="Amount" />
+              <Column field="valuation_date" header="Date" />
+              <Column field="valuation_notes" header="Notes" />
+              <Column field="value" header="Amount" />
             </DataTable>
           )}
           {activeTab === "attachments" && (
             <DataTable
-              value={selectedAsset.depreciation || []}
+              value={selectedAsset.asset_attachments || []}
               paginator
               rows={10}
             >
-              <Column field="date" header="Date" />
-              <Column field="type" header="Type" />
-              <Column field="amount" header="Amount" />
+              <Column field="created_at" header="Date" />
+              <Column
+                field="preview"
+                header="Preview"
+                body={(rowData) => (
+                  <a
+                    href={`${imageURL}/${rowData.attachment}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    Preview
+                  </a>
+                )}
+              />
             </DataTable>
           )}
         </div>
@@ -310,6 +324,15 @@ const AssetDetails: React.FC = () => {
       <AddOrModifyIncomeModal
         visible={showIncomeModal}
         onClose={() => setShowIncomeModal(false)}
+        assetId={selectedAsset.id}
+        onSave={() => {
+          fetchAssetInfo();
+        }}
+      />
+
+      <AddOrModifyAttachmentModal
+        visible={showAttachmentModal}
+        onClose={() => setShowAttachmentModal(false)}
         assetId={selectedAsset.id}
         onSave={() => {
           fetchAssetInfo();

@@ -1,6 +1,6 @@
 export interface Warehouse {
   id: number;
-  warehouse_type: number;
+  warehouse_type: string;
   organisation_id: number;
   name: string;
   location: string;

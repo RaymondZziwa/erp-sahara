@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { toast, ToastContainer } from "react-toastify";
 import useProjects from "../../../hooks/projects/useProjects";
 import { Dropdown } from "primereact/dropdown";
+import { InputTextarea } from "primereact/inputtextarea";
 
 interface props {
   visible: boolean;
@@ -104,19 +105,21 @@ const BudgetAllocationModal: React.FC<props> = ({
     <>
       <ToastContainer />
       <Dialog header="Add Budget Allocation" visible={visible} onHide={onHide}>
+      <p>All fields marked with <span className="text-red-500">*</span> are mandatory.</p>
         <div className="p-fluid space-y-4">
           <div className="p-field">
-            <label className="font-semibold">
+            <label className="font-semibold text-sm">
               Name <span className="text-red-500">*</span>
             </label>
             <InputText
               value={formData.name}
               onChange={(e) => handleChange(e, "name")}
               required
+              className="p-inputtext-sm"
             />
           </div>
           <div className="p-field">
-            <label>Project</label>
+            <label className="text-sm">Project</label>
             <Dropdown
               placeholder="Select Project"
               value={formData.project_id}
@@ -127,10 +130,11 @@ const BudgetAllocationModal: React.FC<props> = ({
               onChange={(e) => handleItemChange("project_id", e.value)}
               filter
               showClear
+              className="p-inputtext-sm"
             />
           </div>
           <div className="p-field">
-            <label>Activity</label>
+            <label className="text-sm">Activity</label>
             <Dropdown
               placeholder="Select Activity"
               value={formData.activity_id}
@@ -142,10 +146,11 @@ const BudgetAllocationModal: React.FC<props> = ({
               disabled={!formData.project_id}
               filter
               showClear
+              className="p-inputtext-sm"
             />
           </div>
           <div className="p-field">
-            <label className="font-semibold">
+            <label className="font-semibold text-sm">
               Allocated Amount <span className="text-red-500">*</span>
             </label>
             <InputNumber
@@ -154,13 +159,15 @@ const BudgetAllocationModal: React.FC<props> = ({
                 setFormData({ ...formData, allocated_amount: e.value })
               }
               required
+              className="p-inputtext-sm"
             />
           </div>
           <div className="p-field">
-            <label>Description</label>
-            <InputText
+            <label className="text-sm">Description</label>
+            <InputTextarea
               value={formData.description}
               onChange={(e) => handleChange(e, "description")}
+              className="p-inputtext-sm"
             />
           </div>
           <Button

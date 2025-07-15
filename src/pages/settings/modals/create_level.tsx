@@ -87,6 +87,7 @@ const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
    "PurchaseQuoteEvaluation",
    "Disposals",
    "AssetFinancing",
+   "Offers"
  ];
 
 

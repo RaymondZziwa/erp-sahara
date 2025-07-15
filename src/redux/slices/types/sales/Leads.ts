@@ -1,15 +1,13 @@
+
 export interface Lead {
-  id: number;
-  organisation_id: number;
+  id: string;
   name: string;
-  email: string;
-  phone: string;
-  notes: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  quotation: Quotation[];
+  notes?: string | null;      // Nullable
+  email?: string | null;      // Nullable
+  phone?: string | null;      // Nullable
+  status?: 'new' | 'contacted' | 'qualified' | 'converted'; // Optional, defaults to 'new'
 }
+
 
 interface Quotation {
   id: number;

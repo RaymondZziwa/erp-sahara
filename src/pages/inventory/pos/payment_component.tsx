@@ -6,12 +6,12 @@ import { InputText } from "primereact/inputtext";
 import { RootState } from "../../../redux/store";
 import { useSelector } from "react-redux";
 
-const PaymentComponent = ({ setPaymentMethod, setClientName }) => {
+const PaymentComponent = ({ setPaymentMethod, setClientName, paymentMethod }) => {
   const { data: methods = [] } = usePaymentMethods();
   const customers = useSelector((state: RootState) => state.customers.data);
   const [isRegistered, setIsRegistered] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
-  const [clientName, setClientNameState] = useState("");
+  const [clientName, setClientNameState] = useState("Walk-in customer");
   const [contact, setContact] = useState('')
   const [clients, setClients] = useState<any>([])
 
@@ -49,11 +49,11 @@ const PaymentComponent = ({ setPaymentMethod, setClientName }) => {
   }
 
   return (
-    <div className="p-4 bg-white shadow-md rounded-lg">
+    <div className="p-4 bg-white shadow-md rounded-lg w-full">
       <h3 className="text-lg font-semibold mb-3">Payment Details</h3>
 
       {/* Registered / Not Registered Selection */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center">
         Is client registered?
         <label className="flex items-center ml-2 space-x-2">
           <input
@@ -103,7 +103,7 @@ const PaymentComponent = ({ setPaymentMethod, setClientName }) => {
               value={clientName}
               onChange={handleClientNameChange}
               placeholder="Client name"
-              className="w-full"
+              className="w-full p-inputtext-sm"
             />
           </div>
           <div className="mb-4 mt-4">
@@ -113,7 +113,7 @@ const PaymentComponent = ({ setPaymentMethod, setClientName }) => {
               value={contact}
               onChange={contactHandler}
               placeholder="Contact"
-              className="w-full"
+              className="w-full p-inputtext-sm"
             />
           </div>
         </>
@@ -122,11 +122,14 @@ const PaymentComponent = ({ setPaymentMethod, setClientName }) => {
       {/* Payment Method Selection */}
       <div className="mb-4">
         <label className="block text-sm font-medium mb-1">
-          Payment Method (Optional)
+          Payment Method <span className="text-red-500">*</span>
         </label>
         <Select
           options={paymentOptions}
+          value={paymentOptions.find(option => option.value === paymentMethod)}
           onChange={(option) => setPaymentMethod(option.value)}
+          required
+          placeholder="Select payment method..."
         />
       </div>
     </div>

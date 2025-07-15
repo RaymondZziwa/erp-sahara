@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ColDef } from "ag-grid-community";
-import AddOrModifyItem from "./AddOrModifyItem";
+import AddOrModifyItem from "./internalCashTransferForm";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import Table from "../../../components/table";
 
@@ -169,7 +169,7 @@ const columnDefinitions: ColDef<any>[] = [
           creditAccountsHeader={dialogState.creditAccountHeader}
           debitAccountsHeader={dialogState.debitAccountHeader}
           journalType={dialogState.journalType}
-          title={"Internal Bank Transfer"}
+          title={"Internal Cash Transfer"}
           endpoint={dialogState.endpoint}
           debitAccountType={dialogState.debitAccountsType}
           creditAccountType={dialogState.creditAccountsType}
@@ -218,7 +218,7 @@ const columnDefinitions: ColDef<any>[] = [
           onConfirm={fetchRecords}
         />
       )}
-      <BreadCrump name="Internal Bank Transfer" pageName="All" />
+      <BreadCrump name="Internal Cash Transfer" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="flex gap-2 my-2 ml-auto">
@@ -236,7 +236,7 @@ const columnDefinitions: ColDef<any>[] = [
                 })
               }
             >
-              Bank Transfer
+              Cash Transfer
             </button>
           </div>
         </div>

@@ -11,6 +11,7 @@ import useWorkCenters from "../../../hooks/manufacturing/workCenter/useWorkCente
 import { WorkCenter } from "../../../redux/slices/types/manufacturing/WorkCenter";
 import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints";
 import { Link } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 
 const WorkCenters: React.FC = () => {
   const { data: categories, refresh } = useWorkCenters();
@@ -29,37 +30,21 @@ const WorkCenters: React.FC = () => {
 
   const columnDefinitions: ColDef<WorkCenter>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-      cellRenderer: (params: ICellRendererParams<WorkCenter>) => {
-        return (
-          <Link
-            className="text-teal-500"
-            to={`/manufacturing/workcenters/centers/${params.data?.id}`}
-          >
-            {params?.data?.id.toString()}
-          </Link>
-        );
-      },
-    },
-    {
       headerName: "Name",
       field: "name",
       sortable: true,
       filter: true,
-      cellRenderer: (params: ICellRendererParams<WorkCenter>) => {
-        return (
-          <Link
-            className="text-teal-500"
-            to={`/manufacturing/workcenters/centers/${params.data?.id}`}
-          >
-            {params?.data?.name.toString()}
-          </Link>
-        );
-      },
+      // cellClass: "underline",
+      // cellRenderer: (params: ICellRendererParams<WorkCenter>) => {
+      //   return (
+      //     <Link
+      //       className="text-teal-500"
+      //       to={`/manufacturing/workcenters/centers/${params.data?.id}`}
+      //     >
+      //       {params?.data?.name.toString()}
+      //     </Link>
+      //   );
+      // },
     },
     {
       headerName: "Location",
@@ -113,6 +98,7 @@ const WorkCenters: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedItem}
@@ -140,11 +126,11 @@ const WorkCenters: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Work centers" pageName="All" />
+      <BreadCrump name="Work stations" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Work centers</h1>
+            <h1 className="text-xl font-bold">Work stations</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -157,7 +143,7 @@ const WorkCenters: React.FC = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add Center
+              Add Station
             </button>
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"

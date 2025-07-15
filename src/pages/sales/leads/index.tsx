@@ -10,6 +10,7 @@ import Table from "../../../components/table";
 import { Lead } from "../../../redux/slices/types/sales/Leads";
 import useLeads from "../../../hooks/sales/useLeads";
 import { SALES_ENDPOINTS } from "../../../api/salesEndpoints";
+import { ToastContainer } from "react-toastify";
 
 const Leads: React.FC = () => {
   const { data: categories, refresh } = useLeads();
@@ -27,13 +28,6 @@ const Leads: React.FC = () => {
   };
 
   const columnDefinitions: ColDef<Lead>[] = [
-    {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
     {
       headerName: "Name",
       field: "name",
@@ -67,38 +61,37 @@ const Leads: React.FC = () => {
       sortable: false,
       filter: false,
       cellRenderer: (params: ICellRendererParams<Lead>) => (
-        <div className="flex items-center gap-2">
-          <button
-            className="bg-shade px-2 py-1 rounded text-white"
-            onClick={() =>
-              setDialogState({
-                ...dialogState,
-                currentAction: "edit",
-                selectedItem: params.data,
-              })
-            }
-          >
-            Edit
-          </button>
-          <Icon
-            onClick={() =>
-              setDialogState({
-                ...dialogState,
-                currentAction: "delete",
-                selectedItem: params.data,
-              })
-            }
-            icon="solar:trash-bin-trash-bold"
-            className="text-red-500 cursor-pointer"
-            fontSize={20}
-          />
-        </div>
+         <div className="flex items-center gap-2">
+                  <button
+                    className="bg-shade px-2 h-10 rounded text-white"
+                    onClick={() =>
+                      setDialogState({
+                        currentAction: "edit",
+                        selectedItem: params.data,
+                      })
+                    }
+                  >
+                    Edit
+                  </button>
+                  <Icon
+                    onClick={() =>
+                      setDialogState({
+                        currentAction: "delete",
+                        selectedItem: params.data,
+                      })
+                    }
+                    icon="solar:trash-bin-trash-bold"
+                    className="text-red-500 cursor-pointer"
+                    fontSize={24}
+                  />
+                </div>
       ),
     },
   ];
 
   return (
     <div>
+      <ToastContainer />
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedItem}
@@ -126,11 +119,11 @@ const Leads: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Leads" pageName="All" />
+      <BreadCrump name="Leads" pageName="Leads" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Leads Table</h1>
+            <h1 className="text-xl font-bold">Leads</h1>
           </div>
           <div className="flex gap-2">
             <button

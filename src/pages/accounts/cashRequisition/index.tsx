@@ -1143,12 +1143,7 @@ const CashRequisitions: React.FC = () => {
               onClick={openAddModal}
               className="p-button-sm"
             />
-            <Button
-              label="Print"
-              icon="pi pi-print"
-              onClick={handleExportPDF}
-              className="p-button-sm p-button-outlined"
-            />
+           
           </div>
         </div>
 

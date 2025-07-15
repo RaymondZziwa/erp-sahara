@@ -13,7 +13,6 @@ import bidEvaluationReducer from "../redux/slices/procurement/bidEvaluationSlice
 import bidEvaluationCriteriaReducer from "../redux/slices/procurement/bidEvaluationCriteriaSlice";
 import purchaseOrdersReducer from "../redux/slices/procurement/purchaseOrdersSlice";
 import goodReceivedNotesReducer from "../redux/slices/procurement/goodsReceivedNoteSlice";
-
 //inventory
 import inventoryCategoriesReducer from "../redux/slices/inventory/itemCategoriesSlice";
 import inventoryItemsReducer from "../redux/slices/inventory/itemsSlice";
@@ -23,7 +22,7 @@ import inventoryWarehouseReducer from "../redux/slices/inventory/warehousesSlice
 import brandsReducer from "../redux/slices/inventory/brandsSlice";
 import inventoriesReducer from "../redux/slices/inventory/inventoriesSlice";
 import inventoryVariantsReducer from "../redux/slices/inventory/variantsSlice";
-import customersReducer from "../redux/slices/inventory/customersSlice";
+//import customersReducer from "../redux/slices/inventory/customersSlice";
 import trucksSlice from "../redux/slices/inventory/trucksSlice";
 import driversReducer from "../redux/slices/inventory/driversSlice";
 import itemsAttributesReducer from "../redux/slices/inventory/attributesSlice";
@@ -68,9 +67,55 @@ import AssetDisposalReducer from "./slices/assets/assetDisposalSlice"
 import ProcurementTypesReducer from "./slices/procurement/procTypeSlice"
 import ServicesReducer from "./slices/procurement/serviceSlice"
 import BudgetCategoriesReducer from "./slices/budgets/budgetCategorySlice"
+import MaterialReducer from './slices/manufacturing/workCenters/materialSlice'
+import ProductionOutputReducer from './slices/manufacturing/workCenters/productionOutputSlice'
+import CommissionStructureReducer from "./slices/recruitment/commissionStructureSlice";
+import JobBoardReducer from "./slices/recruitment/jobBoardSlice";
+import SkillsReducer from "./slices/recruitment/skillsSlice";
+import CommunicationTemplateReducer from "./slices/recruitment/communicationTemplateSlice";
+import CommunicationTypeReducer from "./slices/recruitment/communicationTypeSlice";
+import CandidateSequenceReducer from "./slices/recruitment/candidateSequenceSlice";
+import InvoiceSequenceReducer from "./slices/recruitment/invoiceSequenceSlice";
+import CandidateReducer from "./slices/recruitment/candidateSlice";
+import BranchReducer from "./slices/Branches/BranchSlice"
+import CountryReducer from "./slices/Branches/CountrySlice";
+import BillingTermsReducer from "./slices/recruitment/billingTermSlice";
+import CompanyReducer from "./slices/recruitment/companySlice";
+import JobOrderReducer from "./slices/recruitment/jobOrderSlice";
+import JobDistributionReducer from "./slices/recruitment/jobDistributionSlice";
+import ContractTermsReducer from "./slices/recruitment/contractTermSlice";
+import CompanyCommunicationReducer from "./slices/recruitment/companyCommunicationSlice";
+import ApplicantReducer from "./slices/recruitment/applicantSlice";
+import InterviewReducer from "./slices/recruitment/interviewSlice";
+import OfferReducer from "./slices/recruitment/offerSlice"
+import CustomerReducer from "./slices/sales/customerSlice";
+import OpportunitiesReducer from "./slices/sales/opportunitiesSlice";
 
 const store = configureStore({
   reducer: {
+    opportunities: OpportunitiesReducer,
+    customers: CustomerReducer,
+    offer: OfferReducer,
+    applicant: ApplicantReducer,
+    interview: InterviewReducer,
+    companyCommunication: CompanyCommunicationReducer,
+    contractTerms: ContractTermsReducer,
+    jobDistribution: JobDistributionReducer,
+    jobOrder: JobOrderReducer,
+    company: CompanyReducer,
+    billingTerms: BillingTermsReducer,
+    country: CountryReducer,
+    branches: BranchReducer,
+    candidate: CandidateReducer,
+    candidateSequence: CandidateSequenceReducer,
+    invoiceSequence: InvoiceSequenceReducer,
+    skills: SkillsReducer,
+    communicationTemplate: CommunicationTemplateReducer,
+    communicationType: CommunicationTypeReducer,
+    commissionStructure: CommissionStructureReducer,
+    jobBoard: JobBoardReducer,
+    productionOutput: ProductionOutputReducer,
+    materials: MaterialReducer,
     budgetCategories: BudgetCategoriesReducer,
     services: ServicesReducer,
     procTypes: ProcurementTypesReducer,
@@ -112,7 +157,6 @@ const store = configureStore({
     inventoryBrands: brandsReducer,
     inventories: inventoriesReducer,
     variants: inventoryVariantsReducer,
-    customers: customersReducer,
     drivers: driversReducer,
     trucks: trucksSlice,
     itemsAttributes: itemsAttributesReducer,

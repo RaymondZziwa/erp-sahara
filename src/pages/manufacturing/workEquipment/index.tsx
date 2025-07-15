@@ -29,28 +29,13 @@ const EquipmentComp: React.FC = () => {
   };
 
   const columnDefinitions: ColDef<Equipment>[] = [
-    {
-      headerName: "ID",
-      // field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-      cellRenderer: (params: ICellRendererParams<Equipment>) => {
-        return (
-          <Link
-            className="text-teal-500"
-            to={`/manufacturing/workcenters/equipment/${params.data?.id}`}
-          >
-            {params?.data?.id.toString()}
-          </Link>
-        );
-      },
-    },
+   
     {
       headerName: "Name",
       field: "name",
       sortable: true,
       filter: true,
+      cellClass: "hover:underline",
       cellRenderer: (params: ICellRendererParams<Equipment>) => {
         return (
           <Link
@@ -63,15 +48,22 @@ const EquipmentComp: React.FC = () => {
       },
     },
     {
-      headerName: "Maintainance Period",
-      field: "maintenance_period",
+      headerName: "Work station",
+      field: "work_station.name",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
     },
     {
-      headerName: "Maintainance After",
-      field: "maintenance_every_after",
+      headerName: "Code",
+      field: "code",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "Status",
+      field: "status",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,

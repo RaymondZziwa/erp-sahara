@@ -36,6 +36,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     organisation_id: undefined,
     updated_at: "",
     created_at: "",
+    received_by: "",
+    brought_by: "",
     id: undefined,
   };
 
@@ -171,7 +173,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             optionValue="id"
             placeholder="Select item"
             filter
-            className="w-full md:w-14rem"
+            className="w-full p-inputtext-sm"
           />
         </div>
         <div className="p-field">
@@ -188,7 +190,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             optionValue="value"
             placeholder="Select source"
             filter
-            className="w-full md:w-14rem"
+            className="w-full p-inputtext-sm"
           />
         </div>
         <div className="p-field">
@@ -202,7 +204,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             value={formState.quantity?.toString() || ""}
             onChange={handleInputChange}
             required
-            className="w-full"
+            className="w-full p-inputtext-sm"
             min="1"
           />
         </div>
@@ -216,7 +218,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             name="ref_id"
             value={formState.ref_id?.toString() || ""}
             onChange={handleInputChange}
-            className="w-full"
+            className="w-full p-inputtext-sm"
           />
         </div>
         <div className="p-field">
@@ -233,7 +235,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             optionValue="id"
             placeholder="Select item"
             filter
-            className="w-full md:w-14rem"
+            className="w-full p-inputtext-sm"
           />
         </div>
         <div className="p-field">
@@ -253,24 +255,50 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             ]}
             placeholder="Select supplier"
             filter
-            className="w-full md:w-14rem"
+            className="w-full p-inputtext-sm"
             aria-describedby="supplier-help"
           />
         </div>
         <div className="p-field">
-          <label className="font-semibold" htmlFor="received_date">
-            Received Date
+        <label className="font-semibold" htmlFor="received_date">
+          Received Date<span className="text-red-600">*</span>
+        </label>
+        <InputText
+          id="received_date"
+          name="received_date"
+          type="date"
+          value={
+            formState.received_date || new Date().toISOString().slice(0, 10)
+          }
+          onChange={handleInputChange}
+          className="w-full p-inputtext-sm"
+          required
+          max={new Date().toISOString().slice(0, 10)} // Prevent future dates
+        />
+      </div>
+
+        <div className="p-field">
+          <label className="font-semibold" htmlFor="received_by">
+            Received by
           </label>
           <InputText
-            id="received_date"
-            name="received_date"
-            type="date"
-            value={
-              formState.received_date || new Date().toISOString().slice(0, 9)
-            }
+            id="received_by"
+            name="received_by"
+            value={formState.received_by}
             onChange={handleInputChange}
-            className="w-full"
-            required
+            className="w-full p-inputtext-sm"
+          />
+        </div>
+        <div className="p-field">
+          <label className="font-semibold" htmlFor="brought_by">
+            Brought by
+          </label>
+          <InputText
+            id="brought_by"
+            name="brought_by"
+            value={formState.brought_by}
+            onChange={handleInputChange}
+            className="w-full p-inputtext-sm"
           />
         </div>
       </form>

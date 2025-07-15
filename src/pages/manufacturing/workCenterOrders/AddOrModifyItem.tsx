@@ -3,16 +3,15 @@ import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { Calendar } from "primereact/calendar";
 import { InputText } from "primereact/inputtext";
+import { Dropdown } from "primereact/dropdown";
+import { Nullable } from "primereact/ts-helpers";
 
 import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
-
+import useItems from "../../../hooks/inventory/useItems";
 import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints";
 import { WorkOrder } from "../../../redux/slices/types/manufacturing/WorkOrder";
-import { Dropdown } from "primereact/dropdown";
-import { Nullable } from "primereact/ts-helpers";
-import useProductionLines from "../../../hooks/manufacturing/workCenter/useProductionLines";
-import useItems from "../../../hooks/inventory/useItems";
+import useCustomers from "../../../hooks/inventory/useCustomers";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -31,14 +30,16 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     quantity: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const { token } = useAuth();
+
+  const { data: items, loading: itemsLoading } = useItems();
+  const { data: customers, loading: customersLoading } = useCustomers();
 
   useEffect(() => {
     if (item) {
       setFormState({ ...item });
     } else {
-      setFormState({ quantity: "" }); // Reset formState when adding a new item
+      setFormState({ quantity: "" });
     }
   }, [item]);
 
@@ -46,6 +47,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+    setFormState((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+
+  const handleSelectChange = (name: keyof WorkOrder, value: any) => {
     setFormState((prevState) => ({
       ...prevState,
       [name]: value,
@@ -63,25 +71,31 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Basic validation
+    const formatDate = (date: Date) => date.toISOString().slice(0, 10);
+
     if (
-      !formState.actual_end_date ||
-      !formState.actual_start_date ||
-      !formState.planned_end_date ||
-      !formState.planned_start_date
+      !formState.item_id ||
+      !formState.customer_id ||
+      !formState.quantity ||
+      !formState.start_date ||
+      !formState.expected_completion_date ||
+      !formState.priority ||
+      !formState.status
     ) {
       setIsSubmitting(false);
-      return; // Handle validation error here
+      return;
     }
-    // @ts-ignore
-    const formatDate = (date: Date): Date => date?.toISOString().slice(0, 10);
-    const data: Partial<WorkOrder> = {
-      ...formState,
-      actual_end_date: formatDate(formState.actual_end_date),
-      actual_start_date: formatDate(formState.actual_start_date),
-      planned_end_date: formatDate(formState.planned_end_date),
-      planned_start_date: formatDate(formState.planned_start_date),
+
+    const data = {
+      item_id: formState.item_id,
+      customer_id: formState.customer_id,
+      quantity: parseFloat(formState.quantity.toString()),
+      start_date: formatDate(formState.start_date as Date),
+      expected_completion_date: formatDate(formState.expected_completion_date as Date),
+      priority: formState.priority,
+      status: formState.status,
     };
+
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? MANUFACTURING_ENDPOINTS.WORK_CENTER_ORDERS.UPDATE(item.id.toString())
@@ -90,7 +104,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();
-    onClose(); // Close the modal after saving
+    onClose();
   };
 
   const footer = (
@@ -115,26 +129,17 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     </div>
   );
 
-  const handleSelectChange = (name: keyof WorkOrder, value: any) => {
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-  const { data: items, loading: itemsLoading } = useItems();
-  const { data: productionLines, loading: productionLinesLoading } =
-    useProductionLines();
   return (
     <Dialog
       header={item?.id ? "Edit Work Order" : "Add Work Order"}
       visible={visible}
-      style={{ width: "400px" }}
+      style={{ width: "450px" }}
       footer={footer}
       onHide={onClose}
     >
       <p className="mb-6">
-          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
-       </p>
+        Fields marked with a red asterisk (<span className="text-red-500">*</span>) are mandatory.
+      </p>
       <form
         id="lead-form"
         onSubmit={handleSave}
@@ -144,102 +149,102 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           <label htmlFor="item_id">Item<span className="text-red-500">*</span></label>
           <Dropdown
             id="item_id"
-            name="item_id"
             value={formState.item_id}
-            options={items.map((center) => ({
-              value: center.id,
-              label: center.name,
+            options={items.map((item) => ({
+              label: item.name,
+              value: item.id,
             }))}
-            required
-            filter
-            loading={itemsLoading}
             onChange={(e) => handleSelectChange("item_id", e.value)}
+            loading={itemsLoading}
             placeholder="Select Item"
             className="w-full"
-          />
-          <div className="p-field">
-            <label htmlFor="quantity">Quantity<span className="text-red-500">*</span></label>
-            <InputText
-              id="quantity"
-              name="quantity"
-              value={formState.quantity?.toString() || ""}
-              onChange={handleInputChange}
-              required
-              type="number"
-              className="w-full"
-            />
-          </div>
-
-          {/* Actual Start Date */}
-          <div className="p-field">
-            <label htmlFor="actual_start_date">Actual Start Date<span className="text-red-500">*</span></label>
-            <Calendar
-              id="actual_start_date"
-              name="actual_start_date"
-              value={formState.actual_start_date || null}
-              onChange={(e) => handleDateChange("actual_start_date", e.value)}
-              dateFormat="yy-mm-dd"
-              className="w-full"
-              required
-            />
-          </div>
-
-          {/* Actual End Date */}
-          <div className="p-field">
-            <label htmlFor="actual_end_date">Actual End Date<span className="text-red-500">*</span></label>
-            <Calendar
-              id="actual_end_date"
-              name="actual_end_date"
-              value={formState.actual_end_date || null}
-              onChange={(e) => handleDateChange("actual_end_date", e.value)}
-              dateFormat="yy-mm-dd"
-              className="w-full"
-              required
-            />
-          </div>
-
-          {/* Planned Start Date */}
-          <div className="p-field">
-            <label htmlFor="planned_start_date">Planned Start Date<span className="text-red-500">*</span></label>
-            <Calendar
-              id="planned_start_date"
-              name="planned_start_date"
-              value={formState.planned_start_date || null}
-              onChange={(e) => handleDateChange("planned_start_date", e.value)}
-              dateFormat="yy-mm-dd"
-              className="w-full"
-            />
-          </div>
-
-          {/* Planned End Date */}
-          <div className="p-field">
-            <label htmlFor="planned_end_date">Planned End Date<span className="text-red-500">*</span></label>
-            <Calendar
-              id="planned_end_date"
-              name="planned_end_date"
-              value={formState.planned_end_date || null}
-              onChange={(e) => handleDateChange("planned_end_date", e.value)}
-              dateFormat="yy-mm-dd"
-              className="w-full"
-            />
-          </div>
-        </div>
-        <div className="p-field">
-          <label htmlFor="production_line_id">Production Line<span className="text-red-500">*</span></label>
-          <Dropdown
-            filter
-            id="production_line_id"
-            name="production_line_id"
-            value={formState.production_line_id}
-            options={productionLines.map((line) => ({
-              value: line.id,
-              label: line.name,
-            }))}
             required
-            loading={productionLinesLoading}
-            onChange={(e) => handleSelectChange("production_line_id", e.value)}
-            placeholder="Select a Production Line"
+          />
+        </div>
+
+        <div className="p-field">
+          <label htmlFor="customer_id">Customer<span className="text-red-500">*</span></label>
+          <Dropdown
+            id="customer_id"
+            value={formState.customer_id}
+            options={customers.map((c) => ({
+              label: `${c.first_name} ${c.last_name}`,
+              value: c.id,
+            }))}
+            onChange={(e) => handleSelectChange("customer_id", e.value)}
+            loading={customersLoading}
+            placeholder="Select Customer"
             className="w-full"
+            required
+          />
+        </div>
+
+        <div className="p-field">
+          <label htmlFor="quantity">Quantity<span className="text-red-500">*</span></label>
+          <InputText
+            id="quantity"
+            name="quantity"
+            type="number"
+            value={formState.quantity?.toString() || ""}
+            onChange={handleInputChange}
+            className="w-full"
+            required
+          />
+        </div>
+
+        <div className="p-field">
+          <label htmlFor="start_date">Start Date<span className="text-red-500">*</span></label>
+          <Calendar
+            id="start_date"
+            value={formState.start_date || null}
+            onChange={(e) => handleDateChange("start_date", e.value)}
+            dateFormat="yy-mm-dd"
+            className="w-full"
+            required
+          />
+        </div>
+
+        <div className="p-field">
+          <label htmlFor="expected_completion_date">Expected Completion Date<span className="text-red-500">*</span></label>
+          <Calendar
+            id="expected_completion_date"
+            value={formState.expected_completion_date || null}
+            onChange={(e) => handleDateChange("expected_completion_date", e.value)}
+            dateFormat="yy-mm-dd"
+            className="w-full"
+            required
+          />
+        </div>
+
+        <div className="p-field">
+          <label htmlFor="priority">Priority<span className="text-red-500">*</span></label>
+          <Dropdown
+            id="priority"
+            value={formState.priority}
+            options={["low", "medium", "high", "urgent"].map((p) => ({
+              label: p,
+              value: p,
+            }))}
+            onChange={(e) => handleSelectChange("priority", e.value)}
+            placeholder="Select Priority"
+            className="w-full"
+            required
+          />
+        </div>
+
+        <div className="p-field">
+          <label htmlFor="status">Status<span className="text-red-500">*</span></label>
+          <Dropdown
+            id="status"
+            value={formState.status}
+            options={["planned", "released", "in-progress", "completed", "cancelled"].map((s) => ({
+              label: s,
+              value: s,
+            }))}
+            onChange={(e) => handleSelectChange("status", e.value)}
+            placeholder="Select Status"
+            className="w-full"
+            required
           />
         </div>
       </form>

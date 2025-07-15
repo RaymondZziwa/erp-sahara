@@ -758,12 +758,7 @@ const StoreRequisitions: React.FC = () => {
                 })
               }
             />
-            <Button
-              label="Print"
-              icon="pi pi-print"
-              className="p-button-secondary"
-              onClick={handleExportPDF}
-            />
+         
           </div>
         </div>
 

@@ -178,6 +178,18 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           />
         </div>
         <div className="p-field">
+          <label htmlFor="frequency">Frequency</label>
+          <Dropdown
+            id="frequency"
+            name="frequency"
+            value={formState.frequency}
+            options={frequencyOptions}
+            onChange={(e) => handleDropdownChange("frequency", e.value)}
+            required
+            className="w-full"
+          />
+        </div>
+        <div className="p-field">
           <label htmlFor="deduction_type_id">Deduction Type</label>
           <Dropdown
             id="deduction_type_id"
@@ -230,18 +242,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           />
           {dateError && <small className="p-error">{dateError}</small>}
         </div>
-        <div className="p-field">
-          <label htmlFor="frequency">Frequency</label>
-          <Dropdown
-            id="frequency"
-            name="frequency"
-            value={formState.frequency}
-            options={frequencyOptions}
-            onChange={(e) => handleDropdownChange("frequency", e.value)}
-            required
-            className="w-full"
-          />
-        </div>
+        
       </form>
     </Dialog>
   );

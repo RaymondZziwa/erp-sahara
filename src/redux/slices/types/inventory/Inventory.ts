@@ -18,6 +18,8 @@ export interface Inventory {
   updated_at: string;
   item: Item;
   supplier: null;
+  brought_by: string;
+  received_by: string;
   warehouse: Warehouse;
 }
 

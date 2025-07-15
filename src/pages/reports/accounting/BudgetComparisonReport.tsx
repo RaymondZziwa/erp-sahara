@@ -213,7 +213,10 @@ const BudgetComparisonReport = () => {
           </select>
         </div>
 
-        <div>
+        {
+          periodType.toLowerCase() === 'custom' && (
+            <>
+              <div>
           <label
             htmlFor="startDate"
             style={{ display: "block", marginBottom: 5 }}
@@ -254,6 +257,9 @@ const BudgetComparisonReport = () => {
             style={{ padding: 8 }}
           />
         </div>
+            </>
+          )
+        }
 
         <div style={{ alignSelf: "flex-end" }}>
           <button
