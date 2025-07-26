@@ -135,7 +135,7 @@ const AddOrModifyAccountSubCategory: React.FC<
 
   return (
     <Dialog
-      header={item?.id ? "Edit Subcategory Account" : "Add Subcategory Account"}
+      header={item?.id ? "Edit Sub Category Account" : "Add Sub Category Account"}
       visible={visible}
       style={{ width: "600px" }}
       footer={footer}
@@ -145,9 +145,9 @@ const AddOrModifyAccountSubCategory: React.FC<
         {((item?.id && item.is_system_created === 0) || !item?.id) && (
           <>
             <div className="p-field">
-              <label htmlFor="account_category_id">Base Account</label>
+              <label htmlFor="account_category_id">Category</label>
               <Dropdown
-                placeholder="Select Account"
+                placeholder="Select"
                 id="account_category_id"
                 name="account_category_id"
                 optionLabel="name"
@@ -161,9 +161,9 @@ const AddOrModifyAccountSubCategory: React.FC<
               />
             </div>
             <div className="p-field">
-              <label htmlFor="parent_id">Parent Account</label>
+              <label htmlFor="parent_id">Parent Sub Category</label>
               <Dropdown
-                placeholder="Select Account"
+                placeholder="Select"
                 id="parent_id"
                 name="parent_id"
                 optionLabel="name"
@@ -177,9 +177,9 @@ const AddOrModifyAccountSubCategory: React.FC<
               />
             </div>
             <div className="p-field">
-              <label htmlFor="sub_parent_id">Account Category</label>
+              <label htmlFor="sub_parent_id">Sub Category</label>
               <Dropdown
-                placeholder="Select Account"
+                placeholder="Select "
                 id="sub_parent_id"
                 name="sub_parent_id"
                 optionLabel="name"
@@ -215,7 +215,6 @@ const AddOrModifyAccountSubCategory: React.FC<
             onChange={handleInputChange}
             rows={3}
             className="w-full"
-            required
           />
         </div>
       </form>

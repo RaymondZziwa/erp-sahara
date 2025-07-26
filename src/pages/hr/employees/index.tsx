@@ -1,20 +1,23 @@
 import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
-
 import AddOrModifyItem from "./AddOrModifyItem";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import BreadCrump from "../../../components/layout/bread_crump";
 import Table from "../../../components/table";
-
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
 import useEmployees from "../../../hooks/hr/useEmployees";
 import { Employee } from "../../../redux/slices/types/hr/Employee";
+import SetPinModal from "./setPosPin";
 
 const Employees: React.FC = () => {
   const { data, refresh } = useEmployees();
   const tableRef = useRef<any>(null);
-
+  const [pinModal, setPinModal] = useState<{
+    visible: boolean;
+    employee: Employee | null;
+  }>({ visible: false, employee: null });
+  
   const [dialogState, setDialogState] = useState<{
     selectedItem: Employee | undefined;
     currentAction: "delete" | "edit" | "add" | "";
@@ -75,8 +78,6 @@ const Employees: React.FC = () => {
       filter: true,
       suppressSizeToFit: true,
     },
-
-
     {
       headerName: "Actions",
       field: "id",
@@ -108,6 +109,15 @@ const Employees: React.FC = () => {
             className="text-red-500 cursor-pointer"
             fontSize={20}
           />
+          <Icon
+            onClick={() =>
+              setPinModal({ visible: true, employee: params.data })
+            }
+            icon="solar:lock-password-bold"
+            className="text-teal-600 cursor-pointer"
+            fontSize={20}
+            title="Set Access PIN"
+          />
         </div>
       ),
     },
@@ -115,6 +125,13 @@ const Employees: React.FC = () => {
 
   return (
     <div>
+      {pinModal.visible && (
+        <SetPinModal
+          visible={pinModal.visible}
+          employee={pinModal.employee}
+          onClose={() => setPinModal({ visible: false, employee: null })}
+        />
+      )}
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedItem}

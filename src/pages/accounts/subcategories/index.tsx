@@ -69,6 +69,14 @@ const AccountSubCategories = () => {
       >
         Edit
       </button>
+      <button
+        className=" px-2 py-1 rounded text-white bg-red-500"
+        onClick={() =>
+          setDialogState({ selectedCategory: rowData, currentAction: "edit" })
+        }
+      >
+        Delete
+      </button>
       {rowData.is_system_created === 0 && (
         <Icon
           icon="solar:trash-bin-trash-bold"
@@ -84,11 +92,11 @@ const AccountSubCategories = () => {
 
   return (
     <div>
-      <BreadCrump name="Account SubCategories" pageName="All" />
+      <BreadCrump name="Account Sub Categories" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Account SubCategories</h1>
+            <h1 className="text-xl font-bold">Account Sub Categories</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -101,7 +109,7 @@ const AccountSubCategories = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add SubCategory
+              Add Sub Category
             </button>
           </div>
         </div>
@@ -113,7 +121,7 @@ const AccountSubCategories = () => {
             <InputText
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search subcategories by name or description"
+              placeholder="Search sub categories by name or description"
               className="w-[400px] pl-2"
             />
           </span>

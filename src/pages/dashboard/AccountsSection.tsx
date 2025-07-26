@@ -6,6 +6,8 @@ import { Link } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../api/reportsEndpoints";
 import { apiRequest } from "../../utils/api";
+import { Skeleton } from "primereact/skeleton";
+import { Badge } from "primereact/badge";
 
 interface LedgerBalance {
   ledger_id: number;
@@ -59,69 +61,82 @@ const AccountsSection = () => {
   };
 
   return (
-    <Card
-      className="bg-white shadow-md rounded-lg p-6 col-span-full xl:col-span-1"
-      header={<h3 className="text-xl font-semibold">Cash Ledgers</h3>}
-    >
-      <p className="text-gray-500 text-sm mb-2">Current Balances</p>
+    <Card className="border-round-lg shadow-2">
+    <div className="flex justify-content-between align-items-center mb-4">
+      <h2 className="text-900 font-semibold text-xl m-0">Cash Ledgers (Current Balances)</h2>
+    </div>
 
-      {isLoading ? (
-        <div className="flex justify-center items-center py-4">
-          <p>Loading balances...</p>
-        </div>
-      ) : ledgerBalances.length === 0 ? (
-        <div className="flex justify-center items-center py-4">
-          <p>No cash ledgers found</p>
-        </div>
-      ) : (
-        <ul className="list-none space-y-4">
-          {ledgerBalances.map((ledger) => (
-            <li key={ledger.ledger_id} className="flex justify-between">
-              <div className="flex-1">
-                <strong className="block">{ledger.ledger_name}</strong>
-                <div className="text-sm text-gray-500">
-                  {ledger.subcategory} ({ledger.ledger_code})
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="flex flex-col">
-                  <div className="text-xs text-gray-500">
-                    Debit: {formatCurrency(ledger.debit_sum)}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Credit: {formatCurrency(ledger.total_credit)}
-                  </div>
-                  <div
-                    className={`font-bold mt-1 ${getBalanceColor(
-                      ledger.normal_balance_side,
-                      ledger.net_amount
-                    )}`}
-                  >
-                    Net: {formatCurrency(ledger.net_amount)}
-                  </div>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="mt-4 flex space-x-2">
-        <Link to={"/accounts"}>
-          <Button
-            label="Manage ledgers"
-            className="p-button-outlined p-button-sm"
-          />
-        </Link>
-        <Link to={"accounts/journal-transactions"}>
-          <Button
-            label="View transactions"
-            icon="pi pi-angle-right"
-            className="p-button-text p-button-sm"
-          />
-        </Link>
+    {isLoading ? (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex align-items-center">
+            <Skeleton shape="circle" size="3rem" className="mr-3"></Skeleton>
+            <div style={{ flex: 1 }}>
+              <Skeleton width="60%" className="mb-2"></Skeleton>
+              <Skeleton width="40%"></Skeleton>
+            </div>
+            <Skeleton width="4rem" height="2rem"></Skeleton>
+          </div>
+        ))}
       </div>
-    </Card>
+    ) : ledgerBalances.length === 0 ? (
+      <div className="flex justify-content-center align-items-center py-6">
+        <span className="text-600">No cash ledgers found</span>
+      </div>
+    ) : (
+      <div className="space-y-4">
+        {ledgerBalances.map((ledger) => (
+          <div
+            key={ledger.ledger_id}
+            className="p-3 border-round border-1 surface-border"
+          >
+            <div className="flex justify-content-between align-items-start mb-2">
+              <div>
+                <div className="font-medium">{ledger.ledger_name}</div>
+                <div className="text-600 text-sm">
+                  {ledger.subcategory} • {ledger.ledger_code}
+                </div>
+              </div>
+              <Badge
+                value={formatCurrency(ledger.net_amount)}
+                className={getBalanceColor(
+                  ledger.normal_balance_side,
+                  ledger.net_amount
+                )}
+              ></Badge>
+            </div>
+            <div className="grid text-sm">
+              <div className="col-6">
+                <div className="text-600">Debit</div>
+                <div>{formatCurrency(ledger.debit_sum)}</div>
+              </div>
+              <div className="col-6">
+                <div className="text-600">Credit</div>
+                <div>{formatCurrency(ledger.total_credit)}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    <div className="flex justify-content-between mt-4 pt-3 gap-4 border-top-1 surface-border">
+      <Link to={"/accounts"}>
+        <Button
+          label="Manage Ledgers"
+          icon="pi pi-wallet"
+          className="p-button-text p-button-sm"
+        />
+      </Link>
+      <Link to={"accounts/journal-transactions"}>
+        <Button
+          label="View Transactions"
+          icon="pi pi-angle-right"
+          className="p-button-text p-button-sm"
+        />
+      </Link>
+    </div>
+  </Card>
   );
 };
 

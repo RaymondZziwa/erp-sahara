@@ -32,7 +32,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     quantity: undefined,
     warehouse_id: undefined,
     type: "",
-    received_date: "",
+    received_date: new Date().toISOString().slice(0, 10),
     organisation_id: undefined,
     updated_at: "",
     created_at: "",

@@ -349,13 +349,7 @@ const Bids: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={18} />
               Add New Quotation
             </button>
-            <button
-              className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-white flex gap-2 items-center text-sm"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={18} />
-              Export PDF
-            </button>
+           
           </div>
         </div>
 

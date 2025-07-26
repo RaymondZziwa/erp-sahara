@@ -86,17 +86,18 @@ const BudgetDetails: React.FC = () => {
           <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold">{budget.name}</h3>
             <div className="flex space-x-2">
-              <button
-                className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-800"
-                onClick={() => setShowAllocationModal(true)}
-              >
-                Add Budget Allocation
-              </button>
+             
               <button
                 className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-800"
                 onClick={() => setShowItemsModal(true)}
               >
                 Add Budget Items
+                </button>
+                <button
+                className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-800"
+                onClick={() => setShowAllocationModal(true)}
+              >
+                Add Budget Allocation
               </button>
             </div>
           </div>
@@ -116,6 +117,22 @@ const BudgetDetails: React.FC = () => {
               </h5>
               <p className="text-lg font-bold">{budgetUsage?.total_remaining}</p>
             </div> */}
+              <div className="bg-white p-4 rounded-md shadow-sm text-center">
+              <h5 className="text-sm font-semibold text-gray-600">
+                Total Allocated
+              </h5>
+              <p className="text-lg font-bold">
+                {budgetUsage?.total_allocated || "N/A"}
+              </p>
+              </div>
+              <div className="bg-white p-4 rounded-md shadow-sm text-center">
+              <h5 className="text-sm font-semibold text-gray-600">
+                Total Remaining
+              </h5>
+              <p className="text-lg font-bold">
+                {budgetUsage?.total_remaining || "N/A"}
+              </p>
+            </div>
             <div className="bg-white p-4 rounded-md shadow-sm text-center">
               <h5 className="text-sm font-semibold text-gray-600">
                 Total Spent
@@ -140,21 +157,21 @@ const BudgetDetails: React.FC = () => {
         <BudgetTable budget={budget} deleteBudgetItem={deleteBudgetItem} />
       </div>
 
-      {/* Modals */}
-      {showAllocationModal && (
-        <BudgetAllocationModal
-          visible={showAllocationModal}
-          refresh={refresh}
-          onHide={() => setShowAllocationModal(false)}
-          id={id}
-        />
-      )}
-      {showItemsModal && (
+        {/* Modals */}
+        {showItemsModal && (
         <BudgetItemsModal
           budget={budget}
           refresh={refresh}
           visible={showItemsModal}
           onHide={() => setShowItemsModal(false)}
+          id={id}
+        />
+      )}
+      {showAllocationModal && (
+        <BudgetAllocationModal
+          visible={showAllocationModal}
+          refresh={refresh}
+          onHide={() => setShowAllocationModal(false)}
           id={id}
         />
       )}

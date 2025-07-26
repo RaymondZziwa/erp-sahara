@@ -25,15 +25,16 @@ const PaymentMethods: React.FC = () => {
   };
 
   const columnDefinitions: ColDef<PaymentMethod>[] = [
+
     {
-      headerName: "ID",
-      field: "id",
+      headerName: "Name",
+      field: "name",
       sortable: true,
       filter: true,
     },
     {
-      headerName: "Name",
-      field: "name",
+      headerName: "Description",
+      field: "description",
       sortable: true,
       filter: true,
     },
@@ -98,11 +99,11 @@ const PaymentMethods: React.FC = () => {
         }
         onConfirm={refresh}
       />
-      <BreadCrump name="Settings" pageName="Payment Methods" />
+      <BreadCrump name="Payment Methods" pageName="Payment Methods" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Payment Methods Table</h1>
+            <h1 className="text-xl font-bold">Payment Methods</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -117,13 +118,7 @@ const PaymentMethods: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add method
             </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button>
+           
           </div>
         </div>
         <Table

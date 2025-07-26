@@ -191,13 +191,7 @@ const AssetMaintenance: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Maintenance
             </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button>
+           
           </div>
         </div>
         <Table

@@ -28,7 +28,7 @@ const MANUFACTURING_ROUTES = [
   {
     name: "Production Orders",
     icon: <Icon icon="mdi:file-document-outline" fontSize={20} />,
-    path: "/",
+    path: "/productio-orders",
     element: (
       <Suspense fallback={<Loading />}>
         <WorkOrders />

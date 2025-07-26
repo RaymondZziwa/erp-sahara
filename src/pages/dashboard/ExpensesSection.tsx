@@ -7,6 +7,8 @@ import { REPORTS_ENDPOINTS } from "../../api/reportsEndpoints";
 import { apiRequest } from "../../utils/api";
 import { ServerResponse } from "../../redux/slices/types/ServerResponse";
 import { formatCurrency } from "../../utils/formatCurrency";
+import { ProgressBar } from "primereact/progressbar";
+import { Skeleton } from "primereact/skeleton";
 
 interface ExpensesData {
   categories: Category[];
@@ -113,42 +115,74 @@ const ExpensesSection = () => {
   };
 
   return (
-    <Card
-      className="bg-white shadow-md rounded-lg p-6"
-      header={
-        <div className="flex justify-between items-center">
-          <h3 className="text-2xl font-semibold text-gray-800">Expenses</h3>
-          <Dropdown
-            value={range}
-            options={[
-              { label: "Daily", value: "daily" },
-              { label: "Monthly", value: "monthly" },
-              { label: "Yearly", value: "yearly" },
-            ]}
-            onChange={(e) => setRange(e.value)}
-            placeholder="Select Range"
-            className="w-40"
-          />
+    <Card className="border-round-lg shadow-2">
+      <div className="flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="text-900 font-semibold text-xl m-0">Expenses</h2>
+          <span className="text-600 text-sm">
+            {startDate?.toLocaleDateString()} - {endDate?.toLocaleDateString()}
+          </span>
         </div>
-      }
-    >
-      <p className="text-gray-500 text-sm mb-2">
-        {isLoading ? "Loading..." : "Total Expenses"}
-      </p>
-      <h2 className="text-3xl font-bold text-shade">
-        {data ? formatCurrency(data.total) : formatCurrency(0)}
-      </h2>
+        {/* <Dropdown
+          value={range}
+          options={[
+            { label: "Daily", value: "daily" },
+            { label: "Monthly", value: "monthly" },
+            { label: "Yearly", value: "yearly" },
+          ]}
+          onChange={(e) => setRange(e.value)}
+          placeholder="Select Range"
+          className="w-10rem ml-20"
+        /> */}
+      </div>
+
       {isLoading ? (
-        <div className="text-center text-gray-700">Loading chart...</div>
-      ) : (
-        <div className="flex justify-center">
-          <Chart
-            type="doughnut"
-            data={expensesData}
-            className="mt-4 h-72"
-            options={chartOptions}
-          />
+        <div className="space-y-4">
+          <Skeleton width="100%" height="2rem" />
+          <Skeleton width="100%" height="12rem" />
         </div>
+      ) : (
+        <>
+          <div className="mb-4">
+            <div className="text-600 text-sm">Total Expenses</div>
+            <div className="text-900 font-semibold text-2xl">
+              {data ? formatCurrency(data.total) : formatCurrency(0)}
+            </div>
+          </div>
+
+          <div style={{ height: "300px" }}>
+            <Chart
+              type="doughnut"
+              data={expensesData}
+              options={chartOptions}
+            />
+          </div>
+
+          {data?.categories && (
+            <div className="mt-4">
+              {data.categories.map((category, index) => (
+                <div key={index} className="mb-2">
+                  <div className="flex justify-content-between mb-1">
+                    <span className="text-600 text-sm">{category.label}</span>
+                    <span className="text-900 font-medium">
+                      {formatCurrency(category.amount)}
+                    </span>
+                  </div>
+                  <ProgressBar
+                    value={(category.amount / data.total) * 100}
+                    showValue={false}
+                    className="h-1rem"
+                    style={{
+                      backgroundColor: `${
+                        expensesData.datasets[0].backgroundColor[index]
+                      }20`,
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </Card>
   );

@@ -107,7 +107,7 @@ const Currencies: React.FC = () => {
         }
         onConfirm={refresh}
       />
-      <BreadCrump name="Settings" pageName="Currencies" />
+      <BreadCrump name="Currencies" pageName="Currencies" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
@@ -126,13 +126,7 @@ const Currencies: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add currency
             </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button>
+           
           </div>
         </div>
         <Table

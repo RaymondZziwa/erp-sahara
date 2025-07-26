@@ -40,7 +40,7 @@ const Accounts = () => {
           setDialogState({ selectedCategory: rowData, currentAction: "edit" })
         }
       >
-        Modify
+        Edit
       </button>
     </div>
   );
