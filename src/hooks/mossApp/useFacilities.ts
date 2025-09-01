@@ -17,7 +17,6 @@ const useFacilities = () => {
   const dispatch = useAppDispatch();
 
   const { token, isFetchingLocalToken } = useAuth();
-
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken) return;
     if (token.access_token == "") {

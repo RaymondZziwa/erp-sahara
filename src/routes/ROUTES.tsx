@@ -22,6 +22,10 @@ import {org} from "../utils/api"
 import RECRUITMENT_ROUTES from "./RECRUITMENT";
 import Dashboard from "../pages/dashboard";
 import Reports from "../pages/reports";
+import SUPPLIER_LOANS_ROUTES from "./SUPPLIER_LOANS";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
+import ITEM_PURCHASES_ROUTES from "./ITEM_PURCHASES";
 
 const ROUTES: Route[] = [
   {
@@ -33,85 +37,125 @@ const ROUTES: Route[] = [
   },
   {
     name: "Reports",
+    serviceName: "Reports",
     icon: <Icon icon="mdi:book-outline" fontSize={24} />, // More specific to project management
     path: "/reports",
-    element: <Reports />
+    element: <Reports />,
+    requiredPermission: "access_reports_module",
     //sidebarItems: REPORTS_ROUTES,
   },
   {
     name: "Inventory",
+    serviceName: "Inventory",
     icon: <Icon icon="mdi:warehouse" fontSize={24} />,
     path: "/inventory",
     sidebarItems: INVENTORY_ROUTES,
+    requiredPermission: "access_inventory_module",
   },
   {
     name: "Requisitions",
+    serviceName: "Requisitions",
     icon: <Icon icon="mdi:book-outline" fontSize={24} />, // More specific to project management
     path: "/cash-requsuitions",
     sidebarItems: CASHREQUISITION_ROUTES,
+    requiredPermission: "access_expense_requisition_module",
   },
   {
     name: "Accounts",
+    serviceName: "Accounting",
     icon: <Icon icon="mdi:finance" fontSize={24} />,
     path: "/accounts",
     sidebarItems: ACCOUNTS_ROUTES,
+    requiredPermission: "access_accounting_module",
   },
   {
-     name: "Budgets",
+    name: "Supplier Loans",
+    serviceName: "SupplierLoan",
+    icon: <Icon icon="mdi:bank-transfer" fontSize={24} />,
+    path: "/supplier-loans",
+    sidebarItems: SUPPLIER_LOANS_ROUTES,
+    requiredPermission: "access_supplier_loan_module",
+  },
+  {
+    name: "Budgets",
+    serviceName: "Budget",
      icon: <Icon icon="mdi:cash-multiple" fontSize={24} />, // Updated for better budget representation
      path: "/budgets",
-     sidebarItems: BUDGETS_ROUTES,
+    sidebarItems: BUDGETS_ROUTES,
+    requiredPermission: "access_budget_module",
   },
   {
     name: "Assets",
+    serviceName: "Assets",
     icon: <Icon icon="solar:card-2-bold-duotone" fontSize={24} />, // More specific to project management
     path: "/assets",
     sidebarItems: ASSETS,
+    requiredPermission: "access_assets_module",
   },
   {
     name: "Procurement",
+    serviceName: "Procurement",
     icon: <Icon icon="mdi:cash-multiple" fontSize={24} />, // Updated for better budget representation
     path: "/procurement",
     sidebarItems: PROCUREMENT_ROUTES,
+    requiredPermission: "access_procurement_module",
   },
-
-  
+  {
+    name: "Item Supplies",
+    serviceName: "Procurement",
+    icon: <Icon icon="mdi:package-variant" fontSize={24} />, // Better representation for supplies
+    path: "/item-supplies",
+    sidebarItems: ITEM_PURCHASES_ROUTES,
+    requiredPermission: "access_item_purchases_module",
+  },  
   {
     name: "Sales",
+    serviceName: "Sales",
     icon: <Icon icon="fluent:cart-24-regular" fontSize={24} />, 
     path: "/sales",
     sidebarItems: SALES_ROUTES,
+    requiredPermission: "access_sales_module",
   },
  {
-     name: "Recruitment",
+   name: "Recruitment",
+   serviceName: "Recruitment",
      icon: <Icon icon="mdi:people" fontSize={24} />,
      path: "/recruitment",
-     sidebarItems: RECRUITMENT_ROUTES,
+   sidebarItems: RECRUITMENT_ROUTES,
+   requiredPermission: "access_recruitment_module",
  },
   {
     name: "Human Resource",
+    serviceName: "Human Resource",
     icon: <Icon icon="mdi:account-group-outline" fontSize={24} />,
     path: "/hr",
     sidebarItems: HUMAN_RESOURCE_ROUTES,
+    requiredPermission: "access_hr_module",
   },
   
-  // {
-  //     name: "MOSS APP",
-  //     icon: <Icon icon="mdi:tractor" fontSize={24} />, // Example: Tractor icon for a farm-related look
-  //     path: "/farm_groups",
-  //     sidebarItems: MOSS_APP_ROUTES,
-  // },
+  {
+    name: "MOSS APP",
+    serviceName: "MOSAPP",
+      icon: <Icon icon="mdi:tractor" fontSize={24} />, // Example: Tractor icon for a farm-related look
+      path: "/mossapp",
+    sidebarItems: MOSS_APP_ROUTES,
+    //requiredPermission: "access_mosapp_module",
+  },
   {
     name: "Manufacturing",
+    serviceName: "Manufacturing",
     icon: <Icon icon="fluent:building-factory-24-regular" fontSize={24} />, 
     path: "/manufacturing",
     sidebarItems: MANUFACTURING_ROUTES,
+    requiredPermission: "access_manufacturing_module",
  },
   {
     name: "Settings",
+    serviceName: "Settings",
     icon: <Icon icon="mdi:cog-outline" fontSize={24} />,
     path: "/settings",
     sidebarItems: SETTINGS_ROUTES,
+    requiredPermission: "access_settings_module",
   },
 ];
 

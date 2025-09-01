@@ -7,6 +7,7 @@ import BreadCrump from "../../../components/layout/bread_crump";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import Table from "../../../components/table";
 import AddOrModifyItem from "./AddOrModify";
+import { ToastContainer } from "react-toastify";
 
 const ProcurementTypes: React.FC = () => {
   const { data: types, refresh } = useProcTypes();
@@ -16,12 +17,7 @@ const ProcurementTypes: React.FC = () => {
     selectedItem: ProcurementType | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
-
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
+   
 
   const columnDefinitions: ColDef<ProcurementType>[] = [
     {
@@ -74,6 +70,7 @@ const ProcurementTypes: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedItem}
@@ -116,7 +113,6 @@ const ProcurementTypes: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Type
             </button>
-           
           </div>
         </div>
         <Table columnDefs={columnDefinitions} data={types} ref={tableRef} />

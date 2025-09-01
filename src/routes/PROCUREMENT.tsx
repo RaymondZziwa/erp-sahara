@@ -2,10 +2,10 @@ import { Icon } from "@iconify/react";
 import { lazy, Suspense } from "react";
 import ProcurementTypes from "../pages/procurement/procTypes";
 import Services from "../pages/procurement/services";
+import ItemPurchases from "../pages/procurement/itemPurchases/itemPurchases";
 
 // Dynamic imports
-//const Dashboard = lazy(() => import("../pages/dashboard"));
-const BidEvaluations = lazy(() => import("../pages/procurement/bidEvaluation"));
+
 const Bids = lazy(() => import("../pages/procurement/bids"));
 const EvaluationCriteria = lazy(
   () => import("../pages/procurement/evaluationCriteria")
@@ -123,6 +123,7 @@ const PROCUREMENT_ROUTES = [
           </Suspense>
         ),
       },
+      
     ],
   },
 ];

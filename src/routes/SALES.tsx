@@ -2,6 +2,9 @@ import { Icon } from "@iconify/react";
 import { lazy, Suspense } from "react";
 import Customers from "../pages/sales/customers";
 import Opportunities from "../pages/sales/opportunities";
+import GoodsReceivedNotes from "../pages/sales/goodsReceivedNotes";
+import DeliveryNotes from "../pages/sales/deliveryNotes";
+import Invoices from "../pages/sales/invoices";
 
 // Dynamic imports
 const Quotations = lazy(() => import("../pages/sales/quotations"));
@@ -36,26 +39,55 @@ const SALES_ROUTES = [
     ),
   },
   {
-    name: "Distribution Orders",
+    name: "Delivery Notes",
     icon: <Icon icon="mdi:truck-outline" fontSize={24} />,
-    path: "/distributionorders",
+    path: "/deliverynotes",
     element: (
       <Suspense fallback={<Loading />}>
-        <DistributionOrders />
+        <DeliveryNotes />
       </Suspense>
     ),
   },
-
+  // {
+  //   name: "Distribution Orders",
+  //   icon: <Icon icon="mdi:truck-outline" fontSize={24} />,
+  //   path: "/distributionorders",
+  //   element: (
+  //     <Suspense fallback={<Loading />}>
+  //       <DistributionOrders />
+  //     </Suspense>
+  //   ),
+  // },
   {
-    name: "Leads",
-    icon: <Icon icon="mdi:lead-pencil" fontSize={24} />,
-    path: "/leads",
+    name: "Good Received Note",
+    icon: <Icon icon="mdi:truck-outline" fontSize={24} />,
+    path: "/goodsreceivednotes",
     element: (
       <Suspense fallback={<Loading />}>
-        <Leads />
+        <GoodsReceivedNotes />
       </Suspense>
     ),
   },
+  {
+    name: "Invoices",
+    icon: <Icon icon="mdi:truck-outline" fontSize={24} />,
+    path: "/invoices",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <Invoices />
+      </Suspense>
+    ),
+  },
+  // {
+  //   name: "Letter of Credit",
+  //   icon: <Icon icon="mdi:truck-outline" fontSize={24} />,
+  //   path: "/distributionorders",
+  //   element: (
+  //     <Suspense fallback={<Loading />}>
+  //       <DistributionOrders />
+  //     </Suspense>
+  //   ),
+  // },
   {
     name: "Configurations",
     icon: <Icon icon="mdi:gear-outline" fontSize={24} />,
@@ -68,6 +100,16 @@ const SALES_ROUTES = [
         element: (
           <Suspense fallback={<Loading />}>
             <Customers />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Leads",
+        icon: <Icon icon="mdi:lead-pencil" fontSize={24} />,
+        path: "/leads",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Leads />
           </Suspense>
         ),
       },

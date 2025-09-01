@@ -1,4 +1,4 @@
-//@ts-nocheck
+
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import "primeicons/primeicons.css";
@@ -38,6 +38,8 @@ import ApplicationPipelineReport from "../pages/reports/recruitment/application-
 import InterviewActivitiesReport from "../pages/reports/recruitment/interviews-activities-report";
 import ApplicationSourceReport from "../pages/reports/recruitment/application-source-report";
 import RecruitmentSummaryDashboard from "../pages/reports/recruitment/recruitment-summary-dashboard-report";
+import RolePermissionsPage from "../pages/settings/permissions";
+import LoanRepayments from "../pages/supplierLoans/loanRepaymentRecords";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -182,6 +184,11 @@ const AppRouter = () => {
             path="budgets/budget-details/:id"
             element={<BudgetDetails />}
           />
+          <Route
+            path="/loans/:id/payments"
+            element={<LoanRepayments />}
+          />
+          <Route path="/roles/:id/permissions" element={<RolePermissionsPage />} />
         </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />

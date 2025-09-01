@@ -17,7 +17,6 @@ import useCurrencies from "../../../hooks/procurement/useCurrencies";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import useProjects from "../../../hooks/projects/useProjects";
 import useBudgets from "../../../hooks/budgets/useBudgets";
-import FileUploadInput from "../../../components/FileUploadInput";
 import { toast } from "react-toastify";
 import useAssetsAccounts from "../../../hooks/accounts/useAssetsAccounts";
 import useChartOfAccounts from "../../../hooks/accounts/useChartOfAccounts";
@@ -90,6 +89,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const { token } = useAuth();
   const { data: currenciesData, loading: currenciesLoading } = useCurrencies();
   const { data: projects, loading: projectsLoading } = useProjects();
+  const [selectedBudget, setSelectedBudget] = useState()
   const { data: budgets, loading: budgetsLoading } = useBudgets();
   const [selectedBudgetItemMaxAmounts, setSelectedBudgetItemMaxAmounts] =
     useState<{ [key: number]: number }>({});
@@ -351,7 +351,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     <Dialog
       header={title}
       visible={visible}
-      className="max-w-full md:max-w-screen-lg px-2 md:w-[1024px]"
+      className="max-w-full md:max-w-screen-lg px-2 md:w-[600px]"
       footer={footer}
       onHide={onClose}
     >
@@ -430,6 +430,40 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       </div>
     </div>
   </div>
+        </div>
+        <div className="relative border border-gray-300 rounded-lg p-4 col-span-full mt-4">
+  {/* Floating Label */}
+  <div className="absolute -top-3 left-4 bg-white px-2 text-sm font-semibold text-gray-700">
+    Budget Info
+  </div>
+
+  {/* Content Grid */}
+  <div className="grid md:grid-cols-2 lg:grid-cols-1 gap-2">
+    {(journalType.toLowerCase().includes("expense") ||
+      journalType.toLowerCase().includes("sale")) && (
+      <>
+        <div>
+          <label htmlFor="budget_id">Budget <span className="text-red-500">*</span></label>
+          <Dropdown
+            id="budget_id"
+            className="p-inputtext-sm"
+            showClear
+            filter
+            loading={budgetsLoading}
+            value={formState.budget_id}
+            options={budgets.map((budget) => ({
+              value: budget.id,
+              label: budget.name,
+            }))}
+            onChange={(e: DropdownChangeEvent) =>
+              setFormState({ ...formState, budget_id: e.value })
+            }
+            placeholder="Select Budget"
+          />
+        </div>
+      </>
+    )}
+  </div>
 </div>
 
 <div className="relative border border-gray-300 rounded-lg p-4 col-span-full mt-4">
@@ -462,26 +496,6 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             placeholder="Select Project"
           />
         </div>
-
-        <div>
-          <label htmlFor="budget_id">Budget (Optional)</label>
-          <Dropdown
-            id="budget_id"
-            className="p-inputtext-sm"
-            showClear
-            filter
-            loading={budgetsLoading}
-            value={formState.budget_id}
-            options={budgets.map((budget) => ({
-              value: budget.id,
-              label: budget.name,
-            }))}
-            onChange={(e: DropdownChangeEvent) =>
-              setFormState({ ...formState, budget_id: e.value })
-            }
-            placeholder="Select Budget"
-          />
-        </div>
       </>
     )}
   </div>
@@ -497,7 +511,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   <div>
     {/* CREDIT ACCOUNT SELECT */}
     <div className="mb-4">
-      <label className="text-sm font-semibold">Source Account</label>
+      <label className="text-sm font-semibold">Credit Account</label>
       <Dropdown
         value={creditAccountId}
         options={getCreditAccountOptions().map((acc) => ({
@@ -505,7 +519,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           value: acc.id,
         }))}
         onChange={(e) => setCreditAccountId(e.value)}
-        placeholder="Select Source Account"
+        placeholder="Select Credit Account"
         className="p-inputtext-sm w-full"
       />
     </div>

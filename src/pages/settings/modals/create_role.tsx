@@ -3,37 +3,35 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { RootState } from "../../../redux/store";
 import { baseURL } from "../../../utils/api";
+import { Dialog } from "primereact/dialog";
+import { InputText } from "primereact/inputtext";
+import { Button } from "primereact/button";
 
 interface AddRoleModalProps {
   isOpen: boolean;
   setIsOpen: (val: boolean) => void;
   refreshRoles: () => void;
-  selectedRole?: any; // Optional, only if needed for additional functionality
 }
 
 const AddRoleModal: React.FC<AddRoleModalProps> = ({
   isOpen,
   setIsOpen,
   refreshRoles,
-  // selectedRole, // currently unused, but available for future use
 }) => {
   const token = useSelector(
     (state: RootState) => state.userAuth.token.access_token
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-  });
+  const [formData, setFormData] = useState({ name: "" });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddRole = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    if (!formData.name) {
+  const handleAddRole = async () => {
+    if (!formData.name.trim()) {
       toast.error("Role name is required!");
       return;
     }
@@ -55,59 +53,54 @@ const AddRoleModal: React.FC<AddRoleModalProps> = ({
         toast.success("Role added successfully!");
         setFormData({ name: "" });
         setIsOpen(false);
-        setIsSubmitting(false);
       } else {
         toast.error(data.message || "Failed to add role");
-        setIsSubmitting(false);
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while adding the role.");
+    } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!isOpen) return null; // Render nothing if modal is not open
+  const footer = (
+    <div className="flex justify-end gap-2">
+      <Button
+        label="Cancel"
+        icon="pi pi-times"
+        className="p-button-text !bg-gray-400"
+        onClick={() => setIsOpen(false)}
+      />
+      <Button
+        label={isSubmitting ? "Creating..." : "Create Role"}
+        icon="pi pi-check"
+        onClick={handleAddRole}
+        loading={isSubmitting}
+      />
+    </div>
+  );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-auto z-50">
-      <div className="bg-white p-6 rounded mt-12 shadow-md w-[500px]">
-        <h2 className="text-xl font-bold mb-4">Create Role</h2>
-        <form>
-          <div>
-            <label className="block text-gray-700 mb-1">Role Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded"
-              placeholder="Enter role name"
-            />
-          </div>
-        </form>
-        <div className="flex justify-end space-x-2 mt-4">
-          <button
-            type="button"
-            onClick={() => setIsOpen(false)}
-            className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            onClick={handleAddRole}
-            disabled={isSubmitting}
-            className={`px-4 py-2 rounded ${
-              isSubmitting
-                ? "bg-gray-200 text-white cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600"
-            }`}
-          >
-            {isSubmitting ? "Creating..." : "Create Role"}
-          </button>
-        </div>
+    <Dialog
+      header="Create Role"
+      visible={isOpen}
+      style={{ width: "30rem" }}
+      modal
+      className="p-fluid"
+      onHide={() => setIsOpen(false)}
+      footer={footer}
+    >
+      <div className="field">
+        <label htmlFor="name">Role Name</label>
+        <InputText
+          id="name"
+          name="name"
+          value={formData.name}
+          onChange={handleInputChange}
+          placeholder="Enter role name"
+        />
       </div>
-    </div>
+    </Dialog>
   );
 };
 

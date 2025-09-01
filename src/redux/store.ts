@@ -90,9 +90,27 @@ import InterviewReducer from "./slices/recruitment/interviewSlice";
 import OfferReducer from "./slices/recruitment/offerSlice"
 import CustomerReducer from "./slices/sales/customerSlice";
 import OpportunitiesReducer from "./slices/sales/opportunitiesSlice";
+import DeliveryNoteReducer from "./slices/sales/deliveryNotesSlice";
+import GoodsReceivedNoteReducer from "./slices/sales/goodsReceivedSlice";
+import InvoiceReducer from "./slices/sales/invoiceSlice";
+import SupplierDeliveryReducer from "./slices/procurement/itemPurchases/itemPurchaseSlice";
+import QaSettingsReducer from "./slices/procurement/itemPurchases/qaSettingsSlice";
+import SettlementReducer from "./slices/procurement/settlementSlice";
+import SupplierLoanReducer from "./slices/supplier_loans/supplierLoanSlice";
+import ModulePermissionReducer from "./slices/settings/modulePermissionSlice";
+import UserStatsReducer from "./slices/mossApp/userStatisticSlice";
 
 const store = configureStore({
   reducer: {
+    userStats: UserStatsReducer,
+    modulePermissions: ModulePermissionReducer,
+    supplierLoans: SupplierLoanReducer,
+    settlement: SettlementReducer,
+    qaSettings: QaSettingsReducer,
+    supplierDelivery: SupplierDeliveryReducer,
+    deliveryNotes: DeliveryNoteReducer,
+    salesGoodsRecivedNotes: GoodsReceivedNoteReducer,
+    invoices: InvoiceReducer,
     opportunities: OpportunitiesReducer,
     customers: CustomerReducer,
     offer: OfferReducer,

@@ -1,13 +1,14 @@
-// @ts-nocheck
 import React, { useEffect, useState, useRef } from "react";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import useAuth from "../../../hooks/useAuth";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 import { apiRequest } from "../../../utils/api";
-import { Icon } from "@iconify/react";
-import { PrintableContent } from "./general_ledger_print_template";
 import { useReactToPrint } from "react-to-print";
 import Header from "../../../components/custom/print_header";
+import CustomReportHeader from "../../../components/custom/customReportHeader";
+import { PropagateLoader } from "react-spinners";
+import { Card } from 'primereact/card';
+import TableFooter from "../../../components/custom/customFooter";
 
 interface Transaction {
   balance: number;
@@ -36,6 +37,7 @@ const TransactionTable: React.FC = () => {
   const today = new Date();
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const [entries, setEntries] = useState(10);
 
   const [filters, setFilters] = useState({
     start_date: startOfMonth.toISOString().split("T")[0],
@@ -75,89 +77,16 @@ const TransactionTable: React.FC = () => {
     }
   };
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleApplyFilters = () => {
-    fetchDataFromApi();
-  };
-
-  const handleResetFilters = () => {
-    setFilters({
-      start_date: startOfMonth.toISOString().split("T")[0],
-      end_date: endOfMonth.toISOString().split("T")[0],
-    });
-    fetchDataFromApi();
-  };
-
   useEffect(() => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
   return (
     <div className="bg-white p-3 rounded-lg shadow">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">General Ledger</h1>
-        <div className="flex gap-2">
-          <button
-            className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-            onClick={() => reactToPrintFn()}
-          >
-            <Icon icon="solar:printer-bold" fontSize={20} />
-            Print
-          </button>
-        </div>
-      </div>
+      <CustomReportHeader />
 
-      {/* Date Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Start Date
-          </label>
-          <input
-            type="date"
-            name="start_date"
-            value={filters.start_date}
-            onChange={handleFilterChange}
-            className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            End Date
-          </label>
-          <input
-            type="date"
-            name="end_date"
-            value={filters.end_date}
-            onChange={handleFilterChange}
-            className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        <div className="flex items-end space-x-2">
-          <button
-            onClick={handleApplyFilters}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Apply Filters
-          </button>
-          <button
-            onClick={handleResetFilters}
-            className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
-          >
-            Reset
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-row justify-center items-center">
-        <Header title={"General Ledger Report"} />
+      <div className="flex flex-row justify-center items-center mt-20">
+        <Header title={"General Ledger"} />
       </div>
 
       {(filters.start_date || filters.end_date) && (
@@ -169,7 +98,7 @@ const TransactionTable: React.FC = () => {
 
       {isLoading && data === null ? (
         <div className="flex justify-center items-center p-8">
-          <p>Loading...</p>
+           <PropagateLoader color="#007f80"/>
         </div>
       ) : data ? (
         <div className="overflow-x-auto">
@@ -181,8 +110,8 @@ const TransactionTable: React.FC = () => {
                   <tr>
                     <td
                       colSpan={6}
-                      className="font-bold bg-gray-100 p-2 border-b border-gray-300"
-                    >
+                      className="bg-gray-100 p-2 border-b border-gray-300"
+                    ><span className="font-bold">Sub Category: </span>
                       {subCategory.sub_category_name}
                     </td>
                   </tr>
@@ -197,20 +126,14 @@ const TransactionTable: React.FC = () => {
                         <tr>
                           <td
                             colSpan={6}
-                            className="font-semibold bg-gray-50 p-2 border-b border-gray-300"
+                            className="bg-gray-50 p-2 border-b border-gray-300"
                           >
-                            {account.account_name}
+                            <span className="font-bold">Account:</span> {account.account_name}
                           </td>
                         </tr>
                         {account.transactions.length > 0 ? (
                           <>
-                            <tr className="border-b border-gray-300">
-                              <th className="px-6 py-3 text-left font-medium border-b border-gray-300">
-                                No.
-                              </th>
-                              <th className="px-6 py-3 text-left font-medium border-b border-gray-300">
-                                Date
-                              </th>
+                            <tr className="border-b border-gray-300 bg-teal-500 text-white">
                               <th className="px-6 py-3 text-left font-medium border-b border-gray-300">
                                 Description
                               </th>
@@ -224,35 +147,20 @@ const TransactionTable: React.FC = () => {
                                 Balance
                               </th>
                             </tr>
-                            {account.transactions.map(
-                              (transaction, transIndex) => (
+                            {account.transactions
+                              .slice(0, entries) // limit to the number of entries
+                              .map((transaction, transIndex) => (
                                 <tr
                                   key={transIndex}
                                   className="border-b border-gray-300 hover:bg-gray-50"
                                 >
-                                  <td className="px-6 py-2">
-                                    {transIndex + 1}
-                                  </td>
-                                  <td className="px-6 py-2">
-                                    {new Date(
-                                      transaction.date
-                                    ).toLocaleDateString()}
-                                  </td>
-                                  <td className="px-6 py-2">
-                                    {transaction.description}
-                                  </td>
-                                  <td className="px-6 py-2">
-                                    {transaction.debit.toLocaleString()}
-                                  </td>
-                                  <td className="px-6 py-2">
-                                    {transaction.credit.toLocaleString()}
-                                  </td>
-                                  <td className="px-6 py-2">
-                                    {transaction.balance.toLocaleString()}
-                                  </td>
+                                  <td className="px-6 py-2">{transaction.description}</td>
+                                  <td className="px-6 py-2">{transaction.debit.toLocaleString()}</td>
+                                  <td className="px-6 py-2">{transaction.credit.toLocaleString()}</td>
+                                  <td className="px-6 py-2">{transaction.balance.toLocaleString()}</td>
                                 </tr>
-                              )
-                            )}
+                              ))}
+
                           </>
                         ) : (
                           <tr>
@@ -272,33 +180,16 @@ const TransactionTable: React.FC = () => {
           </table>
         </div>
       ) : (
-        <div className="flex justify-center items-center p-8">
-          <p>No data present</p>
-        </div>
+        <Card className="flex flex-col items-center justify-center p-6 shadow-sm">
+        <i className="pi pi-database text-4xl mb-3 text-gray-400"></i>
+        <p className="text-sm font-medium text-gray-600">No data available</p>
+        <span className="text-xs text-gray-400">Try adjusting your filters or adding new records</span>
+      </Card>
+
       )}
 
-      <div ref={contentRef} className="print-content">
-        <PrintableContent
-          reportName={"General Ledger Report"}
-          data={data}
-          dateRange={{
-            start: filters.start_date,
-            end: filters.end_date,
-          }}
-        />
-        <style>
-          {`
-            @media print {
-              .print-content {
-                display: block !important;
-              }
-            }
-            .print-content {
-              display: none;
-            }
-          `}
-        </style>
-      </div>
+
+      <TableFooter setEntries={setEntries} entries={entries} />
     </div>
   );
 };

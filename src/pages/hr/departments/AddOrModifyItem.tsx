@@ -11,14 +11,14 @@ import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
 import { InputTextarea } from "primereact/inputtextarea";
 import { toast, ToastContainer } from "react-toastify";
 
-interface AddOrModifyTruckProps {
+interface AddOrModifyDeptProps {
   visible: boolean;
   onClose: () => void;
   item?: Department;
   onSave: () => void;
 }
 
-const AddOrModifyTruck: React.FC<AddOrModifyTruckProps> = ({
+const AddOrModifyDept: React.FC<AddOrModifyDeptProps> = ({
   visible,
   onClose,
   item,
@@ -154,4 +154,4 @@ const AddOrModifyTruck: React.FC<AddOrModifyTruckProps> = ({
   );
 };
 
-export default AddOrModifyTruck;
+export default AddOrModifyDept;

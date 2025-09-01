@@ -8,7 +8,6 @@ import BreadCrump from "../../../components/layout/bread_crump";
 import { PROJECTS_ENDPOINTS } from "../../../api/projectsEndpoints";
 
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
-import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import { baseURL, createRequest } from "../../../utils/api";
 import axios from "axios";
@@ -17,7 +16,6 @@ import { RootState } from "../../../redux/store";
 import { toast, ToastContainer } from "react-toastify";
 
 const BankingLedgers: React.FC = () => {
-  const { refresh } = useGeneralLedgers();
   const tableRef = useRef<any>(null);
   const [dt, setDt] = useState<any[]>([])
   const token = useSelector((state: RootState) => state.userAuth.token.access_token)
@@ -243,7 +241,7 @@ const columnDefinitions: ColDef<any>[] = [
 
         <Table
           columnDefs={columnDefinitions}
-          data={dt ? dt : []}
+          data={[]}
           ref={tableRef}
         />
       </div>

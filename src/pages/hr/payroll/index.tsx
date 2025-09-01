@@ -29,13 +29,6 @@ const PayrollPage: React.FC = () => {
 
   const columnDefinitions: ColDef<Payroll>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "Start Date",
       field: "start_date",
       sortable: true,
@@ -147,13 +140,6 @@ const PayrollPage: React.FC = () => {
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Payroll
-            </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={reactToPrintFn}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
             </button>
           </div>
         </div>

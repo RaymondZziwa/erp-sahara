@@ -1,6 +1,7 @@
 import { Icon } from "@iconify/react";
 import { lazy, Suspense } from "react";
 import HealthWorkers from "../pages/mossApp/healthWorkers";
+import UserStatistics from "../pages/mossApp/dashboard/userStatistics";
 
 // Dynamic imports
 const Sliders = lazy(() => import("../pages/mossApp/sliders"));
@@ -34,7 +35,7 @@ const MOSS_APP_ROUTES = [
       {
         name: "Dashboard",
         icon: <Icon icon="mdi:view-dashboard-outline" fontSize={20} />,
-        path: "/",
+        path: "/mossapp-dashboard",
         element: (
           <Suspense fallback={<Loading />}>
             <MossAppDashboard />
@@ -42,12 +43,12 @@ const MOSS_APP_ROUTES = [
         ),
       },
       {
-        name: "Reminder stats",
+        name: "User Statistics",
         icon: <Icon icon="mdi:view-dashboard-outline" fontSize={20} />,
-        path: "/reminderstats",
+        path: "/user-statistics",
         element: (
           <Suspense fallback={<Loading />}>
-            <ReminderStats />
+            <UserStatistics />
           </Suspense>
         ),
       },
@@ -56,7 +57,7 @@ const MOSS_APP_ROUTES = [
   {
     name: "Health Management",
     icon: <Icon icon="mdi:health-medical" fontSize={24} />,
-    path: "/health",
+    path: "",
     items: [
       {
         name: "Conditions",
@@ -83,7 +84,7 @@ const MOSS_APP_ROUTES = [
   {
     name: "Appointments",
     icon: <Icon icon="mdi:calendar-clock" fontSize={24} />,
-    path: "/appointments",
+    path: "",
     items: [
       {
         name: "Appointment Types",
@@ -120,7 +121,7 @@ const MOSS_APP_ROUTES = [
   {
     name: "Community & Engagement",
     icon: <Icon icon="mdi:account-group-outline" fontSize={24} />,
-    path: "/community",
+    path: "",
     items: [
       {
         name: "Communities",
@@ -157,7 +158,7 @@ const MOSS_APP_ROUTES = [
   {
     name: "Settings",
     icon: <Icon icon="mdi:settings-outline" fontSize={24} />,
-    path: "/settings",
+    path: "",
     items: [
       {
         name: "Sliders",

@@ -8,6 +8,8 @@ import { useReactToPrint } from "react-to-print";
 import Header from "../../../components/custom/print_header";
 import axios from "axios";
 import { toast } from "react-toastify";
+import CustomReportHeader from "../../../components/custom/customReportHeader";
+import { PropagateLoader } from "react-spinners";
 
 interface FinancialItem {
   subcategory: string;
@@ -38,6 +40,14 @@ const IncomeStatementReport = () => {
   const [reportData, setReportData] = useState<any>(null);
   const [otherIncome, setOtherIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const today = new Date();
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const [filters, setFilters] = useState({
+      start_date: startOfMonth.toISOString().split("T")[0],
+      end_date: endOfMonth.toISOString().split("T")[0],
+    });
+  
   const [ledgerModal, setLedgerModal] = useState<{
     title: string;
     ledgers: { ledger_name: string; current_amount: number }[];
@@ -363,39 +373,34 @@ const renderCategoryGroup = (group: any) => {
 
   return (
     <div className="bg-white p-4 rounded-lg shadow">
-      <div className="flex justify-end items-center mb-4">
-        <button
-          className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded flex items-center gap-2"
-          onClick={print}
-        >
-          <Icon icon="solar:printer-bold" fontSize={20} />
-          Print Report
-        </button>
+      <CustomReportHeader />
+
+       <div className="flex flex-row justify-center items-center mt-20">
+              <Header title={"Income Statement"} />
       </div>
+      {(filters.start_date || filters.end_date) && (
+                <div className="text-center mb-4 text-sm text-gray-600">
+                  Showing data from {filters.start_date || "the beginning"} to{" "}
+                  {filters.end_date || "now"}
+                </div>
+              )}
 
       {isLoading ? (
         <div className="flex justify-center items-center p-8">
-          <p>Loading report data...</p>
+          <PropagateLoader color="#007f80"/>
         </div>
       ) : reportData ? (
-        <div className="space-y-8">
+        <div className="bg-red-500">
           {/* Revenue and Costs Section */}
           <div className="overflow-x-auto" ref={contentRef}>
-            <div className="flex flex-row justify-center items-center">
-              <Header
-                title={"Income Statement Report"}
-                date={reportData.asOfDate}
-              />
-            </div>
-            <table className="min-w-full bg-white border border-gray-200">
-              <tbody className="divide-y divide-gray-200 p-4">
-                {reportData["Revenue and Costs"]?.map(
-                  (group: any, index: number) => (
-                    <React.Fragment key={`revenue-${index}`}>
-                      {renderCategoryGroup(group)}
-                    </React.Fragment>
-                  )
-                )}
+            
+             
+            <table className="min-w-full bg-white border border-gray-200 p-4">
+              <tbody className="divide-y divide-gray-200">
+                  <React.Fragment>
+                      <p className="p-2 font-bold">INCOME</p>
+                  </React.Fragment>
+                  
                 <tr className="bg-gray-50">
                   <td className="font-bold">Gross Profit/Loss</td>
                   <td className="px-6 py-3 text-right font-semibold border-t-2 border-black">

@@ -328,6 +328,7 @@ const AddCashRequisition: React.FC = () => {
             required
           />
         </div>
+       
 
         {/* Items Section */}
         <div className="col-span-1 md:col-span-2 xl:col-span-3">

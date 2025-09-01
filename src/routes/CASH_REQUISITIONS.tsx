@@ -1,6 +1,6 @@
 import { Icon } from "@iconify/react";
 
-import CashRequisitions from "../pages/accounts/cashRequisition";
+import CashRequisitions from "../pages/accounts/cashRequisition/expense_reqs";
 //import ApprovalLevels from "../pages/accounts/approvalLevels";
 import { Suspense } from "react";
 import CashRequisitionDetails from "../pages/accounts/cashRequisition/requisitonDetails";

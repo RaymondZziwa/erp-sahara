@@ -11,8 +11,8 @@ import useEmployees from "../../../hooks/hr/useEmployees";
 import useDepartments from "../../../hooks/hr/useDepartments";
 import useDesignations from "../../../hooks/hr/useDesignations";
 import useSalaryStructures from "../../../hooks/hr/useSalaryStructures";
-import { toast } from "react-toastify";
-import useRoles from "../../../hooks/roles/useRoles";
+import { toast } from "react-toastify";444
+import useRoles from "../../../hooks/settings/useRoles";
 
 interface AddOrModifyEmployeeProps {
   visible: boolean;
@@ -216,7 +216,6 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
       : HUMAN_RESOURCE_ENDPOINTS.EMPLOYEES.ADD;
 
     try {
-      
       await createRequest(
         endpoint,
         token.access_token,

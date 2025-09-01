@@ -10,6 +10,7 @@ import { MOSS_APP_ENDPOINTS } from "../../../api/mossAppEndpoints";
 
 import { User } from "../../../redux/slices/types/mossApp/Users";
 import useUsers from "../../../hooks/mossApp/useUsers";
+import { SpendPointsModal } from "./spendPoints";
 
 const Users: React.FC = () => {
   const { data, refresh } = useUsers();
@@ -18,7 +19,7 @@ const Users: React.FC = () => {
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: User | undefined;
-    currentAction: "delete" | "edit" | "add" | "";
+    currentAction: "delete" | "edit" | "add" | "" | "spend";
   }>({ selectedItem: undefined, currentAction: "" });
 
   const handleExportPDF = () => {
@@ -53,7 +54,12 @@ const Users: React.FC = () => {
       sortable: true,
       filter: true,
     },
-
+    {
+      headerName: "Points",
+      field: "points",
+      sortable: true,
+      filter: true,
+    },
     {
       headerName: "Actions",
       field: "id",
@@ -61,31 +67,51 @@ const Users: React.FC = () => {
       filter: false,
       cellRenderer: (params: ICellRendererParams<User>) => (
         <div className="flex items-center gap-2">
-          <button
-            className="bg-shade px-2 py-1 rounded text-white"
-            onClick={() =>
-              setDialogState({
-                ...dialogState,
-                currentAction: "edit",
-                selectedItem: params.data,
-              })
-            }
-          >
-            Edit
-          </button>
-          <Icon
-            onClick={() =>
-              setDialogState({
-                ...dialogState,
-                currentAction: "delete",
-                selectedItem: params.data,
-              })
-            }
-            icon="solar:trash-bin-trash-bold"
-            className="text-red-500 cursor-pointer"
-            fontSize={20}
-          />
-        </div>
+  <button
+    onClick={() =>
+      setDialogState({
+        ...dialogState,
+        currentAction: "spend",
+        selectedItem: params.data,
+      })
+    }
+    className={`w-10 h-10 flex items-center justify-center rounded 
+                ${parseInt(params.data?.points) > 0 ? "bg-yellow-100 hover:bg-yellow-200" : "invisible"}`}
+  >
+    <Icon icon="mdi:coin" className="text-yellow-500" fontSize={20} />
+  </button>
+
+  <button
+    className="h-10 px-3 flex items-center justify-center rounded bg-shade text-white"
+    onClick={() =>
+      setDialogState({
+        ...dialogState,
+        currentAction: "edit",
+        selectedItem: params.data,
+      })
+    }
+  >
+    Edit
+  </button>
+
+  <button
+    onClick={() =>
+      setDialogState({
+        ...dialogState,
+        currentAction: "delete",
+        selectedItem: params.data,
+      })
+    }
+    className="w-10 h-10 flex items-center justify-center rounded hover:bg-red-100"
+  >
+    <Icon
+      icon="solar:trash-bin-trash-bold"
+      className="text-red-500"
+      fontSize={20}
+    />
+  </button>
+</div>
+
       ),
     },
   ];
@@ -117,6 +143,7 @@ const Users: React.FC = () => {
         }
         onConfirm={refresh}
       />
+      <SpendPointsModal dialogState={dialogState} setDialogState={setDialogState} />
       <BreadCrump name="Users" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">

@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown"; // Import Dropdown component
-
+import { Dropdown } from "primereact/dropdown";
 import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import { Supplier } from "../../../redux/slices/types/inventory/Suppliers";
@@ -19,8 +18,8 @@ interface AddOrModifyItemProps {
 }
 
 const supplierTypes = [
-  { label: "Local", value: "Local" },
-  { label: "International", value: "International" },
+  { label: "Company", value: "Company" },
+  { label: "Individual", value: "Individual" },
 ];
 
 const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
@@ -29,78 +28,68 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   item,
   onSave,
 }) => {
-  const [formState, setFormState] = useState<{
-    supplier_name: string;
-    email: string;
-    supplier_address: string;
-    supplier_type: string;
-    contact_person: string;
-    contact_person_title: string;
-    phone_number: string;
-    company_registration_number: string;
-    tax_identification_number: string;
-    credit_limit: string;
-    notes: string;
-  }>({
-    supplier_name: "",
+  const [formState, setFormState] = useState({
+    supplier_type: "Company",
+    name: "",
     email: "",
-    supplier_address: "",
-    supplier_type: "Local",
+    phone: "",
+    address: "",
+    notes: "",
     contact_person: "",
     contact_person_title: "",
-    phone_number: "",
     company_registration_number: "",
     tax_identification_number: "",
-    credit_limit: "",
-    notes: "",
+    credit_limit: 0,
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { token } = useAuth();
 
   useEffect(() => {
     if (item) {
       setFormState({
-        supplier_name: item.supplier_name || "",
+        supplier_type: item.supplier_type || "Company",
+        name: item.name || "",
         email: item.email || "",
-        supplier_address: item.supplier_address || "",
-        supplier_type: item.supplier_type || "Local",
+        phone: item.phone || "",
+        address: item.address || "",
+        notes: item.notes || "",
         contact_person: item.contact_person || "",
         contact_person_title: item.contact_person_title || "",
-        phone_number: item.phone_number || "",
         company_registration_number: item.company_registration_number || "",
         tax_identification_number: item.tax_identification_number || "",
-        credit_limit: item.credit_limit || "",
-        notes: item.notes || "",
+        credit_limit: item.credit_limit ?? 0,
       });
     } else {
       setFormState({
-        supplier_name: "",
+        supplier_type: "Company",
+        name: "",
         email: "",
-        supplier_address: "",
-        supplier_type: "Local",
+        phone: "",
+        address: "",
+        notes: "",
         contact_person: "",
         contact_person_title: "",
-        phone_number: "",
         company_registration_number: "",
         tax_identification_number: "",
-        credit_limit: "",
-        notes: "",
+        credit_limit: 0,
       });
     }
   }, [item]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
+    setFormState((prev) => ({
+      ...prev,
+      [name]: name === "credit_limit" ? Number(value) : value,
     }));
   };
 
   const handleDropdownChange = (e: { value: string }) => {
-    setFormState((prevState) => ({
-      ...prevState,
+    setFormState((prev) => ({
+      ...prev,
       supplier_type: e.value,
     }));
   };
@@ -108,31 +97,34 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Basic validation
-    if (!formState.supplier_name) {
-      return; // Handle validation error here
+
+    if (!formState.name) {
+      setIsSubmitting(false);
+      return;
     }
-    const data = { ...formState };
+
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? INVENTORY_ENDPOINTS.SUPPLIERS.UPDATE(item.id.toString())
       : INVENTORY_ENDPOINTS.SUPPLIERS.ADD;
-    await createRequest(endpoint, token.access_token, data, onSave, method);
+
+    await createRequest(endpoint, token.access_token, formState, onSave, method);
+
     setIsSubmitting(false);
     onSave();
     onClose();
     setFormState({
-      supplier_name: "",
+      supplier_type: "Company",
+      name: "",
       email: "",
-      supplier_address: "",
-      supplier_type: "Local",
+      phone: "",
+      address: "",
+      notes: "",
       contact_person: "",
       contact_person_title: "",
-      phone_number: "",
       company_registration_number: "",
       tax_identification_number: "",
-      credit_limit: "",
-      notes: "",
+      credit_limit: 0,
     });
   };
 
@@ -168,149 +160,116 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         footer={footer}
         onHide={onClose}
       >
-        <p className="mb-6">
-          Fields marked with a red asterik (
-          <span className="text-red-500">*</span>) are mandatory.
-        </p>
         <form
           id="item-form"
           onSubmit={handleSave}
           className="p-fluid grid grid-cols-1 lg:grid-cols-2 gap-4"
         >
-          <div className="p-field">
-            <label htmlFor="supplier_name" className="text-sm">
-              Supplier Name<span className="text-red-500">*</span>
-            </label>
-            <InputText
-              id="supplier_name"
-              name="supplier_name"
-              value={formState.supplier_name}
-              onChange={handleInputChange}
-              required
-              className="w-full p-inputtext-sm"
-            />
-          </div>
-          <div className="p-field">
-            <label htmlFor="email" className="text-sm">Email</label>
-            <InputText
-              id="email"
-              name="email"
-              value={formState.email}
-              onChange={handleInputChange}
-              className="w-full p-inputtext-sm"
-            />
-          </div>
-          <div className="p-field">
-            <label htmlFor="supplier_address" className="text-sm">
-              Supplier Address<span className="text-red-500">*</span>
-            </label>
-            <InputText
-              id="supplier_address"
-              name="supplier_address"
-              value={formState.supplier_address}
-              onChange={handleInputChange}
-              className="w-full p-inputtext-sm"
-              required
-            />
-          </div>
-          <div className="p-field">
-            <label htmlFor="supplier_type" className="text-sm">
-              Supplier Type<span className="text-red-500">*</span>
-            </label>
+          <div>
+            <label>Supplier Type<span className="text-red-500">*</span></label>
             <Dropdown
-              id="supplier_type"
-              name="supplier_type"
               value={formState.supplier_type}
               options={supplierTypes}
               onChange={handleDropdownChange}
-              className="w-full p-inputtext-sm"
               required
             />
           </div>
-          <div className="p-field">
-            <label htmlFor="contact_person" className="text-sm">
-              Contact Person<span className="text-red-500">*</span>
-            </label>
+
+          <div>
+            <label>Name<span className="text-red-500">*</span></label>
             <InputText
-              id="contact_person"
-              name="contact_person"
-              value={formState.contact_person}
+              name="name"
+              value={formState.name}
               onChange={handleInputChange}
-              className="w-full p-inputtext-sm"
               required
             />
           </div>
-          <div className="p-field">
-            <label htmlFor="contact_person_title" className="text-sm">
-              Contact Person Title<span className="text-red-500">*</span>
-            </label>
+
+          <div>
+            <label>Email</label>
             <InputText
-              id="contact_person_title"
-              name="contact_person_title"
-              value={formState.contact_person_title}
+              name="email"
+              value={formState.email}
               onChange={handleInputChange}
-              className="w-full p-inputtext-sm"
+            />
+          </div>
+
+          <div>
+            <label>Phone<span className="text-red-500">*</span></label>
+            <InputText
+              name="phone"
+              value={formState.phone}
+              onChange={handleInputChange}
               required
             />
           </div>
-          <div className="p-field">
-            <label htmlFor="phone_number" className="text-sm">
-              Phone Number<span className="text-red-500">*</span>
-            </label>
+
+          <div>
+            <label>Address</label>
             <InputText
-              id="phone_number"
-              name="phone_number"
-              value={formState.phone_number}
+              name="address"
+              value={formState.address}
               onChange={handleInputChange}
-              className="w-full p-inputtext-sm"
-              required
             />
           </div>
-          <div className="p-field">
-            <label htmlFor="company_registration_number" className="text-sm">
-              Company Registration Number
-            </label>
-            <InputText
-              id="company_registration_number"
-              name="company_registration_number"
-              value={formState.company_registration_number}
-              onChange={handleInputChange}
-              className="w-full p-inputtext-sm"
-            />
-          </div>
-          <div className="p-field">
-            <label htmlFor="tax_identification_number" className="text-sm">
-              Tax Identification Number
-            </label>
-            <InputText
-              id="tax_identification_number"
-              name="tax_identification_number"
-              value={formState.tax_identification_number}
-              onChange={handleInputChange}
-              className="w-full p-inputtext-sm"
-            />
-          </div>
-          <div className="p-field">
-            <label htmlFor="credit_limit" className="text-sm">
-              Credit Limit<span className="text-red-700">*</span>
-            </label>
-            <InputText
-              id="credit_limit"
-              name="credit_limit"
-              value={formState.credit_limit}
-              onChange={handleInputChange}
-              className="w-full p-inputtext-sm"
-            />
-          </div>
-          <div className="p-field lg:col-span-2">
-            <label htmlFor="notes" className="text-sm">Notes</label>
+
+          {formState.supplier_type === "Company" && (
+            <>
+              <div>
+                <label>Contact Person</label>
+                <InputText
+                  name="contact_person"
+                  value={formState.contact_person}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div>
+                <label>Contact Person Title</label>
+                <InputText
+                  name="contact_person_title"
+                  value={formState.contact_person_title}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div>
+                <label>Company Registration Number</label>
+                <InputText
+                  name="company_registration_number"
+                  value={formState.company_registration_number}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div>
+                <label>Tax Identification Number</label>
+                <InputText
+                  name="tax_identification_number"
+                  value={formState.tax_identification_number}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div>
+                <label>Credit Limit</label>
+                <InputText
+                  type="number"
+                  name="credit_limit"
+                  value={formState.credit_limit}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </>
+          )}
+
+          <div className="lg:col-span-2">
+            <label>Notes</label>
             <InputTextarea
-              id="notes"
               name="notes"
               value={formState.notes}
               onChange={handleInputChange}
               rows={3}
-              className="w-full p-inputtext-sm"
             />
           </div>
         </form>

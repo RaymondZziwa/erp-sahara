@@ -8,7 +8,6 @@ import BreadCrump from "../../../components/layout/bread_crump";
 import { PROJECTS_ENDPOINTS } from "../../../api/projectsEndpoints";
 
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
-import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -17,7 +16,6 @@ import { baseURL } from "../../../utils/api";
 import { toast, ToastContainer } from "react-toastify";
 
 const ExpenseTransactions: React.FC = () => {
-  const { refresh } = useGeneralLedgers();
   const tableRef = useRef<any>(null);
   const [dt, setDt] = useState<any[]>([]);
   const token = useSelector(
@@ -212,7 +210,7 @@ const ExpenseTransactions: React.FC = () => {
             !!dialogState.selectedItem?.id &&
             dialogState.currentAction === "delete"
           }
-          onConfirm={refresh}
+          onConfirm={fetchRecords}
         />
       )}
       <BreadCrump name="Expense Transactions" pageName="All" />
@@ -238,7 +236,7 @@ const ExpenseTransactions: React.FC = () => {
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={dt ? dt : []}
+          data={[]}
           ref={tableRef}
         />
       </div>

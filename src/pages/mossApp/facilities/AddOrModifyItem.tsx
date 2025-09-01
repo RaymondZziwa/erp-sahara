@@ -28,7 +28,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     conditions: []
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const {data} = useConditions()
+  const { data } = useConditions()
 
   const handleMultiSelectChange = (name: keyof Facility, value: any) => {
     setFormState((prevState) => ({
@@ -42,13 +42,15 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     if (item) {
       setFormState({
         ...item,
-        conditions: item.conditions || []
+        conditions: item.conditions
+          ? item.conditions.map((c: any) => c.name)
+          : [],
       });
     } else {
       setFormState({ name: "", conditions: [] });
     }
   }, [item]);
-
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormState((prevState) => ({

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
@@ -14,8 +14,8 @@ import useProjects from "../../../hooks/projects/useProjects";
 import useAssetsAccounts from "../../../hooks/accounts/useAssetsAccounts";
 import { BUDGETS_ENDPOINTS } from "../../../api/budgetsEndpoints";
 import { Budget } from "../../../redux/slices/types/budgets/Budget";
-import { Divider } from "primereact/divider";
 import { Fieldset } from "primereact/fieldset";
+import useCurrencies from "../../../hooks/procurement/useCurrencies";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -36,7 +36,7 @@ interface BudgetItem {
   name: string;
   type: string;
   amount: number | "";
-  currency_id: number;
+  currency_id: string;
   chart_of_account_id: string;
   budget_allocation_id: string | null;
   description: string;
@@ -60,11 +60,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const [activities, setActivities] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const { data: currencies } = useCurrencies();
+
 
   const { token } = useAuth();
   const { data: budgets } = useBudgets();
   const { data: categories = [] } = useBudgetCategories();
-  const { data: projects } = useProjects();
   const { expenseAccounts, incomeAccounts } = useAssetsAccounts();
 
   const isEditing = !!item;
@@ -343,6 +344,21 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   className="w-full"
                   required
                 />
+              </div>
+
+              <div className="col-12 md:col-3">
+                <label className="block text-600 text-sm font-medium mb-2">Currency</label>
+                <Dropdown
+                    value={item.currency_id}
+                    onChange={(e) =>
+                      handleItemChange(index, "currency_id", e.value)
+                    }
+                    options={currencies || []}
+                    optionLabel="name"
+                    optionValue="id"
+                    placeholder="Currency"
+                    className="w-5rem"
+                  />
               </div>
 
               <div className="col-12 md:col-6">

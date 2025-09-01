@@ -7,6 +7,8 @@ import { ACCOUNTS_ENDPOINTS } from "../../../api/accountsEndpoints";
 import { Icon } from "@iconify/react";
 import Header from "../../../components/custom/print_header";
 import axios from "axios";
+import CustomReportHeader from "../../../components/custom/customReportHeader";
+import { PropagateLoader } from "react-spinners";
 
 interface ComparisonTrialBalance {
   account_id: number;
@@ -37,6 +39,14 @@ const ComparisonTrialBalances: React.FC = () => {
   >([]);
   const [fiscalYears, setFiscalYears] = useState<fiscalYearType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const today = new Date();
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+          const [filters, setFilters] = useState({
+            start_date: startOfMonth.toISOString().split("T")[0],
+            end_date: endOfMonth.toISOString().split("T")[0],
+  });
+  
 
   const { token, isFetchingLocalToken } = useAuth();
 
@@ -128,48 +138,51 @@ const ComparisonTrialBalances: React.FC = () => {
     //   } catch (error) {
     //     console.error("Error downloading the trial balance report:", error);
     //   }
-    // };
+  // };
+  
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+       <PropagateLoader color="#007f80"/>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 bg-white">
-      <div className="flex justify-between items-center mb-4">
-        <Header title={"Trial Balance Comparison Report"} />
-        <button
-          className="bg-shade px-2 py-2 rounded text-white flex gap-2 items-center"
-          onClick={print}
-        >
-          <Icon icon="solar:printer-bold" fontSize={20} />
-          Print
-        </button>
+      <CustomReportHeader />
+      <div className="flex flex-row justify-center items-center mt-20">
+      <Header title="Trial Balance Comparison Report" />
       </div>
+      {(filters.start_date || filters.end_date) && (
+                <div className="text-center mb-4 text-sm text-gray-600">
+                  Showing data from {filters.start_date || "the beginning"} to{" "}
+                  {filters.end_date || "now"}
+                </div>
+              )}
+     
+
       {trialBalance && trialBalance.length < 1 && isLoading != true ? (
         "No Data Present"
       ) : (
         <table className="w-full border border-gray-200">
           <tbody>
             <tr className="font-bold">
-              <td className="border-r border-b border-gray-200 p-2" colSpan={2}>
+              <td className="border-r border-b border-gray-200 p-2" colSpan={1}>
                 
               </td>
 
-              <td className="border-r border-b border-gray-200 p-2" colSpan={2}>
+              <td className="border-r border-b border-gray-200 p-2 text-center" colSpan={2}>
                 Current Period
               </td>
 
-              <td className="border-r border-b border-gray-200 p-2" colSpan={2}>
+              <td className="border-r border-b border-gray-200 p-2 text-center" colSpan={2}>
                 Previous Period
               </td>
 
-              <td
-                className="border-r border-b border-gray-200"
-                colSpan={2}
-              ></td>
+             
             </tr>
-            <tr className="font-bold">
-              <td className="border-r border-b border-gray-200 p-2">
-                Account Code
-              </td>
-
+            <tr className="font-bold bg-teal-500 text-white">
               <td className="border-r border-b border-gray-200 p-2">
                 Account Name
               </td>
@@ -185,11 +198,7 @@ const ComparisonTrialBalances: React.FC = () => {
             {trialBalance?.map((item) => (
               <tr key={item.account_id}>
                 <td className="border-r border-b border-gray-200 px-2">
-                  {item.account_code}
-                </td>
-
-                <td className="border-r border-b border-gray-200 px-2">
-                  {item.account_name}
+                {item.account_code}-{item.account_name}
                 </td>
 
                 <td className="border-r border-b border-gray-200 px-2">

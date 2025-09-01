@@ -21,11 +21,6 @@ const ItemCategories: React.FC = () => {
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedCategory: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
 
   const columnDefinitions: ColDef<ItemCategory>[] = [
     {
@@ -34,6 +29,14 @@ const ItemCategories: React.FC = () => {
       sortable: true,
       filter: true,
     },
+    {
+      headerName: "Is Final Product",
+      field: "is_final_product",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+      valueGetter: (params) => (params.data.is_final_product == 1 ? "Yes" : "No"),
+    },    
     {
       headerName: "Description",
       field: "description",

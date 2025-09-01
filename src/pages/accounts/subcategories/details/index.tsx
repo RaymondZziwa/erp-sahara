@@ -50,6 +50,7 @@ const ChartOfAccountDetails = () => {
   };
 
   useEffect(() => {
+    console.log(startDate, endDate)
     if (accountId) {
       getDetails(accountId, startDate);
     }

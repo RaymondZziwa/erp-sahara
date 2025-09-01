@@ -9,12 +9,10 @@ import BreadCrump from "../../../components/layout/bread_crump";
 import { PROJECTS_ENDPOINTS } from "../../../api/projectsEndpoints";
 
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
-import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import { ToastContainer } from "react-toastify";
 
 const GeneralLedgers: React.FC = () => {
-  const { refresh } = useGeneralLedgers();
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
@@ -133,7 +131,7 @@ const GeneralLedgers: React.FC = () => {
           endpoint={dialogState.endpoint}
           debitAccountType={dialogState.debitAccountsType}
           creditAccountType={dialogState.creditAccountsType}
-          onSave={refresh}
+          onSave={()=> {}}
           item={dialogState.selectedItem}
           visible={dialogState.currentAction == "add" ||
             (dialogState.currentAction == "edit" &&
@@ -170,7 +168,7 @@ const GeneralLedgers: React.FC = () => {
             !!dialogState.selectedItem?.id &&
             dialogState.currentAction === "delete"
           }
-          onConfirm={refresh}
+          onConfirm={() => {}}
         />
       )}
       <BreadCrump name="Ledger Transactions" pageName="All" />

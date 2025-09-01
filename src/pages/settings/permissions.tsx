@@ -1,298 +1,323 @@
-// @ts-nocheck
-import { useEffect, useState } from "react";
-import { ToastContainer } from "react-toastify";
-import { useSelector } from "react-redux";
-import { RootState } from "../../redux/store";
-import useRoles from "../../hooks/roles/useRoles";
-import usePermissions from "../../hooks/permissions/usePermissions";
+import { useState, useEffect, useRef } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import { ColDef, ICellRendererParams } from 'ag-grid-community';
+import { Icon } from '@iconify/react';
+import { Button } from 'primereact/button';
+import { InputText } from 'primereact/inputtext';
+import { PropagateLoader } from 'react-spinners';
+import useModulePermissions from '../../hooks/settings/usePermissions';
+import useUpdateRolePermissions from '../../hooks/settings/useUpdateRolePermissions';
+import Table from '../../components/table';
+import { apiRequest } from '../../utils/api';
+import { SETTINGS_ENDPOINTS } from '../../api/settingEndpoints';
+import { RootState } from '../../redux/store';
+import { useSelector } from 'react-redux';
+import useRoles from '../../hooks/settings/useRoles';
 
-// Icons
-import { FiPlus, FiEdit2, FiTrash2, FiChevronDown, FiCheck, FiX } from "react-icons/fi";
+interface Permission {
+  id: string;
+  name: string;
+  description?: string;
+  guard_name?: string;
+  enabled: boolean;
+  category: string;
+}
 
-// Modals
-import AddRoleModal from "./modals/create_role";
-import EditRoleModal from "./modals/edit_role";
-import AddPermissionsModal from "./modals/add_permissions";
+const RolePermissionsPage = () => {
+  const { id } = useParams();
+  const tableRef = useRef<any>(null);
+  const { refresh } = useRoles()
+  const allPermissions = useSelector((state: RootState) => state?.userAuth?.user?.organisation.services || [])
 
-const RoleManagement = () => {
-  const roles = useSelector((state: RootState) => state.roles.data);
-  const { refresh: refreshRoles, deleteRole } = useRoles();
-  const {
-    data: permissionsData,
-    loading,
-    error,
-    refresh: refreshPermissions,
-  } = usePermissions();
+  const { isLoading } = useModulePermissions();
+  const { mutate: updatePermissions, isLoading: isUpdating } = useUpdateRolePermissions();
+  const location = useLocation()
+  const token = useSelector((state: RootState) => state.userAuth.token.access_token);
+  const { selectedRolePermissions } = location.state || {};
+
 
   // State management
-  const [isAddRoleModalOpen, setIsAddRoleModalOpen] = useState(false);
-  const [isEditRoleModalOpen, setIsEditRoleModalOpen] = useState(false);
-  const [isAddPermissionsModalOpen, setIsAddPermissionsModalOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(null);
-  const [expandedRoles, setExpandedRoles] = useState({});
-  const [permissionStates, setPermissionStates] = useState({});
-  
+  const [permissionStates, setPermissionStates] = useState<Record<string, boolean>>({});
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredPermissions, setFilteredPermissions] = useState<Permission[]>([]);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({ all: 0 });
 
-  const updateRolePermissions = () => {}
-  // Initialize permission states when roles load
-// 1. Improved initialization in useEffect
-useEffect(() => {
-  if (roles) {
-    const states = {};
-    roles.forEach(role => {
-      states[role.id] = {};
-      // Initialize all available permissions first as false
-      permissionsData?.forEach(service => {
-        service.permissions.forEach(perm => {
-          states[role.id][perm.id] = true;
+  // Initialize permissions state and compare with selectedRolePermissions
+  useEffect(() => {
+    if (allPermissions) {
+      const initialStates: Record<string, boolean> = {};
+      const counts: Record<string, number> = { all: 0 };
+      
+      allPermissions.forEach(category => {
+        counts[category.name] = category.permissions.length;
+        counts.all += category.permissions.length;
+        
+        category.permissions.forEach(perm => {
+          // Check if this permission exists in selectedRolePermissions
+          const isEnabled = selectedRolePermissions 
+            ? selectedRolePermissions.some((selectedPerm: Permission) => selectedPerm.id === perm.id)
+            : false;
+            
+          initialStates[perm.id] = isEnabled;
         });
       });
-      // Then set the actual role permissions to true
-      role.permissions.forEach(perm => {
-        states[role.id][perm.id] = true;
-      });
-    });
-    setPermissionStates(states);
-  }
-}, [roles, permissionsData]);
 
-// 2. Improved toggle function
-const togglePermission = async (roleId, permissionId) => {
-  // Create a deep copy of the current state
-  const newStates = JSON.parse(JSON.stringify(permissionStates));
-  
-  // Toggle the specific permission
-  newStates[roleId][permissionId] = !newStates[roleId][permissionId];
-  
-  // Optimistic UI update
-  setPermissionStates(newStates);
+      setPermissionStates(initialStates);
+      setCategoryCounts(counts);
+    }
+  }, [allPermissions, selectedRolePermissions]);
 
-  try {
-    // Get only the active permissions
-    const activePermissions = Object.entries(newStates[roleId])
-      .filter(([_, isActive]) => isActive)
-      .map(([id]) => parseInt(id));
-
-    await updateRolePermissions(roleId, activePermissions);
-    
-    // Confirm the update was successful
-    refreshRoles();
-  } catch (error) {
-    console.error("Error updating permissions:", error);
-    
-    // Revert on error - use functional update to ensure correct state
-    setPermissionStates(prev => {
-      const reverted = JSON.parse(JSON.stringify(prev));
-      reverted[roleId][permissionId] = !reverted[roleId][permissionId];
-      return reverted;
-    });
-  }
-};
-
+  // Prepare permissions data for table
   useEffect(() => {
-    if (!roles) refreshRoles();
-    refreshPermissions();
-  }, []);
+    if (allPermissions) {
+      const permissions = allPermissions.flatMap(category => 
+        category.permissions.map(perm => ({
+          ...perm,
+          category: category.name,
+          enabled: permissionStates[perm.id] || false
+        }))
+      );
+      setFilteredPermissions(filterPermissions(permissions));
+    }
+  }, [allPermissions, permissionStates, selectedCategory, searchQuery]);
 
-  const toggleRoleExpansion = (roleId) => {
-    setExpandedRoles(prev => ({
+  // Filter permissions based on category and search query
+  const filterPermissions = (permissions: Permission[]) => {
+    let result = permissions;
+
+    // Apply category filter
+    if (selectedCategory !== 'all') {
+      result = result.filter(perm => perm.category === selectedCategory);
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(perm =>
+        perm.name.toLowerCase().includes(query) ||
+        perm.description?.toLowerCase().includes(query) ||
+        perm.category.toLowerCase().includes(query)
+      );
+    }
+
+    return result;
+  };
+
+  const handleToggleCategory = (category: string, enable: boolean) => {
+    if (!allPermissions) return;
+  
+    setPermissionStates((prev) => {
+      const newStates = { ...prev };
+  
+      // loop through category permissions and set them all
+      const categoryObj = allPermissions.find((c: any) => c.name === category);
+      if (categoryObj) {
+        categoryObj.permissions.forEach((perm: Permission) => {
+          newStates[perm.id] = enable;
+        });
+      }
+  
+      return newStates;
+    });
+  };
+  
+
+  // Toggle permission state
+  const handleTogglePermission = (permissionId: string) => {
+    setPermissionStates(prev => ({
       ...prev,
-      [roleId]: !prev[roleId]
+      [permissionId]: !prev[permissionId]
     }));
   };
 
-  const handleEditRole = (role) => {
-    setSelectedRole(role);
-    setIsEditRoleModalOpen(true);
-  };
+  // Save permissions to server
+  const handleSavePermissions = async () => {
+    const selectedPermissionIds = Object.entries(permissionStates)
+      .filter(([_, isEnabled]) => isEnabled)
+      .map(([id]) => id);
 
-  const handleAddPermissions = (role) => {
-    setSelectedRole(role);
-    setIsAddPermissionsModalOpen(true);
-  };
-
-  const handleDeleteRole = async (role) => {
-    if (window.confirm(`Are you sure you want to delete the "${role.name}" role?`)) {
-      try {
-        await deleteRole(role.id);
-        refreshRoles();
-      } catch (error) {
-        console.error("Error deleting role:", error);
-      }
+    try {
+      await apiRequest(SETTINGS_ENDPOINTS.PERMISSIONS.ATTACH(id), "POST", token, {
+        permissions: selectedPermissionIds
+      })
+      toast.success('Permissions updated successfully!');
+      refresh()
+    } catch (error) {
+      toast.error('Failed to update permissions');
+      console.error(error);
     }
   };
 
+  // Table column definitions
+  const columnDefinitions: ColDef<Permission>[] = [
+    {
+      headerName: "Permission",
+      field: "name",
+      sortable: true,
+      filter: true,
+      cellRenderer: (params: ICellRendererParams<Permission>) => (
+        <div className="flex flex-col">
+          <span className="font-medium">{params.data?.name}</span>
+          {params.data?.description && (
+            <span className="text-sm text-gray-500">{params.data.description}</span>
+          )}
+        </div>
+      ),
+      flex: 1,
+      minWidth: 200,
+      maxWidth: 350,
+      wrapText: true,
+      autoHeight: true
+    },
+    {
+      headerName: "Category",
+      field: "category",
+      sortable: true,
+      filter: true,
+      flex: 1,
+      minWidth: 120,
+      maxWidth: 180
+    },
+    
+    {
+      headerName: "Status",
+      field: "enabled",
+      sortable: true,
+      cellRenderer: (params: ICellRendererParams<Permission>) => (
+        <button
+          onClick={() => handleTogglePermission(params.data?.id)}
+          className="p-1 rounded-full focus:outline-none transition-colors hover:bg-gray-100"
+          aria-label={`Toggle ${params.data?.name} permission`}
+        >
+          {params.data?.enabled ? (
+            <Icon icon="mdi:toggle-switch" className="text-teal-600 text-2xl" />
+          ) : (
+            <Icon icon="mdi:toggle-switch-off" className="text-gray-400 text-2xl" />
+          )}
+        </button>
+      ),
+      width: 100,
+      suppressSizeToFit: true
+    },
+  ];
+
+  if (isLoading || !allPermissions) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <PropagateLoader color="#007f80"/>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-4 bg-gray-50 min-h-screen w-full overflow-x-hidden">
       <ToastContainer position="top-right" autoClose={3000} />
       
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Role Management</h1>
-          <p className="text-gray-600 mt-1">Manage user roles and their permissions</p>
-        </div>
-        <button
-          onClick={() => setIsAddRoleModalOpen(true)}
-          className="mt-4 md:mt-0 px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2 shadow-sm"
-        >
-          <FiPlus className="text-lg" />
-          Add Role
-        </button>
-      </div>
+      <div className="bg-white rounded-lg shadow-sm w-full max-w-full overflow-hidden">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-xl font-bold text-gray-800">Role Permissions Management</h1>
+          <Button
+            onClick={handleSavePermissions}
+            disabled={isUpdating}
+            size="small"
+            className={`bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 text-sm ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
+            icon={isUpdating ? "pi pi-spinner pi-spin" : "pi pi-save"}
+            label="Save Permissions"
+          />
 
-      {/* Main Content */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Permissions
-                </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {roles && roles.length > 0 ? (
-                roles.map((role) => (
-                  <>
-                    <tr key={role.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-teal-100 flex items-center justify-center">
-                            <span className="text-teal-600 font-medium">{role.name.charAt(0)}</span>
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{role.name}</div>
-                            <div className="text-sm text-gray-500">ID: {role.id}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {role.permissions.length} permissions
-                          </span>
-                          <button 
-                            onClick={() => toggleRoleExpansion(role.id)}
-                            className="text-teal-600 hover:text-teal-900 flex items-center gap-1 text-sm"
-                          >
-                            <FiChevronDown className={`transition-transform ${expandedRoles[role.id] ? 'rotate-180' : ''}`} />
-                            {expandedRoles[role.id] ? 'Hide' : 'View'}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                        <button
-                          onClick={() => handleAddPermissions(role)}
-                          className="text-teal-600 hover:text-teal-900 px-3 py-1.5 rounded-md hover:bg-teal-50 transition-colors text-sm"
-                        >
-                          Add More
-                        </button>
-                        <button
-                          onClick={() => handleEditRole(role)}
-                          className="text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50 transition-colors text-sm"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteRole(role)}
-                          className="text-red-600 hover:text-red-900 px-3 py-1.5 rounded-md hover:bg-red-50 transition-colors text-sm"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                    {expandedRoles[role.id] && (
-                      <tr>
-                      <td colSpan={3} className="px-6 py-4 bg-gray-50">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                          {role.permissions.length > 0 ? (
-                            role.permissions.map((permission) => (
-                              <div key={permission.id} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200">
-                                <div className="truncate">
-                                  <h4 className="font-medium text-gray-800 truncate">{permission.name}</h4>
-                                  <p className="text-sm text-gray-600 mt-1 truncate">{permission.service?.name}</p>
-                                </div>
-                                <label className="inline-flex items-center cursor-pointer flex-shrink-0 ml-2">
-                                  <input
-                                    type="checkbox"
-                                    checked={permissionStates[role.id]?.[permission.id] || false}
-                                    onChange={() => togglePermission(role.id, permission.id)}
-                                    className="absolute opacity-0 w-0 h-0"
-                                  />
-                                  <div className="relative w-11 h-6 bg-gray-200 rounded-full transition-all duration-200 peer-checked:bg-indigo-600">
-                                    <div className="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform duration-200 peer-checked:translate-x-5"></div>
-                                    <FiX className="absolute left-1 top-1/2 transform -translate-y-1/2 text-xs text-gray-400 peer-checked:opacity-0" />
-                                    <FiCheck className="absolute right-1 top-1/2 transform -translate-y-1/2 text-xs text-white opacity-0 peer-checked:opacity-100" />
-                                  </div>
-                                </label>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="col-span-full text-center text-gray-500 py-4">
-                              No permissions assigned to this role
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                    )}
-                  </>
-                ))
+        </div>
+
+        {/* Search and Filter Controls */}
+        <div className="p-4 border-b border-gray-200 w-full">
+          <div className="flex flex-col gap-4 w-full">
+            {/* Search Input */}
+            <div className="w-full md:w-1/3 min-w-[200px]">
+              <div className="p-inputgroup">
+                <span className="p-inputgroup-addon">
+                  <Icon icon="solar:magnifer-linear" fontSize={16} />
+                </span>
+                <InputText
+                  placeholder="Search permissions..."
+                  value={searchQuery}
+                  size='small'
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            </div>
+    {/* Category Filters */}
+<div className="w-full">
+  <div className="flex flex-wrap gap-2 items-center">
+    {Object.entries(categoryCounts).map(([category, count]) => {
+      // compute if category is fully active (all permissions enabled)
+      const categoryObj = allPermissions.find((c: any) => c.name === category);
+      const isCategoryActive =
+        categoryObj &&
+        categoryObj.permissions.length > 0 &&
+        categoryObj.permissions.every((perm: Permission) => permissionStates[perm.id]);
+
+      return (
+        <div key={category} className="flex items-center gap-2">
+          <Button
+            onClick={() => setSelectedCategory(category)}
+            outlined={category !== selectedCategory}
+            size="small"
+            severity="info"
+            type="button"
+            label={category}
+            className={`whitespace-nowrap capitalize ${
+              category === selectedCategory
+                ? ""
+                : "bg-white !text-gray-700 hover:!bg-gray-100"
+            }`}
+            badge={count?.toString()}
+            badgeClassName="bg-teal-500 text-white rounded-full"
+          />
+
+          {/* Only show bulk toggle if not "all" */}
+          {category !== "all" && (
+            <div
+              className="cursor-pointer"
+              onClick={() => handleToggleCategory(category, !isCategoryActive)}
+            >
+              {isCategoryActive ? (
+                <Icon icon="mdi:toggle-switch" className="text-teal-600 text-3xl" />
               ) : (
-                <tr>
-                  <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                        <FiPlus className="text-gray-400 text-2xl" />
-                      </div>
-                      <p className="text-lg font-medium">No roles found</p>
-                      <p className="mt-1 text-sm">Create your first role to get started</p>
-                      <button
-                        onClick={() => setIsAddRoleModalOpen(true)}
-                        className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm"
-                      >
-                        Create Role
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                <Icon icon="mdi:toggle-switch-off" className="text-gray-400 text-3xl" />
               )}
-            </tbody>
-          </table>
+            </div>
+          )}
+        </div>
+      );
+    })}
+  </div>
+</div>
+          </div>
+          </div>
+
+        {/* Permissions Table */}
+        <div className="p-4 w-full overflow-hidden">
+          <Table
+            columnDefs={columnDefinitions}
+            data={filteredPermissions}
+            ref={tableRef}
+            rowHeight={60}
+            className="w-full"
+            domLayout="autoHeight"
+            suppressSizeToFit={true}
+            headerHeight={50}
+            defaultColDef={{
+              resizable: true,
+              suppressSizeToFit: true,
+            }}
+          />
         </div>
       </div>
-
-      {/* Modals */}
-      <AddRoleModal
-        isOpen={isAddRoleModalOpen}
-        setIsOpen={setIsAddRoleModalOpen}
-        refreshRoles={refreshRoles}
-      />
-
-      <EditRoleModal
-        isOpen={isEditRoleModalOpen}
-        setIsOpen={setIsEditRoleModalOpen}
-        refreshRoles={refreshRoles}
-        selectedRole={selectedRole}
-      />
-
-      <AddPermissionsModal
-        isOpen={isAddPermissionsModalOpen}
-        setIsOpen={setIsAddPermissionsModalOpen}
-        selectedRole={selectedRole}
-        permissionsByService={permissionsData}
-        refresh={refreshRoles}
-      />
     </div>
   );
 };
 
-export default RoleManagement;
+export default RolePermissionsPage;

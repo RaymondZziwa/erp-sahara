@@ -11,11 +11,50 @@ import usePurchaseRequests from "../../../hooks/procurement/usePurchaseRequests"
 import ReviewOrApprovePurchaseRequest from "./ReviewOrApprovePurchaseRequest";
 import useAuth from "../../../hooks/useAuth";
 import { ToastContainer } from "react-toastify";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux/store";
 
 const PurchaseRequests: React.FC = () => {
   const { data, refresh } = usePurchaseRequests();
   const tableRef = useRef<any>(null);
   const { user } = useAuth();
+    const token = useSelector((state: RootState) => state.userAuth?.token)
+
+    const print = async () => {
+      try {
+        const response = await axios.get(
+          '/accounts/cash-requisitions/downloadtemplate',
+          {
+            headers: {
+              Authorization: `Bearer ${token.access_token}`,
+            },
+            params: {
+              budget_id: '7b4637b8-54c4-4157-804c-cc716f7c3591',
+              currency_id: '4d4e46ae-9b3d-49c9-bef7-f00d2d2d7d2d',
+            },
+            responseType: 'blob', // important!
+          }
+        );
+    
+        // Create a blob from the response
+        const blob = new Blob([response.data]);
+        const url = window.URL.createObjectURL(blob);
+    
+        // Create a link and click it to start download
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'cash-requisition-template.xlsx'); // set filename
+        document.body.appendChild(link);
+        link.click();
+    
+        // Cleanup
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error(error);
+      }
+    };
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: PurchaseRequest | undefined;
@@ -288,13 +327,6 @@ const PurchaseRequests: React.FC = () => {
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Purchase Request
-            </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              // onClick={handleExportPDF}
-            >
-              <Icon icon="solar:arrow-down" fontSize={20} />
-              Download Template
             </button>
           </div>
         </div>

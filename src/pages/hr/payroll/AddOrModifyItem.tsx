@@ -393,7 +393,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                
                 <Button
                   icon="pi pi-trash"
-                  className="p-button-danger p-button-outlined"
+                  className="p-button-outlined bg-red-500"
                   type="button"
                   onClick={() => removeRow("allowances", index)}
                   disabled={allowances.length <= 1}

@@ -23,26 +23,14 @@ const Employees: React.FC = () => {
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
-
   const columnDefinitions: ColDef<Employee>[] = [
     {
-      headerName: "First Name",
-      field: "first_name",
+      headerName: "Full Name",
       sortable: true,
       filter: true,
+      valueGetter: (params) => `${params.data.first_name || ''} ${params.data.last_name || ''}`,
     },
-    {
-      headerName: "Last Name",
-      field: "last_name",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
+    
     {
       headerName: "Department",
       field: "designation.department.name",
@@ -177,13 +165,6 @@ const Employees: React.FC = () => {
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Employee
-            </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
             </button>
           </div>
         </div>

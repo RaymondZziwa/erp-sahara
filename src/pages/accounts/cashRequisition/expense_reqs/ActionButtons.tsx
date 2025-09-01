@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { CashRequisition } from "../../../redux/slices/types/accounts/cash_requisitions/CashRequisition";
+import { CashRequisition } from "../../../../redux/slices/types/accounts/cash_requisitions/CashRequisition";
 import { SplitButton } from "primereact/splitbutton";
 
 const ActionButtons = ({

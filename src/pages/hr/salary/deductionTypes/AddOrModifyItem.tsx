@@ -1,54 +1,34 @@
-//@ts-nocheck
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
 import { InputTextarea } from "primereact/inputtextarea";
-import { Checkbox } from "primereact/checkbox";
-import { InputNumber } from "primereact/inputnumber";
-
-import { createRequest } from "../../../../utils/api";
+import { toast, ToastContainer } from "react-toastify";
 import useAuth from "../../../../hooks/useAuth";
-
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../../api/hrEndpoints";
+import { createRequest } from "../../../../utils/api";
 import { DeductionType } from "../../../../redux/slices/types/hr/salary/DeductionTypes";
-import useAssetsAccounts from "../../../../hooks/accounts/useAssetsAccounts";
 
-interface AddOrModifyItemProps {
+interface AddOrModifyDeptProps {
   visible: boolean;
   onClose: () => void;
   item?: DeductionType;
   onSave: () => void;
 }
 
-const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
+const AddOrModify: React.FC<AddOrModifyDeptProps> = ({
   visible,
   onClose,
   item,
   onSave,
 }) => {
   const [formState, setFormState] = useState<Partial<DeductionType>>({
-    deduction_name: "",
+    name: "",
     description: "",
-    is_tax: false,
-    deduction_accounting_type: "Expense",
-    account_id: 0,
-    calculation_method: "Amount",
-    deduction_is: "Mandatory",
-    amount: 0,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const { token } = useAuth();
-  const {
-    expenseAccounts,
-    cashAccounts,
-    payableAccounts,
-    receivableAccounts,
-    prepaidAccounts,
-    liabilityAccounts,
-    incomeAccounts,
-  } = useAssetsAccounts();
 
   useEffect(() => {
     if (item) {
@@ -56,16 +36,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         ...item,
       });
     } else {
-      setFormState({
-        deduction_name: "",
-        description: "",
-        is_tax: false,
-        deduction_accounting_type: "Expense",
-        account_id: 0,
-        calculation_method: "Amount",
-        deduction_is: "Mandatory",
-        amount: 0,
-      });
+      setFormState({});
     }
   }, [item]);
 
@@ -73,72 +44,46 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormState((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleDropdownChange = (name: keyof DeductionType, value: any) => {
-    setFormState((prev) => ({
-      ...prev,
+    setFormState((prevState) => ({
+      ...prevState,
       [name]: value,
-      ...(name === "deduction_accounting_type" ? { account_id: null } : {}),
-    }));    
+    }));
   };
-
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setFormState((prev) => ({ ...prev, [name]: checked }));
-  };
-
-  const handleNumberChange = (
-    name: keyof DeductionType,
-    value: number | null
-  ) => {
-    setFormState((prev) => ({ ...prev, [name]: value ?? 0 }));
-  };
-
-  const getAccountOptions = () => {
-    switch (formState.deduction_accounting_type) {
-      case 'Expense':
-        return expenseAccounts;
-      case 'Income':
-        return incomeAccounts;
-      case 'Payable':
-        return payableAccounts;
-      case 'Asset':
-        return [...cashAccounts, ...receivableAccounts, ...prepaidAccounts, ...liabilityAccounts];
-      default:
-        return [];
-    }
-  };
-  
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    if (!formState.deduction_name || !formState.deduction_is) return;
-
-    const data = {
-      name: formState.deduction_name,
-      description: formState.description,
-      is_tax: formState.is_tax,
-      deduction_accounting_type: formState.deduction_accounting_type?.toLowerCase(),
-      account_id: formState.account_id,
-      calculation_method: formState.calculation_method.toLowerCase(),
-      deduction_is: formState.deduction_is.toLowerCase(),
-      amount: formState.amount,
-    };
-
-    const method = item?.id ? "PUT" : "POST";
-    const endpoint = item?.id
-      ? HUMAN_RESOURCE_ENDPOINTS.DEDUCTION_TYPES.UPDATE(item.id.toString())
-      : HUMAN_RESOURCE_ENDPOINTS.DEDUCTION_TYPES.ADD;
-
-    await createRequest(endpoint, token.access_token, data, onSave, method);
-    setIsSubmitting(false);
-    onSave();
-    onClose();
+      e.preventDefault();
+      setIsSubmitting(true);
+    
+      // Basic validation
+      if (!formState.name) {
+        setIsSubmitting(false);
+        toast.warn('Fill in all the mandatory fields')
+        return;
+      }
+    
+      try {
+        const data = { ...formState };
+        const method = item?.id ? "PUT" : "POST";
+        const endpoint = item?.id
+          ? HUMAN_RESOURCE_ENDPOINTS.DEDUCTION_TYPES.UPDATE(item.id.toString())
+          : HUMAN_RESOURCE_ENDPOINTS.DEDUCTION_TYPES.ADD;
+        await createRequest(endpoint, token.access_token, data, onSave, method);
+    
+        // Reset form state
+        setFormState({
+          name: "",
+          description: "",
+        });
+    
+        // Call onSave and onClose
+        onSave();
+        onClose(); // Close the modal after saving
+      } catch (error) {
+        console.error("Error saving department:", error);
+        toast.error("An error occurred while saving department.");
+      } finally {
+        setIsSubmitting(false);
+      }
   };
 
   const footer = (
@@ -157,120 +102,54 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         label={item?.id ? "Update" : "Submit"}
         icon="pi pi-check"
         type="submit"
-        form="deduction-form"
+        form="truck-form"
         size="small"
       />
     </div>
   );
 
   return (
+    <>
+      <ToastContainer />
     <Dialog
       header={item?.id ? "Edit Deduction Type" : "Add Deduction Type"}
       visible={visible}
-      style={{ width: "500px" }}
+      style={{ width: "400px" }}
       footer={footer}
       onHide={onClose}
     >
+      <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+       </p>
       <form
-        id="deduction-form"
+        id="truck-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
-        <div>
-          <label htmlFor="deduction_name">Name</label>
+        <div className="p-field">
+          <label htmlFor="name">Name<span className="text-red-500">*</span></label>
           <InputText
-            id="deduction_name"
-            name="deduction_name"
-            value={formState.deduction_name}
+            id="name"
+            name="name"
+            value={formState.name}
             onChange={handleInputChange}
-            required
+            className="w-full"
           />
         </div>
-        <div>
-          <label>Is Deduction</label>
-          <Dropdown
-            value={formState.deduction_is}
-            options={["Mandatory", "Optional", "Adjustable"]}
-            onChange={(e) => handleDropdownChange("deduction_is", e.value)}
-            placeholder="Select Deduction Type"
-          />
-        </div>
-
-        
-
-        <div className="flex items-center gap-2">
-        <label htmlFor="is_tax">Is Tax?</label>
-          <Checkbox
-            inputId="is_tax"
-            name="is_tax"
-            checked={formState.is_tax}
-            onChange={handleCheckboxChange}
-          />
-        </div>
-
-        <div>
-          <label>Category</label>
-          <Dropdown
-            value={formState.deduction_accounting_type}
-            options={["Income", "Expense", "Payable", "Asset"]}
-            onChange={(e) =>
-              handleDropdownChange("deduction_accounting_type", e.value)
-            }
-            placeholder="Select Type"
-          />
-        </div>
-
-        <div>
-          <label>Account ID</label>
-          <Dropdown
-            value={formState.account_id}
-            options={getAccountOptions().map(account => ({
-              label: account.name, // or however your account object is shaped
-              value: account.id
-            }))}
-            onChange={(e) => handleDropdownChange("account_id", e.value)}
-            placeholder="Select Account"
-            filter
-            showClear
-          />
-        </div>
-
-
-        <div>
-          <label>Calculation Method</label>
-          <Dropdown
-            value={formState.calculation_method}
-            options={["Amount", "Percent"]}
-            onChange={(e) =>
-              handleDropdownChange("calculation_method", e.value)
-            }
-            placeholder="Select Method"
-          />
-        </div>
-
-        
-
-        <div>
-          <label>Amount</label>
-          <InputNumber
-            value={formState.amount}
-            onValueChange={(e) => handleNumberChange("amount", e.value)}
-            useGrouping={false}
-          />
-        </div>
-        <div>
+        <div className="p-field">
           <label htmlFor="description">Description</label>
           <InputTextarea
             id="description"
             name="description"
             value={formState.description}
             onChange={handleInputChange}
-            required
+            className="w-full"
           />
         </div>
       </form>
     </Dialog>
+    </>
   );
 };
 
-export default AddOrModifyItem;
+export default AddOrModify;

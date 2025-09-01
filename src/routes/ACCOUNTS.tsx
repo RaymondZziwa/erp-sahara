@@ -3,12 +3,12 @@ import { lazy, Suspense } from "react";
 import Currencies from "../pages/procurement/settings/currencies";
 import ChartOfAccounts from "../pages/accounts/chartOfAccounts";
 import FiscalYears from "../pages/budgets/fiscalYears";
-import ChartOfAccountDetails from "../pages/accounts/subcategories/details";
 import PaymentMethods from "../pages/procurement/settings/payment_methods";
 import BankingLedgers from "../pages/accounts/generalLedgers/banking";
 import SalesTransactions from "../pages/accounts/generalLedgers/sales";
 import ExpenseTransactions from "../pages/accounts/generalLedgers/expenses";
 import OtherTransactions from "../pages/accounts/generalLedgers/other_transaction";
+import SettlementTable from "../pages/accounts/itemDeliveryPayment";
 
 // Dynamic imports
 const Accounts = lazy(() => import("../pages/accounts/categories"));
@@ -38,8 +38,6 @@ const ACCOUNTS_ROUTES = [
     path: "/accounts/banking-transactions",
     element: <BankingLedgers />,
   },
-  
-  
   {
     name: "Other transactions",
     icon: <Icon icon="solar:book-line-duotone" fontSize={20} />,

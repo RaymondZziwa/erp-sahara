@@ -1,6 +1,6 @@
 import { Icon } from "@iconify/react";
 //import ToBeUpdated from "../pages/ToBeUpdated";
-import RoleManagement from "../pages/settings/permissions";
+import RoleManagement from "../pages/settings/roles";
 import ApprovalLevels from "../pages/settings/approval_levels";
 import ProfilePage from "../pages/settings/profile";
 import UserProfile from "../pages/settings/user_settings";

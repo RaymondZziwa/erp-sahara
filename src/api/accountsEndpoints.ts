@@ -40,13 +40,20 @@ export const ACCOUNTS_ENDPOINTS = {
     GET_ALL: "/requisitions/fuel-requisitions",
     GET_BY_ID: (id: string) => `/accounts/fuel-requisitions/${id}`,
     ADD: "/requisitions/fuel-requisitions",
-    UPDATE: (id: string) => `/accounts/fuel-requisitions`
+    UPDATE: (id: string) => `/accounts/fuel-requisitions/${id}`,
+    PRINT: (id: string) => `/requisitions/fuel-requisitions/${id}/pdf`,
+    APPROVE: (id: string) => `/requisitions/fuel-requisitions/${id}/approve`,
+    REJECT: (id: string) => `/requisitions/fuel-requisitions/${id}/reject`
   },
   STORE_REQUISITIONS: {
     GET_ALL: "/requisitions/store-requisitions",
     GET_BY_ID: (id: string) => `/accounts/fuel-requisitions/${id}`,
     ADD: "/requisitions/store-requisitions",
-    UPDATE: (id: string) => `/requisitions/store-requisitions/${id}`
+    UPDATE: (id: string) => `/requisitions/store-requisitions/${id}`,
+    PRINT: (id: string) => `/requisitions/store-requisitions/${id}/pdf`,
+    APPROVE: (id: string) => `/requisitions/store-requisitions/${id}/approve`, 
+    REJECT: (id: string) => `/requisitions/store-requisitions/${id}/reject`,
+    DISBURSE: (id: string) => `/requisitions/store-requisitions/${id}/disburse`
   },
   APPROVAL_LEVELS: {
     GET_ALL: "/accounts/requisitions-approval-level",

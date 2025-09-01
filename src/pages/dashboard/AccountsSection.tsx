@@ -54,9 +54,9 @@ const AccountsSection = () => {
 
   const getBalanceColor = (normalBalanceSide: string, amount: number) => {
     if (normalBalanceSide === "debit") {
-      return amount >= 0 ? "text-green-500" : "text-red-500";
+      return amount >= 0 ? "text-white-500" : "text-red-500";
     } else {
-      return amount >= 0 ? "text-red-500" : "text-green-500";
+      return amount >= 0 ? "text-red-500" : "text-white-500";
     }
   };
 

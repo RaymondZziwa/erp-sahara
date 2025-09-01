@@ -93,11 +93,32 @@ const reportsData = [
       },
     ],
   },
+  {
+    category: "Human Resource",
+    reports: [
+      {
+        name: "Employee Master List",
+        link: "/supplier-performance-report",
+      },
+      { name: "Late Coming & Early Leaving Report", link: "/out-of-stock-report" },
+      { name: "Absenteeism Report", link: "/reorder-report" },
+      { name: "Overtime Report", link: "/stock-aging-report" },
+      { name: "Leave Balance Report", link: "/stock-taking-report" },
+      { name: "Leave Usage Report", link: "/stock-taking-report" },
+      { name: "Upcoming Leave Schedule", link: "/stock-taking-report" },
+      { name: "Leave Approval Cycle Report", link: "/stock-taking-report" },
+      { name: "Payslip Summary Report", link: "/stock-taking-report" },
+      { name: "Statutory Deductions Report", link: "/stock-taking-report" },
+      { name: "Training Attendance Report", link: "/stock-taking-report" },
+      { name: "Appraisal Summary Report", link: "/stock-taking-report" },
+
+    ],
+  },
 ];
 
 const Reports = () => {
   const [openSections, setOpenSections] = useState<string[]>(
-    reportsData.map((section) => section.category) // Open all sections by default
+    reportsData.map((section) => section.category)
   );
 
   const toggleSection = (category: string) => {

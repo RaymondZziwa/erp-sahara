@@ -139,8 +139,8 @@ const BudgetItemsModal: React.FC<Props> = ({
                 placeholder="Type"
                 value={item.type}
                 options={[
-                  { label: "Expense", value: "expense" },
-                  { label: "Revenue", value: "revenue" },
+                  { label: "Expense", value: "Expense" },
+                  { label: "Revenue", value: "Revenue" },
                 ]}
                 onChange={(e) => handleItemChange(index, "type", e.value)}
                 className="p-inputtext-sm"

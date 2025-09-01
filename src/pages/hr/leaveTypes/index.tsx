@@ -20,12 +20,6 @@ const LeaveTypes: React.FC = () => {
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
-
   const columnDefinitions: ColDef<LeaveType>[] = [
     {
       headerName: "Name",
@@ -141,13 +135,6 @@ const LeaveTypes: React.FC = () => {
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Leave Type
-            </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
             </button>
           </div>
         </div>

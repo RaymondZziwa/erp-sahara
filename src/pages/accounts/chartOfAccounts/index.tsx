@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import DepositBalance from "./deposit";
 import { InputText } from "primereact/inputtext";
 import { ToastContainer } from "react-toastify";
+import { Tooltip } from "primereact/tooltip";
 
 const ChartOfAccounts: React.FC = () => {
   const { data, refresh } = useChartOfAccounts();
@@ -111,23 +112,24 @@ const ChartOfAccounts: React.FC = () => {
       sortable: false,
       filter: false,
       cellRenderer: (params: ICellRendererParams<ChartofAccount>) => (
-        <div className="flex items-center gap-2">
-          {(selectedCategory.toLowerCase().includes("asset") ||
-            selectedCategory.toLowerCase().includes("liabilities") ||
-            selectedCategory.toLowerCase().includes("expense")) && (
-            <button
-              className="bg-shade px-2 py-1 rounded text-white"
-              onClick={() =>
-                setDialogState({
-                  ...dialogState,
-                  currentAction: "balance",
-                  selectedItem: params.data,
-                })
-              }
-            >
-              Add Opening Balance
-            </button>
-          )}
+        <div className="flex items-center gap-2 mt-2">
+          {params.data?.account_sub_category.account_category.id !== 4 &&
+            params.data?.account_sub_category.account_category.id !== 5 && (
+            <div className="flex items-center">
+               <Tooltip target=".add-opening-balance-btn" content="Add Opening Balance" position="top" />
+               <Button
+                  icon="pi pi-wallet"
+                  className="p-button-text px-1.5 py-0.5 p-button-sm text-blue-600 add-opening-balance-btn h-6"
+                  onClick={() =>
+                    setDialogState({
+                      ...dialogState,
+                      currentAction: "balance",
+                      selectedItem: params.data,
+                    })
+                  }
+                />
+              </div>
+      )}
           <button
             className="bg-shade px-1.5 py-0.5 rounded text-sm text-white"
             onClick={() =>
