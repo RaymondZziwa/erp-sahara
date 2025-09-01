@@ -67,9 +67,6 @@ const PurchaseRequestForm: React.FC<PurchaseRequestFormProps> = ({
   onSave,
 }) => {
 
-  useEffect(()=> {
-    console.log('initpr', initialData)
-  }, [])
   const { token, user } = useAuth();
   const { data: products } = useItems();
   const { data: services = [] } = useServices();
@@ -79,6 +76,8 @@ const PurchaseRequestForm: React.FC<PurchaseRequestFormProps> = ({
   const { data: currencies } = useCurrencies();
   const { data: uoms } = useUnitsOfMeasurement();
   const { data: types } = useProcTypes();
+  const [useAttachments, setUseAttachments] = useState(false);
+
 
   const [formState, setFormState] = useState<FormState>({
     title: initialData?.title || "",
@@ -330,23 +329,23 @@ const handleTypeChange = (
       visible={visible}
       onHide={onClose}
       className="w-[80vw]"
-      style={{ width: "90vw", maxWidth: "1200px" }}
+      style={{  maxWidth: "800px" }}
     >
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="font-semibold">
+            <label className="font-semibold text-sm">
               Title <span className="text-red-700">*</span>
             </label>
             <InputText
               value={formState.title}
               onChange={(e) => handleChange("title", e.target.value)}
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
           <div>
-            <label className="font-semibold">
+            <label className="font-semibold text-sm">
               Requisition Type <span className="text-red-700">*</span>
             </label>
             <Dropdown
@@ -359,12 +358,12 @@ const handleTypeChange = (
               }
               onChange={(e) => handleChange("type", e.value)}
               placeholder="Select Requisition Type"
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
           <div>
-            <label className="font-semibold">
+            <label className="font-semibold text-sm">
               Priority <span className="text-red-700">*</span>
             </label>
             <Dropdown
@@ -372,12 +371,12 @@ const handleTypeChange = (
               options={priorityOptions}
               onChange={(e) => handleChange("priority", e.value)}
               placeholder="Select Priority"
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
           <div>
-            <label className="font-semibold">
+            <label className="font-semibold text-sm">
               Department <span className="text-red-700">*</span>
             </label>
             <Dropdown
@@ -385,7 +384,7 @@ const handleTypeChange = (
               options={departmentOptions}
               onChange={(e) => handleChange("department_id", e.value)}
               placeholder="Select Department"
-              className="w-full"
+              className="w-full p-inputtext-sm"
               filter
               optionLabel="label"
               optionValue="value"
@@ -393,13 +392,13 @@ const handleTypeChange = (
             />
           </div>
           <div>
-            <label className="font-semibold">Budget</label>
+            <label className="font-semibold text-sm" >Budget</label>
             <Dropdown
               value={formState.budget_id}
               options={budgetOptions}
               onChange={(e) => handleChange("budget_id", e.value)}
               placeholder="Select Budget"
-              className="w-full"
+              className="w-full p-inputtext-sm"
               filter
               optionLabel="label"
               optionValue="value"
@@ -407,7 +406,7 @@ const handleTypeChange = (
             />
           </div>
           <div>
-            <label className="font-semibold">
+            <label className="font-semibold text-sm">
               Requested By <span className="text-red-700">*</span>
             </label>
             <Dropdown
@@ -415,7 +414,7 @@ const handleTypeChange = (
               options={employeeOptions}
               onChange={(e) => handleChange("employee_id", e.value)}
               placeholder="Select Employee"
-              className="w-full"
+              className="w-full p-inputtext-sm"
               filter
               optionLabel="label"
               optionValue="value"
@@ -425,257 +424,305 @@ const handleTypeChange = (
         </div>
 
         <div>
-          <label className="font-semibold">Description</label>
+          <label className="font-semibold text-sm">Description</label>
           <InputTextarea
             value={formState.description}
             onChange={(e) => handleChange("description", e.target.value)}
-            className="w-full"
+            className="w-full p-inputtext-sm"
             rows={3}
           />
         </div>
 
-        <div>
-          <label className="font-semibold">Attachments</label>
-          <input
-            type="file"
-            multiple
-            onChange={handleFileChange}
-            className="w-full border p-2 rounded"
+        <div className="flex items-center gap-2 mb-4">
+          <Checkbox
+            inputId="use-attachments"
+            checked={useAttachments}
+            onChange={(e) => {
+              setUseAttachments(e.checked ?? false);
+              // clear whichever section isn’t active
+              if (e.checked) {
+                setFormState((prev) => ({ ...prev, items: [] }));
+              } else {
+                setAttachments([]);
+              }
+            }}
           />
-          {attachments.length > 0 && (
-            <ul className="mt-2 list-disc pl-5 text-sm text-gray-600">
-              {attachments.map((file, index) => (
-                <li key={index}>{file.name}</li>
-              ))}
-            </ul>
-          )}
+          <label htmlFor="use-attachments" className="text-sm font-medium">
+            Submit with Attachments instead of Item Table
+          </label>
         </div>
 
-        <div className="mt-4">
-          <h3 className="font-semibold mb-2">Items *</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-max table-auto w-full">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border px-4 py-2 min-w-[150px]">
-                    Type<span className="text-red-700">*</span>
-                  </th>
-                  <th className="border px-4 py-2 min-w-[150px]">
-                    Item/Service
-                  </th>
-                  <th className="border px-4 py-2 min-w-[120px]">
-                    Quantity<span className="text-red-700">*</span>
-                  </th>
-                  <th className="border px-4 py-2 min-w-[120px]">UOM</th>
-                  <th className="border px-4 py-2 min-w-[150px]">
-                    Budget Item
-                  </th>
-                  <th className="border px-4 py-2 min-w-[200px]">
-                    Specifications
-                  </th>
-                  <th className="border px-4 py-2 min-w-[250px]">
-                    Description<span className="text-red-700">*</span>
-                  </th>
-                  <th className="border px-4 py-2 min-w-[150px]">
-                    Cost Estimate
-                  </th>
-                  <th className="border px-4 py-2 min-w-[120px]">
-                    Currency<span className="text-red-700">*</span>
-                  </th>
-                  <th className="border px-4 py-2 min-w-[100px]">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {formState.items.map((item, index) => (
-                  <tr key={index} className="whitespace-nowrap">
-                    <td className="border px-4 py-2 min-w-[150px]">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center">
-                          <Checkbox
-                            inputId={`item-type-item-${index}`}
-                            checked={item.item_type === "Item"}
-                            onChange={() => handleTypeChange(index, "Item")}
-                          />
-                          <label
-                            htmlFor={`item-type-item-${index}`}
-                            className="ml-2"
-                          >
-                            Item
-                          </label>
+        
+          {/* Attachments Section */}
+        {
+          useAttachments ? (
+            <div className="p-4 bg-gray-50 rounded-lg">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Attachments</label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+              <input
+                type="file"
+                multiple
+                onChange={handleFileChange}
+                className="hidden"
+                id="file-upload"
+              />
+              <label
+                htmlFor="file-upload"
+                className="flex flex-col items-center justify-center cursor-pointer"
+              >
+                <Icon icon="solar:upload-linear" className="w-8 h-8 text-gray-400 mb-2" />
+                <span className="text-sm text-gray-600">
+                  Drag & drop files here or click to browse
+                </span>
+                <span className="text-xs text-gray-500 mt-1">Supports: PDF, DOC, JPG, PNG</span>
+              </label>
+            </div>
+            {attachments.length > 0 && (
+              <div className="mt-3 space-y-1">
+                {attachments.map((file, index) => (
+                  <div key={index} className="flex items-center text-sm text-gray-600">
+                    <Icon icon="solar:file-linear" className="mr-2 text-gray-400" />
+                    {file.name}
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(index)}
+                      className="ml-auto text-red-500 hover:text-red-700"
+                    >
+                      <Icon icon="solar:trash-bin-trash-bold" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          ) : (
+            <div className="mt-4">
+            <h3 className="font-semibold mb-2 text-sm">Items *</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-max table-auto w-full">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border px-4 py-2 min-w-[150px]">
+                      Type<span className="text-red-700">*</span>
+                    </th>
+                    <th className="border px-4 py-2 min-w-[150px]">
+                      Item/Service
+                    </th>
+                    <th className="border px-4 py-2 min-w-[120px]">
+                      Quantity<span className="text-red-700">*</span>
+                    </th>
+                    <th className="border px-4 py-2 min-w-[120px]">UOM</th>
+                    <th className="border px-4 py-2 min-w-[150px]">
+                      Budget Item
+                    </th>
+                    <th className="border px-4 py-2 min-w-[200px]">
+                      Specifications
+                    </th>
+                    <th className="border px-4 py-2 min-w-[250px]">
+                      Description<span className="text-red-700">*</span>
+                    </th>
+                    <th className="border px-4 py-2 min-w-[150px]">
+                      Cost Estimate
+                    </th>
+                    <th className="border px-4 py-2 min-w-[120px]">
+                      Currency<span className="text-red-700">*</span>
+                    </th>
+                    <th className="border px-4 py-2 min-w-[100px]">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {formState.items.map((item, index) => (
+                    <tr key={index} className="whitespace-nowrap">
+                      <td className="border px-4 py-2 min-w-[150px]">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center">
+                            <Checkbox
+                              inputId={`item-type-item-${index}`}
+                              checked={item.item_type === "Item"}
+                              onChange={() => handleTypeChange(index, "Item")}
+                            />
+                            <label
+                              htmlFor={`item-type-item-${index}`}
+                              className="ml-2"
+                            >
+                              Item
+                            </label>
+                          </div>
+                          <div className="flex items-center">
+                            <Checkbox
+                              inputId={`item-type-service-${index}`}
+                              checked={item.item_type === "Service"}
+                              onChange={() => handleTypeChange(index, "Service")}
+                            />
+                            <label
+                              htmlFor={`item-type-service-${index}`}
+                              className="ml-2"
+                            >
+                              Service
+                            </label>
+                          </div>
+                          <div className="flex items-center">
+                            <Checkbox
+                              inputId={`item-type-none-${index}`}
+                              checked={item.item_type === "None"}
+                              onChange={() => handleTypeChange(index, "None")}
+                            />
+                            <label
+                              htmlFor={`item-type-none-${index}`}
+                              className="ml-2"
+                            >
+                              None
+                            </label>
+                          </div>
                         </div>
-                        <div className="flex items-center">
-                          <Checkbox
-                            inputId={`item-type-service-${index}`}
-                            checked={item.item_type === "Service"}
-                            onChange={() => handleTypeChange(index, "Service")}
+                      </td>
+                      <td className="border px-4 py-2 min-w-[150px]">
+                        {item.item_type === "None" ? (
+                          <InputText
+                            value={item.custom_name || ""}
+                            onChange={(e) => {
+                              const updatedItems = [...formState.items];
+                              updatedItems[index].custom_name = e.target.value;
+                              setFormState({ ...formState, items: updatedItems });
+                            }}
+                            placeholder="Enter item name"
+                            className="w-full p-inputtext-sm"
                           />
-                          <label
-                            htmlFor={`item-type-service-${index}`}
-                            className="ml-2"
-                          >
-                            Service
-                          </label>
-                        </div>
-                        <div className="flex items-center">
-                          <Checkbox
-                            inputId={`item-type-none-${index}`}
-                            checked={item.item_type === "None"}
-                            onChange={() => handleTypeChange(index, "None")}
+                        ) : (
+                          <Dropdown
+                            value={item.item_id}
+                            onChange={(e) =>
+                              handleDropdownChange(e, index, "item_id")
+                            }
+                            options={
+                              item.item_type === "Item" ? products : services
+                            }
+                            optionLabel="name"
+                            optionValue="id"
+                            placeholder={`Select ${item.item_type}`}
+                            filter
+                            className="w-full p-inputtext-sm"
                           />
-                          <label
-                            htmlFor={`item-type-none-${index}`}
-                            className="ml-2"
-                          >
-                            None
-                          </label>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="border px-4 py-2 min-w-[150px]">
-                      {item.item_type === "None" ? (
-                        <InputText
-                          value={item.custom_name || ""}
-                          onChange={(e) => {
+                        )}
+                      </td>
+  
+                      <td className="border px-4 py-2 min-w-[120px]">
+                        <InputNumber
+                          name="quantity"
+                          value={item.quantity}
+                          onValueChange={(e) => {
                             const updatedItems = [...formState.items];
-                            updatedItems[index].custom_name = e.target.value;
+                            updatedItems[index].quantity = e.value || 0;
                             setFormState({ ...formState, items: updatedItems });
                           }}
-                          placeholder="Enter item name"
-                          className="w-full"
+                          className="w-full p-inputtext-sm"
+                          min={1}
+                          showButtons
                         />
-                      ) : (
+                      </td>
+                      <td className="border px-4 py-2 min-w-[120px]">
                         <Dropdown
-                          value={item.item_id}
-                          onChange={(e) =>
-                            handleDropdownChange(e, index, "item_id")
-                          }
+                          value={item.uom}
+                          onChange={(e) => handleDropdownChange(e, index, "uom")}
                           options={
-                            item.item_type === "Item" ? products : services
+                            uoms?.map((c) => ({
+                              label: c.name,
+                              value: c.id,
+                            })) || []
                           }
+                          optionLabel="label"
+                          optionValue="value"
+                          placeholder="Select uom"
+                          className="w-full p-inputtext-sm"
+                        />
+                      </td>
+                      <td className="border px-4 py-2 min-w-[150px]">
+                        <Dropdown
+                          value={item.budget_item_id}
+                          onChange={(e) =>
+                            handleDropdownChange(e, index, "budget_item_id")
+                          }
+                          options={selectedBudget?.items || []}
                           optionLabel="name"
                           optionValue="id"
-                          placeholder={`Select ${item.item_type}`}
+                          placeholder="Select an item"
                           filter
-                          className="w-full"
+                          className="w-full p-inputtext-sm"
+                          disabled={!selectedBudget}
                         />
-                      )}
-                    </td>
-
-                    <td className="border px-4 py-2 min-w-[120px]">
-                      <InputNumber
-                        name="quantity"
-                        value={item.quantity}
-                        onValueChange={(e) => {
-                          const updatedItems = [...formState.items];
-                          updatedItems[index].quantity = e.value || 0;
-                          setFormState({ ...formState, items: updatedItems });
-                        }}
-                        className="w-full"
-                        min={1}
-                        showButtons
-                      />
-                    </td>
-                    <td className="border px-4 py-2 min-w-[120px]">
-                      <Dropdown
-                        value={item.uom}
-                        onChange={(e) => handleDropdownChange(e, index, "uom")}
-                        options={
-                          uoms?.map((c) => ({
-                            label: c.name,
-                            value: c.id,
-                          })) || []
-                        }
-                        optionLabel="label"
-                        optionValue="value"
-                        placeholder="Select uom"
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border px-4 py-2 min-w-[150px]">
-                      <Dropdown
-                        value={item.budget_item_id}
-                        onChange={(e) =>
-                          handleDropdownChange(e, index, "budget_item_id")
-                        }
-                        options={selectedBudget?.items || []}
-                        optionLabel="name"
-                        optionValue="id"
-                        placeholder="Select an item"
-                        filter
-                        className="w-full"
-                        disabled={!selectedBudget}
-                      />
-                    </td>
-                    <td className="border px-4 py-2 min-w-[200px]">
-                      <InputText
-                        name="specifications"
-                        value={item.specifications}
-                        onChange={(e) => handleInputChange(e, index)}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border px-4 py-2 min-w-[250px]">
-                      <InputTextarea
-                        name="description"
-                        value={item.description}
-                        onChange={(e) => handleInputChange(e, index)}
-                        rows={1}
-                        className="w-full"
-                      />
-                    </td>
-                    <td className="border px-4 py-2 min-w-[150px]">
-                      <InputNumber
-                        name="estimated_unit_price"
-                        value={item.estimated_unit_price}
-                        onValueChange={(e) => {
-                          const updatedItems = [...formState.items];
-                          updatedItems[index].estimated_unit_price =
-                            e.value || 0;
-                          setFormState({ ...formState, items: updatedItems });
-                        }}
-                        className="w-full"
-                        mode="currency"
-                        currency={
-                          currencies?.find((c) => c.id === item.currency_id)
-                            ?.code || "USD"
-                        }
-                        locale="en-US"
-                      />
-                    </td>
-                    <td className="border px-4 py-2 min-w-[120px]">
-                      <Dropdown
-                        value={item.currency_id}
-                        options={currencyOptions}
-                        onChange={(e) =>
-                          handleDropdownChange(e, index, "currency_id")
-                        }
-                        placeholder="Select Currency"
-                        className="w-full"
-                        optionLabel="label"
-                        optionValue="value"
-                        disabled={!currencyOptions.length}
-                      />
-                    </td>
-                    <td className="border px-4 py-2 min-w-[100px] text-center">
-                      <Icon
-                        icon="solar:trash-bin-trash-bold"
-                        className="text-red-500 cursor-pointer"
-                        fontSize={20}
-                        onClick={() => handleRemoveItem(index)}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="border px-4 py-2 min-w-[200px]">
+                        <InputText
+                          name="specifications"
+                          value={item.specifications}
+                          onChange={(e) => handleInputChange(e, index)}
+                          className="w-full p-inputtext-sm"
+                        />
+                      </td>
+                      <td className="border px-4 py-2 min-w-[250px]">
+                        <InputTextarea
+                          name="description"
+                          value={item.description}
+                          onChange={(e) => handleInputChange(e, index)}
+                          rows={1}
+                          className="w-full p-inputtext-sm"
+                        />
+                      </td>
+                      <td className="border px-4 py-2 min-w-[150px]">
+                        <InputNumber
+                          name="estimated_unit_price"
+                          value={item.estimated_unit_price}
+                          onValueChange={(e) => {
+                            const updatedItems = [...formState.items];
+                            updatedItems[index].estimated_unit_price =
+                              e.value || 0;
+                            setFormState({ ...formState, items: updatedItems });
+                          }}
+                          className="w-full p-inputtext-sm"
+                          mode="currency"
+                          currency={
+                            currencies?.find((c) => c.id === item.currency_id)
+                              ?.code || "USD"
+                          }
+                          locale="en-US"
+                        />
+                      </td>
+                      <td className="border px-4 py-2 min-w-[120px]">
+                        <Dropdown
+                          value={item.currency_id}
+                          options={currencyOptions}
+                          onChange={(e) =>
+                            handleDropdownChange(e, index, "currency_id")
+                          }
+                          placeholder="Select Currency"
+                          className="w-full p-inputtext-sm"
+                          optionLabel="label"
+                          optionValue="value"
+                          disabled={!currencyOptions.length}
+                        />
+                      </td>
+                      <td className="border px-4 py-2 min-w-[100px] text-center">
+                        <Icon
+                          icon="solar:trash-bin-trash-bold"
+                          className="text-red-500 cursor-pointer"
+                          fontSize={20}
+                          onClick={() => handleRemoveItem(index)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Button
+              label="Add Item"
+              icon="pi pi-plus"
+              onClick={addItem}
+              className="w-fit mt-2"
+            />
           </div>
-          <Button
-            label="Add Item"
-            icon="pi pi-plus"
-            onClick={addItem}
-            className="w-fit mt-2"
-          />
-        </div>
+          )
+        }
 
         <div className="flex justify-end gap-2 mt-4">
           <button

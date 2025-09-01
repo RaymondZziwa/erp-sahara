@@ -9,6 +9,7 @@ import AddOrModifyItem from "./AddOrModifyItem";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import useWarehouses from "../../../hooks/inventory/useWarehouses";
 import { Warehouse } from "../../../redux/slices/types/inventory/Warehouse";
+import { ToastContainer } from "react-toastify";
 
 const Warehouses: React.FC = () => {
   const { data, refresh } = useWarehouses();
@@ -27,15 +28,14 @@ const Warehouses: React.FC = () => {
 
   const columnDefinitions: ColDef<Warehouse>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "Name",
       field: "name",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Store Type",
+      field: "warehouse_type",
       sortable: true,
       filter: true,
     },
@@ -48,7 +48,7 @@ const Warehouses: React.FC = () => {
       cellRenderer: (params: ICellRendererParams<Warehouse>) => (
         <div className="flex items-center gap-2">
           <button
-            className="bg-shade px-2 py-1 rounded text-white"
+            className="bg-shade px-2 rounded text-white h-10"
             onClick={() =>
               setDialogState({
                 ...dialogState,
@@ -69,7 +69,7 @@ const Warehouses: React.FC = () => {
             }
             icon="solar:trash-bin-trash-bold"
             className="text-red-500 cursor-pointer"
-            fontSize={20}
+            fontSize={24}
           />
         </div>
       ),
@@ -78,6 +78,7 @@ const Warehouses: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedCategory}
@@ -122,13 +123,7 @@ const Warehouses: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Store
             </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button>
+           
           </div>
         </div>
         <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />

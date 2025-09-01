@@ -17,6 +17,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
+import { ToastContainer } from "react-toastify";
 
 const Inventories: React.FC = () => {
   const { data, refresh } = useInventoryRecords();
@@ -27,28 +28,40 @@ const Inventories: React.FC = () => {
   const [reversalReason, setReversalReason] = useState("");
 
   const token = useSelector((state: RootState) => state.userAuth.token);
-  const [storeId, setStoreId] = useState(1);
-  const [storeData, setStoreData] = useState([]);
+  const [storeId, setStoreId] = useState<number | 'all'>('all'); // Changed to include 'all' option
+  const [storeData, setStoreData] = useState<any[]>([]);
   const [selectedStore, setSelectedStore] = useState(0);
   const [recordId, setRecordId] = useState(0);
   const [reversalId, setReversalId] = useState(0);
 
   const { data: warehousesd } = useWarehouses();
-  const warehouses =
-    warehousesd?.map((warehouse) => ({
+  
+  // Add 'All Stores' option to the dropdown
+  const warehouses = [
+    { label: "All Stores", value: "all" },
+    ...(warehousesd?.map((warehouse) => ({
       label: warehouse.name,
       value: warehouse.id,
-    })) || [];
+    })) || [])
+  ];
 
   useEffect(() => {
     if (!data) {
       refresh();
     } else {
-      const dat =
-        data && data.filter((store) => store.warehouse_id === storeId);
-      setStoreData(dat[0]?.stock_movements?.stock_in.transactions);
+      if (storeId === 'all') {
+        // Combine all stock in transactions from all warehouses
+        const allTransactions = data.flatMap(store => 
+          store.stock_movements?.stock_in.transactions || []
+        );
+        setStoreData(allTransactions);
+      } else {
+        // Filter for specific warehouse
+        const warehouseData = data.find(store => store.warehouse_id === storeId);
+        setStoreData(warehouseData?.stock_movements?.stock_in.transactions || []);
+      }
     }
-  }, [storeId, data]);
+  }, [storeId, data, refresh]);
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: Inventory | undefined;
@@ -67,19 +80,12 @@ const Inventories: React.FC = () => {
 
   const reverseTransaction = async () => {
     try {
-      console.log(
-        "Reversing transaction for ID:",
-        reversalId,
-        "with reason:",
-        reversalReason
-      );
-
       await createRequest(
         INVENTORY_ENDPOINTS.INVENTORIES.REVERSE,
         token.access_token,
         {
           unique_id: reversalId,
-          movement_reason: reversalReason,
+          reason: reversalReason,
         },
         refresh,
         "POST"
@@ -97,10 +103,10 @@ const Inventories: React.FC = () => {
     {
       headerName: "Name",
       field: "item.name",
-      sortable: true,
       filter: true,
       cellClass: "cursor-pointer hover:underline",
       onCellClicked: (event) => {
+        console.log('clicked')
         navigate(
           `/inventory/item/${event.data.item_id}/${event.data.item_name}`
         );
@@ -112,6 +118,14 @@ const Inventories: React.FC = () => {
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
+    },
+    {
+      headerName: "Warehouse",
+      field: "warehouse.name",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+      valueGetter: (params) => params.data.warehouse?.name || 'N/A',
     },
     {
       headerName: "Date",
@@ -144,7 +158,7 @@ const Inventories: React.FC = () => {
                   setIsConfirmModalOpen(true);
                   setRecordId(params.data.id);
                 }}
-                className="rounded-md text-white bg-orange-500 h-8 w-20 flex items-center justify-center"
+                className="rounded-md text-white bg-orange-500 h-10 px-1"
               >
                 Confirm
               </button>
@@ -157,7 +171,7 @@ const Inventories: React.FC = () => {
                   setReversalId(params.data.unique_id);
                   handleReverseTransaction();
                 }}
-                className="rounded-md text-white bg-red-500 pb-2 pr-2 pl-2 flex items-center justify-center"
+                className="rounded-md text-white bg-red-500 h-10 px-1"
               >
                 Undo
               </button>
@@ -191,6 +205,7 @@ const Inventories: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       {/* Reverse Transaction Modal */}
       <Dialog
         header="Reverse Transaction"
@@ -246,11 +261,11 @@ const Inventories: React.FC = () => {
         }
         onConfirm={refresh}
       />
-      <BreadCrump name="Inventory" pageName="Items" />
+      <BreadCrump name="Inventory" pageName="Stock In" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Inventory transactions</h1>
+            <h1 className="text-xl font-bold">Stock In Transactions</h1>
           </div>
           <div className="flex gap-2 h-[50px] mb-10 mt-4">
             <div className="p-field">
@@ -258,11 +273,10 @@ const Inventories: React.FC = () => {
                 required
                 name="type"
                 value={storeId}
-                onChange={(e) => setStoreId(e.target.value)}
+                onChange={(e) => setStoreId(e.value)}
                 options={warehouses}
                 optionLabel="label"
-                optionValue="value"
-                placeholder="Select type"
+                placeholder="Select warehouse"
                 filter
                 className="w-full md:w-14rem"
               />
@@ -279,18 +293,18 @@ const Inventories: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               New Stock
             </button>
-            <button
+            {/* <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
               onClick={handleExportPDF}
             >
               <Icon icon="solar:printer-bold" fontSize={20} />
               Print
-            </button>
+            </button> */}
           </div>
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={storeData ? storeData : []}
+          data={storeData}
           ref={tableRef}
         />
       </div>
@@ -298,5 +312,4 @@ const Inventories: React.FC = () => {
   );
 };
 
-export default Inventories;
- 
+export default Inventories

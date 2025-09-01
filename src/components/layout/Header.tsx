@@ -32,7 +32,7 @@ const SettingsPage = () => {
         <Link
           to={setting.path}
           key={setting.path}
-          className="block text-gray-800 hover:text-blue-600 transition-colors mb-2"
+          className="block text-gray-800 hover:text-teal-600 transition-colors mb-2"
         >
           {setting.name}
         </Link>
@@ -53,33 +53,6 @@ const Header = () => {
       <div className="flex items-center space-x-4 justify-between w-full">
         <MobileSidebar />
 
-        <div className="flex gap-2">
-          <Icon icon="mdi-light:magnify" fontSize={24} />
-          <Icon icon="solar:widget-3-line-duotone" fontSize={24} />
-        </div>
-
-        <div className="flex gap-2">
-          <Icon
-            icon="mdi-light:magnify"
-            fontSize={24}
-            className="text-blue-500 hover:text-blue-700 transition-all duration-300"
-          />
-          <Icon
-            icon="solar:widget-3-line-duotone"
-            fontSize={24}
-            className="text-green-500 hover:text-green-700 transition-all duration-300"
-          />
-          <Icon
-            icon="mdi-light:home"
-            fontSize={24}
-            className="text-red-500 hover:text-red-700 transition-all duration-300"
-          />
-          <Icon
-            icon="mdi-light:account"
-            fontSize={24}
-            className="text-yellow-500 hover:text-yellow-700 transition-all duration-300"
-          />
-        </div>
       </div>
       <div className="relative group">
         <div className="flex items-center space-x-2 cursor-pointer">

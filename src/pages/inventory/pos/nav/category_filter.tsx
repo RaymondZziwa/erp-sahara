@@ -1,35 +1,36 @@
-//@ts-nocheck
+
 import useItemCategories from "../../../../hooks/inventory/useCategories";
-import { useEffect } from "react";
 
-  const CategoryNav = ({ selectedCategory, onSelectCategory }) => {
-    const {data, refresh} = useItemCategories()
+const CategoryNav: React.FC<{
+  selectedCategory: number | string;
+  onSelectCategory: (category: number | string) => void;
+  isMobile?: boolean;
+}> = ({ selectedCategory, onSelectCategory, isMobile = false }) => {
+  const {data: categories} = useItemCategories()
 
-    useEffect(()=> {
-        if(!data) {
-            refresh()
-        }
-    }, [])
-    return (
-      <div className="w-full overflow-x-auto bg-white rounded-xl">
-        <div className="flex space-x-4 px-4 py-2">
-          {data.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => onSelectCategory(category.id)}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200
-                ${
-                  selectedCategory === category.id
-                    ? "border-2 border-teal-500 text-teal-500 font-semibold"
-                    : "text-gray-700 hover:text-teal-500"
-                }`}
-            >
-              {category.name}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  };
+  return (
+    <div className="flex space-x-2 overflow-x-auto pb-2">
+      {categories.map((category) => (
+        <button
+          key={category.id}
+          onClick={() => onSelectCategory(category.id)}
+          className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-all duration-200 ${
+            selectedCategory === category.id
+              ? 'bg-blue-600 text-white shadow-lg scale-105'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          {category.name}
+        </button>
+      ))}
+       <button
+          onClick={() => onSelectCategory(0)}
+          className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-all duration-200 bg-gray-100 text-gray-700 hover:bg-gray-200`}
+        >
+          All
+        </button>
+    </div>
+  );
+};
 
 export default CategoryNav

@@ -21,12 +21,6 @@ const DistributionOrders: React.FC = () => {
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
-
   const columnDefinitions: ColDef<DistributionOrder>[] = [
     {
       headerName: "ID",
@@ -155,7 +149,7 @@ const DistributionOrders: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Distribution Orders" pageName="All" />
+      <BreadCrump name="Distribution Orders" pageName="Distribution Orders" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
@@ -174,13 +168,7 @@ const DistributionOrders: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Order
             </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button>
+            
           </div>
         </div>
         <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />

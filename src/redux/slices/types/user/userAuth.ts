@@ -36,6 +36,7 @@ export interface Organisation {
   accounting_type: number;
   use_only_savings_for_transactions: number;
   allow_closing_months: number;
+  services: []
   member_language_text: string;
   sms_api_key: string;
   deleted_at: null;
@@ -70,7 +71,7 @@ export interface User {
   two_factor_expires_at: null;
   is_first_login: boolean;
   full_name: string;
-  roles: Role[];
+  roles: Role;
   employee_id: number;
 }
 

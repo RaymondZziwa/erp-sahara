@@ -6,25 +6,35 @@ import InvoicesSection from "./InvoicesSecton";
 
 const Dashboard = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 space-y-2 md:space-y-0 p-2 md:p-8 md:gap- bg-gray-100">
-      <div className="grid grid-cols-1 md:grid-cols-2 col-span-2 gap-4">
-         {/* Profit and Loss Section */}
-        <ProfitAndLossSection />
-        {/* Expenses Section */}
-        <ExpensesSection />
-        {/* Invoices Section */}
-        {/* <InvoicesSection /> */}
-        
-
-       
-
-        {/* Sales Section */}
-        <SalesSection />
+    <div className="bg-gray-100 min-h-screen p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Top row: Profit and Expenses side by side but smaller */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl shadow p-4 col-span-1">
+            <ProfitAndLossSection />
+          </div>
+          <div className="bg-white rounded-xl shadow p-4 col-span-1">
+            <ExpensesSection />
+          </div>
+  
+          {/* Accounts takes up remaining 2 columns on large screen */}
+          <div className="bg-white rounded-xl shadow p-4 col-span-2 hidden lg:block">
+            <AccountsSection />
+          </div>
+        </div>
+  
+        {/* Show Accounts separately on small screens */}
+        <div className="lg:hidden bg-white rounded-xl shadow p-4">
+          <AccountsSection />
+        </div>
+  
+        {/* Sales full width */}
+        <div className="bg-white rounded-xl shadow p-4">
+          <SalesSection />
+        </div>
       </div>
-      {/* Bank Accounts Section */}
-      <AccountsSection />
     </div>
   );
-};
-
+  
+}
 export default Dashboard;

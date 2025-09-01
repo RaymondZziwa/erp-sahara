@@ -31,7 +31,7 @@ const useFuelRequisitions = () => {
         token.access_token
       );
 
-      response.data.length && dispatch(fetchDataSuccess(response.data)); // Dispatch action with fetched data on success
+      response.data.length && dispatch(fetchDataSuccess(response.data.data)); // Dispatch action with fetched data on success
     } catch (error) {
       dispatch(
         fetchDataFailure(

@@ -12,6 +12,7 @@ import { ASSETSENDPOINTS } from "../../api/assetEndpoints";
 import { Asset } from "../../redux/slices/types/mossApp/assets/asset";
 import useCurrencies from "../../hooks/procurement/useCurrencies";
 import { toast } from "react-toastify";
+import useBranches from "../../hooks/Branches/useBranches";
 
 // Centralized API configuration
 const api = axios.create({
@@ -37,24 +38,20 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   const { token } = useAuth();
   const { data: suppliers } = useSuppliers();
   const { data: assetCats } = useAssetCategories();
-  const {data: currencies} = useCurrencies();
+  const { data: currencies } = useCurrencies();
+  const { data: branches } = useBranches();
   const [currencyOptions, setCurrencyOptions] = useState<{
     name: string;
     value: string;
-  }[]>([]);
+  }>([]);
 
-  useEffect(()=> {
-    const mapped = currencies.map(
-      (currency) => (
-        console.log(currency.name),
-        {
-          name: currency.name,
-          value: currency.id,
-        }
-      )
-    );
-    setCurrencyOptions(mapped)
-  }, [currencies])
+  useEffect(() => {
+    const mapped = currencies.map((currency) => ({
+      name: currency.name,
+      value: currency.id,
+    }));
+    setCurrencyOptions(mapped);
+  }, [currencies]);
 
   const [formState, setFormState] = useState<Partial<Asset>>({
     name: "",
@@ -82,15 +79,45 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
     salvage_value: undefined,
     useful_life: undefined,
     description: "",
+    // Vehicle fields
+    make: "",
+    model: "",
+    year_of_manufacture: undefined,
+    engine_number: "",
+    chasis_number: "",
+    body_type: "",
+    // Optional fields
+    codification_number: "",
+    condition: "",
+    remarks: "",
+    warranty_expiry_date: "",
+    branch_id: undefined,
+    // Building/land fields
+    building_cost: undefined,
+    plot_number: "",
+    usage: "",
+    room_allocation: "",
+    // Land fields
+    surveyed_status: "",
+    titled_deed_number: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [supplierOptions, setSupplierOptions] = useState<{ value: number | string; name: string }[]>([]);
-  const [incomeAccounts, setIncomeAccounts] = useState<{ value: number; name: string }[]>([]);
-  const [expenseAccounts, setExpenseAccounts] = useState<{ value: number; name: string }[]>([]);
-  const [assetAccounts, setAssetAccounts] = useState<{ value: number; name: string }[]>([]);
+  const [supplierOptions, setSupplierOptions] = useState<
+    { value: number | string; name: string }[]
+  >([]);
+  const [incomeAccounts, setIncomeAccounts] = useState<
+    { value: number; name: string }[]
+  >([]);
+  const [expenseAccounts, setExpenseAccounts] = useState<
+    { value: number; name: string }[]
+  >([]);
+  const [assetAccounts, setAssetAccounts] = useState<
+    { value: number; name: string }[]
+  >([]);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
 
   // Axios interceptors for token injection
   useEffect(() => {
@@ -124,13 +151,13 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   const getIncomeAccounts = async () => {
     try {
       const response = await api.get("/accounts/get-income-accounts");
-      console.log("Income Accounts Response:", response.data);
-
       const incomeData = response.data?.data || [];
-      setIncomeAccounts(incomeData.map((acc: any) => ({
-        value: acc.id,
-        name: acc.name,
-      })));
+      setIncomeAccounts(
+        incomeData.map((acc: any) => ({
+          value: acc.id,
+          name: acc.name,
+        }))
+      );
     } catch (error) {
       console.error("Error fetching income accounts:", error);
       setError("Failed to load income accounts");
@@ -141,13 +168,13 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   const getExpenseAccounts = async () => {
     try {
       const response = await api.get("/accounts/get-expense-accounts");
-      console.log("Expense Accounts Response:", response.data);
-
       const expenseData = response.data?.data || [];
-      setExpenseAccounts(expenseData.map((acc: any) => ({
-        value: acc.id,
-        name: acc.name,
-      })));
+      setExpenseAccounts(
+        expenseData.map((acc: any) => ({
+          value: acc.id,
+          name: acc.name,
+        }))
+      );
     } catch (error) {
       console.error("Error fetching expense accounts:", error);
       setError("Failed to load expense accounts");
@@ -158,13 +185,13 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   const getAssetAccounts = async () => {
     try {
       const response = await api.get("/accounts/get-asset-accounts");
-      console.log("Asset Accounts Response:", response.data);
-
       const assetData = response.data?.data || [];
-      setAssetAccounts(assetData.map((acc: any) => ({
-        value: acc.id,
-        name: acc.name,
-      })));
+      setAssetAccounts(
+        assetData.map((acc: any) => ({
+          value: acc.id,
+          name: acc.name,
+        }))
+      );
     } catch (error) {
       console.error("Error fetching asset accounts:", error);
       setError("Failed to load asset accounts");
@@ -174,7 +201,11 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   // Initialize data fetching
   useEffect(() => {
     if (token?.access_token) {
-      Promise.all([getIncomeAccounts(), getExpenseAccounts(), getAssetAccounts()])
+      Promise.all([
+        getIncomeAccounts(),
+        getExpenseAccounts(),
+        getAssetAccounts(),
+      ])
         .then(() => setLoading(false))
         .catch((error) => {
           console.error("Initialization error:", error);
@@ -187,10 +218,12 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   // Update supplier options
   useEffect(() => {
     if (suppliers) {
-      setSupplierOptions(suppliers.map((supplier: any) => ({
-        value: supplier.id,
-        name: supplier.supplier_name,
-      })));
+      setSupplierOptions(
+        suppliers.map((supplier: any) => ({
+          value: supplier.id,
+          name: supplier.supplier_name,
+        }))
+      );
     }
   }, [suppliers]);
 
@@ -198,6 +231,13 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   useEffect(() => {
     if (item) {
       setFormState({ ...item });
+      // Find the selected category if editing
+      if (item.asset_category_id && assetCats) {
+        const category = assetCats.find(
+          (cat: any) => cat.id === item.asset_category_id
+        );
+        setSelectedCategory(category);
+      }
     } else {
       setFormState({
         name: "",
@@ -225,9 +265,31 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
         salvage_value: undefined,
         useful_life: undefined,
         description: "",
+        // Vehicle fields
+        make: "",
+        model: "",
+        year_of_manufacture: undefined,
+        engine_number: "",
+        chasis_number: "",
+        body_type: "",
+        // Optional fields
+        codification_number: "",
+        condition: "",
+        remarks: "",
+        warranty_expiry_date: "",
+        branch_id: undefined,
+        // Building/land fields
+        building_cost: undefined,
+        plot_number: "",
+        usage: "",
+        room_allocation: "",
+        // Land fields
+        surveyed_status: "",
+        titled_deed_number: "",
       });
+      setSelectedCategory(null);
     }
-  }, [item]);
+  }, [item, assetCats]);
 
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,6 +301,12 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   // Handle dropdown changes
   const handleDropdownChange = (name: string, value: any) => {
     setFormState((prev) => ({ ...prev, [name]: value }));
+    
+    // When category changes, update the selected category
+    if (name === "asset_category_id" && assetCats) {
+      const category = assetCats.find((cat: any) => cat.id === value);
+      setSelectedCategory(category);
+    }
   };
 
   // Handle asset type change
@@ -279,10 +347,13 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       "purchase_cost",
       "current_value",
       "date_put_to_use",
-      "salvage_value",
-      "useful_life",
       "description",
     ];
+
+    // Add conditional required fields based on category
+    if (selectedCategory?.order && [1, 2, 3, 6].includes(selectedCategory.order)) {
+      requiredFields.push("salvage_value", "useful_life");
+    }
 
     for (const field of requiredFields) {
       if (!formState[field as keyof Asset]) {
@@ -298,17 +369,13 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
         ? ASSETSENDPOINTS.ASSETS.UPDATE(item.id.toString())
         : ASSETSENDPOINTS.ASSETS.ADD;
 
-      console.log("Sending request:", {
-        method,
-        url: endpoint,
-        data: formState,
-      });
-
       const response = await api.request({
         method,
         url: endpoint,
         data: formState,
       });
+
+      // Reset form
       setFormState({
         name: "",
         supplier: "",
@@ -335,23 +402,46 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
         salvage_value: undefined,
         useful_life: undefined,
         description: "",
+        // Vehicle fields
+        make: "",
+        model: "",
+        year_of_manufacture: undefined,
+        engine_number: "",
+        chasis_number: "",
+        body_type: "",
+        // Optional fields
+        codification_number: "",
+        condition: "",
+        remarks: "",
+        warranty_expiry_date: "",
+        branch_id: undefined,
+        // Building/land fields
+        building_cost: undefined,
+        plot_number: "",
+        usage: "",
+        room_allocation: "",
+        // Land fields
+        surveyed_status: "",
+        titled_deed_number: "",
       });
 
       onSave();
       onClose();
+      toast.success(`Asset ${item?.id ? "updated" : "added"} successfully!`);
     } catch (error) {
-      console.error("Save error:", {
-        message: (error as any).message,
-        status: (error as any).response?.status,
-        data: (error as any).response?.data,
-        config: (error as any).config,
-      });
-
-      if (axios.isAxiosError(error) && error.response?.data?.errors) {
-        const errorMessages = Object.values(error.response.data.errors).flat();
-        setError(`Validation errors: ${errorMessages.join(", ")}`);
+      console.error("Save error:", error);
+      if (axios.isAxiosError(error)) {
+        if (error.response?.data?.errors) {
+          const errorMessages = Object.values(error.response.data.errors).flat();
+          setError(`Validation errors: ${errorMessages.join(", ")}`);
+          toast.error(`Validation errors: ${errorMessages.join(", ")}`);
+        } else {
+          setError("Failed to save asset. Please try again.");
+          toast.error("Failed to save asset. Please try again.");
+        }
       } else {
-        setError("Failed to save asset. Please try again.");
+        setError("An unexpected error occurred.");
+        toast.error("An unexpected error occurred.");
       }
     } finally {
       setIsSubmitting(false);
@@ -362,9 +452,52 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   const assetCatOptions = assetCats
     ? assetCats.map((cat: any) => ({ value: cat.id, name: cat.name }))
     : [];
+  
+    const branchOptions = branches
+    ? branches.map((cat: any) => ({ value: cat.id, name: cat.name }))
+    : [];
+
+  // Condition options
+  const conditionOptions = [
+    { value: "Good", name: "Good" },
+    { value: "Fair", name: "Fair" },
+    { value: "Poor", name: "Poor" },
+    { value: "N/A", name: "N/A" },
+  ];
+
+  const remarksOptions = [
+    { value: "Good", name: "Good" },
+    { value: "Service", name: "Service" },
+    { value: "Un-Serviceable", name: "Un-Serviceable" },
+    { value: "N/A", name: "N/A" },
+  ];
+
+  const usageOptions = [
+    { value: "Warehouse", name: "Warehouse" },
+    { value: "Office", name: "Office" },
+    { value: "Residential", name: "Residential" },
+    { value: "Rent", name: "Rent" },
+    { value: "Industry", name: "Industry" },
+    { value: "N/A", name: "N/A" },
+  ];
+
+  const bodyTypeOptions = [
+    { value: "Van", name: "Van" },
+    { value: "Sedan", name: "Sedan" },
+    { value: "SUV", name: "SUV" },
+    { value: "Truck", name: "Truck" },
+    { value: "Bus", name: "Bus" },
+    { value: "Other", name: "Other" },
+  ];
 
   // Always visible fields
   const alwaysVisibleFields = [
+    {
+      key: "asset_category_id",
+      label: "Asset Category",
+      type: "dropdown",
+      options: assetCatOptions,
+    },
     { key: "name", label: "Name", type: "text" },
     {
       key: "supplier",
@@ -374,23 +507,15 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
     },
     {
       key: "currency_id",
-      label: "currency",
+      label: "Currency",
       type: "dropdown",
       options: currencyOptions,
     },
-    { key: "identity_no", label: "Identity No.", type: "text" },
-    {
-      key: "asset_category_id",
-      label: "Asset Category",
-      type: "dropdown",
-      options: assetCatOptions,
-    },
-    { key: "purchase_date", label: "Purchase Date", type: "date" },
     { key: "purchase_cost", label: "Purchase Cost", type: "number" },
-    { key: "current_value", label: "Current Value", type: "number" },
+    // { key: "current_value", label: "Current Value", type: "number" },
+    { key: "identity_no", label: "Identity No.", type: "text" },
+    { key: "purchase_date", label: "Purchase Date", type: "date" },
     { key: "date_put_to_use", label: "Date Put To Use", type: "date" },
-    { key: "salvage_value", label: "Salvage Value", type: "number" },
-    { key: "useful_life", label: "Useful Life", type: "number" },
     {
       key: "asset_account_id",
       label: "Asset Account",
@@ -410,6 +535,30 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       options: incomeAccounts,
     },
     { key: "description", label: "Description", type: "text" },
+    { key: "codification_number", label: "Codification Number", type: "text" },
+    {
+      key: "condition",
+      label: "Condition",
+      type: "dropdown",
+      options: conditionOptions,
+    },
+    {
+      key: "remarks",
+      label: "Remarks",
+      type: "dropdown",
+      options: remarksOptions,
+    },
+    {
+      key: "warranty_expiry_date",
+      label: "Warranty Expiry Date",
+      type: "date",
+    },
+    {
+      key: "branch_id",
+      label: "Branch",
+      type: "dropdown",
+      options: branchOptions,
+    },
   ];
 
   // Fields for depreciating assets
@@ -442,6 +591,8 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       type: "dropdown",
       options: incomeAccounts,
     },
+    { key: "salvage_value", label: "Salvage Value", type: "number" },
+    { key: "useful_life", label: "Useful Life (years)", type: "number" },
   ];
 
   // Fields for appreciating assets
@@ -452,12 +603,6 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       label: "Appreciation Account",
       type: "dropdown",
       options: assetAccounts,
-    },
-    {
-      key: "income_account_id",
-      label: "Income Account",
-      type: "dropdown",
-      options: incomeAccounts,
     },
     {
       key: "appreciation_loss_account_id",
@@ -471,7 +616,56 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       type: "dropdown",
       options: incomeAccounts,
     },
+    { key: "salvage_value", label: "Salvage Value", type: "number" },
+    { key: "useful_life", label: "Useful Life (years)", type: "number" },
   ];
+
+  // Vehicle specific fields
+  const vehicleFields = [
+    { key: "make", label: "Make", type: "text" },
+    { key: "model", label: "Model", type: "text" },
+    { key: "year_of_manufacture", label: "Year of Manufacture", type: "number" },
+    { key: "engine_number", label: "Engine Number", type: "text" },
+    { key: "chasis_number", label: "Chasis Number", type: "text" },
+    {
+      key: "body_type",
+      label: "Body Type",
+      type: "dropdown",
+      options: bodyTypeOptions,
+    },
+  ];
+
+  // Land specific fields
+  const landFields = [
+    { key: "surveyed_status", label: "Surveyed Status", type: "text" },
+    { key: "titled_deed_number", label: "Titled Deed Number", type: "text" },
+    { key: "plot_number", label: "Plot Number", type: "text" },
+    {
+      key: "usage",
+      label: "Usage",
+      type: "dropdown",
+      options: usageOptions,
+    },
+  ];
+
+  // Building specific fields
+  const buildingFields = [
+    { key: "building_cost", label: "Building Cost", type: "number" },
+    { key: "plot_number", label: "Plot Number", type: "text" },
+    {
+      key: "usage",
+      label: "Usage",
+      type: "dropdown",
+      options: usageOptions,
+    },
+    { key: "room_allocation", label: "Room Allocation", type: "text" },
+  ];
+
+  // Check if the selected category is a vehicle
+  const isVehicleCategory = selectedCategory?.name?.toLowerCase().includes("vehicle");
+  const isLandCategory = selectedCategory?.name?.toLowerCase().includes("land");
+  const isBuildingCategory = selectedCategory?.name?.toLowerCase().includes("building") || 
+                           selectedCategory?.name?.toLowerCase().includes("property");
 
   // Dialog footer
   const footer = (
@@ -496,7 +690,6 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
     </div>
   );
 
-  // Main form
   return (
     <Dialog
       header={item?.id ? "Edit Asset" : "Add Asset"}
@@ -506,66 +699,66 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       onHide={onClose}
     >
       <form id="asset-form" onSubmit={handleSave}>
-        <div className="p-fluid grid grid-cols-2 gap-4">
-          {/* Asset Type Dropdown */}
-          <div className="p-field col-span-2">
-            <label htmlFor="asset_type">
-              Asset Type <span className="text-red-500">*</span>
-            </label>
-            <Dropdown
-              id="asset_type"
-              name="asset_type"
-              value={formState.asset_type || ""}
-              onChange={(e) => handleAssetTypeChange(e.value)}
-              options={[
-                { value: "appreciating", name: "Appreciating" },
-                { value: "depreciating", name: "Depreciating" },
-              ]}
-              optionLabel="name"
-              optionValue="value"
-              placeholder="Select Asset Type"
-              className="w-full"
-            />
-          </div>
+      <div className="p-fluid grid grid-cols-2 gap-2">  {/* Reduced gap from 4 to 2 */}
+  {/* Asset Type Dropdown
+  <div className="p-field col-span-2">
+    <label htmlFor="asset_type" className="text-sm"> 
+      Asset Type <span className="text-red-500">*</span>
+    </label>
+    <Dropdown
+      id="asset_type"
+      name="asset_type"
+      value={formState.asset_type || ""}
+      onChange={(e) => handleAssetTypeChange(e.value)}
+      options={[
+        { value: "appreciating", name: "Appreciating" },
+        { value: "depreciating", name: "Depreciating" },
+        { value: "none", name: "N/A" },
+      ]}
+      optionLabel="name"
+      optionValue="value"
+      placeholder="Select Asset Type"
+      className="w-full p-inputtext-sm" 
+    />
+  </div> */}
 
-          {/* Always visible fields */}
-          {alwaysVisibleFields.map((field) => (
-            <div className="p-field" key={field.key}>
-              <label htmlFor={field.key}>
-                {field.label}
-                {field.type !== "dropdown" && <span className="text-red-500">*</span>}
-              </label>
-              {field.type === "dropdown" ? (
-                <Dropdown
-                  id={field.key}
-                  name={field.key}
-                  value={formState[field.key as keyof Asset] || ""}
-                  onChange={(e) => handleDropdownChange(field.key, e.value)}
-                  options={field.options}
-                  optionLabel="name"
-                  optionValue="value"
-                  placeholder={`Select ${field.label}`}
-                  className="w-full"
-                />
-              ) : (
-                <InputText
-                  id={field.key}
-                  name={field.key}
-                  type={field.type}
-                  value={formState[field.key as keyof Asset]?.toString() || ""}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full"
-                />
-              )}
-            </div>
-          ))}
+  {/* Always visible fields */}
+  {alwaysVisibleFields.map((field) => (
+    <div className="p-field" key={field.key}>
+      <label htmlFor={field.key} className="text-sm"> 
+        {field.label}
+        {field.type !== "dropdown" && <span className="text-red-500">*</span>}
+      </label>
+      {field.type === "dropdown" ? (
+        <Dropdown
+          id={field.key}
+          name={field.key}
+          value={formState[field.key as keyof Asset] || ""}
+          onChange={(e) => handleDropdownChange(field.key, e.value)}
+          options={field.options}
+          optionLabel="name"
+          optionValue="value"
+          placeholder={`Select ${field.label}`}
+          className="w-full p-inputtext-sm"
+        />
+      ) : (
+        <InputText
+          id={field.key}
+          name={field.key}
+          type={field.type}
+          value={formState[field.key as keyof Asset]?.toString() || ""}
+          onChange={handleInputChange}
+          required={field.type !== "dropdown"}
+          className="w-full p-inputtext-sm"
+        />
+      )}
+    </div>
+  ))}
 
-          {/* Conditionally rendered fields based on asset type */}
-          {formState.asset_type === "depreciating" &&
-            depreciatingFields.map((field) => (
+          {formState.asset_type === "appreciating" &&
+            appreciatingFields.map((field) => (
               <div className="p-field" key={field.key}>
-                <label htmlFor={field.key}>{field.label}</label>
+                <label htmlFor={field.key} className="text-sm">{field.label}</label>
                 {field.type === "dropdown" ? (
                   <Dropdown
                     id={field.key}
@@ -576,7 +769,7 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
                     optionLabel="name"
                     optionValue="value"
                     placeholder={`Select ${field.label}`}
-                    className="w-full"
+                    className="w-full p-inputtext-sm"
                   />
                 ) : (
                   <InputText
@@ -585,16 +778,46 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
                     type={field.type}
                     value={formState[field.key as keyof Asset]?.toString() || ""}
                     onChange={handleInputChange}
-                    className="w-full"
+                    className="w-full p-inputtext-sm"
+                  />
+                )}
+              </div>
+            ))}
+          
+          {formState.asset_type === "depreciating" &&
+            depreciatingFields.map((field) => (
+              <div className="p-field" key={field.key}>
+                <label htmlFor={field.key} className="text-sm">{field.label}</label>
+                {field.type === "dropdown" ? (
+                  <Dropdown
+                    id={field.key}
+                    name={field.key}
+                    value={formState[field.key as keyof Asset] || ""}
+                    onChange={(e) => handleDropdownChange(field.key, e.value)}
+                    options={field.options}
+                    optionLabel="name"
+                    optionValue="value"
+                    placeholder={`Select ${field.label}`}
+                    className="w-full p-inputtext-sm"
+                  />
+                ) : (
+                  <InputText
+                    id={field.key}
+                    name={field.key}
+                    type={field.type}
+                    value={formState[field.key as keyof Asset]?.toString() || ""}
+                    onChange={handleInputChange}
+                    className="w-full p-inputtext-sm"
                   />
                 )}
               </div>
             ))}
 
-          {formState.asset_type === "appreciating" &&
-            appreciatingFields.map((field) => (
+          {/* Vehicle specific fields */}
+          {isVehicleCategory &&
+            vehicleFields.map((field) => (
               <div className="p-field" key={field.key}>
-                <label htmlFor={field.key}>{field.label}</label>
+                <label htmlFor={field.key} className="text-sm">{field.label}</label>
                 {field.type === "dropdown" ? (
                   <Dropdown
                     id={field.key}
@@ -605,7 +828,7 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
                     optionLabel="name"
                     optionValue="value"
                     placeholder={`Select ${field.label}`}
-                    className="w-full"
+                    className="w-full p-inputtext-sm"
                   />
                 ) : (
                   <InputText
@@ -614,7 +837,67 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
                     type={field.type}
                     value={formState[field.key as keyof Asset]?.toString() || ""}
                     onChange={handleInputChange}
-                    className="w-full"
+                    className="w-full p-inputtext-sm"
+                  />
+                )}
+              </div>
+            ))}
+
+          {/* Land specific fields */}
+          {isLandCategory &&
+            landFields.map((field) => (
+              <div className="p-field" key={field.key}>
+                <label htmlFor={field.key} className="text-sm">{field.label}</label>
+                {field.type === "dropdown" ? (
+                  <Dropdown
+                    id={field.key}
+                    name={field.key}
+                    value={formState[field.key as keyof Asset] || ""}
+                    onChange={(e) => handleDropdownChange(field.key, e.value)}
+                    options={field.options}
+                    optionLabel="name"
+                    optionValue="value"
+                    placeholder={`Select ${field.label}`}
+                    className="w-full p-inputtext-sm"
+                  />
+                ) : (
+                  <InputText
+                    id={field.key}
+                    name={field.key}
+                    type={field.type}
+                    value={formState[field.key as keyof Asset]?.toString() || ""}
+                    onChange={handleInputChange}
+                    className="w-full p-inputtext-sm"
+                  />
+                )}
+              </div>
+            ))}
+
+          {/* Building specific fields */}
+          {isBuildingCategory &&
+            buildingFields.map((field) => (
+              <div className="p-field" key={field.key}>
+                <label htmlFor={field.key} className="text-sm">{field.label}</label>
+                {field.type === "dropdown" ? (
+                  <Dropdown
+                    id={field.key}
+                    name={field.key}
+                    value={formState[field.key as keyof Asset] || ""}
+                    onChange={(e) => handleDropdownChange(field.key, e.value)}
+                    options={field.options}
+                    optionLabel="name"
+                    optionValue="value"
+                    placeholder={`Select ${field.label}`}
+                    className="w-full p-inputtext-sm"
+                  />
+                ) : (
+                  <InputText
+                    id={field.key}
+                    name={field.key}
+                    type={field.type}
+                    value={formState[field.key as keyof Asset]?.toString() || ""}
+                    onChange={handleInputChange}
+                    className="w-full p-inputtext-sm"
                   />
                 )}
               </div>

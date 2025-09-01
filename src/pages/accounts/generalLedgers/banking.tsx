@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ColDef } from "ag-grid-community";
-import AddOrModifyItem from "./AddOrModifyItem";
+import AddOrModifyItem from "./internalCashTransferForm";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import Table from "../../../components/table";
 
@@ -8,7 +8,6 @@ import BreadCrump from "../../../components/layout/bread_crump";
 import { PROJECTS_ENDPOINTS } from "../../../api/projectsEndpoints";
 
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
-import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
 import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import { baseURL, createRequest } from "../../../utils/api";
 import axios from "axios";
@@ -17,7 +16,6 @@ import { RootState } from "../../../redux/store";
 import { toast, ToastContainer } from "react-toastify";
 
 const BankingLedgers: React.FC = () => {
-  const { refresh } = useGeneralLedgers();
   const tableRef = useRef<any>(null);
   const [dt, setDt] = useState<any[]>([])
   const token = useSelector((state: RootState) => state.userAuth.token.access_token)
@@ -169,7 +167,7 @@ const columnDefinitions: ColDef<any>[] = [
           creditAccountsHeader={dialogState.creditAccountHeader}
           debitAccountsHeader={dialogState.debitAccountHeader}
           journalType={dialogState.journalType}
-          title={"Internal Bank Transfer"}
+          title={"Internal Cash Transfer"}
           endpoint={dialogState.endpoint}
           debitAccountType={dialogState.debitAccountsType}
           creditAccountType={dialogState.creditAccountsType}
@@ -218,7 +216,7 @@ const columnDefinitions: ColDef<any>[] = [
           onConfirm={fetchRecords}
         />
       )}
-      <BreadCrump name="Internal Bank Transfer" pageName="All" />
+      <BreadCrump name="Internal Cash Transfer" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="flex gap-2 my-2 ml-auto">
@@ -236,14 +234,14 @@ const columnDefinitions: ColDef<any>[] = [
                 })
               }
             >
-              Bank Transfer
+              Cash Transfer
             </button>
           </div>
         </div>
 
         <Table
           columnDefs={columnDefinitions}
-          data={dt ? dt : []}
+          data={[]}
           ref={tableRef}
         />
       </div>

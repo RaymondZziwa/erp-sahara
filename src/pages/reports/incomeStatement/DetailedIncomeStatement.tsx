@@ -13,6 +13,7 @@ import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 import { apiRequest } from "../../../utils/api";
 import { IncomeStatement } from "../../../redux/slices/types/reports/IncomeStatement";
+import { PropagateLoader } from "react-spinners";
 
 const DetailedIncomeStatement: React.FC = () => {
   const [incomeStatement, setIncomeStatement] =
@@ -67,6 +68,14 @@ const DetailedIncomeStatement: React.FC = () => {
       />
     </div>
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+       <PropagateLoader color="#007f80"/>
+      </div>
+    );
+  }
 
   return (
     <div>

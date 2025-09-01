@@ -1,6 +1,7 @@
 import { Icon } from "@iconify/react";
 import { lazy, Suspense } from "react";
 import PayrollPage from "../pages/hr/payroll";
+
 // Dynamic imports for components
 const Departments = lazy(() => import("../pages/hr/departments"));
 const Designations = lazy(() => import("../pages/hr/designations"));
@@ -9,8 +10,6 @@ const Employees = lazy(() => import("../pages/hr/employees"));
 const Attendencies = lazy(() => import("../pages/hr/attendencies"));
 const LeaveTypes = lazy(() => import("../pages/hr/leaveTypes"));
 const LeaveApplications = lazy(() => import("../pages/hr/leaveApllications"));
-//const BonusTypes = lazy(() => import("../pages/hr/salary/bonusTypes"));
-//const LoanTypes = lazy(() => import("../pages/hr/salary/loanTypes"));
 const DeductionTypes = lazy(() => import("../pages/hr/salary/deductionTypes"));
 const AllowanceTypes = lazy(() => import("../pages/hr/salary/allowanceTypes"));
 const PayrollPeriods = lazy(() => import("../pages/hr/payrollPeriods"));
@@ -21,46 +20,54 @@ const Deductions = lazy(() => import("../pages/hr/salary/deductions"));
 const Loading = () => <div>Loading...</div>;
 
 const HUMAN_RESOURCE_ROUTES = [
+  // {
+  //   name: "Dashboard",
+  //   icon: <Icon icon="mdi:view-dashboard-outline" fontSize={20} />,
+  //   path: "/employees",
+  //   element: (
+  //     <Suspense fallback={<Loading />}>
+  //       <Employees />
+  //     </Suspense>
+  //   ),
+  // },
   {
-    name: "General",
-    icon: <Icon icon="mdi:view-dashboard-outline" fontSize={24} />,
-    path: "/",
+    name: "Employees",
+    icon: <Icon icon="mdi:account-group-outline" fontSize={20} />,
+    path: "/employees",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <Employees />
+      </Suspense>
+    ),
+  },
+  {
+    name: "Generate Payroll",
+    icon: <Icon icon="mdi:file-document-edit-outline" fontSize={20} />,
+    path: "/payroll",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <PayrollPage />
+      </Suspense>
+    ),
+  },
+  {
+    name: "Payroll Setup",
+    icon: <Icon icon="mdi:calculator-variant-outline" fontSize={24} />,
+    path: "",
     items: [
       {
-        name: "Main Dashboard",
-        icon: <Icon icon="mdi:chart-bar" fontSize={20} />,
-        path: "/",
-        hidden: true,
+        name: "Payroll Schedule",
+        icon: <Icon icon="mdi:calendar-clock" fontSize={20} />,
+        path: "/payrollperiods",
         element: (
           <Suspense fallback={<Loading />}>
-            <Employees />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Employees",
-        icon: <Icon icon="mdi:account-outline" fontSize={20} />,
-        path: "/employees",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Employees />
-          </Suspense>
-        ),
-      },
-
-      {
-        name: "Attendance",
-        icon: <Icon icon="mdi:calendar-check-outline" fontSize={20} />,
-        path: "/attendencies",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Attendencies />
+            <PayrollPeriods />
           </Suspense>
         ),
       },
       {
         name: "Allowances",
-        icon: <Icon icon="mdi:cash-check" fontSize={20} />,
+        icon: <Icon icon="mdi:plus-circle-outline" fontSize={20} />,
         path: "/allowances",
         element: (
           <Suspense fallback={<Loading />}>
@@ -79,46 +86,8 @@ const HUMAN_RESOURCE_ROUTES = [
         ),
       },
       {
-        name: "Leave Applications",
-        icon: <Icon icon="mdi:clipboard-text-outline" fontSize={20} />,
-        path: "/leaveapplications",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <LeaveApplications />
-          </Suspense>
-        ),
-      },
-    ],
-  },
-
-  {
-    name: "Salary Management",
-    icon: <Icon icon="mdi:currency-usd-circle-outline" fontSize={24} />,
-    path: "/salary",
-    items: [
-      {
-        name: "Generate Payroll",
-        icon: <Icon icon="mdi:currency-usd-circle-outline" fontSize={20} />,
-        path: "/payroll",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <PayrollPage />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Payroll Schedule",
-        icon: <Icon icon="mdi:calendar-multiselect-outline" fontSize={20} />,
-        path: "/payrollperiods",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <PayrollPeriods />
-          </Suspense>
-        ),
-      },
-      {
         name: "Salary Structures",
-        icon: <Icon icon="mdi:cash-multiple" fontSize={20} />,
+        icon: <Icon icon="mdi:currency-usd" fontSize={20} />,
         path: "/salarystructures",
         element: (
           <Suspense fallback={<Loading />}>
@@ -126,29 +95,9 @@ const HUMAN_RESOURCE_ROUTES = [
           </Suspense>
         ),
       },
-      // {
-      //   name: "Bonus Types",
-      //   icon: <Icon icon="mdi:gift-outline" fontSize={20} />,
-      //   path: "/bonustypes",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <BonusTypes />
-      //     </Suspense>
-      //   ),
-      // },
-      // {
-      //   name: "Loan Types",
-      //   icon: <Icon icon="mdi:bank-outline" fontSize={20} />,
-      //   path: "/loantypes",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <LoanTypes />
-      //     </Suspense>
-      //   ),
-      // },
       {
         name: "Deduction Types",
-        icon: <Icon icon="mdi:percent-outline" fontSize={20} />,
+        icon: <Icon icon="mdi:chart-pie" fontSize={20} />,
         path: "/deductiontypes",
         element: (
           <Suspense fallback={<Loading />}>
@@ -158,7 +107,7 @@ const HUMAN_RESOURCE_ROUTES = [
       },
       {
         name: "Allowance Types",
-        icon: <Icon icon="mdi:wallet-outline" fontSize={20} />,
+        icon: <Icon icon="mdi:wallet-plus-outline" fontSize={20} />,
         path: "/allowancetypes",
         element: (
           <Suspense fallback={<Loading />}>
@@ -171,28 +120,189 @@ const HUMAN_RESOURCE_ROUTES = [
   {
     name: "Leave Management",
     icon: <Icon icon="mdi:beach" fontSize={24} />,
-    path: "/leave-management",
+    path: "",
     items: [
       {
-        name: "Leave Types",
-        icon: <Icon icon="mdi:beach" fontSize={20} />,
-        path: "/leavetypes",
+        name: "Leave Applications",
+        icon: <Icon icon="mdi:note-edit-outline" fontSize={20} />,
+        path: "/leaveapplications",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <LeaveApplications />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Balances and Carry Forwards",
+        icon: <Icon icon="mdi:scale-balance" fontSize={20} />,
+        path: "/balancesandcarryforwards",
         element: (
           <Suspense fallback={<Loading />}>
             <LeaveTypes />
           </Suspense>
         ),
       },
+      {
+        name: "Leave Types",
+        icon: <Icon icon="mdi:format-list-checks" fontSize={20} />,
+        path: "/leavetypes",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <LeaveTypes />
+          </Suspense>
+        ),
+      }      
     ],
   },
   {
+    name: "Attendance and Time Management",
+    icon: <Icon icon="mdi:clock-outline" fontSize={24} />,
+    path: "",
+    items: [
+      {
+        name: "Clock-in/out",
+        icon: <Icon icon="mdi:clock-start" fontSize={20} />,
+        path: "/attendencies",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Attendencies />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Time sheets",
+        icon: <Icon icon="mdi:calendar-text-outline" fontSize={20} />,
+        path: "/attendencies",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Attendencies />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Shift Management",
+        icon: <Icon icon="mdi:calendar-sync" fontSize={20} />,
+        path: "/attendencies",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Attendencies />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Overtime Calculation",
+        icon: <Icon icon="mdi:clock-alert-outline" fontSize={20} />,
+        path: "/attendencies",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Attendencies />
+          </Suspense>
+        ),
+      },
+    ],
+  },
+  // {
+  //   name: "Performance Management",
+  //   icon: <Icon icon="mdi:chart-box-outline" fontSize={24} />,
+  //   path: "",
+  //   items: [
+  //     {
+  //       name: "Goal Setting (KPIs)",
+  //       icon: <Icon icon="mdi:target" fontSize={20} />,
+  //       path: "/departments",
+  //       element: (
+  //         <Suspense fallback={<Loading />}>
+  //           <Departments />
+  //         </Suspense>
+  //       ),
+  //     },
+  //     {
+  //       name: "Self and Peer Reviews",
+  //       icon: <Icon icon="mdi:account-multiple-check" fontSize={20} />,
+  //       path: "/departments",
+  //       element: (
+  //         <Suspense fallback={<Loading />}>
+  //           <Departments />
+  //         </Suspense>
+  //       ),
+  //     },
+  //     {
+  //       name: "Manager Assessments",
+  //       icon: <Icon icon="mdi:account-star-outline" fontSize={20} />,
+  //       path: "/departments",
+  //       element: (
+  //         <Suspense fallback={<Loading />}>
+  //           <Departments />
+  //         </Suspense>
+  //       ),
+  //     },
+  //     {
+  //       name: "Appraisal Cycles and Ratings",
+  //       icon: <Icon icon="mdi:chart-arc" fontSize={20} />,
+  //       path: "/departments",
+  //       element: (
+  //         <Suspense fallback={<Loading />}>
+  //           <Departments />
+  //         </Suspense>
+  //       ),
+  //     },
+  //   ],
+  // },
+  // {
+  //   name: "Training and Development",
+  //   icon: <Icon icon="mdi:school-outline" fontSize={24} />,
+  //   path: "",
+  //   items: [
+  //     {
+  //       name: "Training Calendar",
+  //       icon: <Icon icon="mdi:calendar-month-outline" fontSize={20} />,
+  //       path: "/training-calendar",
+  //       element: (
+  //         <Suspense fallback={<Loading />}>
+  //           <Departments />
+  //         </Suspense>
+  //       ),
+  //     },
+  //     {
+  //       name: "Course Registration and Tracking",
+  //       icon: <Icon icon="mdi:notebook-edit-outline" fontSize={20} />,
+  //       path: "/course-registration-and-tracking",
+  //       element: (
+  //         <Suspense fallback={<Loading />}>
+  //           <Departments />
+  //         </Suspense>
+  //       ),
+  //     },
+  //     {
+  //       name: "Certification Tracking",
+  //       icon: <Icon icon="mdi:certificate-outline" fontSize={20} />,
+  //       path: "/certificate-tracking",
+  //       element: (
+  //         <Suspense fallback={<Loading />}>
+  //           <Departments />
+  //         </Suspense>
+  //       ),
+  //     },
+  //     {
+  //       name: "Skill Gap Analysis",
+  //       icon: <Icon icon="mdi:chart-box-plus-outline" fontSize={20} />,
+  //       path: "/skill-gap-analysis",
+  //       element: (
+  //         <Suspense fallback={<Loading />}>
+  //           <Departments />
+  //         </Suspense>
+  //       ),
+  //     },
+  //   ],
+  // },
+  {
     name: "More",
-    icon: <Icon icon="mdi:account-group-outline" fontSize={24} />,
-    path: "/hr",
+    icon: <Icon icon="mdi:dots-horizontal" fontSize={24} />,
+    path: "",
     items: [
       {
         name: "Departments",
-        icon: <Icon icon="mdi:office-building-outline" fontSize={20} />,
+        icon: <Icon icon="mdi:office-building-cog-outline" fontSize={20} />,
         path: "/departments",
         element: (
           <Suspense fallback={<Loading />}>
@@ -202,7 +312,7 @@ const HUMAN_RESOURCE_ROUTES = [
       },
       {
         name: "Designations",
-        icon: <Icon icon="mdi:account-tie-outline" fontSize={20} />,
+        icon: <Icon icon="mdi:badge-account-horizontal-outline" fontSize={20} />,
         path: "/designations",
         element: (
           <Suspense fallback={<Loading />}>

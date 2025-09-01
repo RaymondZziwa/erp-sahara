@@ -2,28 +2,40 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { Calendar } from "primereact/calendar";
 import { Dropdown } from "primereact/dropdown";
+import { Checkbox } from "primereact/checkbox";
 
 import { createRequest } from "../../../../utils/api";
 import useAuth from "../../../../hooks/useAuth";
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../../api/hrEndpoints";
-
-import { Allowance } from "../../../../redux/slices/types/hr/salary/Allowances";
-import useEmployees from "../../../../hooks/hr/useEmployees";
+import { Deduction } from "../../../../redux/slices/types/hr/salary/Deduction";
+import useAssetsAccounts from "../../../../hooks/accounts/useAssetsAccounts";
+import { InputTextarea } from "primereact/inputtextarea";
 import useAllowanceTypes from "../../../../hooks/hr/salary/useAllowanceTypes";
 
 interface AddOrModifyItemProps {
   visible: boolean;
   onClose: () => void;
-  item?: Allowance;
+  item?: Deduction;
   onSave: () => void;
 }
 
-const frequencyOptions = [
-  { label: "One-Time", value: "One-Time" },
-  { label: "Monthly", value: "Monthly" },
-  { label: "Yearly", value: "Yearly" },
+const classificationOptions = [
+  { label: "Income", value: "income" },
+  { label: "Expense", value: "expense" },
+  { label: "Payable", value: "payable" },
+  { label: "Asset", value: "asset" },
+];
+
+const calculationOptions = [
+  { label: "Amount", value: "amount" },
+  { label: "Percent", value: "percent" },
+];
+
+const deductionIsOptions = [
+  { label: "Mandatory", value: "mandatory" },
+  { label: "Optional", value: "optional" },
+  { label: "Adjustable", value: "adjustable" },
 ];
 
 const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
@@ -32,29 +44,39 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   item,
   onSave,
 }) => {
-  const [formState, setFormState] = useState<Partial<Allowance>>({
+  const [formState, setFormState] = useState<any>({
+    allowance_type_id: "",
+    is_tax: false,
+    accounting_classification: "expense",
+    account_id: null,
+    calculation_method: "amount",
+    deduction_is: "mandatory",
     amount: "",
+    name: "",
+    description: "",
     start_date: "",
     end_date: "",
     frequency: "One-Time",
+    employee_id: 0,
   });
+
+    const {
+      expenseAccounts,
+      cashAccounts,
+      payableAccounts,
+      incomeAccounts,
+    } = useAssetsAccounts();
+  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dateError, setDateError] = useState<string | null>(null);
 
   const { token } = useAuth();
-  const { data: employees } = useEmployees();
   const { data: allowanceTypes } = useAllowanceTypes();
 
   useEffect(() => {
     if (item) {
-      setFormState({ ...item });
-    } else {
-      setFormState({
-        amount: "",
-        start_date: "",
-        end_date: "",
-        frequency: "One-Time",
-      });
+      setFormState({ ...formState, ...item });
     }
   }, [item]);
 
@@ -62,39 +84,14 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    setFormState((prev: any) => ({ ...prev, [name]: value }));
   };
 
   const handleDropdownChange = (name: string, value: any) => {
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    setFormState((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const handleDateChange = (name: string, value: Date) => {
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value.toISOString().slice(0, 10), // Format the date as 'YYYY-MM-DD'
-    }));
 
-    if (name === "start_date" && formState.end_date) {
-      validateDates(value, new Date(formState.end_date));
-    } else if (name === "end_date" && formState.start_date) {
-      validateDates(new Date(formState.start_date), value);
-    }
-  };
-
-  const validateDates = (startDate: Date, endDate: Date) => {
-    if (endDate < startDate) {
-      setDateError("End date must be after the start date.");
-    } else {
-      setDateError(null); // Dates are valid
-    }
-  };
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -102,24 +99,35 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
     if (
       !formState.amount ||
-      !formState.employee_id ||
-      !formState.allowance_type_id ||
-      dateError
+      !formState.allowance_type_id
     ) {
       setIsSubmitting(false);
-      return; // Handle validation error here
+      return;
     }
 
-    const data = { ...formState };
+    const payload = {
+      allowance_type_id: formState.allowance_type_id,
+      is_tax: formState.is_tax,
+      accounting_classification: formState.accounting_classification,
+      account_id: formState.account_id,
+      calculation_method: formState.calculation_method,
+      deduction_is: formState.deduction_is,
+      amount: Number(formState.amount),
+      name: formState.name,
+      description: formState.description,
+    };
+
+    console.log("Payload to API:", payload);
+
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? HUMAN_RESOURCE_ENDPOINTS.ALLOWANCES.UPDATE(item.id.toString())
       : HUMAN_RESOURCE_ENDPOINTS.ALLOWANCES.ADD;
 
-    await createRequest(endpoint, token.access_token, data, onSave, method);
+    await createRequest(endpoint, token.access_token, payload, onSave, method);
     setIsSubmitting(false);
     onSave();
-    onClose(); // Close the modal after saving
+    onClose();
   };
 
   const footer = (
@@ -134,12 +142,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       />
       <Button
         loading={isSubmitting}
-        disabled={isSubmitting || !!dateError}
+        //disabled={isSubmitting}
         label={item?.id ? "Update" : "Submit"}
         icon="pi pi-check"
-        type="submit"
-        form="allowance-form"
+        //type="submit"
+        //form="deduction-form"
         size="small"
+        onClick={handleSave}
       />
     </div>
   );
@@ -148,97 +157,130 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     <Dialog
       header={item?.id ? "Edit Allowance" : "Add Allowance"}
       visible={visible}
-      style={{ width: "500px" }}
+      style={{ width: "600px" }}
       footer={footer}
       onHide={onClose}
     >
       <form
-        id="allowance-form"
-        onSubmit={handleSave}
+        id="deduction-form"
+        //onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
-        <div className="p-field">
-          <label htmlFor="employee">Employee</label>
+
+        {/* Deduction Type */}
+        <div>
+          <label>Allowance Type</label>
           <Dropdown
-            id="employee"
-            name="employee_id"
-            value={formState.employee_id || null}
-            options={employees?.map((employee) => ({
-              label: `${employee.first_name} ${employee.last_name}`,
-              value: employee.id,
-            }))}
-            onChange={(e) => handleDropdownChange("employee_id", e.value)}
-            required
-            className="w-full"
-            placeholder="Select an Employee"
-            filter
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="allowance_type_id">Allowance Type</label>
-          <Dropdown
-            id="allowance_type_id"
-            name="allowance_type_id"
             value={formState.allowance_type_id || null}
-            options={allowanceTypes?.map((type) => ({
-              label: type.name,
-              value: type.id,
+            options={allowanceTypes?.map((t) => ({
+              label: t.name,
+              value: t.id,
             }))}
-            onChange={(e) => handleDropdownChange("allowance_type_id", e.value)}
-            required
+            onChange={(e) =>
+              handleDropdownChange("allowance_type_id", e.value)
+            }
+            placeholder="Select Allowance Type"
             className="w-full"
-            placeholder="Select an Allowance Type"
           />
         </div>
-        <div className="p-field">
-          <label htmlFor="amount">Amount</label>
+        {/* Is Tax */}
+        <div className="flex items-center gap-2">
+          <Checkbox
+            checked={formState.is_tax}
+            onChange={(e) =>
+              handleDropdownChange("is_tax", e.checked ?? false)
+            }
+          />
+          <label>Is Tax?</label>
+        </div>
+          {/* Classification */}
+          <div>
+            <label>Accounting Classification</label>
+            <Dropdown
+              value={formState.accounting_classification}
+              options={classificationOptions}
+              onChange={(e) =>
+                handleDropdownChange("accounting_classification", e.value)
+              }
+              className="w-full"
+            />
+          </div>
+
+        {/* Account ID */}
+          <div>
+            <label>Account</label>
+            <Dropdown
+              value={formState.account_id || null}
+              options={
+                formState.accounting_classification === "income"
+                  ? incomeAccounts.map((a) => ({ label: a.name, value: a.id }))
+                  : formState.accounting_classification === "expense"
+                  ? expenseAccounts.map((a) => ({ label: a.name, value: a.id }))
+                  : formState.accounting_classification === "payable"
+                  ? payableAccounts.map((a) => ({ label: a.name, value: a.id }))
+                  : cashAccounts.map((a) => ({ label: a.name, value: a.id }))
+              }
+              onChange={(e) => handleDropdownChange("account_id", e.value)}
+              placeholder="Select an Account"
+              className="w-full"
+            />
+          </div>
+        {/* Calculation Method */}
+        <div>
+          <label>Calculation Method</label>
+          <Dropdown
+            value={formState.calculation_method}
+            options={calculationOptions}
+            onChange={(e) =>
+              handleDropdownChange("calculation_method", e.value)
+            }
+            className="w-full"
+          />
+        </div>
+
+        {/* Deduction Is */}
+        <div>
+          <label>Deduction Is</label>
+          <Dropdown
+            value={formState.deduction_is}
+            options={deductionIsOptions}
+            onChange={(e) => handleDropdownChange("deduction_is", e.value)}
+            className="w-full"
+          />
+        </div>
+
+        {/* Amount */}
+        <div>
+          <label>Amount</label>
           <InputText
-            id="amount"
             name="amount"
+            type="number"
             value={formState.amount || ""}
             onChange={handleInputChange}
-            required
-            type="number"
-            className="w-full"
           />
         </div>
-        <div className="p-field">
-          <label htmlFor="start_date">Start Date</label>
-          <Calendar
-            id="start_date"
-            value={formState.start_date ? new Date(formState.start_date) : null}
-            onChange={(e) => handleDateChange("start_date", e.value!)}
-            dateFormat="yy-mm-dd"
-            showIcon
-            required
-            className="w-full"
+
+
+        {/* Name */}
+        <div>
+          <label>Name</label>
+          <InputText
+            name="name"
+            value={formState.name || ""}
+            onChange={handleInputChange}
           />
         </div>
-        <div className="p-field">
-          <label htmlFor="end_date">End Date</label>
-          <Calendar
-            id="end_date"
-            value={formState.end_date ? new Date(formState.end_date) : null}
-            onChange={(e) => handleDateChange("end_date", e.value!)}
-            dateFormat="yy-mm-dd"
-            showIcon
-            required
-            className="w-full"
-          />
-          {dateError && <small className="p-error">{dateError}</small>}
-        </div>
-        <div className="p-field">
-          <label htmlFor="frequency">Frequency</label>
-          <Dropdown
-            id="frequency"
-            name="frequency"
-            value={formState.frequency}
-            options={frequencyOptions}
-            onChange={(e) => handleDropdownChange("frequency", e.value)}
-            required
-            className="w-full"
+
+        {/* Description */}
+        <div>
+          <label>Description</label>
+          <InputTextarea
+            name="description"
+            value={formState.description || ""}
+            onChange={handleInputChange}
           />
         </div>
+        
       </form>
     </Dialog>
   );

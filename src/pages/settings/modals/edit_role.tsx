@@ -3,6 +3,9 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { RootState } from "../../../redux/store";
 import { baseURL } from "../../../utils/api";
+import { Dialog } from "primereact/dialog";
+import { InputText } from "primereact/inputtext";
+import { Button } from "primereact/button";
 
 interface EditRoleModalProps {
   isOpen: boolean;
@@ -26,25 +29,17 @@ const EditRoleModal: React.FC<EditRoleModalProps> = ({
     name: "",
   });
 
-  // When selectedRole changes, update the formData to prefill the input.
   useEffect(() => {
     if (selectedRole) {
       setFormData({ name: selectedRole.name });
     }
   }, [selectedRole]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, name: e.target.value });
   };
 
-  const handleUpdateRole = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    e.preventDefault();
-
+  const handleUpdateRole = async () => {
     if (!formData.name) {
       toast.error("Role name is required!");
       return;
@@ -52,11 +47,10 @@ const EditRoleModal: React.FC<EditRoleModalProps> = ({
 
     try {
       setIsSubmitting(true);
-      // Replace the endpoint below with the appropriate one for your API.
       const response = await fetch(
         `${baseURL}/roles/${selectedRole?.id}/update`,
         {
-          method: "PUT", // Adjust the method if needed (PUT or PATCH might also be common)
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -73,55 +67,52 @@ const EditRoleModal: React.FC<EditRoleModalProps> = ({
       } else {
         toast.error(data.message || "Failed to update role");
       }
-      setIsSubmitting(false);
     } catch (error) {
       toast.error("An error occurred while updating the role.");
+    } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!isOpen || !selectedRole) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-auto z-50">
-      <div className="bg-white p-6 rounded mt-12 shadow-md w-[500px]">
-        <h2 className="text-xl font-bold mb-4">Edit Role</h2>
-        <form>
-          <div>
-            <label className="block text-gray-700 mb-1">Role Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded"
-              placeholder="Enter role name"
-            />
-          </div>
-        </form>
-        <div className="flex justify-end space-x-2 mt-4">
-          <button
-            type="button"
-            onClick={() => setIsOpen(false)}
-            className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            onClick={handleUpdateRole}
-            disabled={isSubmitting}
-            className={`px-4 py-2 rounded ${
-              isSubmitting
-                ? "bg-gray-200 text-white cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600"
-            }`}
-          >
-            {isSubmitting ? "Updating..." : "Update Role"}
-          </button>
-        </div>
+    <Dialog
+      visible={isOpen}
+      onHide={() => setIsOpen(false)}
+      header="Edit Role"
+      style={{ width: "400px" }}
+      modal
+      className="p-fluid"
+    >
+      <div className="mb-4">
+        <label htmlFor="roleName" className="block font-medium mb-2">
+          Role Name
+        </label>
+        <InputText
+          id="roleName"
+          value={formData.name}
+          onChange={handleInputChange}
+          placeholder="Enter role name"
+          className="w-full"
+        />
       </div>
-    </div>
+
+      <div className="flex justify-end gap-2">
+        {/* <Button
+          label="Cancel"
+          icon="pi pi-times"
+          className="p-button-text"
+          onClick={() => setIsOpen(false)}
+        /> */}
+        <Button
+          label={isSubmitting ? "Updating..." : "Update Role"}
+          icon="pi pi-check"
+          onClick={handleUpdateRole}
+          disabled={isSubmitting}
+          className="p-button-raised p-button-success"
+          style={{ backgroundColor: "#0d9488", borderColor: "#0d9488" }} // Teal
+        />
+      </div>
+    </Dialog>
   );
 };
 

@@ -96,6 +96,13 @@ const AddOrMOdifyItem: React.FC<AddOrModifyItemProps> = ({
 
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
+    setFormState({
+      employee: undefined,
+      leave_type_id: undefined,
+      start_date: "",
+      end_date: "",
+      reason: "",
+    });
     onSave();
     onClose(); // Close the modal after saving
   };

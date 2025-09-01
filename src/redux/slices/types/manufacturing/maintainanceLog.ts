@@ -1,16 +1,14 @@
 export interface MaintainanceLog {
   id: number;
   equipment_id: number;
-  maintenance_date: Date | null;
-  maintenance_end_date: Date | null;
-  performed_by: number;
+  maintenance_type: "preventive" | "corrective" | "predictive";
+  scheduled_date: Date | null;
+  completed_date: Date | null;
+  technician_id: string;
   description: string;
-  status: string;
+  actions_taken: string;
   created_at: string;
   updated_at: string;
-  equipment: Equipment;
-  available_capacity?: string;
-  mantenance_every_after: number;
 }
 
 interface Equipment {

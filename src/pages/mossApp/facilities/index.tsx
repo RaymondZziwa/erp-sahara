@@ -40,6 +40,14 @@ const Facilities: React.FC = () => {
       filter: true,
     },
     {
+      headerName: "Condition",
+      field: "conditions",
+      sortable: true,
+      filter: true,
+      valueGetter: (params) =>
+        params.data.conditions?.map((c: any) => c.name).join(", ") || "",
+    },    
+    {
       headerName: "Location",
       field: "location",
       sortable: true,

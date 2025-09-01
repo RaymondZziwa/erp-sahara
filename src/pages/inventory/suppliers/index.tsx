@@ -14,20 +14,15 @@ const Suppliers: React.FC = () => {
   const tableRef = useRef<any>(null);
 
   const [dialogState, setDialogState] = useState<{
-    selectedCategory: Supplier | undefined;
+    selectedSupplier: Supplier | undefined;
     currentAction: "delete" | "edit" | "add" | "";
-  }>({ selectedCategory: undefined, currentAction: "" });
+  }>({ selectedSupplier: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
 
   const columnDefinitions: ColDef<Supplier>[] = [
     {
       headerName: "Name",
-      field: "supplier_name",
+      field: "name",
       sortable: true,
       filter: true,
     },
@@ -45,7 +40,7 @@ const Suppliers: React.FC = () => {
     },
     {
       headerName: "Phone",
-      field: "phone_number",
+      field: "phone",
       sortable: true,
       filter: true,
     },
@@ -55,7 +50,14 @@ const Suppliers: React.FC = () => {
       sortable: true,
       filter: true,
     },
-
+    {
+      headerName: "Credit Limit",
+      field: "credit_limit",
+      sortable: true,
+      filter: true,
+      valueFormatter: (params) =>
+        params.value ? params.value.toLocaleString() : "",
+    },
     {
       headerName: "Actions",
       field: "id",
@@ -64,12 +66,12 @@ const Suppliers: React.FC = () => {
       cellRenderer: (params: ICellRendererParams<Supplier>) => (
         <div className="flex items-center gap-2">
           <button
-            className="bg-shade px-2 py-1 rounded text-white"
+            className="bg-shade px-2 rounded text-white h-10"
             onClick={() =>
               setDialogState({
                 ...dialogState,
                 currentAction: "edit",
-                selectedCategory: params.data,
+                selectedSupplier: params.data,
               })
             }
           >
@@ -80,12 +82,12 @@ const Suppliers: React.FC = () => {
               setDialogState({
                 ...dialogState,
                 currentAction: "delete",
-                selectedCategory: params.data,
+                selectedSupplier: params.data,
               })
             }
             icon="solar:trash-bin-trash-bold"
             className="text-red-500 cursor-pointer"
-            fontSize={20}
+            fontSize={24}
           />
         </div>
       ),
@@ -96,23 +98,23 @@ const Suppliers: React.FC = () => {
     <div>
       <AddOrModifyItem
         onSave={refresh}
-        item={dialogState.selectedCategory}
+        item={dialogState.selectedSupplier}
         visible={
-          dialogState.currentAction == "add" ||
-          (dialogState.currentAction == "edit" &&
-            !!dialogState.selectedCategory?.id)
+          dialogState.currentAction === "add" ||
+          (dialogState.currentAction === "edit" &&
+            !!dialogState.selectedSupplier?.id)
         }
         onClose={() =>
-          setDialogState({ currentAction: "", selectedCategory: undefined })
+          setDialogState({ currentAction: "", selectedSupplier: undefined })
         }
       />
       <ConfirmDeleteDialog
-        apiPath={`/people/suppliers/${dialogState.selectedCategory?.id}/delete`}
+        apiPath={`/people/suppliers/${dialogState.selectedSupplier?.id}/delete`}
         onClose={() =>
-          setDialogState({ selectedCategory: undefined, currentAction: "" })
+          setDialogState({ selectedSupplier: undefined, currentAction: "" })
         }
         visible={
-          !!dialogState.selectedCategory?.id &&
+          !!dialogState.selectedSupplier?.id &&
           dialogState.currentAction === "delete"
         }
         onConfirm={refresh}
@@ -127,7 +129,7 @@ const Suppliers: React.FC = () => {
             <button
               onClick={() =>
                 setDialogState({
-                  selectedCategory: undefined,
+                  selectedSupplier: undefined,
                   currentAction: "add",
                 })
               }
@@ -135,13 +137,6 @@ const Suppliers: React.FC = () => {
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add
-            </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
             </button>
           </div>
         </div>

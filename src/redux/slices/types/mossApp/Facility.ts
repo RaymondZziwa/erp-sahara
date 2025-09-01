@@ -6,5 +6,6 @@ export interface Facility {
   updated_at: null | string;
   deleted_at: null | string;
   logitude: null | string;
+  condition_id: null | string;
   latitude: null | string;
 }

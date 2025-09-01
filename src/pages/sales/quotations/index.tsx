@@ -10,6 +10,8 @@ import AddOrModifyItem from "./AddOrModifyItem";
 import { API_ENDPOINTS } from "../../../api/apiEndpoints";
 import useQuotations from "../../../hooks/sales/useQuotations";
 import { Quotation } from "../../../redux/slices/types/sales/Quotation";
+import { ToastContainer } from "react-toastify";
+import { SALES_ENDPOINTS } from "../../../api/salesEndpoints";
 
 const Quotations: React.FC = () => {
   const { data, refresh } = useQuotations();
@@ -28,52 +30,48 @@ const Quotations: React.FC = () => {
 
   const columnDefinitions: ColDef<Quotation>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
-      headerName: "Title",
+      headerName: "Customer",
       field: "title",
       sortable: true,
       filter: true,
-    },
-    {
-      headerName: "Total",
-      field: "total_amount",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Lead",
-      field: "lead.name",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Lead Phone",
-      field: "lead.phone",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Customer",
-      field: "customer.phone_number",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Items",
-      field: "id",
-      sortable: true,
-      filter: true,
-
       cellRenderer: (params: ICellRendererParams<Quotation>) => (
-        <div>{params.data?.quotation_items.length}</div>
-      ),
+             <div>{params.data?.customer?.first_name} {params.data?.customer?.last_name}</div>
+       ),
     },
+    {
+      headerName: "Issue Date",
+      field: "issue_date",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Expiry Date",
+      field: "expiry_date",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Quotation Number",
+      field: "quotation_number",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Status",
+      field: "status",
+      sortable: true,
+      filter: true,
+    },
+    // {
+    //   headerName: "Items",
+    //   field: "id",
+    //   sortable: true,
+    //   filter: true,
+
+    //   cellRenderer: (params: ICellRendererParams<Quotation>) => (
+    //     <div>{params.data?.quotation_items.length}</div>
+    //   ),
+    // },
 
     {
       headerName: "Actions",
@@ -94,7 +92,7 @@ const Quotations: React.FC = () => {
             className="text-blue-500 cursor-pointer"
             fontSize={20}
           />
-          <Icon
+          {/* <Icon
             onClick={() =>
               setDialogState({
                 ...dialogState,
@@ -105,7 +103,7 @@ const Quotations: React.FC = () => {
             icon="solar:check-square-line-duotone"
             className="text-green-500 cursor-pointer"
             fontSize={20}
-          />
+          /> */}
           <Icon
             onClick={() =>
               setDialogState({
@@ -125,6 +123,7 @@ const Quotations: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       {dialogState.currentAction !== "" && (
         <AddOrModifyItem
           onSave={refresh}
@@ -139,7 +138,7 @@ const Quotations: React.FC = () => {
         />
       )}
       <ConfirmDeleteDialog
-        apiPath={API_ENDPOINTS.REQUEST_FOR_QUOTATION.DELETE(
+        apiPath={SALES_ENDPOINTS.QUOTES.DELETE(
           dialogState?.selectedItem?.id.toString() ?? ""
         )}
         onClose={() =>
@@ -151,12 +150,12 @@ const Quotations: React.FC = () => {
         }
         onConfirm={refresh}
       />
-      <BreadCrump name="Qotations" pageName="Items" />
+      <BreadCrump name="Qotations" pageName="Quotations" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
             <h1 className="text-xl font-bold text-nowrap mr-2">
-              Quotations Table
+              Quotations
             </h1>
           </div>
           <div className="flex gap-2">
@@ -174,13 +173,13 @@ const Quotations: React.FC = () => {
                 Add Quotation
               </span>
             </button>
-            <button
+            {/* <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
               onClick={handleExportPDF}
             >
               <Icon icon="solar:printer-bold" fontSize={20} />
               Print
-            </button>
+            </button> */}
           </div>
         </div>
         <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />

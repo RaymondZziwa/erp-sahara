@@ -7,10 +7,7 @@ import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 
 import { WorkCenter } from "../../../redux/slices/types/manufacturing/WorkCenter";
-import { InputTextarea } from "primereact/inputtextarea";
 import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints";
-// import useUnitsOfMeasurement from "../../../hooks/inventory/useUnitsOfMeasurement";
-import { Dropdown } from "primereact/dropdown";
 import { toast } from "react-toastify";
 
 interface AddOrModifyItemProps {
@@ -28,27 +25,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 }) => {
   const [formState, setFormState] = useState<Partial<WorkCenter>>({
     name: "",
-    description: "",
     location: "",
-    capacity_per_day_uom: "", //Unit of measure unit or hours
-    capacity_per_day: 0,
+    process_type: ""
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { token } = useAuth();
-  // const { data: uom } = useUnitsOfMeasurement();
-  const uom = [
-    {
-      id: 1,
-      name: "hours",
-    },
-    {
-      id: 2,
-      name: "units",
-    },
-  ];
-  // console.log("uom", uom);
 
   useEffect(() => {
     if (item) {
@@ -77,8 +60,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         // Basic validation
         if (!formState.name ||
           !formState.location ||
-          !formState.capacity_per_day_uom ||
-          !formState.capacity_per_day
+          !formState.process_type
         ) {
           setIsSubmitting(false);
           toast.warn('Fill in all the mandatory fields');
@@ -87,8 +69,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       
         try {
           const data = {
-            ...formState,
-            capacity_per_day: Number(formState.capacity_per_day),
+            ...formState
           };
 
           const method = item?.id ? "PUT" : "POST";
@@ -100,13 +81,10 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           setFormState({
             name: "",
             location: "",
-            capacity_per_day_uom: "",
-            capacity_per_day: 0,
-            description: ""
+            process_type: ""
           });
       
           // Call onSave and onClose
-          //toast.success('Loan type created successfully')
           onSave();
           onClose(); // Close the modal after saving
         } catch (error) {
@@ -138,15 +116,10 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       />
     </div>
   );
-  const handleSelectChange = (name: keyof WorkCenter, value: any) => {
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
+
   return (
     <Dialog
-      header={item?.id ? "Edit Work Center" : "Add Work Center"}
+      header={item?.id ? "Edit Work Station" : "Add Work Station"}
       visible={visible}
       style={{ width: "400px" }}
       footer={footer}
@@ -182,43 +155,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             className="w-full"
           />
         </div>
-
         <div className="p-field">
-          <label htmlFor="capacity_per_day_uom">Capacity Per Day Units<span className="text-red-500">*</span></label>
-          <Dropdown
-            filter
-            id="capacity_per_day_uom"
-            name="capacity_per_day_uom"
-            value={formState.capacity_per_day_uom}
-            options={uom.map((center) => ({
-              value: center.name,
-              label: center.name,
-            }))}
-            required
-            onChange={(e) =>
-              handleSelectChange("capacity_per_day_uom", e.value)
-            }
-            placeholder="Select a unit"
-            className="w-full"
-          />
-        </div>
-
-        <div className="p-field">
-          <label htmlFor="capacity_per_day">Capacity Per Day<span className="text-red-500">*</span></label>
+          <label htmlFor="process_type">Process type<span className="text-red-500">*</span></label>
           <InputText
-            id="capacity_per_day"
-            name="capacity_per_day"
-            value={formState.capacity_per_day?.toString() || ""}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="description">Description</label>
-          <InputTextarea
-            id="description"
-            name="description"
-            value={formState.description || ""}
+            id="process_type"
+            name="process_type"
+            value={formState.process_type || ""}
             onChange={handleInputChange}
             className="w-full"
           />

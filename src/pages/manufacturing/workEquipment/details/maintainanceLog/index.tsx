@@ -33,33 +33,26 @@ const MaintainanceLogs: React.FC = () => {
 
   const columnDefinitions: ColDef<MaintainanceLog>[] = [
     {
-      headerName: "ID",
-      field: "id",
+      headerName: "Maintenance Type",
+      field: "maintenance_type",
       sortable: true,
       filter: true,
-      width: 100,
     },
     {
       headerName: "Equipment",
-      field: "equipment.name",
+      field: "machine.name",
       sortable: true,
       filter: true,
     },
     {
       headerName: "Maintanance Date",
-      field: "maintenance_date",
+      field: "scheduled_date",
       sortable: true,
       filter: true,
     },
     {
       headerName: "Maintenance End date",
-      field: "maintenance_date",
-      sortable: true,
-      filter: true,
-    },
-    {
-      headerName: "Status",
-      field: "status",
+      field: "completed_date",
       sortable: true,
       filter: true,
     },

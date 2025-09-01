@@ -3,18 +3,25 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { handleGenericError } from "./errorHandling";
 import { toast } from "react-toastify";
 import { ServerResponse } from "../redux/slices/types/ServerResponse";
-//export const baseURL = "https://latcuapidemo.efinanci.com/api"
-//export const baseURL = "https://latculive.efinanci.co.tz/api";
+//export const baseURL = "https://erpapi.mosmiles.org/api"
+//export const baseURL = "https://tcjeapi.verifin.co.tz/api"
+export const baseURL = "https://latcuapidemo.efinanci.com/api"
+//export const baseURL = "https://tcjeapi.verifin.co.tz/api"
+//export const baseURL = "https://latcuapi.efinanci.com/api";
 //export const baseURL = "https://saharaauth.efinanci.com/api";
 //export const baseURL = "https://shrecuapi.efinanci.com/api"
-export const baseURL = "https://latcuapi.efinanci.com/api"
+//export const baseURL = "https://latcuapidemo.efinanci.com/api"
+//export const baseURL = "https://mosappapi.mosmiles.org/api"
+//export const imageURL = "https://mosappapi.mosmiles.org/storage"
 //export const imageURL = "https://saharaauth.efinanci.com/storage"
-//export const imageURL = "https://latcuapidemo.efinanci.com/storage"
+//export const imageURL = "https://tcjeapi.verifin.co.tz/storage"
+export const imageURL = "https://latcuapidemo.efinanci.com/storage"
+//export const imageURL = "https://tcjeapi.verifin.co.tz/storage"
 //export const imageURL = "https://shrecuapi.efinanci.com/storage"
-export const imageURL = "https://latcuapi.efinanci.com/storage"
+//export const imageURL = "https://latcuapi.efinanci.com/storage"
 //export const baseURL = "https://latcu-api.efinanci.co.tz/api";
 //export const baseURL = "https://merp.efinanci.co.tz/api";
-export const baseURL2 = "https://saharaauth.efinanci.com/api";
+//export const baseURL2 = "https://latcu-api.efinanci.co.tz/api";
 //export const baseURL = "demo-api.efinanci.co.tz";
 // export const baseURL = "https://latcu-api.efinanci.co.tz/api"
 //export const baseURL = "https://shrecu-api.efinanci.co.tz/api"
@@ -50,11 +57,13 @@ export const apiRequest = async <T>(
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const data = error.response?.data;
-      if (error.response?.status === 401 || error.response?.status === 403) {
+      if (error.response?.status === 401) {
         if (data?.message) {
           toast.error(data.message);
         }
 
+       // window.location.href = "/login";
+      } else if (error.response?.status === 403) {
         //window.location.href = "/login";
       }
       throw error; // Rethrow the error for further handling if needed

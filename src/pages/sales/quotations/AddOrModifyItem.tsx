@@ -3,37 +3,44 @@ import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
-import { Dropdown, DropdownChangeEvent } from "primereact/dropdown";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-
+import { Dropdown } from "primereact/dropdown";
 import useItems from "../../../hooks/inventory/useItems";
 import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import useCurrencies from "../../../hooks/procurement/useCurrencies";
 import { Quotation } from "../../../redux/slices/types/sales/Quotation";
 import { SALES_ENDPOINTS } from "../../../api/salesEndpoints";
-import useCustomers from "../../../hooks/inventory/useCustomers";
 import useLeads from "../../../hooks/sales/useLeads";
+import useCustomers from "../../../hooks/sales/useCustomers";
+import useServices from "../../../hooks/procurement/useServices";
+import useUnitsOfMeasurement from "../../../hooks/inventory/useUnitsOfMeasurement";
+import useWarehouses from "../../../hooks/inventory/useWarehouses";
+import useOpportunities from "../../../hooks/sales/useOpportunities";
 
-interface QuotationAdd {
-  title: string;
-  customer_id: number;
-  currency_id: number;
-  issue_date: string;
-  expiry_date: string;
-  lead_id: number;
-  notes: string;
-  vat_rate: number | string;
-  items: Item[];
+interface QuotationItemPayload {
+  item_id?: string;
+  item_type: "item" | "service" | "custom";
+  name?: string;
+  description?: string;
+  quantity: number;
+  uom?: string;
+  unit_price: number;
+  currency_id?: string;
+  tax_rate?: number;
+  item_sku?: string;
+  warehouse_location?: string;
+  sort_order?: number;
 }
 
-interface Item {
-  item_id: number;
-  quantity: string | number;
-  unit_price: string;
-  currency_id: number;
-  notes: string;
+interface QuotationPayload {
+  q_type: "item" | "service" | "custom";
+  customer_id: string;
+  opportunity_id?: string;
+  issue_date: string;
+  expiry_date: string;
+  notes?: string;
+  status?: "draft" | "sent" | "accepted" | "rejected" | "expired";
+  items: QuotationItemPayload[];
 }
 
 interface AddOrModifyItemProps {
@@ -43,366 +50,445 @@ interface AddOrModifyItemProps {
   onSave: () => void;
 }
 
-const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
-  visible,
-  onClose,
-  item,
-  onSave,
-}) => {
-  const initialItem: QuotationAdd = {
-    title: "",
-    customer_id: 0,
-    currency_id: 0,
+const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({ visible, onClose, item, onSave }) => {
+  const [formState, setFormState] = useState<QuotationPayload>({
+    q_type: "item",
+    customer_id: "",
+    opportunity_id: undefined,
     issue_date: "",
     expiry_date: "",
-    lead_id: 0,
     notes: "",
-    vat_rate: 0,
+    status: "draft",
     items: [],
-  };
+  });
 
-  const [formState, setFormState] = useState<QuotationAdd>(initialItem);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const { data: currencies } = useCurrencies();
-  const { data: items } = useItems(); // Fetch items for dropdown
   const { data: customers } = useCustomers();
-  const { data: leads } = useLeads();
+  const { data: opportunities } = useOpportunities();
   const { token } = useAuth();
+  const { data: currencies } = useCurrencies();
+  const { data: services } = useServices();
+  const { data: items } = useItems();
+  const { data: uoms } = useUnitsOfMeasurement();
+  const { data: warehouses } = useWarehouses();
 
   useEffect(() => {
     if (item) {
       setFormState({
-        title: item.title ?? "",
-        customer_id: item.customer_id ?? 0,
-        currency_id: item.currency_id ?? 0,
+        q_type: "item",
+        customer_id: item.customer_id?.toString() ?? "",
+        opportunity_id: item.opportunity_id?.toString() ?? undefined,
         issue_date: item.issue_date ?? "",
         expiry_date: item.expiry_date ?? "",
-        lead_id: item.lead_id ?? 0,
         notes: item.notes ?? "",
-        vat_rate: item.vat_rate ?? 0,
-        items:
-          item.quotation_items?.map((item) => ({
-            currency_id: item.currency_id,
-            item_id: item.item_id,
-            notes: item.notes ?? "",
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-          })) ?? [],
+        status: item.status as QuotationPayload["status"] ?? "draft",
+        items: item.quotation_items?.map((qi, idx) => ({
+          item_id: qi.item_id,
+          item_type: "item",
+          name: qi.name,
+          description: qi.description,
+          quantity: qi.quantity,
+          uom: qi.uom,
+          unit_price: qi.unit_price,
+          currency_id: qi.currency_id,
+          tax_rate: qi.tax_rate,
+          item_sku: qi.item_sku,
+          warehouse_location: qi.warehouse_location,
+          sort_order: idx + 1,
+        })) ?? [],
       });
     } else {
-      setFormState(initialItem);
+      // Reset form when adding new
+      setFormState({
+        q_type: "item",
+        customer_id: "",
+        opportunity_id: undefined,
+        issue_date: "",
+        expiry_date: "",
+        notes: "",
+        status: "draft",
+        items: [],
+      });
     }
   }, [item]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+  const handleChange = (field: keyof QuotationPayload, value: any) => {
+    setFormState((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleDropdownChange = (
-    e: DropdownChangeEvent,
-    field: keyof QuotationAdd // Explicitly type the field
-  ) => {
-    setFormState((prevState) => ({
-      ...prevState,
-      [field]: e.value as QuotationAdd[typeof field], // Cast the value to the correct type
-    }));
-  };
-
-  const handleItemDropdownChange = (
-    e: DropdownChangeEvent,
-    index: number,
-    field: keyof Item // Explicitly type the field
-  ) => {
+  const handleItemChange = (index: number, field: keyof QuotationItemPayload, value: any) => {
     const updatedItems = [...formState.items];
-
-    // Check the field type and cast e.value accordingly
-    if (field === "quantity") {
-      updatedItems[index][field] = e.value as string | number;
-    } else if (field === "unit_price") {
-      updatedItems[index][field] = e.value as string;
-    } else if (field === "currency_id" || field === "item_id") {
-      updatedItems[index][field] = e.value as number;
-    } else if (field === "notes") {
-      updatedItems[index][field] = e.value as string;
+    updatedItems[index] = { ...updatedItems[index], [field]: value };
+    
+    // When item is selected, auto-fill its details
+    if (field === "item_id" && updatedItems[index].item_type === "item") {
+      const selectedItem = items.find(item => item.id === value);
+      if (selectedItem) {
+        updatedItems[index] = {
+          ...updatedItems[index],
+          name: selectedItem.name,
+          description: selectedItem.description,
+          unit_price: selectedItem.selling_price || 0,
+          item_sku: selectedItem.sku,
+          uom: selectedItem.uom,
+        };
+      }
     }
+    
+    // When service is selected, auto-fill its details
+    if (field === "item_id" && updatedItems[index].item_type === "service") {
+      const selectedService = services.find(service => service.id === value);
+      if (selectedService) {
+        updatedItems[index] = {
+          ...updatedItems[index],
+          name: selectedService.name,
+          description: selectedService.description,
+          unit_price: selectedService.price || 0,
+        };
+      }
+    }
+    
+    setFormState((prev) => ({ ...prev, items: updatedItems }));
+  };
 
-    setFormState((prevState) => ({
-      ...prevState,
-      items: updatedItems,
+  const addNewItem = () => {
+    setFormState((prev) => ({
+      ...prev,
+      items: [
+        ...prev.items,
+        {
+          item_type: prev.q_type,
+          name: "",
+          description: "",
+          quantity: 1,
+          unit_price: 0,
+          tax_rate: 0,
+          item_sku: "",
+          warehouse_location: "",
+          sort_order: prev.items.length + 1,
+        },
+      ],
     }));
   };
 
-  const handleAddItem = () => {
-    const newItem: Item = {
-      item_id: 0,
-      quantity: "",
-      unit_price: "",
-      currency_id: 0,
-      notes: "",
-    };
-    setFormState((prevState) => ({
-      ...prevState,
-      items: [...prevState.items, newItem],
-    }));
+  const removeItem = (index: number) => {
+    const updatedItems = formState.items.filter((_, i) => i !== index);
+    setFormState((prev) => ({ ...prev, items: updatedItems }));
   };
 
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setIsSubmitting(true);
-    const method = item?.id ? "PUT" : "POST";
-    const endpoint = item?.id
-      ? SALES_ENDPOINTS.QUOTES.UPDATE(item.id.toString())
-      : SALES_ENDPOINTS.QUOTES.ADD;
-    const data = item?.id ? { ...item, ...formState } : formState;
-
-    await createRequest(endpoint, token.access_token, data, onSave, method);
+    await createRequest(
+      item ? SALES_ENDPOINTS.QUOTES.UPDATE(item.id!) : SALES_ENDPOINTS.QUOTES.ADD,
+      token.access_token,
+      formState,
+      onSave,
+      item ? "PUT" : "POST"
+    );
     setIsSubmitting(false);
-    onSave();
-    onClose(); // Close the modal after saving
+    onClose();
   };
-
-  const footer = (
-    <div className="flex justify-end space-x-2">
-      <Button
-        label="Cancel"
-        icon="pi pi-times"
-        onClick={onClose}
-        className="p-button-text !bg-red-500 hover:bg-red-400"
-        size="small"
-        disabled={isSubmitting}
-      />
-      <Button
-        loading={isSubmitting}
-        label={item?.id ? "Update" : "Submit"}
-        icon="pi pi-check"
-        type="submit"
-        form="item-form"
-        size="small"
-      />
-    </div>
-  );
 
   return (
     <Dialog
-      header={item?.id ? "Edit Quotation" : "Add Quotation"}
+      header={item ? "Edit Quotation" : "Add Quotation"}
       visible={visible}
-      style={{ width: "800px" }}
-      footer={footer}
+      style={{ width: "700px" }}
       onHide={onClose}
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button label="Cancel" className="p-button-text bg-red-500" onClick={onClose} />
+          <Button label="Submit" loading={isSubmitting} type="submit" form="quotation-form" />
+        </div>
+      }
     >
-      <form
-        id="item-form"
-        onSubmit={handleSave}
-        className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4"
-      >
+      <form id="quotation-form" onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+        {/* Quotation Type */}
         <div className="p-field">
-          <label htmlFor="title">Title</label>
-          <InputText
-            id="title"
-            name="title"
-            value={formState.title}
-            onChange={handleInputChange}
-            required
-            className="w-full"
+          <label htmlFor="q_type" className="text-sm block mb-1">Quotation Type</label>
+          <Dropdown
+            id="q_type"
+            value={formState.q_type}
+            onChange={(e) => handleChange("q_type", e.value)}
+            options={[
+              { label: "Item", value: "item" },
+              { label: "Service", value: "service" },
+              { label: "Custom", value: "custom" },
+            ]}
+            placeholder="Select type"
+            className="w-full p-inputtext-sm"
           />
         </div>
 
+        {/* Status */}
         <div className="p-field">
-          <label htmlFor="customer_id">Customer</label>
+          <label htmlFor="status" className="text-sm block mb-1">Status</label>
           <Dropdown
-            id="customer_id"
+            id="status"
+            value={formState.status}
+            onChange={(e) => handleChange("status", e.value)}
+            options={[
+              { label: "Draft", value: "draft" },
+              { label: "Sent", value: "sent" },
+              { label: "Accepted", value: "accepted" },
+              { label: "Rejected", value: "rejected" },
+              { label: "Expired", value: "expired" },
+            ]}
+            placeholder="Select status"
+            className="w-full p-inputtext-sm"
+          />
+        </div>
+
+        {/* Customer */}
+        <div className="p-field">
+          <label className="text-sm block mb-1">Customer</label>
+          <Dropdown
             value={formState.customer_id}
-            onChange={(e) => handleDropdownChange(e, "customer_id")}
-            options={customers}
-            optionLabel="email"
-            optionValue="id"
-            placeholder="Select a customer"
-            filter
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="currency_id">Currency</label>
-          <Dropdown
-            id="currency_id"
-            value={formState.currency_id}
-            onChange={(e) => handleDropdownChange(e, "currency_id")}
-            options={currencies}
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Select a currency"
-            filter
-            className="w-full"
+            options={customers?.map((c) => ({
+              label: c.organization_name?.trim()
+                ? c.organization_name
+                : `${c.first_name} ${c.last_name}`,
+              value: c.id,
+            })) ?? []}
+            onChange={(e) => handleChange("customer_id", e.value)}
+            placeholder="Select Customer"
+            className="w-full p-inputtext-sm"
+            required
           />
         </div>
 
+        {/* Opportunity */}
         <div className="p-field">
-          <label htmlFor="issue_date">Issue Date</label>
+          <label className="text-sm block mb-1">Opportunity (Optional)</label>
+          <Dropdown
+            value={formState.opportunity_id}
+            options={opportunities?.map((l) => ({ label: l.title ?? l.id, value: l.id })) ?? []}
+            onChange={(e) => handleChange("opportunity_id", e.value)}
+            placeholder="Select Opportunity"
+            className="w-full p-inputtext-sm"
+          />
+        </div>
+
+        {/* Dates */}
+        <div className="p-field">
+          <label className="text-sm block mb-1">Issue Date</label>
           <InputText
-            id="issue_date"
-            name="issue_date"
             type="date"
             value={formState.issue_date}
-            onChange={handleInputChange}
+            onChange={(e) => handleChange("issue_date", e.target.value)}
+            className="w-full p-inputtext-sm"
             required
-            className="w-full"
           />
         </div>
-
         <div className="p-field">
-          <label htmlFor="expiry_date">Expiry Date</label>
+          <label className="text-sm block mb-1">Expiry Date</label>
           <InputText
-            id="expiry_date"
-            name="expiry_date"
             type="date"
             value={formState.expiry_date}
-            onChange={handleInputChange}
+            onChange={(e) => handleChange("expiry_date", e.target.value)}
+            className="w-full p-inputtext-sm"
             required
-            className="w-full"
-          />
-        </div>
-        <div className="p-field">
-          <label htmlFor="lead_id">Lead</label>
-          <Dropdown
-            id="lead_id"
-            value={formState.lead_id}
-            onChange={(e) => handleDropdownChange(e, "lead_id")}
-            options={leads}
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Select a lead"
-            filter
-            className="w-full"
           />
         </div>
 
-        <div className="p-field">
-          <label htmlFor="notes">Notes</label>
-          <InputTextarea
-            id="notes"
-            name="notes"
-            value={formState.notes}
-            onChange={handleInputChange}
-            className="w-full"
-          />
-        </div>
-
-        <div className="p-field">
-          <label htmlFor="vat_rate">VAT Rate (%)</label>
-          <InputText
-            id="vat_rate"
-            name="vat_rate"
-            type="number"
-            value={formState.vat_rate.toString()}
-            onChange={handleInputChange}
-            required
-            className="w-full"
-          />
-        </div>
-
+        {/* Notes */}
         <div className="p-field col-span-2">
-          <h3 className="font-semibold">Items</h3>
-          <DataTable
-            value={formState.items}
-            dataKey="index" // Use index as the unique key
-            className="p-datatable-customers"
-          >
-            <Column
-              header="Item"
-              body={(rowData, { rowIndex }) => (
-                <Dropdown
-                  value={rowData.item_id}
-                  options={items}
-                  onChange={(e) =>
-                    handleItemDropdownChange(e, rowIndex, "item_id")
-                  }
-                  optionLabel="name"
-                  optionValue="id"
-                  placeholder="Select Item"
-                />
-              )}
-            />
-            <Column
-              header="Quantity"
-              body={(rowData, { rowIndex }) => (
-                <InputText
-                  type="number"
-                  value={rowData.quantity}
-                  onChange={(e) => {
-                    const updatedItems = [...formState.items];
-                    updatedItems[rowIndex].quantity = e.target.value;
-                    setFormState((prevState) => ({
-                      ...prevState,
-                      items: updatedItems,
-                    }));
-                  }}
-                />
-              )}
-            />
-            <Column
-              header="Unit Price"
-              body={(rowData, { rowIndex }) => (
-                <InputText
-                  type="number"
-                  value={rowData.unit_price}
-                  onChange={(e) => {
-                    const updatedItems = [...formState.items];
-                    updatedItems[rowIndex].unit_price = e.target.value;
-                    setFormState((prevState) => ({
-                      ...prevState,
-                      items: updatedItems,
-                    }));
-                  }}
-                />
-              )}
-            />
-            <Column
-              header="Currency"
-              body={(rowData, { rowIndex }) => (
-                <Dropdown
-                  value={rowData.currency_id}
-                  options={currencies}
-                  onChange={(e) =>
-                    handleItemDropdownChange(e, rowIndex, "currency_id")
-                  }
-                  optionLabel="name"
-                  optionValue="id"
-                  placeholder="Select Currency"
-                />
-              )}
-            />
-            <Column
-              header="Notes"
-              body={(rowData, { rowIndex }) => (
-                <InputTextarea
-                  value={rowData.notes}
-                  onChange={(e) => {
-                    const updatedItems = [...formState.items];
-                    updatedItems[rowIndex].notes = e.target.value;
-                    setFormState((prevState) => ({
-                      ...prevState,
-                      items: updatedItems,
-                    }));
-                  }}
-                />
-              )}
-            />
-          </DataTable>
-          <Button
-            type="button"
-            label="Add Item"
-            icon="pi pi-plus"
-            className="p-button-text mt-2"
-            onClick={handleAddItem}
+          <label className="text-sm block mb-1">Notes</label>
+          <InputTextarea
+            value={formState.notes}
+            onChange={(e) => handleChange("notes", e.target.value)}
+            placeholder="Notes"
+            rows={2}
+            className="w-full p-inputtext-sm"
           />
+        </div>
+
+        {/* Items Section */}
+        <div className="col-span-2">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="font-bold text-lg">Items</h3>
+            <Button 
+              label="Add Item" 
+              icon="pi pi-plus" 
+              onClick={addNewItem} 
+              type="button" 
+              className="p-button-sm"
+            />
+          </div>
+          
+          {formState.items.map((it, idx) => (
+            <div key={idx} className="border p-3 mb-3 rounded-md relative">
+              <Button 
+                icon="pi pi-times" 
+                className="p-button-rounded p-button-text p-button-danger absolute top-1 right-1" 
+                onClick={() => removeItem(idx)}
+                tooltip="Remove item"
+                tooltipOptions={{ position: 'top' }}
+              />
+              
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                <div>
+                  <label className="text-sm block mb-1">Item Type</label>
+                  <div className="flex gap-4 text-sm">
+                    {["item", "service", "custom"].map((type) => (
+                      <label key={type} className="flex items-center gap-1">
+                        <input
+                          type="radio"
+                          name={`item_type_${idx}`}
+                          checked={it.item_type === type}
+                          onChange={() => handleItemChange(idx, "item_type", type)}
+                        />
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  {it.item_type === "item" && (
+                    <>
+                      <label className="text-sm block mb-1">Select Item</label>
+                      <Dropdown
+                        value={it.item_id}
+                        options={items?.map((item) => ({ 
+                          label: item.name ?? item.id, 
+                          value: item.id 
+                        })) ?? []}
+                        onChange={(e) => handleItemChange(idx, "item_id", e.value)}
+                        placeholder="Select Item"
+                        className="w-full p-inputtext-sm"
+                        required
+                      />
+                    </>
+                  )}
+                  {it.item_type === "service" && (
+                    <>
+                      <label className="text-sm block mb-1">Select Service</label>
+                      <Dropdown
+                        value={it.item_id}
+                        options={services?.map((srv) => ({ 
+                          label: srv.name ?? srv.id, 
+                          value: srv.id 
+                        })) ?? []}
+                        onChange={(e) => handleItemChange(idx, "item_id", e.value)}
+                        placeholder="Select Service"
+                        className="w-full p-inputtext-sm"
+                        required
+                      />
+                    </>
+                  )}
+                  {it.item_type === "custom" && (
+                    <>
+                      <label className="text-sm block mb-1">Custom Item Name</label>
+                      <InputText
+                        value={it.name}
+                        onChange={(e) => handleItemChange(idx, "name", e.target.value)}
+                        className="w-full p-inputtext-sm"
+                        required
+                      />
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 gap-2 mb-2">
+                <div>
+                  <label className="text-sm block mb-1">Description</label>
+                  <InputText
+                    value={it.description}
+                    onChange={(e) => handleItemChange(idx, "description", e.target.value)}
+                    className="w-full p-inputtext-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm block mb-1">Quantity</label>
+                  <InputText
+                    value={it.quantity}
+                    type="number"
+                    min="1"
+                    onChange={(e) => handleItemChange(idx, "quantity", parseFloat(e.target.value))}
+                    className="w-full p-inputtext-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-sm block mb-1">Unit Price</label>
+                  <InputText
+                    value={it.unit_price}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    onChange={(e) => handleItemChange(idx, "unit_price", parseFloat(e.target.value))}
+                    className="w-full p-inputtext-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-sm block mb-1">SKU</label>
+                  <InputText
+                    value={it.item_sku}
+                    onChange={(e) => handleItemChange(idx, "item_sku", e.target.value)}
+                    className="w-full p-inputtext-sm"
+                    disabled={it.item_type === "item"}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 gap-2">
+                <div>
+                  <label className="text-sm block mb-1">UOM (Unit of Measure)</label>
+                  <Dropdown
+                    value={it.uom}
+                    options={uoms?.map(uom => ({ label: uom.name, value: uom.code })) ?? []}
+                    onChange={(e) => handleItemChange(idx, "uom", e.value)}
+                    placeholder="Select UOM"
+                    className="w-full p-inputtext-sm"
+                    disabled={it.item_type === "item"}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm block mb-1">Currency</label>
+                  <Dropdown
+                    value={it.currency_id}
+                    options={currencies?.map(c => ({ 
+                      label: `${c.code}`, 
+                      value: c.id 
+                    })) ?? []}
+                    onChange={(e) => handleItemChange(idx, "currency_id", e.value)}
+                    placeholder="Select Currency"
+                    className="w-full p-inputtext-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-sm block mb-1">Tax Rate (%)</label>
+                  <InputText
+                    value={it.tax_rate || 0}
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    onChange={(e) => handleItemChange(idx, "tax_rate", parseFloat(e.target.value))}
+                    className="w-full p-inputtext-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm block mb-1">Warehouse</label>
+                  <Dropdown
+                    value={it.warehouse_location}
+                    options={warehouses?.map(wh => ({ 
+                      label: `${wh.name} (${wh.location})`, 
+                      value: wh.location 
+                    })) ?? []}
+                    onChange={(e) => handleItemChange(idx, "warehouse_location", e.value)}
+                    placeholder="Select Warehouse"
+                    className="w-full p-inputtext-sm"
+                    disabled={it.item_type !== "item"}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </form>
     </Dialog>

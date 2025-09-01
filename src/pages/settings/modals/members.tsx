@@ -186,7 +186,7 @@ function ApprovalMembers({
         <div className="bg-gray-50 px-4 py-3 flex justify-end">
           <button
             onClick={handleMembersState}
-            className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-teal-700 focus:outline-none"
+            className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none"
           >
             Close
           </button>

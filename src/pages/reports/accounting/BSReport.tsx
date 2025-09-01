@@ -8,6 +8,8 @@ import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import { apiRequest } from "../../../utils/api";
 import { format } from "date-fns";
 import Header from "../../../components/custom/print_header";
+import { PropagateLoader } from "react-spinners";
+import CustomReportHeader from "../../../components/custom/customReportHeader";
 
 interface Account {
   account_code: string;
@@ -42,6 +44,14 @@ const BalanceSheetReport = () => {
   const [loading, setLoading] = useState(true);
   const { token } = useAuth();
   const contentRef = useRef<HTMLDivElement>(null);
+  const today = new Date();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        const [filters, setFilters] = useState({
+          start_date: startOfMonth.toISOString().split("T")[0],
+          end_date: endOfMonth.toISOString().split("T")[0],
+        });
+  
 
   const fetchData = async () => {
     if (!token?.access_token) return;
@@ -95,25 +105,24 @@ const BalanceSheetReport = () => {
   const renderCategory = (category: Category, isChild = false) => (
     <div
       key={category.subcategory_name}
-      className={`mb-2 ${isChild ? "ml-6" : "bg-blue-50 rounded p-2"}`}
+      className={`mb-2 ${isChild ? "ml-6  rounded p-2" : " rounded p-2"}`}
     >
       <div className="flex items-center">
         <div
           className={`w-48 ${
-            isChild ? "font-normal" : "font-semibold text-blue-700"
+            isChild ? "font-semibold" : "font-semibold"
           }`}
         >
           {category.subcategory_name}
         </div>
         <div className="flex-1" />
         <div className="w-40 text-right pr-4 font-medium text-gray-800">
-          {formatCurrency(category.amount)}
+          {formatCurrency(category.subcategory_total)}
         </div>
       </div>
       {category.accounts?.map((account) => (
-        <div key={account.account_code} className="flex ml-6 text-gray-600">
-          <div className="w-16">{account.account_code}</div>
-          <div className="w-32">{account.account_name}</div>
+        <div key={account.account_code} className="flex flex-row ml-6 text-gray-600">
+          <div>{account.account_code}-{account.account_name}</div>
           <div className="flex-1" />
           <div className="w-40 text-right pr-4">
             {formatCurrency(account.balance)}
@@ -125,8 +134,8 @@ const BalanceSheetReport = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex justify-center items-center h-screen">
+       <PropagateLoader color="#007f80"/>
       </div>
     );
   }
@@ -142,32 +151,28 @@ const BalanceSheetReport = () => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-blue-800">Balance Sheet</h1>
-        <button
-          onClick={printPdf}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition"
-        >
-          <Icon icon="solar:printer-bold" fontSize={20} />
-          Export as PDF
-        </button>
+      <CustomReportHeader />
+      <div className="flex flex-row justify-center items-center mt-20">
+      <Header title="Balance Sheet Report" />
       </div>
+      {(filters.start_date || filters.end_date) && (
+                <div className="text-center mb-4 text-sm text-gray-600">
+                  Showing data from {filters.start_date || "the beginning"} to{" "}
+                  {filters.end_date || "now"}
+                </div>
+              )}
 
       <div ref={contentRef} className="text-sm font-sans space-y-10">
-        <div className="text-center">
-          <Header title="Balance Sheet Report" />
-        </div>
-
         {/* Assets */}
         <section>
-          <div className="border-b-2 border-blue-200 pb-2 mb-4">
-            <h2 className="text-lg font-bold text-blue-700">ASSETS</h2>
+          <div className=" pb-2 mb-4 bg-teal-500 p-2">
+            <h2 className="text-lg font-bold text-white">ASSETS</h2>
           </div>
           {assets.map((cat) => renderCategory(cat))}
           <div className="flex border-t-2 border-gray-300 pt-3 mt-4 font-bold text-gray-900">
-            <div className="w-48">TOTAL ASSETS</div>
+            <div className="w-48 text-lg">TOTAL ASSETS</div>
             <div className="flex-1" />
-            <div className="w-40 text-right pr-4">
+            <div className="w-40 text-right pr-4 text-lg">
               {formatCurrency(totals.assets)}
             </div>
           </div>
@@ -175,64 +180,63 @@ const BalanceSheetReport = () => {
 
         {/* Liabilities & Equity */}
         <section>
-          <div className="border-b-2 border-purple-200 pb-2 mb-4">
-            <h2 className="text-lg font-bold text-purple-700">
+          <div className="pb-2 mb-4">
+            <h2 className="text-lg font-bold text-white bg-teal-500 p-2">
               LIABILITIES & EQUITY
             </h2>
           </div>
 
           <div className="mb-6">
-            <h3 className="font-semibold mb-2 text-purple-600">LIABILITIES</h3>
+            <h3 className="font-semibold mb-2 text-sm">LIABILITIES</h3>
             {liabilities.map((cat) => renderCategory(cat, true))}
 
-            <div className="flex border-t border-gray-200 pt-2 mt-2 font-semibold text-gray-800">
-              <div className="w-48">TOTAL LIABILITIES</div>
+            <div className="flex border-t border-gray-200 pt-2 mt-2 font-bold text-gray-800">
+              <div className="w-48 text-md">TOTAL LIABILITIES</div>
               <div className="flex-1" />
-              <div className="w-40 text-right pr-4">
+              <div className="w-40 text-right pr-4 text-lg">
                 {formatCurrency(
-                  liabilities.reduce((sum, cat) => sum + cat.amount, 0)
+                  liabilities.reduce((sum, cat) => sum + cat.subcategory_total, 0)
                 )}
               </div>
             </div>
           </div>
 
           <div className="mb-6">
-            <h3 className="font-semibold mb-2 text-purple-600">EQUITY</h3>
-            {equity.map((cat) => renderCategory(cat, true))}
+            <h3 className="font-semibold mb-2 text-sm">EQUITY</h3>
+            {equity.length > 0 ? equity.map((cat) => renderCategory(cat, true)) : (
+              <div className="grid grid-cols-2 gap-1 mb-2 ml-4 text-md">
+                <div className="text-gray-600">No equity</div>
+                <div className={`text-right font-medium pr-4`}>
+                  0
+                </div>
+              </div>
+            )}
 
-            <div className="flex border-t border-gray-200 pt-2 mt-2 font-semibold text-gray-800">
-              <div className="w-48">TOTAL EQUITY</div>
+            <div className="flex border-t border-gray-200 pt-2 mt-2 font-bold text-gray-800">
+              <div className="w-48 text-md">TOTAL EQUITY</div>
               <div className="flex-1" />
-              <div className="w-40 text-right pr-4">
+              <div className="w-40 text-right text-lg pr-4">
                 {formatCurrency(
-                  equity.reduce((sum, cat) => sum + cat.amount, 0)
+                  equity.reduce((sum, cat) => sum + cat.subcategory_total, 0)
                 )}
               </div>
             </div>
           </div>
 
-          <div className="flex mb-2 text-gray-700">
-            <div className="w-48">Current Year Profit/Loss</div>
+          <div className="flex mb-2 text-gray-700 text-semibold">
+            <div className="w-48 text-md">Current Year Profit/Loss</div>
             <div className="flex-1" />
-            <div className="w-40 text-right pr-4">
-              {formatCurrency(current_profit_or_loss)}
+            <div className="w-40 text-right text-md pr-4">
+             ({formatCurrency(current_profit_or_loss)})
             </div>
           </div>
 
           <div className="flex border-t-2 border-gray-300 pt-2 mt-4 font-bold text-gray-900">
-            <div className="w-48">TOTAL LIABILITIES & EQUITY</div>
+            <div className="w-58 text-lg">TOTAL LIABILITIES & EQUITY</div>
             <div className="flex-1" />
-            <div className="w-40 text-right pr-4">
+            <div className="w-40 text-right text-lg pr-4">
               {formatCurrency(totals.liabilities_equity)}
             </div>
-          </div>
-        </section>
-
-        {/* Footer */}
-        <footer className="pt-6 mt-10 border-t border-gray-300 text-sm text-gray-500">
-          <div>
-            Generated on{" "}
-            {format(new Date(metadata.generated_at || new Date()), "PPpp")}
           </div>
           <div
             className={`mt-1 font-medium ${
@@ -243,8 +247,13 @@ const BalanceSheetReport = () => {
               ? "✓ Accounting equation balanced (Assets = Liabilities + Equity)"
               : "✗ Accounting equation not balanced"}
           </div>
-        </footer>
+        </section>
+
+        {/* Footer */}
       </div>
+      <div className="p-4 text-sm text-gray-500 text-center border-t border-gray-200">
+          **Amount is being displayed in your base currency
+        </div>
     </div>
   );
 };

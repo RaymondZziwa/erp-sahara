@@ -30,10 +30,8 @@ const initialState: UserAuthType & { isFetchingLocalToken: boolean } = {
     two_factor_expires_at: null,
     is_first_login: false,
     full_name: "",
-    roles: [],
   },
   package: null,
-  role: "",
   permissions: [],
   organisation: {
     id: 0,
@@ -46,6 +44,7 @@ const initialState: UserAuthType & { isFetchingLocalToken: boolean } = {
     logo: "",
     country_id: 0,
     subscription_state_id: 0,
+    services: [],
     subscription_start_at: null,
     subscription_end_at: null,
     beneficiary_language_text: "",
@@ -92,4 +91,5 @@ export const {
   startFetchingLocalToken,
   finishFetchingLocalToken,
 } = userAuthSlice.actions;
+
 export default userAuthSlice.reducer;

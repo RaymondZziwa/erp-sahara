@@ -133,15 +133,17 @@ const BudgetItemsModal: React.FC<Props> = ({
                 onChange={(e) =>
                   handleItemChange(index, "name", e.target.value)
                 }
+                className="p-inputtext-sm"
               />
               <Dropdown
                 placeholder="Type"
                 value={item.type}
                 options={[
-                  { label: "Expense", value: "expense" },
-                  { label: "Revenue", value: "revenue" },
+                  { label: "Expense", value: "Expense" },
+                  { label: "Revenue", value: "Revenue" },
                 ]}
                 onChange={(e) => handleItemChange(index, "type", e.value)}
+                className="p-inputtext-sm"
               />
               <Dropdown
                 filter
@@ -154,6 +156,7 @@ const BudgetItemsModal: React.FC<Props> = ({
                   handleItemChange(index, "chart_of_account_id", e.value)
                 }
                 placeholder="Select Account"
+                className="p-inputtext-sm"
               />
 
               <InputNumber
@@ -162,6 +165,7 @@ const BudgetItemsModal: React.FC<Props> = ({
                 onValueChange={(e) =>
                   handleItemChange(index, "amount", e.value || "")
                 }
+                className="p-inputtext-sm"
               />
               {/* <InputText
                 placeholder="Description"

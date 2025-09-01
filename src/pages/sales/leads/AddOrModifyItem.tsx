@@ -9,6 +9,7 @@ import useAuth from "../../../hooks/useAuth";
 
 import { Lead } from "../../../redux/slices/types/sales/Leads";
 import { SALES_ENDPOINTS } from "../../../api/salesEndpoints";
+import { InputTextarea } from "primereact/inputtextarea";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -66,7 +67,14 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();
-    onClose(); // Close the modal after saving
+    onClose();
+    setFormState({
+      name: "",
+      status: "new",
+      email: "",
+      phone: "",
+      notes: ""
+    })
   };
 
   const footer = (
@@ -104,20 +112,23 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
+        <p className="mb-1 text-sm text-gray-600">
+        Fields marked with <span className="text-red-500">*</span> are required.
+      </p>
         <div className="p-field">
-          <label htmlFor="name">Name</label>
+          <label htmlFor="name" className="text-sm">Name<span className="text-red-500">*</span></label>
           <InputText
             id="name"
             name="name"
             value={formState.name || ""}
             onChange={handleInputChange}
             required
-            className="w-full"
+            className="w-full p-inputtext-sm"
           />
         </div>
 
         <div className="p-field">
-          <label>Status</label>
+          <label className="text-sm">Status<span className="text-red-500">*</span></label>
           {["new", "contacted", "qualified", "converted"].map((status) => (
             <div key={status} className="flex align-items-center">
               <RadioButton
@@ -137,34 +148,35 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
 
         <div className="p-field">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email" className="text-sm">Email<span className="text-red-500">*</span></label>
           <InputText
             id="email"
             name="email"
             value={formState.email || ""}
             onChange={handleInputChange}
-            className="w-full"
+            className="w-full p-inputtext-sm"
           />
         </div>
         <div className="p-field">
-          <label htmlFor="phone">Phone</label>
+          <label htmlFor="phone" className="text-sm">Phone<span className="text-red-500">*</span></label>
           <InputText
             id="phone"
             name="phone"
             value={formState.phone || ""}
             onChange={handleInputChange}
-            className="w-full"
+            className="w-full p-inputtext-sm"
           />
         </div>
 
         <div className="p-field">
-          <label htmlFor="notes">Notes</label>
-          <InputText
+          <label htmlFor="notes" className="text-sm">Notes</label>
+          <InputTextarea
+            rows={3}
             id="notes"
             name="notes"
             value={formState.notes || ""}
             onChange={handleInputChange}
-            className="w-full"
+            className="w-full p-inputtext-sm"
           />
         </div>
       </form>

@@ -5,32 +5,16 @@ import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
 import { Calendar } from "primereact/calendar";
 import useAuth from "../../../../hooks/useAuth";
-import useProductionLines from "../../../../hooks/manufacturing/workCenter/useProductionLines";
-import { ProductionPlanSchedule } from "../../../../redux/slices/types/manufacturing/ProductionPlanSchedule";
+import useEquipment from "../../../../hooks/manufacturing/workCenter/useEquipment";
 import { MANUFACTURING_ENDPOINTS } from "../../../../api/manufacturingEndpoints";
 import { createRequest } from "../../../../utils/api";
-import useWorkCenterOrders from "../../../../hooks/manufacturing/workCenter/useWorkCentersOrders";
-import useEquipment from "../../../../hooks/manufacturing/workCenter/useEquipment";
+import useEmployees from "../../../../hooks/hr/useEmployees";
 
 interface AddOrModifyItemProps {
   visible: boolean;
   onClose: () => void;
-  item?: ProductionPlanSchedule;
+  item?: any;
   onSave: () => void;
-  productionPlanId: string;
-}
-
-interface ProductionPlanScheduleAdd {
-  production_plan_id: number;
-  schedules: Schedule[];
-}
-
-interface Schedule {
-  work_order_id: number;
-  machine_id: number;
-  start_time: string;
-  end_time: string;
-  description: string;
 }
 
 const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
@@ -38,67 +22,49 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   onClose,
   item,
   onSave,
-  productionPlanId,
 }) => {
-  const [formState, setFormState] = useState<
-    Partial<ProductionPlanScheduleAdd>
-  >({
-    schedules: [],
+  const [formState, setFormState] = useState({
+    machine_id: "",
+    quantity: "",
+    start_time: "",
+    end_time: "",
+    shift: "",
+    assigned_operator_id: "",
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { token } = useAuth();
-  const { data: productionPlans, loading: productionPlansLoading } =
-    useProductionLines();
-  const { data: workOrders, loading: workOrdersLoading } =
-    useWorkCenterOrders();
   const { data: equipment, loading: equipmentLoading } = useEquipment();
+  const { data: operators, loading: operatorsLoading } = useEmployees()
 
   useEffect(() => {
     if (item) {
-      setFormState({ ...item });
+      setFormState({
+        machine_id: item.machine_id || "",
+        quantity: item.quantity || "",
+        start_time: item.start_time || "",
+        end_time: item.end_time || "",
+        shift: item.shift || "",
+        assigned_operator_id: item.assigned_operator_id || "",
+      });
     } else {
-      setFormState({ schedules: [] });
+      setFormState({
+        machine_id: "",
+        quantity: "",
+        start_time: "",
+        end_time: "",
+        shift: "",
+        assigned_operator_id: "",
+      });
     }
   }, [item]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | any>,
-    index?: number
-  ) => {
+  const handleInputChange = (e: any) => {
     const { name, value } = e.target;
-
-    if (index !== undefined) {
-      const updatedSchedules = [...(formState.schedules || [])];
-      updatedSchedules[index] = {
-        ...updatedSchedules[index],
-        [name]: value,
-      };
-      setFormState((prevState) => ({
-        ...prevState,
-        schedules: updatedSchedules,
-      }));
-    } else {
-      setFormState((prevState) => ({
-        ...prevState,
-        [name]: value,
-      }));
-    }
-  };
-
-  const handleDateChange = (
-    value: Date,
-    field: "start_time" | "end_time",
-    index: number
-  ) => {
-    const updatedSchedules = [...(formState.schedules || [])];
-    updatedSchedules[index] = {
-      ...updatedSchedules[index],
-      [field]: value.toISOString(),
-    };
     setFormState((prevState) => ({
       ...prevState,
-      schedules: updatedSchedules,
+      [name]: value,
     }));
   };
 
@@ -106,78 +72,26 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!formState.production_plan_id || !formState.schedules?.length) {
-      setIsSubmitting(false);
-      return;
-    }
-
-    const data: Partial<ProductionPlanScheduleAdd> = {
-      ...formState,
-      production_plan_id: Number(productionPlanId),
-      schedules: formState.schedules.map((schedule) => ({
-        ...schedule,
-        start_time: new Date(schedule.start_time).toISOString().slice(0, 10),
-        end_time: new Date(schedule.end_time).toISOString().slice(0, 10),
-      })),
+    const payload = {
+      machine_id: formState.machine_id,
+      quantity: Number(formState.quantity),
+      start_time: formState.start_time,
+      end_time: formState.end_time,
+      shift: formState.shift,
+      assigned_operator_id: formState.assigned_operator_id,
     };
 
-    const updateData = {
-      production_plan_id: Number(productionPlanId),
-      machine_id: formState.schedules[0].machine_id,
-      start_time: new Date(formState.schedules[0].start_time)
-        .toISOString()
-        .slice(0, 10),
-      end_time: new Date(formState.schedules[0].end_time)
-        .toISOString()
-        .slice(0, 10),
-      description: formState.schedules[0].description,
-      work_order_id: formState.schedules[0].work_order_id,
-    };
-
-    let actualData = item?.id ? updateData : data;
-    console.log("actualData", actualData);
-
-    const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
-      ? MANUFACTURING_ENDPOINTS.PRODUCTION_PLAN_SCHEDULES.UPDATE(
-          item.id.toString()
-        )
+      ? MANUFACTURING_ENDPOINTS.PRODUCTION_PLAN_SCHEDULES.UPDATE(item.id.toString())
       : MANUFACTURING_ENDPOINTS.PRODUCTION_PLAN_SCHEDULES.ADD;
 
-    await createRequest(
-      endpoint,
-      token.access_token,
-      actualData,
-      onSave,
-      method
-    );
+    const method = item?.id ? "PUT" : "POST";
+
+    await createRequest(endpoint, token.access_token, payload, onSave, method);
+
     setIsSubmitting(false);
     onSave();
     onClose();
-  };
-
-  const addScheduleItem = () => {
-    setFormState((prevState) => ({
-      ...prevState,
-      schedules: [
-        ...(prevState.schedules || []),
-        {
-          work_order_id: 0,
-          machine_id: 0,
-          start_time: "",
-          end_time: "",
-          description: "",
-        },
-      ],
-    }));
-  };
-
-  const removeScheduleItem = (index: number) => {
-    const updatedSchedules = formState.schedules?.filter((_, i) => i !== index);
-    setFormState((prevState) => ({
-      ...prevState,
-      schedules: updatedSchedules,
-    }));
   };
 
   const footer = (
@@ -204,7 +118,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
   return (
     <Dialog
-      header={item?.id ? "Edit Plan Schedule" : "Add Plan Schedule"}
+      header={item?.id ? "Edit Machine Assignment" : "Assign Machine to Operator"}
       visible={visible}
       className="w-full sm:w-4/5 md:w-1/2"
       footer={footer}
@@ -215,92 +129,78 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         onSubmit={handleSave}
         className="space-y-4 grid grid-cols-1 gap-4"
       >
-        <div className="flex flex-col space-y-2">
-          <label htmlFor="production_plan_id" className="text-lg font-medium">
-            Production Plan
-          </label>
-          <Dropdown
-            id="production_plan_id"
-            name="production_plan_id"
-            value={formState.production_plan_id}
-            options={productionPlans.map((item) => ({
-              value: item.id,
-              label: item.name,
-            }))}
-            required
-            filter
-            loading={productionPlansLoading}
-            onChange={(e) => handleInputChange(e as any)}
-            placeholder="Select an Item"
-            className="w-full"
-          />
-        </div>
+        <Dropdown
+          name="machine_id"
+          value={formState.machine_id}
+          options={equipment.map((item) => ({
+            value: item.id,
+            label: item.name,
+          }))}
+          onChange={handleInputChange}
+          placeholder="Select Machine"
+          filter
+          loading={equipmentLoading}
+          className="w-full"
+        />
 
-        <div className="flex flex-col space-y-2">
-          <label className="text-lg font-medium">Schedule Items</label>
-          {formState.schedules?.map((bomItem, index) => (
-            <div
-              key={index}
-              className="grid grid-cols-1 sm:grid-cols-6 gap-4 items-end"
-            >
-              <Dropdown
-                name="work_order_id"
-                loading={workOrdersLoading}
-                value={bomItem.work_order_id}
-                options={workOrders.map((item) => ({
-                  value: item.id,
-                  label: item.order_number,
-                }))}
-                onChange={(e) => handleInputChange(e as any, index)}
-                placeholder="Work Order"
-              />
-              <Dropdown
-                name="machine_id"
-                loading={equipmentLoading}
-                value={bomItem.machine_id}
-                options={equipment.map((item) => ({
-                  value: item.id,
-                  label: item.name,
-                }))}
-                onChange={(e) => handleInputChange(e as any, index)}
-                placeholder="Machine"
-              />
-              <Calendar
-                value={new Date(bomItem.start_time)}
-                onChange={(e) =>
-                  handleDateChange(e.value as Date, "start_time", index)
-                }
-                placeholder="Start Time"
-              />
-              <Calendar
-                value={new Date(bomItem.end_time)}
-                onChange={(e) =>
-                  handleDateChange(e.value as Date, "end_time", index)
-                }
-                placeholder="End Time"
-              />
-              <InputText
-                name="description"
-                value={bomItem.description}
-                onChange={(e) => handleInputChange(e, index)}
-                placeholder="Description"
-              />
-              <Button
-                type="button"
-                icon="pi pi-trash"
-                onClick={() => removeScheduleItem(index)}
-                className="p-button-danger !bg-red-500"
-              />
-            </div>
-          ))}
-          <Button
-            type="button"
-            label="Add Schedule"
-            icon="pi pi-plus"
-            onClick={addScheduleItem}
-            className="p-button-info mt-2 w-max"
-          />
-        </div>
+        <Dropdown
+          name="assigned_operator_id"
+          value={formState.assigned_operator_id}
+          options={operators.map((op) => ({
+            value: op.id,
+            label: op.name,
+          }))}
+          onChange={handleInputChange}
+          placeholder="Select Operator"
+          filter
+          loading={operatorsLoading}
+          className="w-full"
+        />
+
+        <InputText
+          name="quantity"
+          value={formState.quantity}
+          onChange={handleInputChange}
+          placeholder="Quantity"
+        />
+
+        <Dropdown
+          name="shift"
+          value={formState.shift}
+          options={[
+            { label: "Morning", value: "morning" },
+            { label: "Evening", value: "evening" },
+            { label: "Night", value: "night" },
+          ]}
+          onChange={handleInputChange}
+          placeholder="Select Shift"
+        />
+
+        <Calendar
+          value={formState.start_time ? new Date(formState.start_time) : null}
+          onChange={(e) =>
+            setFormState((prev) => ({
+              ...prev,
+              start_time: (e.value as Date).toISOString(),
+            }))
+          }
+          showTime
+          showIcon
+          placeholder="Start Time"
+        />
+
+        <Calendar
+          value={formState.end_time ? new Date(formState.end_time) : null}
+          onChange={(e) =>
+            setFormState((prev) => ({
+              ...prev,
+              end_time: (e.value as Date).toISOString(),
+            }))
+          }
+          showTime
+          showIcon
+          placeholder="End Time"
+        />
       </form>
     </Dialog>
   );

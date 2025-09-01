@@ -26,7 +26,7 @@ const CashBook = () => {
   const reactToPrintFn = async () => {
     try {
       const response = await axios.get(
-        `${baseURL}reports/accounting/cashbook-download/2025-01-01/2025-04-28`,
+        `${baseURL}reports/accounting/cashbook-download/2025-01-01/2025-12-28`,
         {
           headers: {
             Authorization: `Bearer ${token.access_token}`,
@@ -57,7 +57,8 @@ const CashBook = () => {
         "GET",
         token.access_token
       );
-      setCashBookData(response.data);
+      console.log('neres', response)
+      setCashBookData(response.transactions);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {

@@ -9,34 +9,63 @@ export default function InventoryDashboard() {
   const token = useSelector(
     (state: RootState) => state.userAuth.token.access_token
   );
+
   const [liveFeed, setLiveFeed] = useState<any[]>([]);
   const [warehouseSales, setWarehouseSales] = useState<any[]>([]);
-  const [salesSummary, setSalesSummary] = useState<any>();
+  const [salesSummary, setSalesSummary] = useState<any>(null);
 
+  // Fetch Sales Summary
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [salesRes, warehouseRes, liveFeedRes] = await Promise.all([
-          axios.get(`${baseURL}/reports/dashboard/sales_summary`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`${baseURL}/reports/dashboard/warehousesales`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`${baseURL}/reports/dashboard/livefeeds`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+    if (!token) return;
 
-        setSalesSummary(salesRes.data.data);
-        setWarehouseSales(warehouseRes.data.data);
-        setLiveFeed(liveFeedRes.data.data);
+    const fetchSalesSummary = async () => {
+      try {
+        const response = await axios.get(`${baseURL}/reports/dashboard/sales_summary`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSalesSummary(response.data.data.data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching sales summary:", error);
       }
     };
 
-    fetchData();
+    fetchSalesSummary();
+  }, [token]);
+
+  // Fetch Warehouse Sales
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchWarehouseSales = async () => {
+      try {
+        const response = await axios.get(`${baseURL}/reports/dashboard/warehousesales`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setWarehouseSales(response.data.data);
+      } catch (error) {
+        console.error("Error fetching warehouse sales:", error);
+      }
+    };
+
+    fetchWarehouseSales();
+  }, [token]);
+
+  // Fetch Live Feed
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchLiveFeed = async () => {
+      try {
+        const response = await axios.get(`${baseURL}/reports/dashboard/livefeeds`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setLiveFeed(response.data.data);
+      } catch (error) {
+        console.error("Error fetching live feed:", error);
+      }
+    };
+
+    fetchLiveFeed();
   }, [token]);
 
   return (
@@ -87,11 +116,11 @@ export default function InventoryDashboard() {
             </thead>
             <tbody>
               {warehouseSales.map((sale) => (
-                <tr key={sale.warehouse_name} className="border-b">
+                <tr key={sale.warehouse.name} className="border-b">
                   <td className="py-2 px-4 font-medium">
-                    {sale.warehouse_name}
+                    {sale.warehouse.name}
                   </td>
-                  <td className="py-2 px-4">{sale.total}</td>
+                  <td className="py-2 px-4">{sale.total_revenue}</td>
                 </tr>
               ))}
             </tbody>

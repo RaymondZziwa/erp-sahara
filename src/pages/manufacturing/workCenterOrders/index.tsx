@@ -26,25 +26,35 @@ const WorkOrders: React.FC = () => {
   };
 
   const columnDefinitions: ColDef<WorkOrder>[] = [
-    {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
+    
     {
       headerName: "Order Number",
       field: "order_number",
       sortable: true,
       filter: true,
+      cellClass:"hover:underline",
       cellRenderer: (params: ICellRendererParams<WorkOrder>) => {
         return (
           <Link
             className="text-teal-500"
             to={`/manufacturing/workcenters/workorders/${params.data?.id}`}
           >
-            {params?.data?.order_number.toString()}
+            {params?.data?.order_number}
+          </Link>
+        );
+      },
+    },
+    {
+      headerName: "Customer",
+      field: "customer",
+      sortable: true,
+      filter: true,
+      cellRenderer: (params: ICellRendererParams<WorkOrder>) => {
+        return (
+          <Link
+            to={`/manufacturing/workcenters/workorders/${params.data?.id}`}
+          >
+            {params?.data?.customer.first_name} {params?.data?.customer.last_name}
           </Link>
         );
       },
@@ -56,14 +66,19 @@ const WorkOrders: React.FC = () => {
       filter: true,
     },
     {
+      headerName: "Quantity",
+      field: "quantity",
+      sortable: true,
+      filter: true,
+    },
+    {
       headerName: "Start Date",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
       cellRenderer: (params: ICellRendererParams<WorkOrder>) => (
         <div className="flex items-center gap-2">
-          <p>{params.data?.planned_start_date.toString()}</p>-
-          <p>{params.data?.actual_start_date.toString()}</p>
+          <p>{params.data?.start_date}</p>
         </div>
       ),
     },
@@ -74,8 +89,7 @@ const WorkOrders: React.FC = () => {
       suppressSizeToFit: true,
       cellRenderer: (params: ICellRendererParams<WorkOrder>) => (
         <div className="flex items-center gap-2">
-          <p>{params.data?.planned_end_date.toString()}</p>-
-          <p>{params.data?.actual_end_date.toString()}</p>
+          <p>{params.data?.expected_completion_date}</p>
         </div>
       ),
     },
@@ -151,11 +165,11 @@ const WorkOrders: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Work orders" pageName="All" />
+      <BreadCrump name="Production Orders" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Work Orders</h1>
+            <h1 className="text-xl font-bold">Production Orders</h1>
           </div>
           <div className="flex gap-2">
             <button

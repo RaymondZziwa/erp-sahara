@@ -11,7 +11,7 @@ import BudgetItemEditModal from "./budgetItemEditModal";
 
 //@ts-expect-error --ignore
 export default function BudgetTable({ budget, deleteBudgetItem }) {
-  const [activeTab, setActiveTab] = useState("allocations");
+  const [activeTab, setActiveTab] = useState("items");
   const { refresh } = useBudgets();
   const token = useSelector(
     (state: RootState) => state.userAuth.token.access_token
@@ -62,6 +62,16 @@ export default function BudgetTable({ budget, deleteBudgetItem }) {
     <div className="bg-white p-4 rounded-lg shadow-md">
       {/* Toggle Tabs */}
       <div className="flex border-b mb-4">
+      <button
+          className={`px-4 py-2 text-sm font-medium ${
+            activeTab === "items"
+              ? "border-b-2 border-blue-500 text-blue-600"
+              : "text-gray-500"
+          }`}
+          onClick={() => setActiveTab("items")}
+        >
+          Budget Items
+        </button>
         <button
           className={`px-4 py-2 text-sm font-medium ${
             activeTab === "allocations"
@@ -72,16 +82,7 @@ export default function BudgetTable({ budget, deleteBudgetItem }) {
         >
           Budget Allocations
         </button>
-        <button
-          className={`px-4 py-2 text-sm font-medium ${
-            activeTab === "items"
-              ? "border-b-2 border-blue-500 text-blue-600"
-              : "text-gray-500"
-          }`}
-          onClick={() => setActiveTab("items")}
-        >
-          Budget Items
-        </button>
+       
       </div>
 
       {/* Table Display */}

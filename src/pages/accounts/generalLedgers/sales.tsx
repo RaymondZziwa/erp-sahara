@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ColDef } from "ag-grid-community";
-import AddOrModifyItem from "./AddOrModifyItem";
+import AddOrModifyItem from "./incomeTransactionForm";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import Table from "../../../components/table";
 
@@ -8,7 +8,6 @@ import BreadCrump from "../../../components/layout/bread_crump";
 import { PROJECTS_ENDPOINTS } from "../../../api/projectsEndpoints";
 
 import { Ledger } from "../../../redux/slices/types/ledgers/Ledger";
-import useGeneralLedgers from "../../../hooks/reports/useGeneralLedgers";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { baseURL } from "../../../utils/api";
@@ -17,7 +16,6 @@ import { AccountType } from "../../../redux/slices/types/accounts/accountTypes";
 import { toast, ToastContainer } from "react-toastify";
 
 const SalesTransactions: React.FC = () => {
-  const { refresh } = useGeneralLedgers();
   const tableRef = useRef<any>(null);
   const [dt, setDt] = useState<any[]>([]);
   const token = useSelector(
@@ -215,7 +213,7 @@ const SalesTransactions: React.FC = () => {
             !!dialogState.selectedItem?.id &&
             dialogState.currentAction === "delete"
           }
-          onConfirm={refresh}
+          onConfirm={()=>{}}
         />
       )}
       <BreadCrump name="Income Transaction" pageName="All" />
@@ -244,7 +242,7 @@ const SalesTransactions: React.FC = () => {
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={dt ? dt : []}
+          data={[]}
           ref={tableRef}
         />
       </div>

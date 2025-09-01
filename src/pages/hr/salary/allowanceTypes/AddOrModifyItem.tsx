@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
-import { InputNumber } from "primereact/inputnumber";
+import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
-
-import { createRequest } from "../../../../utils/api";
+import { toast, ToastContainer } from "react-toastify";
+import { AllowanceType } from "../../../../redux/slices/types/hr/salary/AllowanceType";
 import useAuth from "../../../../hooks/useAuth";
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../../api/hrEndpoints";
-import { AllowanceType } from "../../../../redux/slices/types/hr/salary/AllowanceType";
-import { InputText } from "primereact/inputtext";
+import { createRequest } from "../../../../utils/api";
 
-interface AddOrModifyItemProps {
+interface AddOrModifyDeptProps {
   visible: boolean;
   onClose: () => void;
   item?: AllowanceType;
   onSave: () => void;
 }
 
-const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
+const AddOrModify: React.FC<AddOrModifyDeptProps> = ({
   visible,
   onClose,
   item,
@@ -26,12 +25,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const [formState, setFormState] = useState<Partial<AllowanceType>>({
     name: "",
     description: "",
-    calculation_method: "amount",
-    allowance_is: "mandatory",
-    amount: 0,
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const { token } = useAuth();
 
   useEffect(() => {
@@ -40,58 +36,54 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         ...item,
       });
     } else {
-      setFormState({
-        name: "",
-        description: "",
-        calculation_method: "amount",
-        allowance_is: "mandatory",
-        amount: 0,
-      });
+      setFormState({});
     }
   }, [item]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormState((prevState) => ({
       ...prevState,
-      [name]: name === "amount" ? Number(value) : value,
+      [name]: value,
     }));
   };
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    if (!formState.name || !formState.description) {
-      // Optionally add error notification here
-      setIsSubmitting(false);
-      return;
-    }
-
-    const { name, description, calculation_method, allowance_is, amount } =
-      formState;
-    const data = {
-      name,
-      description,
-      calculation_method,
-      allowance_is,
-      amount,
-    };
-
-    const method = item?.id ? "PUT" : "POST";
-    const endpoint = item?.id
-      ? HUMAN_RESOURCE_ENDPOINTS.ALLOWANCE_TYPES.UPDATE(item.id.toString())
-      : HUMAN_RESOURCE_ENDPOINTS.ALLOWANCE_TYPES.ADD;
-
-    await createRequest(endpoint, token.access_token, data, onSave, method);
-
-    setIsSubmitting(false);
-    onSave();
-    onClose();
+      e.preventDefault();
+      setIsSubmitting(true);
+    
+      // Basic validation
+      if (!formState.name) {
+        setIsSubmitting(false);
+        toast.warn('Fill in all the mandatory fields')
+        return;
+      }
+    
+      try {
+        const data = { ...formState };
+        const method = item?.id ? "PUT" : "POST";
+        const endpoint = item?.id
+          ? HUMAN_RESOURCE_ENDPOINTS.ALLOWANCE_TYPES.UPDATE(item.id.toString())
+          : HUMAN_RESOURCE_ENDPOINTS.ALLOWANCE_TYPES.ADD;
+        await createRequest(endpoint, token.access_token, data, onSave, method);
+    
+        // Reset form state
+        setFormState({
+          name: "",
+          description: "",
+        });
+    
+        // Call onSave and onClose
+        onSave();
+        onClose(); // Close the modal after saving
+      } catch (error) {
+        console.error("Error saving department:", error);
+        toast.error("An error occurred while saving department.");
+      } finally {
+        setIsSubmitting(false);
+      }
   };
 
   const footer = (
@@ -110,37 +102,40 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         label={item?.id ? "Update" : "Submit"}
         icon="pi pi-check"
         type="submit"
-        form="allowance-form"
+        form="truck-form"
         size="small"
       />
     </div>
   );
 
   return (
+    <>
+      <ToastContainer />
     <Dialog
       header={item?.id ? "Edit Allowance Type" : "Add Allowance Type"}
       visible={visible}
-      style={{ width: "450px" }}
+      style={{ width: "400px" }}
       footer={footer}
       onHide={onClose}
     >
+      <p className="mb-6">
+          Fields marked with a red asterik (<span className="text-red-500">*</span>) are mandatory.
+       </p>
       <form
-        id="allowance-form"
+        id="truck-form"
         onSubmit={handleSave}
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="name">Name</label>
+          <label htmlFor="name">Name<span className="text-red-500">*</span></label>
           <InputText
             id="name"
             name="name"
             value={formState.name}
             onChange={handleInputChange}
-            required
             className="w-full"
           />
         </div>
-
         <div className="p-field">
           <label htmlFor="description">Description</label>
           <InputTextarea
@@ -148,55 +143,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             name="description"
             value={formState.description}
             onChange={handleInputChange}
-            required
-            className="w-full"
-          />
-        </div>
-
-        <div className="p-field">
-          <label htmlFor="calculation_method">Calculation Method</label>
-          <select
-            id="calculation_method"
-            name="calculation_method"
-            value={formState.calculation_method}
-            onChange={handleInputChange}
-            className="p-inputtext w-full"
-          >
-            <option value="amount">Amount</option>
-            <option value="percent">Percent</option>
-          </select>
-        </div>
-
-        <div className="p-field">
-          <label htmlFor="allowance_is">Allowance Type</label>
-          <select
-            id="allowance_is"
-            name="allowance_is"
-            value={formState.allowance_is}
-            onChange={handleInputChange}
-            className="p-inputtext w-full"
-          >
-            <option value="mandatory">Mandatory</option>
-            <option value="optional">Optional</option>
-            <option value="adjustable">Adjustable</option>
-          </select>
-        </div>
-
-        <div className="p-field">
-          <label htmlFor="amount">Amount</label>
-          <InputNumber
-            id="amount"
-            name="amount"
-            type="number"
-            value={formState.amount}
-            onChange={handleInputChange}
-            required
             className="w-full"
           />
         </div>
       </form>
     </Dialog>
+    </>
   );
 };
 
-export default AddOrModifyItem;
+export default AddOrModify;

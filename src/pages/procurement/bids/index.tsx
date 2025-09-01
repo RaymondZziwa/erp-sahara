@@ -13,9 +13,10 @@ import { API_ENDPOINTS } from "../../../api/apiEndpoints";
 import { Bid } from "../../../redux/slices/types/procurement/Bid";
 import useBids from "../../../hooks/procurement/useBids";
 import { formatDate } from "../../../utils/dateUtils";
-import { baseURL } from "../../../utils/api";
+import { baseURL, createRequest } from "../../../utils/api";
 import axios from "axios";
 import useAuth from "../../../hooks/useAuth";
+import { toast, ToastContainer } from "react-toastify";
 
 
 const Bids: React.FC = () => {
@@ -67,13 +68,22 @@ const Bids: React.FC = () => {
       tableRef.current.exportPDF();
     }
   };
-async function approveBid(bidId: number) {
-  return await axiosInstance.post(`/${bidId}/approve`);
-}
 
-async function rejectBid(bidId: number) {
-  return await axiosInstance.post(`/${bidId}/reject`);
-}
+  async function approveBid(bidId: number) {
+    try {
+      await createRequest(API_ENDPOINTS.BID_EVALUATION.APPROVE(bidId), token.access_token);
+    } catch (error) {
+      toast.error("Bid approval failed")
+    }
+  }
+
+  async function rejectBid(bidId: number) {
+    try {
+      await createRequest(API_ENDPOINTS.BID_EVALUATION.REJECT(bidId), token.access_token);
+    } catch (error) {
+      toast.error("Bid rejection failed")
+    }
+  }
 
   const columnDefinitions: ColDef<Bid>[] = [
     {
@@ -194,9 +204,9 @@ async function rejectBid(bidId: number) {
                   onClick={async (e) => {
                     e.stopPropagation();
                     try {
-                      await approveBid(bid.id);
-                      toast.success("Bid approved successfully");
-                      refetchBids(); // Refresh grid data
+                      //console.log(bid)
+                      await approveBid(bid.quotation_evaluations[0].id);
+                      refresh(); // Refresh grid data
                     } catch (error) {
                       toast.error("Approval failed");
                     }
@@ -210,8 +220,7 @@ async function rejectBid(bidId: number) {
                     e.stopPropagation();
                     try {
                       await rejectBid(bid.id);
-                      toast.success("Bid rejected successfully");
-                      refetchBids(); // Refresh grid data
+                      refresh(); // Refresh grid data
                     } catch (error) {
                       toast.error("Rejection failed");
                     }
@@ -221,19 +230,23 @@ async function rejectBid(bidId: number) {
                 </button>
               </>
             )}
-            <Icon
-              onClick={(e) => {
-                e.stopPropagation();
-                setDialogState({
-                  ...dialogState,
-                  currentAction: "delete",
-                  selectedItem: bid,
-                });
-              }}
-              icon="solar:trash-bin-trash-bold"
-              className="text-red-500 cursor-pointer hover:text-red-600"
-              fontSize={20}
-            />
+            {
+              bid.quotation_evaluations.length === 0 && (
+                <Icon
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDialogState({
+                      ...dialogState,
+                      currentAction: "delete",
+                      selectedItem: bid,
+                    });
+                  }}
+                  icon="solar:trash-bin-trash-bold"
+                  className="text-red-500 cursor-pointer hover:text-red-600"
+                  fontSize={20}
+                />
+              )
+            }
           </div>
         );
       },
@@ -242,6 +255,7 @@ async function rejectBid(bidId: number) {
 
   return (
     <div>
+      <ToastContainer />
       {dialogState.currentAction === "evaluate" && (
         <EvaluationForm
           onSave={refresh}
@@ -335,13 +349,7 @@ async function rejectBid(bidId: number) {
               <Icon icon="solar:add-circle-bold" fontSize={18} />
               Add New Quotation
             </button>
-            <button
-              className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-white flex gap-2 items-center text-sm"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={18} />
-              Export PDF
-            </button>
+           
           </div>
         </div>
 

@@ -1,48 +1,39 @@
 import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
-
 import AddOrModifyItem from "./AddOrModifyItem";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import BreadCrump from "../../../components/layout/bread_crump";
 import Table from "../../../components/table";
-
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
 import useEmployees from "../../../hooks/hr/useEmployees";
 import { Employee } from "../../../redux/slices/types/hr/Employee";
+import SetPinModal from "./setPosPin";
 
 const Employees: React.FC = () => {
   const { data, refresh } = useEmployees();
   const tableRef = useRef<any>(null);
-
+  const [pinModal, setPinModal] = useState<{
+    visible: boolean;
+    employee: Employee | null;
+  }>({ visible: false, employee: null });
+  
   const [dialogState, setDialogState] = useState<{
     selectedItem: Employee | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
-
   const columnDefinitions: ColDef<Employee>[] = [
     {
-      headerName: "First Name",
-      field: "first_name",
+      headerName: "Full Name",
       sortable: true,
       filter: true,
+      valueGetter: (params) => `${params.data.first_name || ''} ${params.data.last_name || ''}`,
     },
-    {
-      headerName: "Last Name",
-      field: "last_name",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
+    
     {
       headerName: "Department",
-      field: "department.name",
+      field: "designation.department.name",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
@@ -75,8 +66,6 @@ const Employees: React.FC = () => {
       filter: true,
       suppressSizeToFit: true,
     },
-
-
     {
       headerName: "Actions",
       field: "id",
@@ -108,6 +97,15 @@ const Employees: React.FC = () => {
             className="text-red-500 cursor-pointer"
             fontSize={20}
           />
+          <Icon
+            onClick={() =>
+              setPinModal({ visible: true, employee: params.data })
+            }
+            icon="solar:lock-password-bold"
+            className="text-teal-600 cursor-pointer"
+            fontSize={20}
+            title="Set Access PIN"
+          />
         </div>
       ),
     },
@@ -115,6 +113,13 @@ const Employees: React.FC = () => {
 
   return (
     <div>
+      {pinModal.visible && (
+        <SetPinModal
+          visible={pinModal.visible}
+          employee={pinModal.employee}
+          onClose={() => setPinModal({ visible: false, employee: null })}
+        />
+      )}
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedItem}
@@ -160,13 +165,6 @@ const Employees: React.FC = () => {
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Employee
-            </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
             </button>
           </div>
         </div>

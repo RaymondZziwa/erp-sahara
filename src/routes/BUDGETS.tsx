@@ -14,59 +14,23 @@ const Loading = () => <div>Loading...</div>;
 const BUDGETS_ROUTES = [
   {
     name: "Budgets",
-    icon: <Icon icon="mdi:view-dashboard-outline" fontSize={24} />,
-    path: "",
-    items: [
-      {
-        name: "Budgets",
-        icon: <Icon icon="mdi:finance" fontSize={20} />,
-        path: "/",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Budgets />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Budget Categories",
-        icon: <Icon icon="mdi:finance" fontSize={20} />,
-        path: "/budget-categories",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <BudgetCategories />
-          </Suspense>
-        ),
-      },
-    ],
+    icon: <Icon icon="mdi:finance" fontSize={20} />,
+    path: "/budgets",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <Budgets />
+      </Suspense>
+    ),
   },
   {
-    name: "Settings",
-    icon: <Icon icon="mdi:cash-multiple" fontSize={24} />,
-    path: "/budgets",
-    items: [
-      {
-        hidden: true,
-        name: "Budget Details",
-        icon: <Icon icon="hugeicons:folder-details" fontSize={20} />,
-        path: "/budget-details/:id",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <BudgetDetails />
-          </Suspense>
-        ),
-      },
-      {
-        hidden: true,
-        name: "Budget Categories",
-        icon: <Icon icon="hugeicons:folder-details" fontSize={20} />,
-        path: "#",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <BudgetDetails />
-          </Suspense>
-        ),
-      },
-    ],
+    name: "Budget Categories",
+    icon: <Icon icon="mdi:finance" fontSize={20} />,
+    path: "/budgets/budget-categories",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <BudgetCategories />
+      </Suspense>
+    ),
   },
 ];
 

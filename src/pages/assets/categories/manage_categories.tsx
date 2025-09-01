@@ -31,14 +31,9 @@ const AssetsCategories: React.FC = () => {
       field: "name",
       sortable: true,
       filter: true,
+      width: 500
     },
-    {
-      headerName: "Created At",
-      field: "created_at",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
+   
     {
       headerName: "Actions",
       field: "id",
@@ -123,13 +118,7 @@ const AssetsCategories: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Category
             </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button>
+           
           </div>
         </div>
         <Table

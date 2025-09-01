@@ -92,6 +92,7 @@ export const MOSS_APP_ENDPOINTS = {
     DELETE: (id: string) => `/appointments/${id}`,
   },
   DASHBOARD: {
+    USER_STATISTICS: "/user_statistics",
     GET_ALL: "/dashboard",
     GET_BY_ID: (id: string) => `/dashboard/${id}`,
     ADD: "/dashboard",

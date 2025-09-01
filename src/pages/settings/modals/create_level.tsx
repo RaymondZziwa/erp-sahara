@@ -4,12 +4,17 @@ import { toast } from "react-toastify";
 import { RootState } from "../../../redux/store";
 import { baseURL } from "../../../utils/api";
 
-interface props {
+// PrimeReact imports
+import { InputText } from "primereact/inputtext";
+import { Dropdown } from "primereact/dropdown";
+import { Button } from "primereact/button";
+
+interface Props {
   setIsModalOpen: (val: boolean) => void;
   refresh: () => void;
 }
 
-const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
+const AddLevelModal: React.FC<Props> = ({ setIsModalOpen, refresh }) => {
   const token = useSelector(
     (state: RootState) => state.userAuth.token.access_token
   );
@@ -22,8 +27,7 @@ const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
     mandate: "",
   });
 
-  const handleInputChange = (e: any) => {
-    const { name, value } = e.target;
+  const handleInputChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -40,8 +44,6 @@ const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
         level: Number(formData.level),
         mandate: Number(formData.mandate),
       };
-      console.log(tempdata);
-      console.log(baseURL);
 
       const response = await fetch(
         `${baseURL}/accounts/approval-level/create`,
@@ -61,125 +63,129 @@ const AddLevelModal: React.FC<props> = ({ setIsModalOpen, refresh }) => {
         toast.success("Approval level added successfully!");
         setFormData({ name: "", level: "", mandate: "", approval_type: "" });
         setIsModalOpen(false);
-        setIsSubmitting(false);
       } else {
         toast.error("Failed to add approval level");
-        setIsSubmitting(false);
       }
     } catch (error) {
       console.log(error);
-
       toast.error("An error occurred while adding the approval level.");
+    } finally {
       setIsSubmitting(false);
     }
   };
-  
- const appType: string[] = [
-   "Cash",
-   "Fuel",
-   "Repair",
-   "PurchaseRequest",
-   "PurchaseOrder",
-   "SalesOrder",
-   "Store",
-   "PayRoll",
-   "Disposal",
-   "PurchaseQuoteEvaluation",
-   "Disposals",
-   "AssetFinancing",
- ];
 
+  const appType: Record<string, string> = {
+    Cash: "Cash Requisition",
+    Fuel: "Fuel Requisition",
+    Repair: "Repair & Maintenance",
+    PurchaseRequest: "Purchase Request",
+    PurchaseOrder: "Purchase Order",
+    SalesOrder: "Sales Order",
+    Store: "Store Requisition",
+    PayRoll: "Payroll Management",
+    Disposal: "Asset Disposal",
+    QualityAssurance: "Quality Assurance",
+    PurchaseQuoteEvaluation: "Purchase Quote Evaluation",
+    Disposals: "Disposals Management",
+    AssetFinancing: "Asset Financing",
+    Offers: "Supplier Offers",
+    InputRequest: "Input Request",
+    SupplierLoan: "Supplier Loan",
+  };
+
+  const appTypeOptions = Object.entries(appType).map(([key, label]) => ({
+    label,
+    value: key,
+  }));
+
+  const rankOptions = [
+    { label: "1", value: "1" },
+    { label: "2", value: "2" },
+    { label: "3", value: "3" },
+  ];
+
+  const mandateOptions = [
+    { label: "1", value: "1" },
+    { label: "2", value: "2" },
+    { label: "3", value: "3" },
+  ];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-auto z-50">
       <div className="bg-white p-6 rounded mt-12 shadow-md w-[500px]">
-        <h2 className="text-xl font-bold mb-4">Create level</h2>
-        <form>
+        <h2 className="text-xl font-bold mb-4">Create Level</h2>
+        <div className="flex flex-col gap-4">
+          {/* Name */}
           <div>
             <label className="block text-gray-700 mb-1">Name</label>
-            <input
-              type="text"
-              name="name"
+            <InputText
               value={formData.name}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded"
+              onChange={(e) => handleInputChange("name", e.target.value)}
               placeholder="Enter name"
+              className="w-full"
             />
           </div>
+
+          {/* Approval Type */}
           <div>
-            <label className="block text-gray-700 mb-1">Approval Type </label>
-            <select
-              name="approval_type"
+            <label className="block text-gray-700 mb-1">Approval Type</label>
+            <Dropdown
               value={formData.approval_type}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded"
-            >
-              <option value="" disabled>
-                Select approval type
-              </option>
-              {appType.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
+              options={appTypeOptions}
+              onChange={(e) => handleInputChange("approval_type", e.value)}
+              placeholder="Select approval type"
+              className="w-full"
+            />
           </div>
+
+          {/* Rank */}
           <div>
             <label className="block text-gray-700 mb-1">Rank</label>
-            <select
-              name="level"
+            <Dropdown
               value={formData.level}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded"
-            >
-              <option value="" disabled>
-                Select rank
-              </option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-            </select>
+              options={rankOptions}
+              onChange={(e) => handleInputChange("level", e.value)}
+              placeholder="Select rank"
+              className="w-full"
+            />
           </div>
+
+          {/* Mandate */}
           <div>
             <label className="block text-gray-700 mb-1">Mandate</label>
-            <select
-              name="mandate"
+            <Dropdown
               value={formData.mandate}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded"
-            >
-              <option value="" disabled>
-                Select mandate
-              </option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-            </select>
+              options={mandateOptions}
+              onChange={(e) => handleInputChange("mandate", e.value)}
+              placeholder="Select mandate"
+              className="w-full"
+            />
           </div>
-        </form>
-        <div className="flex justify-end space-x-2 mt-4">
-          <button
-            type="button"
+        </div>
+
+        {/* Actions */}
+        <div className="flex justify-end gap-2 mt-4">
+          <Button
+            label="Cancel"
             onClick={() => setIsModalOpen(false)}
-            className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className={`${
-              isSubmitting
-                ? "px-4 py-2 bg-gray-200 text-white rounded hover:bg-gray-200"
-                : "px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            }`}
-            disabled={isSubmitting ? true : false}
+            className="p-button-secondary"
+            style={{
+              backgroundColor: "#adb5bd",
+              borderColor: "#adb5bd"
+          }}
+          />
+          <Button
+            label={isSubmitting ? "Creating..." : "Create Level"}
             onClick={handleAddRole}
-          >
-            {isSubmitting ? "Creating..." : "Create level"}
-          </button>
+            disabled={isSubmitting}
+            loading={isSubmitting}
+            className="p-button-raised p-button-success"
+            style={{ background: "teal", borderColor: "teal" }}
+          />
         </div>
       </div>
     </div>
   );
 };
+
 export default AddLevelModal;

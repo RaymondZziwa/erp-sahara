@@ -15,7 +15,6 @@ const UserSettings = () => {
   useEffect(()=> {
     if (!users) {
       refresh()
-      console.log(users)
     }
   }, [])
   

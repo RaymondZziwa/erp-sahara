@@ -140,9 +140,9 @@ const ReviewOrApprovePurchaseRequest = ({
                 <span className="font-semibold w-1/3">Status</span>
                 <span
                   className={`font-semibold ${
-                    purchaseRequest.status === "Approved"
+                    purchaseRequest.status.toLowerCase() === "approved"
                       ? "text-green-500"
-                      : purchaseRequest.status === "Rejected"
+                      : purchaseRequest.status.toLowerCase() === "rejected"
                       ? "text-red-500"
                       : "text-yellow-500"
                   }`}
@@ -310,7 +310,7 @@ const ReviewOrApprovePurchaseRequest = ({
                 <i className="pi pi-print"></i>
                 <span>Print</span>
               </button>
-              {purchaseRequest.status.toLowerCase() !== "rejected" && (
+              {(purchaseRequest.status.toLowerCase() !== "rejected" && purchaseRequest.status.toLowerCase() !== "approved") && (
                 <>
                   <button
                     onClick={() => handleAction("rejected")}

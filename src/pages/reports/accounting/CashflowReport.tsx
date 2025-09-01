@@ -6,6 +6,8 @@ import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 import useAuth from "../../../hooks/useAuth";
 import axios from "axios";
 import Header from "../../../components/custom/print_header";
+import CustomReportHeader from "../../../components/custom/customReportHeader";
+import { PropagateLoader } from "react-spinners";
 
 interface CashFlowData {
   net_income: number;
@@ -38,6 +40,13 @@ function Cashflow() {
   const [cashFlow, setCashFlow] = useState<CashFlowData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { token, isFetchingLocalToken } = useAuth();
+  const today = new Date();
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      const [filters, setFilters] = useState({
+        start_date: startOfMonth.toISOString().split("T")[0],
+        end_date: endOfMonth.toISOString().split("T")[0],
+      });
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken || !token.access_token) return;
@@ -81,8 +90,6 @@ function Cashflow() {
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'TZS',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(amount);
@@ -95,7 +102,7 @@ function Cashflow() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p>Loading......</p>
+       <PropagateLoader color="#007f80"/>
       </div>
     );
   }
@@ -118,64 +125,86 @@ function Cashflow() {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Cash Flow Statement</h1>
-        <button
-          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white flex gap-2 items-center transition-colors"
-          onClick={print}
-        >
-          <Icon icon="solar:printer-bold" fontSize={20} />
-          Print Report
-        </button>
+      <CustomReportHeader />
+      <div className="flex flex-row justify-center items-center mt-20">
+      <Header title="Cash Flow Statement" />
       </div>
+      {(filters.start_date || filters.end_date) && (
+                <div className="text-center mb-4 text-sm text-gray-600">
+                  Showing data from {filters.start_date || "the beginning"} to{" "}
+                  {filters.end_date || "now"}
+                </div>
+              )}
 
       <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <Header title="Cash Flow Statement" />
+        
         
         {/* Operating Activities */}
         <div className="border-b border-gray-200 p-4 bg-gray-50">
-          <div className="font-bold text-lg text-gray-700 mb-3">
+          <div className="font-bold text-lg text-white mb-3 bg-teal-500 p-2">
             CASH FLOWS FROM OPERATING ACTIVITIES
           </div>
           
-          <div className="grid grid-cols-2 gap-4 mb-2">
+          <div className="grid grid-cols-2 gap-4 mb-2 ml-4 text-md">
             <div>Net Income</div>
-            <div className={`text-right font-medium ${getAmountColor(cashFlow.net_income)}`}>
-              {formatAmount(cashFlow.net_income)}
+            <div className={`text-right font-medium`}>
+              ({formatAmount(cashFlow.net_income)})
             </div>
           </div>
 
-          <div className="ml-4 mt-3">
-            <div className="font-semibold text-gray-600 mb-2">
-              Adjustments to reconcile net income to net cash:
-            </div>
-            {cashFlow.adjustments.map((item, index) => (
-              <div key={index} className="grid grid-cols-2 gap-4 mb-1">
-                <div className="pl-4">{item.description}</div>
-                <div className={`text-right ${getAmountColor(item.amount)}`}>
-                  {formatAmount(item.amount)}
+          {
+            cashFlow.adjustments.length === 0 ? (
+              <div className="grid grid-cols-2 gap-4 mb-2 ml-4 text-md">
+                <div className="font-bold text-gray-600">Adjustments to reconcile net income to net cash</div>
+                <div className={`text-right font-medium`}>
+                  0
                 </div>
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="ml-4 mt-3 text-md">
+                <div className="font-bold text-gray-600">
+                  Adjustments to reconcile net income to net cash
+                </div>
+                {cashFlow.adjustments.map((item, index) => (
+                  <div key={index} className="grid grid-cols-2 gap-4 mb-1 text-md">
+                    <div className="pl-4">{item.description}</div>
+                    <div className={`text-right ${getAmountColor(item.amount)}`}>
+                      {formatAmount(item.amount)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          }
 
-          <div className="ml-4 mt-3">
-            <div className="font-semibold text-gray-600 mb-2">
-              Changes in working capital:
-            </div>
-            {cashFlow.working_capital_changes.map((item, index) => (
-              <div key={index} className="grid grid-cols-2 gap-4 mb-1">
-                <div className="pl-4">{item.description}</div>
-                <div className={`text-right ${getAmountColor(item.amount)}`}>
-                  {formatAmount(item.amount)}
+{
+            cashFlow.working_capital_changes.length === 0 ? (
+              <div className="grid grid-cols-2 gap-4 mb-2 ml-4 text-md">
+                <div className="font-bold text-gray-600">Changes in working capital</div>
+                <div className={`text-right font-medium`}>
+                  0
                 </div>
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="ml-4 mt-3 text-md">
+                <div className="font-bold text-gray-600">
+                  Changes in working capital
+                </div>
+                {cashFlow.working_capital_changes.map((item, index) => (
+                  <div key={index} className="grid grid-cols-2 gap-4 mb-1 text-md">
+                    <div className="pl-4">{item.description}</div>
+                    <div className={`text-right`}>
+                      {formatAmount(item.amount)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          }
 
-          <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-gray-200 font-bold">
+          <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-gray-200 font-bold text-md">
             <div>Net Cash Provided by Operating Activities</div>
-            <div className={`text-right ${getAmountColor(cashFlow.net_income)}`}>
+            <div className={`text-right font-bold`}>
               {formatAmount(cashFlow.net_income)}
             </div>
           </div>
@@ -183,7 +212,7 @@ function Cashflow() {
 
         {/* Investing Activities */}
         <div className="border-b border-gray-200 p-4 bg-gray-50">
-          <div className="font-bold text-lg text-gray-700 mb-3">
+          <div className="font-bold text-lg text-white mb-3 bg-teal-500 p-2">
             CASH FLOWS FROM INVESTING ACTIVITIES
           </div>
 
@@ -191,23 +220,20 @@ function Cashflow() {
             cashFlow.investing_activities.map((item, index) => (
               <div key={index} className="grid grid-cols-2 gap-4 mb-1">
                 <div>{item.description}</div>
-                <div className={`text-right ${getAmountColor(item.amount)}`}>
+                <div className={`text-right`}>
                   {formatAmount(item.amount)}
                 </div>
               </div>
             ))
           ) : (
-            <div className="grid grid-cols-2 gap-4 mb-1 text-gray-500">
+            <div className="grid grid-cols-1 gap-4 mb-1 text-gray-500">
               <div>No investing activities</div>
-              <div className="text-right">0.00</div>
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-gray-200 font-bold">
+          <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-gray-200 font-bold text-md">
             <div>Net Cash Used in Investing Activities</div>
-            <div className={`text-right ${getAmountColor(
-              cashFlow.investing_activities.reduce((sum, item) => sum + item.amount, 0)
-  )}`}>
+            <div className={`text-right`}>
               {formatAmount(
                 cashFlow.investing_activities.reduce((sum, item) => sum + item.amount, 0)
               )}
@@ -217,7 +243,7 @@ function Cashflow() {
 
         {/* Financing Activities */}
         <div className="border-b border-gray-200 p-4 bg-gray-50">
-          <div className="font-bold text-lg text-gray-700 mb-3">
+          <div className="font-bold text-lg text-white bg-teal-500 p-2 mb-3 ">
             CASH FLOWS FROM FINANCING ACTIVITIES
           </div>
 
@@ -225,7 +251,7 @@ function Cashflow() {
             cashFlow.financing_activities.map((item, index) => (
               <div key={index} className="grid grid-cols-2 gap-4 mb-1">
                 <div>{item.description}</div>
-                <div className={`text-right ${getAmountColor(item.amount)}`}>
+                <div className={`text-right`}>
                   {formatAmount(item.amount)}
                 </div>
               </div>
@@ -233,15 +259,12 @@ function Cashflow() {
           ) : (
             <div className="grid grid-cols-2 gap-4 mb-1 text-gray-500">
               <div>No financing activities</div>
-              <div className="text-right">0.00</div>
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-gray-200 font-bold">
             <div>Net Cash Provided by Financing Activities</div>
-            <div className={`text-right ${getAmountColor(
-              cashFlow.financing_activities.reduce((sum, item) => sum + item.amount, 0)
-  )}`}>
+            <div className={`text-right`}>
               {formatAmount(
                 cashFlow.financing_activities.reduce((sum, item) => sum + item.amount, 0)
               )}
@@ -252,33 +275,29 @@ function Cashflow() {
         {/* Cash Summary */}
         <div className="p-4 bg-blue-50">
           <div className="grid grid-cols-2 gap-4 mb-2 font-bold">
-            <div>Net Increase in Cash and Cash Equivalents</div>
-            <div className={`text-right ${getAmountColor(cashFlow.net_cash_increase)}`}>
+            <div>Net Change In Cash</div>
+            <div className={`text-right`}>
               {formatAmount(cashFlow.net_cash_increase)}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-2">
+          {/* <div className="grid grid-cols-2 gap-4 mb-2">
             <div>Cash and Cash Equivalents at Beginning of Period</div>
             <div className="text-right">
               {formatAmount(cashFlow.cash_balances.beginning)}
             </div>
-          </div>
+          </div> */}
 
-          <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-gray-300 font-bold">
+          {/* <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t border-gray-300 font-bold">
             <div>Cash and Cash Equivalents at End of Period</div>
             <div className="text-right">
               {formatAmount(cashFlow.cash_balances.ending)}
             </div>
-          </div>
+          </div> */}
         </div>
 
         <div className="p-4 text-sm text-gray-500 text-center border-t border-gray-200">
-          Generated on {new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}
+          **Amount is being displayed in your base currency
         </div>
       </div>
     </div>

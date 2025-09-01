@@ -1,15 +1,17 @@
 export interface WorkOrder {
   id: number;
   organisation_id: number;
-  order_number: string;
-  production_line_id: number;
-  quantity: string;
-  actual_start_date: Date;
-  item_id: number;
-  actual_end_date: Date;
-  planned_start_date: Date;
-  planned_end_date: Date;
-  status: string;
+
+  item_id: string; // UUID
+  customer_id: string; // UUID
+  quantity: number;
+
+  start_date: Date;
+  expected_completion_date: Date;
+
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "planned" | "released" | "in-progress" | "completed" | "cancelled";
+
   created_at: string;
   updated_at: string;
 }

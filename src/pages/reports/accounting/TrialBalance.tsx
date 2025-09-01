@@ -7,6 +7,8 @@ import { apiRequest, baseURL } from "../../../utils/api";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 import Header from "../../../components/custom/print_header";
 import axios from "axios";
+import CustomReportHeader from "../../../components/custom/customReportHeader";
+import { PropagateLoader } from "react-spinners";
 
 function TrialBalanceReport() {
   const { token, isFetchingLocalToken } = useAuth();
@@ -14,31 +16,13 @@ function TrialBalanceReport() {
   const [trialBalanceData, setTrialBalanceData] = useState<TrialBalance | null>(
     null
   );
-
-  // const print = async () => {
-  //   try {
-  //     const response = await axios.get(
-  //       `${baseURL}/reports/accounting/print-tb`,
-  //       {
-  //         responseType: "blob", // Important for downloading files
-  //         headers: {
-  //           Authorization: `Bearer ${token.access_token || ""}`,
-  //         },
-  //       }
-  //     );
-
-  //     const url = window.URL.createObjectURL(new Blob([response.data]));
-  //     const link = document.createElement("a");
-  //     link.href = url;
-  //     link.setAttribute("download", "trial-balance-report.pdf"); // Adjust filename/extension if needed
-  //     document.body.appendChild(link);
-  //     link.click();
-  //     link.remove();
-  //     window.URL.revokeObjectURL(url);
-  //   } catch (error) {
-  //     console.error("Error downloading the trial balance report:", error);
-  //   }
-  // };
+    const today = new Date();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        const [filters, setFilters] = useState({
+          start_date: startOfMonth.toISOString().split("T")[0],
+          end_date: endOfMonth.toISOString().split("T")[0],
+        });
 
   const print = async () => {
     try {
@@ -86,20 +70,28 @@ function TrialBalanceReport() {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center h-screen">
+         <PropagateLoader color="#007f80"/>
+        </div>
+      );
+    }
+
 
   return (
     <div className="bg-white p-3">
-      <Header title={"Trial Balance Report"} />
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold"></h1>
-        <button
-          className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-          onClick={print}
-        >
-          <Icon icon="solar:printer-bold" fontSize={20} />
-          Print
-        </button>
+      <CustomReportHeader />
+      <div className="flex flex-row justify-center items-center mt-20">
+      <Header title="Trial Balance" />
       </div>
+      {(filters.start_date || filters.end_date) && (
+                <div className="text-center mb-4 text-sm text-gray-600">
+                  Showing data from {filters.start_date || "the beginning"} to{" "}
+                  {filters.end_date || "now"}
+                </div>
+              )}
+     
 
       {/* Pass customHeader inside the Table component */}
       {isLoading && trialBalanceData == null ? (
@@ -107,12 +99,9 @@ function TrialBalanceReport() {
       ) : (
         <table className="w-full">
           <thead className="border-b border-gray-300">
-            <tr className="border border-gray-300 font-bold">
-              <th className="px-6 py-3 text-left  border-b border-gray-300 w-52">
-                A/C Code
-              </th>
+            <tr className="border border-gray-300 font-bold bg-teal-500 text-white">
               <th className="px-6 py-3 text-left  border-b border-gray-300">
-                A/C Name
+                Account Name
               </th>
               <th className="px-6 py-3 text-left border-b border-gray-300">
                 Debit
@@ -127,17 +116,15 @@ function TrialBalanceReport() {
               trialBalanceData.map((item) => {
                 return (
                   <tr className="border-gray-300 border">
-                    <td className="px-5 py-2 w-[30px] border-gray-300">
-                      {item.account_code}
+                    
+                    <td className="px-5 py-2 border-gray-300 border-t">
+                    {item.account_code}-{item.account_name}
                     </td>
                     <td className="px-5 py-2 border-gray-300 border-t">
-                      {item.account_name}
+                      {item.debit ? item.debit.toLocaleString() : 0}
                     </td>
                     <td className="px-5 py-2 border-gray-300 border-t">
-                      {item.debit ? item.debit.toLocaleString() : ""}
-                    </td>
-                    <td className="px-5 py-2 border-gray-300 border-t">
-                      {item.credit ? item.credit.toLocaleString() : ""}
+                      {item.credit ? item.credit.toLocaleString() : 0}
                     </td>
                   </tr>
                 );
@@ -145,7 +132,7 @@ function TrialBalanceReport() {
             <tr className="bg-gray-200">
               <td
                 className="px-5 py-2 border-gray-300 border-b font-bold"
-                colSpan={2}
+                colSpan={1}
               >
                 Total
               </td>
@@ -168,6 +155,9 @@ function TrialBalanceReport() {
         </table>
       )}
       {!isLoading && trialBalanceData === null && "No data present"}
+      <div className="p-4 text-sm text-gray-500 text-center border-t border-gray-200">
+          **Amount is being displayed in your base currency
+        </div>
     </div>
   );
 }

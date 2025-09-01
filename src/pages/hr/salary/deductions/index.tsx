@@ -23,20 +23,7 @@ const Deductions: React.FC = () => {
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
-
   const columnDefinitions: ColDef<Deduction>[] = [
-    {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
     {
       headerName: "Deduction Type",
       field: "deduction_type.deduction_name",
@@ -50,35 +37,13 @@ const Deductions: React.FC = () => {
       filter: true,
       suppressSizeToFit: true,
     },
-    {
-      headerName: "Start Date",
-      field: "start_date",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "End Date",
-      field: "end_date",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
+
     {
       headerName: "Frequency",
       field: "frequency",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
-    },
-    {
-      headerName: "Employee",
-      field: "employee.first_name",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-      cellRenderer: (params: ICellRendererParams<Deduction>) =>
-        `${params.data?.employee.first_name} ${params.data?.employee.last_name}`,
     },
 
     {
@@ -162,7 +127,7 @@ const Deductions: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Deductions Table</h1>
+            <h1 className="text-xl font-bold">Deductions</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -176,13 +141,6 @@ const Deductions: React.FC = () => {
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Deduction
-            </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
             </button>
           </div>
         </div>

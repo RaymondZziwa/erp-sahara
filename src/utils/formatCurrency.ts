@@ -17,5 +17,5 @@ export const formatCurrency = (
   currency: string = "TZS",
   locale: string = "en-US"
 ): string => {
-  return amount
+  return amount.toFixed(2)
 };

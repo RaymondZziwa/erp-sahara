@@ -7,10 +7,11 @@ import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 
-import { RadioButton } from "primereact/radiobutton";
+// import { RadioButton } from "primereact/radiobutton";
 import { Driver } from "../../../redux/slices/types/inventory/Driver";
 import useEmployees from "../../../hooks/hr/useEmployees";
 import { Dropdown } from "primereact/dropdown";
+import useTrucks from "../../../hooks/inventory/useTrucks";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -29,6 +30,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     status: 1,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const {data: trucks} = useTrucks()
 
   const { token } = useAuth();
   const { data: employees } = useEmployees();
@@ -69,7 +71,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();
-    onClose(); // Close the modal after saving
+    onClose();
+    setFormState({ license_number: "", status: 1 });
   };
 
   const footer = (
@@ -108,7 +111,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         className="p-fluid grid grid-cols-1 gap-4"
       >
         <div className="p-field">
-          <label htmlFor="empoyee_id">Staff Member</label>
+          <label htmlFor="empoyee_id" className="text-sm">Staff Member</label>
           <Dropdown
             id={`empoyee_id`}
             value={formState.employee_id}
@@ -119,10 +122,25 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             }))}
             placeholder="Select a member"
             filter
-            className="w-full"
+            className="w-full p-inputtext-sm"
           />
         </div>
         <div className="p-field">
+          <label htmlFor="license_number" className="text-sm">Truck</label>
+          <Dropdown
+            id={`license_number`}
+            value={formState.license_number}
+            onChange={(e) => setFormState({ ...formState, license_number: e.value })}
+            options={trucks.map((truck) => ({
+              value: truck.license_plate,
+              label: truck.license_plate,
+            }))}
+            placeholder="Select a truck"
+            filter
+            className="w-full p-inputtext-sm"
+          />
+        </div>
+        {/* <div className="p-field">
           <label htmlFor="license_number">License number</label>
           <InputText
             id="license_number"
@@ -132,8 +150,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             required
             className="w-full"
           />
-        </div>
-        <div>
+        </div> */}
+        {/* <div>
           <label htmlFor="availability">Availability Status</label>
           {[
             { name: "available", value: 1 },
@@ -159,7 +177,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               </div>
             );
           })}
-        </div>
+        </div> */}
       </form>
     </Dialog>
   );

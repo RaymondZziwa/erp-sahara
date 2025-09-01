@@ -1,16 +1,14 @@
 import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
-
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import Table from "../../../components/table";
 import BreadCrump from "../../../components/layout/bread_crump";
 import AddOrModifyItem from "./AddOrModifyItem";
-
 import { API_ENDPOINTS } from "../../../api/apiEndpoints";
-
 import { CustomerOrder } from "../../../redux/slices/types/sales/CustomerOrder";
 import useCustomerOrders from "../../../hooks/sales/useCustomerOrders";
+import { ToastContainer } from "react-toastify";
 
 const CustomerOrders: React.FC = () => {
   const { data, refresh } = useCustomerOrders();
@@ -21,36 +19,16 @@ const CustomerOrders: React.FC = () => {
     currentAction: "delete" | "edit" | "add" | "review" | "approve" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
-
   const columnDefinitions: ColDef<CustomerOrder>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "Name",
-      field: "customer.organization_name",
       sortable: true,
       filter: true,
+      cellRenderer: (params) => params?.data?.customer?.organization_name || `${params?.data?.customer?.first_name} ${params?.data?.customer?.last_name}`
     },
     {
-      headerName: "Order no",
-      field: "customer_order_no",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Currency",
-      field: "currency.name",
+      headerName: "Order Type",
+      field: "order_type",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
@@ -71,7 +49,7 @@ const CustomerOrders: React.FC = () => {
     },
     {
       headerName: "Quotation No",
-      field: "quotation.qoutation_no",
+      field: "so_number",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
@@ -80,6 +58,20 @@ const CustomerOrders: React.FC = () => {
     {
       headerName: "Status",
       field: "status",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "Order Date",
+      field: "order_date",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "Delivery Date",
+      field: "expected_delivery_date",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
@@ -158,6 +150,7 @@ const CustomerOrders: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       {dialogState.currentAction != "" && (
         <AddOrModifyItem
           onSave={refresh}
@@ -186,11 +179,11 @@ const CustomerOrders: React.FC = () => {
         onConfirm={refresh}
       />
 
-      <BreadCrump name="Customer Orders" pageName="Items" />
+      <BreadCrump name="Customer Orders" pageName="Customer Orders" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Customer Orders Table</h1>
+            <h1 className="text-xl font-bold">Customer Orders</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -204,13 +197,6 @@ const CustomerOrders: React.FC = () => {
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Order
-            </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
             </button>
           </div>
         </div>

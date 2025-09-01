@@ -22,7 +22,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   onSave,
 }) => {
   const [formState, setFormState] = useState<Partial<Warehouse>>({
-    warehouse_type: 0,
+    warehouse_type: "",
     name: "",
     location: "",
   });
@@ -39,10 +39,10 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       setFormState({
         name: item.name || "",
         location: item.location,
-        warehouse_type: 0,
+        warehouse_type: item.warehouse_type || "",
       });
     } else {
-      setFormState({ warehouse_type: 0, name: "", location: "" });
+      setFormState({ warehouse_type: "", name: "", location: "" });
     }
   }, [item]);
 
@@ -81,7 +81,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();
-    onClose(); // Close the modal after saving
+    onClose();
+    setFormState({ warehouse_type: "", name: "", location: "" });
   };
 
   const footer = (
@@ -106,9 +107,9 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
 
   return (
     <Dialog
-      header={item?.id ? "Edit Warehouse" : "Add Warehouse"}
+      header={item?.id ? "Edit Store" : "Add Store"}
       visible={visible}
-      style={{ width: "400px" }}
+      style={{ width: "350px" }}
       footer={footer}
       onHide={onClose}
     >
@@ -119,8 +120,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       <form id="item-form" onSubmit={handleSave}>
         <div className="p-fluid">
           <div className="p-field">
-            <label htmlFor="warehouse_type">
-              Warehouse Type<span className="text-red-500">*</span>
+            <label htmlFor="warehouse_type" className="text-sm">
+              Store Type<span className="text-red-500">*</span>
             </label>
             <Dropdown
               id="warehouse_type"
@@ -131,12 +132,12 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                 label: storeType.label,
               }))}
               onChange={handleDropdownChange}
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
           <div className="p-field">
-            <label htmlFor="name">
+            <label htmlFor="name" className="text-sm">
               Name<span className="text-red-500">*</span>
             </label>
             <InputText
@@ -144,12 +145,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               name="name"
               value={formState.name}
               onChange={handleInputChange}
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
 
           <div className="p-field">
-            <label htmlFor="location">
+            <label htmlFor="location" className="text-sm">
               Address<span className="text-red-500">*</span>
             </label>
             <InputText
@@ -157,6 +159,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               name="location"
               value={formState.location}
               onChange={handleInputChange}
+              className="w-full p-inputtext-sm"
               required
             />
           </div>

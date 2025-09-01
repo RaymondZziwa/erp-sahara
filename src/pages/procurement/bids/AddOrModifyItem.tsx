@@ -289,14 +289,13 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     <Dialog
       header={item?.id ? "Edit Supplier Quotation" : "Add Supplier Quotation"}
       visible={visible}
-      style={{ width: "1500px" }}
       footer={footer}
       onHide={onClose}
     >
       <form
         id="item-form"
         onSubmit={handleSave}
-        className="p-fluid grid grid-cols-1 md:grid-cols-2 gap-4"
+        className="p-fluid grid grid-cols-1 md:grid-cols-2 gap-2"
       >
         <div className="p-field">
           <label htmlFor="rfq_id">Quotation Request</label>

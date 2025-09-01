@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import BreadCrump from "../../../components/layout/bread_crump";
@@ -101,7 +101,7 @@ const AssetMaintenance: React.FC = () => {
     },
     {
       headerName: "Status",
-      field: "maintenance_status",
+      field: "status",
       sortable: true,
       filter: true,
     },
@@ -146,6 +146,7 @@ const AssetMaintenance: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       <AddOrModifyMaintenance
         onSave={refresh}
         item={dialogState.selectedItem}
@@ -190,13 +191,7 @@ const AssetMaintenance: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Maintenance
             </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button>
+           
           </div>
         </div>
         <Table

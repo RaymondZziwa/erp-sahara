@@ -10,48 +10,42 @@ import AssetDisposal from "../pages/assets/asset_disposal";
 
 const ASSETS = [
   {
-    name: "General",
-    icon: <Icon icon="solar:layers-line-duotone" fontSize={24} />,
-    path: "/",
-    items: [
-      {
-        name: "Asset Management",
-        icon: <Icon icon="solar:card-2-bold-duotone" fontSize={20} />,
-        path: "",
-        element: <AssetsManagement />,
-      },
-      {
-        name: "Asset Categories",
-        icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-        path: "asset_categories",
-        element: <AssetsCategories />,
-      },
-      // {
-      //   name: "Asset Income Types",
-      //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-      //   path: "asset_income_types",
-      //   element: <AssetIncomeTypes />,
-      // },
-      {
-        name: "Asset Details",
-        icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-        path: `asset_details/:id`,
-        element: <AssetDetails />,
-        hidden: true,
-      },
-      {
-        name: "Asset Assignment",
-        icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-        path: "asset_assignment",
-        element: <AssetAssignment />,
-      },
-      {
-        name: "Asset Maintenance",
-        icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-        path: "asset_maintenance",
-        element: <AssetMaintenance />,
-      },
-    ],
+    name: "Asset Management",
+    icon: <Icon icon="solar:card-2-bold-duotone" fontSize={20} />,
+    path: "/asset-management",
+    element: <AssetsManagement />,
+  },
+ 
+  // {
+  //   name: "Asset Income Types",
+  //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+  //   path: "asset_income_types",
+  //   element: <AssetIncomeTypes />,
+  // },
+  // {
+  //   name: "Asset Details",
+  //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+  //   path: `asset_details/:id`,
+  //   element: <AssetDetails />,
+  //   hidden: true,
+  // },
+  {
+    name: "Asset Assignment",
+    icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+    path: "asset_assignment",
+    element: <AssetAssignment />,
+  },
+  {
+    name: "Asset Maintenance",
+    icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+    path: "asset_maintenance",
+    element: <AssetMaintenance />,
+  },
+  {
+    name: "Asset Categories",
+    icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+    path: "asset_categories",
+    element: <AssetsCategories />,
   },
 ];
 export default ASSETS;

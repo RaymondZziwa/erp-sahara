@@ -29,13 +29,6 @@ const Drivers: React.FC = () => {
 
   const columnDefinitions: ColDef<Driver>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "Licence Number",
       field: "license_number",
       sortable: true,
@@ -52,18 +45,18 @@ const Drivers: React.FC = () => {
       suppressSizeToFit: true,
     },
 
-    {
-      headerName: "Status",
-      field: "status",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-      cellRenderer: (params: ICellRendererParams<Driver>) => (
-        <div className="flex items-center gap-2">
-          {params.data?.status == 1 ? "Available" : "Not available"}
-        </div>
-      ),
-    },
+    // {
+    //   headerName: "Status",
+    //   field: "status",
+    //   sortable: true,
+    //   filter: true,
+    //   suppressSizeToFit: true,
+    //   cellRenderer: (params: ICellRendererParams<Driver>) => (
+    //     <div className="flex items-center gap-2">
+    //       {params.data?.status == 1 ? "Available" : "Not available"}
+    //     </div>
+    //   ),
+    // },
 
     {
       headerName: "Actions",
@@ -73,7 +66,7 @@ const Drivers: React.FC = () => {
       cellRenderer: (params: ICellRendererParams<Driver>) => (
         <div className="flex items-center gap-2">
           <button
-            className="bg-shade px-2 py-1 rounded text-white"
+            className="bg-shade px-2 h-10 rounded text-white"
             onClick={() =>
               setDialogState({
                 ...dialogState,
@@ -94,7 +87,7 @@ const Drivers: React.FC = () => {
             }
             icon="solar:trash-bin-trash-bold"
             className="text-red-500 cursor-pointer"
-            fontSize={20}
+            fontSize={24}
           />
         </div>
       ),
@@ -149,13 +142,7 @@ const Drivers: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add driver
             </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button>
+           
           </div>
         </div>
         <Table

@@ -9,7 +9,7 @@ import useAuth from "../../../hooks/useAuth";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import useItems from "../../../hooks/inventory/useItems";
 import { Inventory } from "../../../redux/slices/types/inventory/Inventory";
-import { baseURL, createRequest } from "../../../utils/api";
+import { baseURL } from "../../../utils/api";
 import axios from "axios";
 import useWarehouses from "../../../hooks/inventory/useWarehouses";
 import {toast} from 'react-toastify'
@@ -100,38 +100,7 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
     }));
   };
 
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
 
-
-    try {
-      const method = item?.id ? "PUT" : "POST";
-      const endpoint = item?.id
-        ? INVENTORY_ENDPOINTS.INVENTORIES.UPDATE(item.id.toString())
-        : INVENTORY_ENDPOINTS.INVENTORIES.ADD
-        //INVENTORY_ENDPOINTS.INVENTORIES.STOCK_OUT
-    
-      const data = item?.id ? { ...item, ...formState } : formState;
-      await createRequest(
-        endpoint,
-        token.access_token,
-        { ...data, total_price: 0 },
-        onSave,
-        method
-      );
-      setIsSubmitting(false);
-
-      onSave();
-      onClose(); // Close the modal after saving
-    } catch (error) {
-      console.error("Error saving item", error);
-      // Handle error here
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  
   const stockOut = async () => {
     try {
       const response = await axios.post(
@@ -168,7 +137,6 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
       <Button
         label={item?.id ? "Update" : "Submit"}
         icon="pi pi-check"
-        type="submit"
         form="item-form"
         size="small"
         loading={isSubmitting}
@@ -186,10 +154,9 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
       footer={footer}
       onHide={onClose}
     >
-      <form id="item-form" onSubmit={handleSave}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-2">
           <div className="p-field">
-            <label className="font-semibold" htmlFor="item_id">
+            <label className="font-semibold text-sm" htmlFor="item_id">
               Store<span className="text-red-600">*</span>
             </label>
             <Dropdown
@@ -202,11 +169,11 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
               optionValue="value"
               placeholder="Select warehouse"
               filter
-              className="w-full md:w-14rem"
+              className="w-full p-inputtext-sm"
             />
           </div>
           <div className="p-field">
-            <label className="font-semibold" htmlFor="item_id">
+            <label className="font-semibold text-sm" htmlFor="item_id">
               Type<span className="text-red-600">*</span>
             </label>
             <Dropdown
@@ -219,12 +186,12 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
               optionValue="value"
               placeholder="Select type"
               filter
-              className="w-full md:w-14rem"
+              className="w-full p-inputtext-sm"
             />
           </div>
           {stockOutForm.type === "transfer" && (
             <div className="p-field">
-              <label className="font-semibold" htmlFor="item_id">
+              <label className="font-semibold text-sm" htmlFor="item_id">
                 To Store<span className="text-red-600">*</span>
               </label>
               <Dropdown
@@ -237,12 +204,12 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
                 optionValue="value"
                 placeholder="Select store"
                 filter
-                className="w-full md:w-14rem"
+                className="w-full p-inputtext-sm"
               />
             </div>
           )}
           <div className="p-field">
-            <label className="font-semibold" htmlFor="item_id">
+            <label className="font-semibold text-sm" htmlFor="item_id">
               Item<span className="text-red-600">*</span>
             </label>
             <Dropdown
@@ -255,11 +222,11 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
               optionValue="id"
               placeholder="Select item"
               filter
-              className="w-full md:w-14rem"
+              className="w-full p-inputtext-sm"
             />
           </div>
           <div className="p-field">
-            <label className="font-semibold" htmlFor="quantity">
+            <label className="font-semibold text-sm" htmlFor="quantity">
               Quantity<span className="text-red-600">*</span>
             </label>
             <InputText
@@ -269,12 +236,12 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
               value={stockOutForm.quantity?.toString() || ""}
               onChange={handleStockOutInputChange}
               required
-              className="w-full"
+              className="w-full p-inputtext-sm"
               min="1"
             />
           </div>
           <div className="p-field">
-            <label className="font-semibold" htmlFor="received_date">
+            <label className="font-semibold text-sm" htmlFor="movement_date">
               Movement Date<span className="text-red-600">*</span>
             </label>
             <InputText
@@ -282,16 +249,16 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
               name="movement_date"
               type="date"
               value={
-                stockOutForm.movement_date ||
-                new Date().toISOString().slice(0, 9)
+                stockOutForm.movement_date || new Date().toISOString().slice(0, 10)
               }
               onChange={handleStockOutInputChange}
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
+              max={new Date().toISOString().slice(0, 10)} // Prevent future dates
             />
           </div>
           <div className="p-field">
-            <label className="font-semibold" htmlFor="received_date">
+            <label className="font-semibold text-sm" htmlFor="received_date">
               Picked By<span className="text-red-600">*</span>
             </label>
             <InputText
@@ -300,13 +267,13 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
               type="text"
               value={stockOutForm.picked_by}
               onChange={handleStockOutInputChange}
-              className="w-full"
+              className="w-full p-inputtext-sm"
               required
             />
           </div>
         </div>
         <div className="p-field w-full">
-          <label className="font-semibold" htmlFor="movement_reason">
+          <label className="font-semibold text-sm" htmlFor="movement_reason">
             Remarks<span className="text-red-600">*</span>
           </label>
           <InputText
@@ -315,10 +282,9 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
             type="text"
             value={stockOutForm.movement_reason || ""}
             onChange={handleStockOutInputChange}
-            className="w-full h-[100px]"
+            className="w-full p-inputtext-sm"
           />
         </div>
-      </form>
     </Dialog>
   );
 };

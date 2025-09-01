@@ -27,13 +27,7 @@ const FiscalYears: React.FC = () => {
   };
 
   const columnDefinitions: ColDef<FiscalYear>[] = [
-    {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
+
     {
       headerName: "Start Date",
       field: "start_date",
@@ -145,7 +139,7 @@ const FiscalYears: React.FC = () => {
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Fiscal Years Table</h1>
+            <h1 className="text-xl font-bold">Fiscal Years</h1>
           </div>
           <div className="flex gap-2">
             {/* <button
@@ -160,13 +154,7 @@ const FiscalYears: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Yaer
             </button> */}
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button>
+           
           </div>
         </div>
         <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />

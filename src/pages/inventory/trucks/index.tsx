@@ -9,6 +9,7 @@ import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog"
 import BreadCrump from "../../../components/layout/bread_crump";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import Table from "../../../components/table";
+import { ToastContainer } from "react-toastify";
 
 const Trucks: React.FC = () => {
   const { data: categories, refresh } = useTrucks();
@@ -27,24 +28,10 @@ const Trucks: React.FC = () => {
 
   const columnDefinitions: ColDef<Truck>[] = [
     {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
-    {
       headerName: "Plate",
       field: "license_plate",
       sortable: true,
       filter: true,
-    },
-    {
-      headerName: "Capacity",
-      field: "capacity",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
     },
     {
       headerName: "Model",
@@ -54,12 +41,19 @@ const Trucks: React.FC = () => {
       suppressSizeToFit: true,
     },
     {
-      headerName: "Status",
-      field: "status",
+      headerName: "Capacity",
+      field: "capacity",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
     },
+    // {
+    //   headerName: "Status",
+    //   field: "status",
+    //   sortable: true,
+    //   filter: true,
+    //   suppressSizeToFit: true,
+    // },
     {
       headerName: "Created",
       field: "created_at",
@@ -74,7 +68,7 @@ const Trucks: React.FC = () => {
       cellRenderer: (params: ICellRendererParams<Truck>) => (
         <div className="flex items-center gap-2">
           <button
-            className="bg-shade px-2 py-1 rounded text-white"
+            className="bg-shade px-2 h-10 rounded text-white"
             onClick={() =>
               setDialogState({
                 ...dialogState,
@@ -95,7 +89,7 @@ const Trucks: React.FC = () => {
             }
             icon="solar:trash-bin-trash-bold"
             className="text-red-500 cursor-pointer"
-            fontSize={20}
+            fontSize={24}
           />
         </div>
       ),
@@ -104,6 +98,7 @@ const Trucks: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedItem}
@@ -150,13 +145,7 @@ const Trucks: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add truck
             </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button>
+           
           </div>
         </div>
         <Table

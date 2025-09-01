@@ -341,20 +341,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   placeholder="Select Deduction"
                   className="flex-1"
                 />
-                <InputText
-                  type="number"
-                  value={d.amount}
-                  onChange={(e) =>
-                    handleDynamicChange(
-                      "deductions",
-                      index,
-                      "amount",
-                      e.target.value
-                    )
-                  }
-                  placeholder="Amount"
-                  className="w-32"
-                />
+                
                 <Button
                   icon="pi pi-trash"
                   className="p-button-danger p-button-outlined"
@@ -403,23 +390,10 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   placeholder="Select Allowance"
                   className="flex-1"
                 />
-                <InputText
-                  type="number"
-                  value={a.amount}
-                  onChange={(e) =>
-                    handleDynamicChange(
-                      "allowances",
-                      index,
-                      "amount",
-                      e.target.value
-                    )
-                  }
-                  placeholder="Amount"
-                  className="w-32"
-                />
+               
                 <Button
                   icon="pi pi-trash"
-                  className="p-button-danger p-button-outlined"
+                  className="p-button-outlined bg-red-500"
                   type="button"
                   onClick={() => removeRow("allowances", index)}
                   disabled={allowances.length <= 1}

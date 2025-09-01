@@ -14,6 +14,7 @@ import { Budget } from "../../../redux/slices/types/budgets/Budget";
 import { formatDate } from "../../../utils/dateUtils";
 import { formatCurrency } from "../../../utils/formatCurrency";
 import { Link, useNavigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 
 const Budgets: React.FC = () => {
   const { data, refresh } = useBudgets();
@@ -108,6 +109,7 @@ const Budgets: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       {dialogState.currentAction !== "" && (
         <AddOrModifyItem
           onSave={refresh}
@@ -156,13 +158,7 @@ const Budgets: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Budget
             </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button>
+           
           </div>
         </div>
         <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />

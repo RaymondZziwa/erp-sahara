@@ -11,6 +11,7 @@ import useBids from "../../../hooks/procurement/useBids";
 import useEvaluationCriteria from "../../../hooks/procurement/useEvaluationCriteria";
 import useAuth from "../../../hooks/useAuth";
 import useRequestForQuotation from "../../../hooks/procurement/useRequestForQuotation";
+import { toast } from "react-toastify";
 
 interface AddOrModifyItemProps {
   visible: boolean;
@@ -194,10 +195,12 @@ const EvaluationForm: React.FC<AddOrModifyItemProps> = ({
         onSave,
         method
       );
+      //toast.success("Bid evaluated successfully")
 
       onSave();
       onClose();
     } catch (error) {
+      toast.error(error?.response?.data?.message)
       console.error("Error submitting form:", error);
     } finally {
       setIsSubmitting(false);

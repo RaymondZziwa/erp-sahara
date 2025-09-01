@@ -1,11 +1,11 @@
 import { useState, useRef, ChangeEvent } from "react";
 import { FiUpload, FiEdit2, FiSave, FiX } from "react-icons/fi";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Logo from "../../assets/images/sahara.jpeg";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { baseURL, imageURL } from "../../utils/api";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 
 interface OrganizationProfile {
   logo: string;
@@ -16,49 +16,70 @@ interface OrganizationProfile {
   organisation_phone_number: string;
   printer_ip: string;
   address: string;
-  is_budget_mandatory: boolean;
+  is_budget_mandatory: number;
   website: string;
   print_header_text: string;
   tin_no: string;
   base_currency_id: number;
+  organisation_type: string;
+  logoPreview?: string;
+  allow_access_pin: boolean;
+  id?: string;
+}
+
+interface ApiResponse {
+  data: {
+    data: OrganizationProfile;
+    message: string;
+  };
 }
 
 const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  // const currentProfile = useSelector((state: RootState) => state.userAuth.user.organisation);
-  const currentProfile = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') ?? '').user.organisation : null
-  const token = useSelector((state: RootState) => state.userAuth.token.access_token)
+  const currentProfile = localStorage.getItem('user') 
+    ? JSON.parse(localStorage.getItem('user') || '').user.organisation 
+    : null;
+  const token = useSelector((state: RootState) => state.userAuth.token.access_token);
+  
   const [profile, setProfile] = useState<OrganizationProfile>({
     logo: `${imageURL}/${currentProfile?.logo}`,
-    organisation_name: currentProfile?.organisation_name,
-    organisation_email: currentProfile?.organisation_email,
-    phone: currentProfile?.phone,
-    description: currentProfile?.description,
-    organisation_phone_number: currentProfile?.organisation_phone_number,
-    printer_ip: currentProfile?.printer_ip,
-    address: currentProfile?.address,
-    is_budget_mandatory: false,
-    website: currentProfile?.website,
-    print_header_text: currentProfile?.print_header_text,
-    tin_no: "",
-    base_currency_id: 1,
+    organisation_name: currentProfile?.organisation_name || '',
+    organisation_email: currentProfile?.organisation_email || '',
+    phone: currentProfile?.phone || '',
+    description: currentProfile?.description || '',
+    organisation_phone_number: currentProfile?.organisation_phone_number || '',
+    printer_ip: currentProfile?.printer_ip || '',
+    address: currentProfile?.address || '',
+    is_budget_mandatory: currentProfile?.is_budget_mandatory || 0,
+    website: currentProfile?.website || '',
+    print_header_text: currentProfile?.print_header_text || '',
+    tin_no: currentProfile?.tin_no || '',
+    base_currency_id: currentProfile?.base_currency_id || 1,
+    organisation_type: currentProfile?.organisation_type || '',
+    allow_access_pin: currentProfile?.allow_access_pin || 0
   });
+
   const [tempProfile, setTempProfile] = useState<OrganizationProfile>({
     ...profile,
   });
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleEditToggle = () => {
-    if (isEditing) {
-      // Cancel editing
-      setTempProfile({ ...profile });
-    } else {
-      // Start editing
-      setTempProfile({ ...profile });
-    }
+    setTempProfile({ ...profile });
     setIsEditing(!isEditing);
   };
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setTempProfile((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const safeString = (value: any): string => (value === undefined ? "" : String(value));
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -70,31 +91,24 @@ const ProfilePage = () => {
       formData.append("organisation_email", tempProfile.organisation_email);
       formData.append("phone", tempProfile.phone);
       formData.append("description", tempProfile.description);
-      formData.append(
-        "organisation_phone_number",
-        tempProfile.organisation_phone_number
-      );
-      formData.append("printer_ip", tempProfile.printer_ip);
+      formData.append("organisation_phone_number", tempProfile.organisation_phone_number);
+      //formData.append("printer_ip", safeString(currentProfile?.printer_ip));
       formData.append("address", tempProfile.address);
-      formData.append(
-        "is_budget_mandatory",
-        tempProfile.is_budget_mandatory.toString()
-      );
+      formData.append("is_budget_mandatory", tempProfile.is_budget_mandatory);
+      formData.append("allow_access_pin", tempProfile.allow_access_pin);
       formData.append("website", tempProfile.website);
       formData.append("print_header_text", tempProfile.print_header_text);
       formData.append("tin_no", tempProfile.tin_no);
-      formData.append(
-        "base_currency_id",
-        tempProfile.base_currency_id.toString()
-      );
+      formData.append("organisation_type", tempProfile.organisation_type);
+      formData.append("base_currency_id", tempProfile.base_currency_id);
 
       // Append logo if it's a new file
       if (typeof tempProfile.logo !== "string" && tempProfile.logo !== Logo) {
         formData.append("logo", tempProfile.logo);
       }
 
-      const response = await axios.post(
-        `${baseURL}/organisation/${currentProfile.id}/update`,
+      const response = await axios.post<ApiResponse>(
+        `${baseURL}/organisations/${currentProfile.id}/update`,
         formData,
         {
           headers: {
@@ -104,30 +118,31 @@ const ProfilePage = () => {
         }
       );
 
+      const userString = localStorage.getItem("user");
+      if (userString) {
+        const userData = JSON.parse(userString);
+        const updatedUser = {
+          ...userData,
+          user: {
+            ...userData.user,
+            organisation: response.data.data,
+          },
+        };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      }
 
-        const userString = localStorage.getItem("user");
-        if (userString) {
-          const userData = JSON.parse(userString);
-
-          const updatedUser = {
-            ...userData,
-            user: {
-              ...userData.user,
-              organisation: response.data.data, // Use the complete organisation object from response
-            },
-          };
-
-          localStorage.setItem("user", JSON.stringify(updatedUser));
-        }
-
-        // Update state with the new data
+      if (response.status === 200) {
         setProfile(response.data.data);
-        setIsEditing(false);
-        toast.success(response.data.message || "Profile updated successfully!");
+      }
+      setIsEditing(false);
+      toast.success(response.data.message || "Profile updated successfully!");
       
     } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error(error?.response?.data.message || "Failed to update profile");
+      console.log(error)
+      const axiosError = error as AxiosError<{ message: string }>;
+      toast.error(
+        axiosError.response?.data.message || "Failed to update profile"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -140,7 +155,7 @@ const ProfilePage = () => {
 
   const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
-    setTempProfile((prev) => ({ ...prev, [name]: checked }));
+    setTempProfile((prev) => ({ ...prev, [name]: checked ? 1 : 0 }));
   };
 
   const handleLogoUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -151,8 +166,8 @@ const ProfilePage = () => {
         if (event.target?.result) {
           setTempProfile((prev) => ({
             ...prev,
-            logo: file, // Store the file object for upload
-            logoPreview: event.target!.result as string, // For preview
+            logo: file,
+            logoPreview: event.target!.result as string,
           }));
         }
       };
@@ -166,6 +181,7 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <ToastContainer />
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -188,7 +204,7 @@ const ProfilePage = () => {
                   <button
                     onClick={handleSave}
                     disabled={isLoading}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-500 hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                   >
                     {isLoading ? (
                       "Saving..."
@@ -224,7 +240,7 @@ const ProfilePage = () => {
               <div className="w-full md:w-1/3 flex flex-col items-center">
                 <div className="relative group">
                   <img
-                    src={tempProfile.logoPreview || tempProfile.logo}
+                    src={tempProfile.logoPreview || tempProfile.logo || Logo}
                     alt="Organization logo"
                     className="w-40 h-40 rounded-lg object-cover border-2 border-gray-200"
                   />
@@ -344,6 +360,33 @@ const ProfilePage = () => {
                     ) : (
                       <p className="mt-1 text-sm text-gray-900">
                         {profile.organisation_phone_number}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="organisation_type"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Organization Type
+                    </label>
+
+                    {isEditing ? (
+                      <select
+                        name="organisation_type"
+                        id="organisation_type"
+                        value={tempProfile.organisation_type}
+                        onChange={handleSelectChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      >
+                        <option value="">-- Select Option --</option>
+                        <option value="TCJE">TCJE</option>
+                        <option value="UNION">UNION</option>
+                        <option value="AMCOS">AMCOS</option>
+                      </select>
+                    ) : (
+                      <p className="mt-1 text-sm text-gray-900">
+                        {profile.organisation_type}
                       </p>
                     )}
                   </div>
@@ -491,30 +534,7 @@ const ProfilePage = () => {
                     )}
                   </div>
 
-                  {/* <div>
-                    <label
-                      htmlFor="base_currency_id"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Base Currency ID
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        name="base_currency_id"
-                        id="base_currency_id"
-                        value={tempProfile.base_currency_id}
-                        onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      />
-                    ) : (
-                      <p className="mt-1 text-sm text-gray-900">
-                        {profile.base_currency_id}
-                      </p>
-                    )}
-                  </div> */}
-
-                  {/* <div className="sm:col-span-2">
+                  <div className="sm:col-span-2">
                     <div className="flex items-center">
                       <input
                         id="is_budget_mandatory"
@@ -532,7 +552,26 @@ const ProfilePage = () => {
                         Budget Mandatory
                       </label>
                     </div>
-                  </div> */}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <div className="flex items-center">
+                      <input
+                        id="allow_access_pin"
+                        name="allow_access_pin"
+                        type="checkbox"
+                        checked={tempProfile.allow_access_pin}
+                        onChange={handleCheckboxChange}
+                        disabled={!isEditing}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor="is_budget_mandatory"
+                        className="ml-2 block text-sm text-gray-700"
+                      >
+                        Allow access pin for external pos
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

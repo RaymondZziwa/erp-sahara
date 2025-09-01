@@ -19,7 +19,7 @@ interface ValuationForm {
 interface AddOrModifyValuationModalProps {
   visible: boolean;
   onClose: () => void;
-  assetId: string; // UUID
+  assetId: string;
   onSave: () => void;
   editMode?: boolean;
   initialData?: ValuationForm;

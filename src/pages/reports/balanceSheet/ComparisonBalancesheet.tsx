@@ -6,7 +6,7 @@ import useBalanceSheetComparison from "../../../hooks/reports/useBalanceSheetCom
 import axios from "axios";
 import { baseURL } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
-import { BarLoader } from "react-spinners";
+import { BarLoader, PropagateLoader } from "react-spinners";
 interface Account {
   account_code: string;
   account_name: string;
@@ -47,26 +47,26 @@ function ComparisonBalanceSheet() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <BarLoader />
+       <PropagateLoader color="#007f80"/>
       </div>
     );
   }
 
-  if (!data || data.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-center">
-          <p className="text-lg text-gray-600">No data available</p>
-          <button
-            onClick={refresh}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // if (!data || data.length === 0) {
+  //   return (
+  //     <div className="flex justify-center items-center h-screen">
+  //       <div className="text-center">
+  //         <p className="text-lg text-gray-600">No data available</p>
+  //         <button
+  //           onClick={refresh}
+  //           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+  //         >
+  //           Retry
+  //         </button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   const currentAssetsTotal =
     data[0].assets?.reduce(

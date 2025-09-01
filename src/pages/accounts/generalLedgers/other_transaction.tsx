@@ -212,7 +212,7 @@ const OtherTransactions: React.FC = () => {
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={dt ? dt : []}
+          data={[]}
           ref={tableRef}
         />
       </div>

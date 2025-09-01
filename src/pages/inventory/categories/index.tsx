@@ -10,6 +10,7 @@ import BreadCrump from "../../../components/layout/bread_crump";
 import AddOrModifyItem from "./AddOrModifyItem";
 import { ItemCategory } from "../../../redux/slices/types/inventory/ItemCategory";
 import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
+import { ToastContainer } from "react-toastify";
 
 const ItemCategories: React.FC = () => {
   const { data: categories, refresh } = useItemCategories();
@@ -20,26 +21,22 @@ const ItemCategories: React.FC = () => {
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedCategory: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
 
   const columnDefinitions: ColDef<ItemCategory>[] = [
-    {
-      headerName: "ID",
-      field: "id",
-      sortable: true,
-      filter: true,
-      width: 100,
-    },
     {
       headerName: "Name",
       field: "name",
       sortable: true,
       filter: true,
     },
+    {
+      headerName: "Is Final Product",
+      field: "is_final_product",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+      valueGetter: (params) => (params.data.is_final_product == 1 ? "Yes" : "No"),
+    },    
     {
       headerName: "Description",
       field: "description",
@@ -65,7 +62,7 @@ const ItemCategories: React.FC = () => {
       cellRenderer: (params: ICellRendererParams<Category>) => (
         <div className="flex items-center gap-2">
           <button
-            className="bg-shade px-2 py-1 rounded text-white"
+            className="bg-shade px-2 h-10 rounded text-white"
             onClick={() =>
               setDialogState({
                 ...dialogState,
@@ -86,7 +83,7 @@ const ItemCategories: React.FC = () => {
             }
             icon="solar:trash-bin-trash-bold"
             className="text-red-500 cursor-pointer"
-            fontSize={20}
+            fontSize={24}
           />
         </div>
       ),
@@ -95,6 +92,7 @@ const ItemCategories: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedCategory}
@@ -139,13 +137,7 @@ const ItemCategories: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Category
             </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button>
+            
           </div>
         </div>
         <Table
