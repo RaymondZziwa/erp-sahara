@@ -136,10 +136,10 @@ const ROUTES: Route[] = [
   {
     name: "MOSS APP",
     serviceName: "MOSAPP",
-      icon: <Icon icon="mdi:tractor" fontSize={24} />, // Example: Tractor icon for a farm-related look
-      path: "/mossapp",
+    icon: <Icon icon="mdi:tractor" fontSize={24} />,
+    path: "/mossapp",
     sidebarItems: MOSS_APP_ROUTES,
-    //requiredPermission: "access_mosapp_module",
+    requiredPermission: "access_mosapp_module",
   },
   {
     name: "Manufacturing",

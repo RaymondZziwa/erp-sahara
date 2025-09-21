@@ -2,7 +2,7 @@ export interface Equipment {
   id: number;
   organisation_id: number;
   name: string;
-  work_center_id: number;
+  work_station_id: string;
   maintenance_every_after: number;
   maintenance_period: string;
   status: string;

@@ -68,50 +68,69 @@ const reportsData = [
       },
     ],
   },
+  // {
+  //   category: "Recruitment",
+  //   reports: [
+  //     {
+  //       name: "Application Source Report",
+  //       link: "/application-source-report",
+  //     },
+  //     {
+  //       name: "Offers Report",
+  //       link: "/job-offers-report",
+  //     },
+  //     {
+  //       name: "Interview Activities Report",
+  //       link: "/interview-activities-report",
+  //     },
+  //     {
+  //       name: "Application pipeline Report",
+  //       link: "/application-pipeline-report",
+  //     },
+  //     {
+  //       name: "Recruitment Summary Report",
+  //       link: "/recruitment-summary-report",
+  //     },
+  //   ],
+  // },
+  // {
+  //   category: "Human Resource",
+  //   reports: [
+  //     {
+  //       name: "Employee Master List",
+  //       link: "/supplier-performance-report",
+  //     },
+  //     { name: "Late Coming & Early Leaving Report", link: "/out-of-stock-report" },
+  //     { name: "Absenteeism Report", link: "/reorder-report" },
+  //     { name: "Overtime Report", link: "/stock-aging-report" },
+  //     { name: "Leave Balance Report", link: "/stock-taking-report" },
+  //     { name: "Leave Usage Report", link: "/stock-taking-report" },
+  //     { name: "Upcoming Leave Schedule", link: "/stock-taking-report" },
+  //     { name: "Leave Approval Cycle Report", link: "/stock-taking-report" },
+  //     { name: "Payslip Summary Report", link: "/stock-taking-report" },
+  //     { name: "Statutory Deductions Report", link: "/stock-taking-report" },
+  //     { name: "Training Attendance Report", link: "/stock-taking-report" },
+  //     { name: "Appraisal Summary Report", link: "/stock-taking-report" },
+
+  //   ],
+  // },
   {
-    category: "Recruitment",
+    category: "Manufacturing",
     reports: [
       {
-        name: "Application Source Report",
-        link: "/application-source-report",
-      },
-      {
-        name: "Offers Report",
-        link: "/job-offers-report",
-      },
-      {
-        name: "Interview Activities Report",
-        link: "/interview-activities-report",
-      },
-      {
-        name: "Application pipeline Report",
-        link: "/application-pipeline-report",
-      },
-      {
-        name: "Recruitment Summary Report",
-        link: "/recruitment-summary-report",
+        name: "Daily Production Report",
+        link: "/daily-production-report",
       },
     ],
   },
   {
-    category: "Human Resource",
+    category: "Item Purchases",
     reports: [
       {
-        name: "Employee Master List",
+        name: "Supplier Performance Report",
         link: "/supplier-performance-report",
       },
-      { name: "Late Coming & Early Leaving Report", link: "/out-of-stock-report" },
-      { name: "Absenteeism Report", link: "/reorder-report" },
-      { name: "Overtime Report", link: "/stock-aging-report" },
-      { name: "Leave Balance Report", link: "/stock-taking-report" },
-      { name: "Leave Usage Report", link: "/stock-taking-report" },
-      { name: "Upcoming Leave Schedule", link: "/stock-taking-report" },
-      { name: "Leave Approval Cycle Report", link: "/stock-taking-report" },
-      { name: "Payslip Summary Report", link: "/stock-taking-report" },
-      { name: "Statutory Deductions Report", link: "/stock-taking-report" },
-      { name: "Training Attendance Report", link: "/stock-taking-report" },
-      { name: "Appraisal Summary Report", link: "/stock-taking-report" },
-
+      { name: "Delivery Summary Report", link: "/delivery-summary-report" },
     ],
   },
 ];

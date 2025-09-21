@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 const BreadCrump = ({ name, pageName }: { name: string; pageName: string }) => {
   return (
     <div className="flex bg-white shadow  my-4  justify-between px-8 py-2 rounded-md">
-      <h4 className="font-semibold">{name}</h4>
+      <h4 className="font-semibold text-teal-500">{name}</h4>
       <div className="flex items-center gap-2">
         <Link to={"/"}>
           <Icon

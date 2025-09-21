@@ -11,6 +11,7 @@ import { INVENTORY_ENDPOINTS } from "../../../api/inventoryEndpoints";
 import Table from "../../../components/table";
 import useDrivers from "../../../hooks/inventory/useDrivers";
 import { Driver } from "../../../redux/slices/types/inventory/Driver";
+import { ToastContainer } from "react-toastify";
 
 const Drivers: React.FC = () => {
   const { data: categories, refresh } = useDrivers();
@@ -20,12 +21,6 @@ const Drivers: React.FC = () => {
     selectedItem: Driver | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
-
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
 
   const columnDefinitions: ColDef<Driver>[] = [
     {
@@ -96,6 +91,7 @@ const Drivers: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedItem}

@@ -14,6 +14,7 @@ import { PosItemCard } from "./item_card";
 import CategoryNav from "./nav/category_filter";
 import { PaymentComponent } from "./payment_component";
 import { PrintableContent } from "./receipt";
+import SuspendedSalesModal from "./suspendedSalesModal";
 
 interface CartItemType {
   id: number;
@@ -37,6 +38,8 @@ const PosPage = () => {
   const [showSelectionModal, setShowSelectionModal] = useState(false);
   const [warehouseError, setWarehouseError] = useState("");
   const [currencyError, setCurrencyError] = useState("");
+  const [isSuspendedModalOpen, setIsSuspendedModalOpen] = useState(false);
+  const suspendedSales = JSON.parse(localStorage.getItem("suspendedSales")) || [];
 
   useEffect(() => {
     const checkSelections = () => {
@@ -50,60 +53,16 @@ const PosPage = () => {
 
     checkSelections();
   }, []);
+
+  const handleSelectSale = (sale) => {
+    console.log("Selected suspended sale:", sale);
+    setCart(sale.items);
+    setIsSuspendedModalOpen(false);
+  };
   
-  // Auto-logout functionality
-  const AUTO_LOGOUT_TIME = 2 * 60 * 1000; // 2 minutes in milliseconds
-  
-  useEffect(() => {
-    // Check if user is authenticated
-    const isAuthenticated = localStorage.getItem('user');
-    if (!isAuthenticated) {
-      navigate('/');
-      return;
-    }
-
-    // Set up activity tracking and auto-logout
-    let timeoutId: NodeJS.Timeout;
-    
-    const resetTimeout = () => {
-      clearTimeout(timeoutId);
-      localStorage.setItem('lastActivity', Date.now().toString());
-      timeoutId = setTimeout(() => {
-        handleLogout();
-      }, AUTO_LOGOUT_TIME);
-    };
-
-    const checkActivity = () => {
-      const lastActivity = localStorage.getItem('lastActivity');
-      if (lastActivity) {
-        const timeSinceLastActivity = Date.now() - parseInt(lastActivity);
-        if (timeSinceLastActivity > AUTO_LOGOUT_TIME) {
-          handleLogout();
-          return;
-        }
-      }
-      resetTimeout();
-    };
-
-    // Activity event listeners
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-    
-    events.forEach(event => {
-      document.addEventListener(event, resetTimeout, true);
-    });
-
-    checkActivity();
-
-    return () => {
-      clearTimeout(timeoutId);
-      events.forEach(event => {
-        document.removeEventListener(event, resetTimeout, true);
-      });
-    };
-  }, [navigate]);
-
   const handleLogout = () => {
-    localStorage.clear()
+    localStorage.removeItem('currency');
+    localStorage.removeItem('warehouse');
     navigate('/');
   };
 
@@ -166,6 +125,38 @@ const PosPage = () => {
 
   const contentRef = useRef<HTMLDivElement>(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
+
+  const suspendSale = () => {
+    const payload = {
+      cashier_id: user.user.id,
+      cashier_name: `${user.user.first_name} ${user.user.last_name}`,
+      customer_id: 0,
+      customer_name: customer || "",
+      warehouse_id: localStorage.getItem("selectedWarehouse"),
+      items: cart.map(item => ({
+        item_id: item.id.toString(),
+        name: item.name,
+        actual_selling_price: Math.floor(+item.selling_price),
+        quantity: item.quantity,
+        discount: item.discount
+      })),
+      payment_method_id: paymentMethod || "db1c6e65-ca5d-4637-9edb-1e56f189145c",
+      amount_paid: 0,
+      sale_date: new Date().toLocaleDateString("en-US"),
+      currency_id: localStorage.getItem("selectedCurrency"),
+      amount: totalAmount
+    };
+  
+    // --- Save to localStorage ---
+    const existingSuspended = JSON.parse(localStorage.getItem("suspendedSales")) || [];
+    existingSuspended.push(payload);
+    localStorage.setItem("suspendedSales", JSON.stringify(existingSuspended));
+  
+    toast.success("Sale suspended successfully!");
+    setShowConfirmationModal(false);
+    setCart([])
+  };
+  
 
   const filteredItems = useMemo(() => {
     let result = items;
@@ -275,7 +266,7 @@ const PosPage = () => {
       customer_name: customer || "", // Use entered customer name or empty string
       warehouse_id: localStorage.getItem("selectedWarehouse"), // You may want to make this dynamic
       items: cart.map(item => ({
-        item_id: item.id.toString(), // Convert to string if needed
+        item_id: item.id.toString(),
         quantity: item.quantity,
         discount: item.discount
       })),
@@ -317,7 +308,7 @@ const PosPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-teal-50">
 
 {showSelectionModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -396,12 +387,9 @@ const PosPage = () => {
         <div className="flex items-center justify-between">
           {/* Left Section */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-              <ShoppingCart className="w-6 h-6 text-white" />
-            </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">POS</h1>
-              <p className="text-sm text-gray-500">{businessName}</p>
+              {/* <p className="text-sm text-gray-500">{businessName}</p> */}
             </div>
           </div>
 
@@ -415,7 +403,7 @@ const PosPage = () => {
                 placeholder="Search products..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
 
@@ -425,7 +413,7 @@ const PosPage = () => {
               <select
                 value={warehouse}
                 onChange={handleWarehouseChange}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-teal-500 focus:border-teal-500"
               >
                 <option value="" disabled>Select warehouse</option>
                 {warehouses.map((w) => (
@@ -440,7 +428,7 @@ const PosPage = () => {
               <select
                 value={currency}
                 onChange={handleCurrencyChange}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-teal-500 focus:border-teal-500"
               >
                 <option value="" disabled>Select currency</option>
                 {currencies.map((c) => (
@@ -476,10 +464,23 @@ const PosPage = () => {
         <div className={`${isMobile ? "w-full" : "w-3/5"} flex flex-col bg-white border-r border-gray-200`}>
           {/* Category Filter */}
           <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">Products</h2>
-              <Filter className="w-5 h-5 text-gray-400" />
+          <div className="mb-6">
+            {/* Suspended Sales (Clickable) */}
+            <button
+              onClick={() => setIsSuspendedModalOpen(true)}
+              className="text-md font-medium text-teal-600 hover:underline mb-1 block"
+            >
+              Suspended Sales (<span className="text-red-500">{suspendedSales.length}</span>)
+            </button>
+
+            {/* Products + Filter Row */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-800">Products</h2>
+              <button className="p-2 rounded-full hover:bg-gray-100">
+                <Filter className="w-5 h-5 text-gray-500" />
+              </button>
             </div>
+          </div>
             <CategoryNav
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
@@ -523,7 +524,7 @@ const PosPage = () => {
                 >
                   Previous
                 </button>
-                <span className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium">
+                <span className="px-4 py-2 bg-teal-50 text-teal-600 rounded-xl text-sm font-medium">
                   Page {currentPage} of {totalPages}
                 </span>
                 <button
@@ -545,7 +546,7 @@ const PosPage = () => {
             <div className="p-6 border-b border-gray-100 bg-white">
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-xl font-bold text-gray-800">Order Summary</h2>
-                <div className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
+                <div className="bg-teal-100 text-teal-600 px-3 py-1 rounded-full text-sm font-medium">
                   {cart.length} items
                 </div>
               </div>
@@ -580,9 +581,9 @@ const PosPage = () => {
             {/* Cart Footer */}
             <div className="p-6 border-t border-gray-100 bg-white">
               <div className="space-y-4">
-                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-teal-50 to-purple-50 rounded-xl">
                   <span className="font-semibold text-gray-700">Total Amount:</span>
-                  <span className="font-bold text-2xl text-blue-600">
+                  <span className="font-bold text-2xl text-teal-600">
                     UGX {totalAmount.toFixed(2)}
                   </span>
                 </div>
@@ -613,7 +614,7 @@ const PosPage = () => {
       {/* Confirmation Modal */}
       {showConfirmationModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
             <div className="p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Confirm Order</h2>
 
@@ -635,26 +636,32 @@ const PosPage = () => {
                 </div>
                 <div className="flex justify-between items-center font-bold text-lg pt-2 border-t border-gray-100">
                   <span>Total:</span>
-                  <span className="text-blue-600">UGX {totalAmount.toFixed(2)}</span>
+                  <span className="text-teal-600">UGX {totalAmount.toFixed(2)}</span>
                 </div>
               </div>
 
               <div className={`flex ${isMobile ? "flex-col space-y-3" : "space-x-3"} mt-8`}>
                 <button
                   onClick={() => setShowConfirmationModal(false)}
-                  className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
+                  className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium mb-3 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
+                  onClick={() => suspendSale()}
+                  className="flex-1 py-3 px-4 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-800 mb-3 transition-colors"
+                >
+                  Suspend
+                </button>
+                <button
                   onClick={() => processCheckout(false)}
-                  className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-medium transition-all transform hover:scale-105"
+                  className="flex-1 py-3 px-4 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-800 mb-3 transition-colors"
                 >
                   Complete Order
                 </button>
                 <button
                   onClick={() => processCheckout(true)}
-                  className="flex-1 py-3 px-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-medium transition-all transform hover:scale-105"
+                  className="flex-1 py-3 px-4 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-800 mb-3 transition-colors"
                 >
                   Complete & Print
                 </button>
@@ -682,7 +689,8 @@ const PosPage = () => {
           .print-content { display: none; }
         `}
         </style>
-        </div>
+      </div>
+      <SuspendedSalesModal isOpen={isSuspendedModalOpen} onClose={() => setIsSuspendedModalOpen(false)} suspendedSales={suspendedSales} onSelectSale={handleSelectSale}/>
     </div>
   );
 };

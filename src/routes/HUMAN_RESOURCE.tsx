@@ -132,16 +132,16 @@ const HUMAN_RESOURCE_ROUTES = [
           </Suspense>
         ),
       },
-      {
-        name: "Balances and Carry Forwards",
-        icon: <Icon icon="mdi:scale-balance" fontSize={20} />,
-        path: "/balancesandcarryforwards",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <LeaveTypes />
-          </Suspense>
-        ),
-      },
+      // {
+      //   name: "Balances and Carry Forwards",
+      //   icon: <Icon icon="mdi:scale-balance" fontSize={20} />,
+      //   path: "/balancesandcarryforwards",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <LeaveTypes />
+      //     </Suspense>
+      //   ),
+      // },
       {
         name: "Leave Types",
         icon: <Icon icon="mdi:format-list-checks" fontSize={20} />,
@@ -169,36 +169,36 @@ const HUMAN_RESOURCE_ROUTES = [
           </Suspense>
         ),
       },
-      {
-        name: "Time sheets",
-        icon: <Icon icon="mdi:calendar-text-outline" fontSize={20} />,
-        path: "/attendencies",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Attendencies />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Shift Management",
-        icon: <Icon icon="mdi:calendar-sync" fontSize={20} />,
-        path: "/attendencies",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Attendencies />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Overtime Calculation",
-        icon: <Icon icon="mdi:clock-alert-outline" fontSize={20} />,
-        path: "/attendencies",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Attendencies />
-          </Suspense>
-        ),
-      },
+      // {
+      //   name: "Time sheets",
+      //   icon: <Icon icon="mdi:calendar-text-outline" fontSize={20} />,
+      //   path: "/attendencies",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <Attendencies />
+      //     </Suspense>
+      //   ),
+      // },
+      // {
+      //   name: "Shift Management",
+      //   icon: <Icon icon="mdi:calendar-sync" fontSize={20} />,
+      //   path: "/attendencies",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <Attendencies />
+      //     </Suspense>
+      //   ),
+      // },
+      // {
+      //   name: "Overtime Calculation",
+      //   icon: <Icon icon="mdi:clock-alert-outline" fontSize={20} />,
+      //   path: "/attendencies",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <Attendencies />
+      //     </Suspense>
+      //   ),
+      // },
     ],
   },
   // {

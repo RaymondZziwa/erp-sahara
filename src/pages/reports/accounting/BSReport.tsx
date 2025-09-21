@@ -151,7 +151,7 @@ const BalanceSheetReport = () => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
-      <CustomReportHeader />
+      <CustomReportHeader printfn={printPdf}/>
       <div className="flex flex-row justify-center items-center mt-20">
       <Header title="Balance Sheet Report" />
       </div>

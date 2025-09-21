@@ -61,7 +61,7 @@ const StockOut: React.FC = () => {
   const columnDefinitions: ColDef<any>[] = [
     {
       headerName: "Name",
-      field: "item.name",
+      field: "item_name",
       sortable: true,
       filter: true,
       cellClass: 'cursor-pointer hover:underline',
@@ -70,13 +70,13 @@ const StockOut: React.FC = () => {
         navigate(`/inventory/item/${event.data.item_id}/${event.data.item_name}`);
       },
     },
-    {
-      headerName: "Transaction type",
-      field: "transaction_type",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
+    // {
+    //   headerName: "Transaction type",
+    //   field: "transaction_type",
+    //   sortable: true,
+    //   filter: true,
+    //   suppressSizeToFit: true,
+    // },
     {
       headerName: "Quantity",
       field: "quantity",
@@ -97,7 +97,7 @@ const StockOut: React.FC = () => {
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
-      valueGetter: (params) => params.data.warehouse?.name || 'N/A',
+      valueGetter: (params) => params.data.warehouse_name || 'N/A',
     },
     {
       headerName: "Date",

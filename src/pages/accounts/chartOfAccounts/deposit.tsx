@@ -44,15 +44,30 @@ const DepositBalance: React.FC<AddOrModifyItemProps> = ({
   //     }
   //   }, [item]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
+const handleInputChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+) => {
+  const { name, value } = e.target;
+
+  // Special handling for the opening_balance field
+  if (name === "opening_balance") {
+    const raw = value.replace(/,/g, ""); // remove commas
+    if (!isNaN(Number(raw))) {
+      setFormState(prevState => ({
+        ...prevState,
+        [name]: raw,
+      }));
+    }
+    return; // stop here to avoid running the generic update
+  }
+
+  // Generic update for all other fields
+  setFormState(prevState => ({
+    ...prevState,
+    [name]: value,
+  }));
+};
+
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     try {
@@ -101,6 +116,9 @@ const DepositBalance: React.FC<AddOrModifyItemProps> = ({
     }
   };
 
+  const formatWithCommas = (val: string | number) =>
+  val ? new Intl.NumberFormat("en-US").format(Number(val)) : "";
+
   const footer = (
     <div className="flex justify-end space-x-2 border-t py-2">
       <Button
@@ -144,8 +162,8 @@ const DepositBalance: React.FC<AddOrModifyItemProps> = ({
           <InputText
             id="opening_balance"
             name="opening_balance"
-            type="number"
-            value={formState.opening_balance}
+            type="text"
+            value={formatWithCommas(formState.opening_balance)}
             onChange={handleInputChange}
             required
             className="w-full"

@@ -99,9 +99,19 @@ import SettlementReducer from "./slices/procurement/settlementSlice";
 import SupplierLoanReducer from "./slices/supplier_loans/supplierLoanSlice";
 import ModulePermissionReducer from "./slices/settings/modulePermissionSlice";
 import UserStatsReducer from "./slices/mossApp/userStatisticSlice";
+import ProductionOrderReducer from "./slices/manufacturing/workCenters/productionOrderSlice";
+import ProductionStepReducer from "./slices/manufacturing/workCenters/productionStepSlice";
+import productionMaterialRequestReducer from "./slices/manufacturing/workCenters/productionMaterialRequestSlice";
+import productionBatchReducer from "./slices/manufacturing/workCenters/productionBatchSlice";
+import vehicleRepairReducer from "./slices/accounts/cash_requisitions/vehicleRepairSlice"
 
 const store = configureStore({
   reducer: {
+    vehicleRepair: vehicleRepairReducer,
+    productionBatch: productionBatchReducer,
+    productionMaterialRequests: productionMaterialRequestReducer,
+    productionSteps: ProductionStepReducer,
+    productionOrders: ProductionOrderReducer,
     userStats: UserStatsReducer,
     modulePermissions: ModulePermissionReducer,
     supplierLoans: SupplierLoanReducer,

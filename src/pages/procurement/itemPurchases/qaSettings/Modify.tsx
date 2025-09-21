@@ -10,7 +10,7 @@ interface EditQaSettingsModalProps {
   initialData: QaSettingItem[];
   initialReason: string;
   onClose: () => void;
-  onSave: (updatedValues: { data: QaSettingItem[]; reason: string }) => void;
+  onSave: (updatedValues: Record<string, number | string>) => void;
 }
 
 // Convert array to object for easier form editing
@@ -19,11 +19,6 @@ function arrayToObject(data: QaSettingItem[]) {
     acc[name] = value;
     return acc;
   }, {} as Record<string, number>);
-}
-
-// Convert object back to array for saving
-function objectToArray(obj: Record<string, number>): QaSettingItem[] {
-  return Object.entries(obj).map(([name, value]) => ({ name, value }));
 }
 
 const EditQaSettingsModal: React.FC<EditQaSettingsModalProps> = ({
@@ -52,7 +47,11 @@ const EditQaSettingsModal: React.FC<EditQaSettingsModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ data: objectToArray(values), reason });
+    // ✅ Send the payload in required structure
+    onSave({
+      ...values,
+      reason,
+    });
     onClose();
   };
 

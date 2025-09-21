@@ -97,7 +97,7 @@ const EditAssessmentModal: React.FC<EditAssessmentModalProps> = ({
 
   return (
     <Dialog
-      header={initialData ? "Edit Assessment" : "Add Assessment"}
+      header={initialData ? "Edit Assessment" : "Add Quality Results"}
       visible={visible}
       style={{ width: '24rem' }}
       breakpoints={{ '960px': '75vw', '641px': '90vw' }}
@@ -106,10 +106,27 @@ const EditAssessmentModal: React.FC<EditAssessmentModalProps> = ({
       onHide={onClose}
     >
       <form onSubmit={handleSubmit} className="mt-4">
+      <div className="field mb-4">
+          <label htmlFor="goodBeans" className="font-medium">
+            Gross (%)
+          </label>
+          <InputNumber
+            id="gross %" //gross_percentage
+            value={goodBeans}
+            onValueChange={(e) => setGoodBeans(e.value || 0)}
+            mode="decimal"
+            min={0}
+            max={100}
+            minFractionDigits={1}
+            maxFractionDigits={2}
+            className="w-full"
+            required
+          />
+        </div>
         {/* Good Beans Input */}
         <div className="field mb-4">
           <label htmlFor="goodBeans" className="font-medium">
-            Good Beans (%)
+            Good Beans (Net) (%)
           </label>
           <InputNumber
             id="goodBeans"
@@ -166,13 +183,13 @@ const EditAssessmentModal: React.FC<EditAssessmentModalProps> = ({
         {/* Remarks Input */}
         <div className="field mb-6">
           <label htmlFor="remarks" className="font-medium">
-            Remarks
+            Remarks (optional)
           </label>
           <InputTextarea
             id="remarks"
             value={remarks}
             onChange={(e) => setRemarks(e.target.value)}
-            rows={3}
+            rows={1}
             autoResize
             className="w-full"
           />
@@ -183,7 +200,7 @@ const EditAssessmentModal: React.FC<EditAssessmentModalProps> = ({
           
           <Button
             type="submit"
-            label="Save Assessment"
+            label="Save Results"
             icon="pi pi-check"
             loading={isSubmitting}
           />

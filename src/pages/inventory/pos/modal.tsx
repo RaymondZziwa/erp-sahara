@@ -28,8 +28,8 @@ const PosModal: React.FC<Props> = ({ query }) => {
   const [selectedCategory, setSelectedCategory] = useState<number | string>(0);
   const [customer, setCustomer] = useState<string | number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string | null>("");
-  const [searchedItems, setSearchedItems] = useState<CartItemType[]>([]);
-  const [cart, setCart] = useState<CartItemType[]>([]);
+  const [searchedItems, setSearchedItems] = useState<any[]>([]);
+  const [cart, setCart] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const user = useSelector((state: RootState) => state.userAuth.user);

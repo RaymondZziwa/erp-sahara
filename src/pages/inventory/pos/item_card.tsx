@@ -34,7 +34,7 @@ export const PosItemCard: React.FC<{
   <div className="p-2">
     <h3 className="text-xs font-semibold text-gray-800 line-clamp-2 mb-1">{name}</h3>
     <div className="flex items-center justify-between">
-      <span className="text-sm font-bold text-blue-600">UGX {price}</span>
+      <span className="text-sm font-bold text-teal-600">UGX {price}</span>
       <span className="text-[10px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
         {item?.unit_of_measure?.abbreviation || "unit"}
       </span>

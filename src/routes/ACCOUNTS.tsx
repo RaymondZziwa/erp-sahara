@@ -8,7 +8,7 @@ import BankingLedgers from "../pages/accounts/generalLedgers/banking";
 import SalesTransactions from "../pages/accounts/generalLedgers/sales";
 import ExpenseTransactions from "../pages/accounts/generalLedgers/expenses";
 import OtherTransactions from "../pages/accounts/generalLedgers/other_transaction";
-import SettlementTable from "../pages/accounts/itemDeliveryPayment";
+import { FaUniversity, FaWallet } from "react-icons/fa";
 
 // Dynamic imports
 const Accounts = lazy(() => import("../pages/accounts/categories"));
@@ -114,6 +114,26 @@ const ACCOUNTS_ROUTES = [
       {
         name: "Payment Methods",
         icon: <Icon icon="tdesign:money" fontSize={20} />,
+        path: "/accounts/payment_methods",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <PaymentMethods />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Banks",
+        icon: <FaUniversity size={20} />,
+        path: "/accounts/payment_methods",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <PaymentMethods />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Bank Accounts",
+        icon: <FaWallet size={20} />,
         path: "/accounts/payment_methods",
         element: (
           <Suspense fallback={<Loading />}>

@@ -4,9 +4,11 @@ import { useReactToPrint } from "react-to-print";
 import Header from "../../../components/custom/print_header";
 import useBalanceSheetComparison from "../../../hooks/reports/useBalanceSheetComparison";
 import axios from "axios";
-import { baseURL } from "../../../utils/api";
+import { apiRequest, baseURL } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
-import { BarLoader, PropagateLoader } from "react-spinners";
+import { PropagateLoader } from "react-spinners";
+import CustomReportHeader from "../../../components/custom/customReportHeader";
+import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
 interface Account {
   account_code: string;
   account_name: string;
@@ -25,7 +27,9 @@ interface SubCategoryItem {
 }
 
 function ComparisonBalanceSheet() {
-  const { data, refresh, isLoading } = useBalanceSheetComparison();
+  //const { data, refresh } = useBalanceSheetComparison();
+  const [data, setData] = useState<any>();
+  const [loading, setLoading] = useState(true);
   const { token } = useAuth();
   const [openModalData, setOpenModalData] = useState<Account[] | null>(null);
 
@@ -36,15 +40,34 @@ function ComparisonBalanceSheet() {
     setOpenModalData(accounts);
   };
 
-  useEffect(() => {
-    refresh();
-  }, []);
 
   const closeModal = () => {
     setOpenModalData(null);
   };
 
-  if (isLoading) {
+    const fetchData = async () => {
+      if (!token?.access_token) return;
+  
+      setLoading(true);
+      try {
+        const response = await apiRequest<any>(
+          REPORTS_ENDPOINTS.COMPARISON_BALANCE_SHEET.GET_ALL,
+          "GET",
+          token.access_token
+        );
+        setData(response.data || {});
+      } catch (error: any) {
+        console.error("Failed to fetch balance sheet comparison:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    useEffect(() => {
+      fetchData();
+    }, [token?.access_token]);
+
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
        <PropagateLoader color="#007f80"/>
@@ -131,23 +154,16 @@ function ComparisonBalanceSheet() {
 
   return (
     <div className="bg-white p-3">
-      <div className="flex justify-end items-center mb-4">
-        <button
-          className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-          onClick={print}
-        >
-          <Icon icon="solar:printer-bold" fontSize={20} />
-          Print
-        </button>
+      <CustomReportHeader />
+      <div className="flex flex-row justify-center items-center mt-20">
+        <Header title="Balance Sheet Comparison Report" />
       </div>
       <div ref={contentRef} className="p-4">
-        <div className="flex flex-row justify-center items-center">
-          <Header title={"Balance Sheet Comparison Report"} />
-        </div>
+       
 
         <table className="w-full border-collapse">
           <thead>
-            <tr className="font-bold border-b border-gray-300">
+            <tr className="font-bold border-b border-gray-300 bg-teal-500 text-white">
               <th className="text-left p-2 w-1/2">Description</th>
               <th className="text-right p-2 w-1/4">Current Period</th>
               <th className="text-right p-2 w-1/4">Previous Period</th>
@@ -182,7 +198,7 @@ function ComparisonBalanceSheet() {
             ))}
 
             <tr className="font-bold bg-gray-100 border-t-2 border-gray-400">
-              <td className="p-2 pl-3">TOTAL ASSETS</td>
+              <td className="p-2 pl-3 text-sm">TOTAL ASSETS</td>
               <td className="p-2 text-right">
                 {currentAssetsTotal.toLocaleString()}
               </td>
@@ -219,7 +235,7 @@ function ComparisonBalanceSheet() {
             ))}
 
             <tr className="font-bold bg-gray-100">
-              <td className="p-2 pl-3">TOTAL LIABILITIES</td>
+              <td className="p-2 pl-3 text-sm">TOTAL LIABILITIES</td>
               <td className="p-2 text-right">
                 {currentLiabilitiesTotal.toLocaleString()}
               </td>
@@ -256,7 +272,7 @@ function ComparisonBalanceSheet() {
             ))}
 
             <tr className="font-bold bg-gray-100">
-              <td className="p-2 pl-3">TOTAL EQUITY</td>
+              <td className="p-2 pl-3 text-sm">TOTAL EQUITY</td>
               <td className="p-2 text-right">
                 {currentEquityTotal.toLocaleString()}
               </td>
@@ -278,7 +294,7 @@ function ComparisonBalanceSheet() {
 
             {/* Grand Total */}
             <tr className="font-bold bg-gray-200 border-t-2 border-gray-600">
-              <td className="p-2 pl-3">TOTAL LIABILITIES AND EQUITY</td>
+              <td className="p-2 pl-3 text-sm">TOTAL LIABILITIES AND EQUITY</td>
               <td className="p-2 text-right">
                 {currentTotal.toLocaleString()}
               </td>

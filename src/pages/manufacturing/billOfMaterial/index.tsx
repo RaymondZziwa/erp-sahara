@@ -20,13 +20,13 @@ const BillOfMAterial: React.FC = () => {
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
-
   const columnDefinitions: ColDef<BillOfMaterial>[] = [
+    {
+      headerName: "Item Name",
+      field: "item.name",
+      sortable: true,
+      filter: true,
+    },
     {
       headerName: "Version",
       field: "version",
@@ -35,22 +35,15 @@ const BillOfMAterial: React.FC = () => {
     },
 
     {
-      headerName: "Items count",
+      headerName: "Raw Items count",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
       cellRenderer: (params: ICellRendererParams<BillOfMaterial>) => (
         <div className="flex items-center gap-2">
-          <p>{params.data?.bo_items?.map((item) => item.id)}</p>
+          <p>{params.data?.bom_items?.length}</p>
         </div>
       ),
-    },
-
-    {
-      headerName: "Created",
-      field: "created_at",
-      sortable: true,
-      filter: true,
     },
     {
       headerName: "Actions",
@@ -135,13 +128,6 @@ const BillOfMAterial: React.FC = () => {
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add BOM
-            </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
             </button>
           </div>
         </div>

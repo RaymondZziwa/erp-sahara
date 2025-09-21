@@ -8,7 +8,7 @@ const SettingsPage = () => {
   const { user, logOutHandler } = useAuth();
   const settings = [
     // { name: "My Invoices", path: "/settings/invoices" },
-    { name: "Profile", path: "/settings/user_profile" },
+    { name: "Profile", path: "/user_profile" },
     // { name: "Account Settings", path: "/settings/account" },
     // { name: "Notifications", path: "/settings/notifications" },
     // { name: "Privacy", path: "/settings/privacy" },
@@ -19,7 +19,7 @@ const SettingsPage = () => {
     <div className="bg-white shadow-md rounded-lg p-4 w-60">
       <div className="flex items-center mb-4">
         <img
-          src={user.first_name == "male" ? malePic : femalePic}
+          src={user?.gender.toLowerCase() == "male" ? malePic : femalePic}
           alt="User"
           className="w-12 h-12 rounded-full object-cover"
         />

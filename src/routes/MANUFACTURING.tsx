@@ -1,11 +1,8 @@
 
 import { Icon } from "@iconify/react";
 import { Suspense } from "react";
-import WorkCenters from "../pages/manufacturing/workCenters";
-import WorkOrders from "../pages/manufacturing/workCenterOrders";
-import EquipmentComp from "../pages/manufacturing/workEquipment";
 import MaintainanceLogs from "../pages/manufacturing/workEquipment/details/maintainanceLog";
-import EqupmentDetails from "../pages/manufacturing/workCenters/details";
+import EqupmentDetails from "../pages/manufacturing/workStations/details";
 import BillOfMAterial from "../pages/manufacturing/billOfMaterial";
 import ProductionLines from "../pages/manufacturing/productionLines";
 import EquipmentAssignments from "../pages/manufacturing/equipmentAsssignments";
@@ -16,6 +13,10 @@ import Overview from "../pages/manufacturing/Overview";
 //import ToBeUpdated from "../pages/ToBeUpdated";
 import QualityControl from "../pages/manufacturing/qualityControl";
 import Materials from "../pages/manufacturing/materials";
+import WorkCenters from "../pages/manufacturing/setup/workStations";
+import Machines from "../pages/manufacturing/setup/machines";
+import WorkOrders from "../pages/manufacturing/workOrders";
+import ProductionOrders from "../pages/manufacturing/productionOrders";
 
 // Dynamic imports
 //const SettingsPage = lazy(() => import("../pages/settings"));
@@ -24,11 +25,20 @@ import Materials from "../pages/manufacturing/materials";
 const Loading = () => <div>Loading...</div>;
 
 const MANUFACTURING_ROUTES = [
-
   {
-    name: "Production Orders",
-    icon: <Icon icon="mdi:file-document-outline" fontSize={20} />,
-    path: "/productio-orders",
+    name: "Bill of Materials",
+    icon: <Icon icon="mdi:format-list-bulleted-type" fontSize={20} />,
+    path: "/bill-of-materials",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <BillOfMAterial />
+      </Suspense>
+    ),
+  },
+  {
+    name: "Work Orders",
+    icon: <Icon icon="mdi:playlist-check" fontSize={20} />,
+    path: "/work-orders",
     element: (
       <Suspense fallback={<Loading />}>
         <WorkOrders />
@@ -36,14 +46,25 @@ const MANUFACTURING_ROUTES = [
     ),
   },
   {
-    name: "Settings",
+    name: "Production Orders",
+    icon: <Icon icon="mdi:hammer-wrench" fontSize={20} />,
+    path: "/production-orders",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <ProductionOrders />
+      </Suspense>
+    ),
+  },
+  
+  {
+    name: "Configurations",
     icon: <Icon icon="mdi:gear-outline" fontSize={24} />,
-    path: "/workcenters",
+    path: "",
     items: [
       {
         name: "Work Stations",
         icon: <Icon icon="mdi:calendar-clock" fontSize={20} />,
-        path: "/centers",
+        path: "/workstations",
         element: (
           <Suspense fallback={<Loading />}>
             <WorkCenters />
@@ -53,95 +74,13 @@ const MANUFACTURING_ROUTES = [
       {
         name: "Machines",
         icon: <Icon icon="mdi:finance" fontSize={20} />,
-        path: "/equipment",
+        path: "/machines",
         element: (
           <Suspense fallback={<Loading />}>
-            <EquipmentComp />
+            <Machines />
           </Suspense>
         ),
       },
-      {
-        name: "Production Lines",
-        icon: <Icon icon="mdi:finance" fontSize={20} />,
-        path: "/productionlines",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <ProductionLines />
-          </Suspense>
-        ),
-      },
-      // {
-      //   name: "Production Plans",
-      //   icon: <Icon icon="mdi:finance" fontSize={20} />,
-      //   path: "/productionplans",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <ProductionPlans />
-      //     </Suspense>
-      //   ),
-      // },
-      // {
-      //   name: "Processing",
-      //   icon: <Icon icon="mdi:finance" fontSize={20} />,
-      //   path: "/productionplans",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <ProductionPlans />
-      //     </Suspense>
-      //   ),
-      // },
-      // {
-      //   name: "Production Output",
-      //   icon: <Icon icon="mdi:finance" fontSize={20} />,
-      //   path: "/productionplans",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <ProductionPlans />
-      //     </Suspense>
-      //   ),
-      // },
-      // {
-      //   name: "Equipment Details",
-      //   icon: <Icon icon="mdi:finance" fontSize={20} />,
-      //   path: "/equipment/:id",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <MaintainanceLogs />
-      //     </Suspense>
-      //   ),
-      //   hidden: true
-      // },
-      // {
-      //   name: "Plan Details",
-      //   icon: <Icon icon="mdi:finance" fontSize={20} />,
-      //   path: "/productionplans/:id",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <ProductionPlanDetails />
-      //     </Suspense>
-      //   ),
-      // },
-      // {
-      //   name: "Center Details",
-      //   icon: <Icon icon="mdi:finance" fontSize={20} />,
-      //   path: "/centers/:id",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <EqupmentDetails />
-      //     </Suspense>
-      //   ),
-      //   hidden: true
-      // },
-      // {
-      //   name: "Quality Control",
-      //   icon: <Icon icon="mdi:finance" fontSize={20} />,
-      //   path: "/qualitycontrol",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <QualityControl />
-      //     </Suspense>
-      //   ),
-      // },
     ],
   },
 ];

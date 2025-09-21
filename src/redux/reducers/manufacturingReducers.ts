@@ -10,7 +10,7 @@ import productionLinesSlice from "../slices/manufacturing/workCenters/production
 import machineAssignmentsSlice from "../slices/manufacturing/workCenters/machineAssignmentsSlice";
 import productionPlansSlice from "../slices/manufacturing/workCenters/productionPlansSlice";
 import productionPlansSchedulesSlice from "../slices/manufacturing/workCenters/productionPlanScheduleSlice";
-import productionPlanMaterialSlice from "../slices/manufacturing/workCenters/productionPlanMaterialSlice";
+import productionPlanMaterialSlice from "../slices/manufacturing/workCenters/productionMaterialRequestSlice";
 
 export const MANUFACTURING_REDUCERS = {
   workcenters: workCentersSlice,

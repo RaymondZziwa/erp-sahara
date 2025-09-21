@@ -13,6 +13,7 @@ import useItemPurchases from "../../../../hooks/procurement/itemPurchases/useIte
 import AddOrModifyItemPurchase from "./AddorModify";
 import EditAssessmentModal from "./assess";
 import ViewAssessmentModal from "./viewAssessment";
+import useUserPermissions from "../../../../hooks/users/useUserPermissions";
 
 interface ItemPurchase {
   id: string;
@@ -37,7 +38,8 @@ const ItemPurchases: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [assessment, setAssessment] = useState<any>(null);
   const [purchase, setPurchase] = useState<any>(null);
-  
+  const canAddPurchase = useUserPermissions("add_purchase");
+  const canAssess = useUserPermissions("add_quality_results");
   const [dialogState, setDialogState] = useState<{
     selectedItem?: ItemPurchase;
     currentAction: "add" | "edit" | "delete" | "";
@@ -147,7 +149,7 @@ const ItemPurchases: React.FC = () => {
               </button>
             )}
 
-            {!purchase?.assessment && (
+            {(!purchase?.assessment && canAssess) && (
               <button
               className="bg-teal-600 hover:bg-teal-700 p-1 rounded text-white text-xs"
               onClick={(e) => {
@@ -157,7 +159,7 @@ const ItemPurchases: React.FC = () => {
               title="Add Assessment"
               aria-label="Add Assessment"
               >
-                  Assess
+                  Record Results
               </button>
             )}
 
@@ -253,13 +255,16 @@ const ItemPurchases: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Item Purchases</h1>
 
-          <button
+          {
+            canAddPurchase && 
+            <button
             onClick={() => setDialogState({ currentAction: "add" })}
             className="bg-teal-600 hover:bg-teal-700 px-3 py-2 rounded text-white flex gap-2 items-center text-sm"
           >
             <Icon icon="solar:add-circle-bold" fontSize={18} />
             Add New Purchase
           </button>
+          }
         </div>
 
         <Table

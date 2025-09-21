@@ -35,6 +35,7 @@ export const ACCOUNTS_ENDPOINTS = {
     APPROVE: (id: string) => `/accounts/cash-requisitions/${id}/approve`,
     REJECT: (id: string) => `/accounts/cash-requisitions/${id}/reject`,
     DISBURSE: (id: string) => `/accounts/cash-requisitions/${id}/disburse`,
+    UPLOAD_ITEM_TEMPLATE: "/accounts/cash-requisitions/uploaditemtemplate"
   },
   FUEL_REQUISITIONS: {
     GET_ALL: "/requisitions/fuel-requisitions",
@@ -44,6 +45,15 @@ export const ACCOUNTS_ENDPOINTS = {
     PRINT: (id: string) => `/requisitions/fuel-requisitions/${id}/pdf`,
     APPROVE: (id: string) => `/requisitions/fuel-requisitions/${id}/approve`,
     REJECT: (id: string) => `/requisitions/fuel-requisitions/${id}/reject`
+  },
+    VEHICLE_REPAIR_REQUISITIONS: {
+    GET_ALL: "/requisitions/repair-requisitions",
+    GET_BY_ID: (id: string) => `/accounts/repair-requisitions/${id}`,
+    ADD: "/requisitions/repair-requisitions/create",
+    UPDATE: (id: string) => `/requisitions/repair-requisitions/${id}`,
+    PRINT: (id: string) => `/requisitions/repair-requisitions/${id}/pdf`,
+    APPROVE: (id: string) => `/requisitions/repair-requisitions/${id}/approve`,
+    REJECT: (id: string) => `/requisitions/repair-requisitions/${id}/reject`
   },
   STORE_REQUISITIONS: {
     GET_ALL: "/requisitions/store-requisitions",

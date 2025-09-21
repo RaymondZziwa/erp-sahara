@@ -39,6 +39,7 @@ const DisburseModal: React.FC<DisburseModalProps> = ({
   onCompleted 
 }) => {
   const { data: paymentMethods } = usePaymentMethods();
+  const [isLoading, setIsLoading] = useState(false)
   const token = useSelector((state: RootState) => state.userAuth.token);
   
   const [formData, setFormData] = useState<DisbursementFormData>({
@@ -96,6 +97,8 @@ const DisburseModal: React.FC<DisburseModalProps> = ({
       items: formData.items
     };
 
+    setIsLoading(false)
+
     try {
       await apiRequest(
         ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.DISBURSE(requisition.id), 
@@ -106,6 +109,7 @@ const DisburseModal: React.FC<DisburseModalProps> = ({
       
       toast.success("Requisition has been successfully disbursed");
       onCompleted();
+      setIsLoading(false)
       onHide();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Failed to disburse requisition");
@@ -256,15 +260,16 @@ const DisburseModal: React.FC<DisburseModalProps> = ({
           <Button
             label="Cancel"
             icon="pi pi-times"
-            className="p-button-text"
+            className="p-button-text !bg-red-500"
             onClick={onHide}
           />
           <Button
-            label="Disburse"
+             label={isLoading ? "Disbursing" : "Disburse"}
             icon="pi pi-check"
             className="p-button-success"
             onClick={handleSubmit}
-            disabled={!formData.payment_method_id || calculateTotalAmount() <= 0}
+            loading={isLoading}
+            disabled={(!formData.payment_method_id || calculateTotalAmount() <= 0) || isLoading}
           />
         </div>
       </div>

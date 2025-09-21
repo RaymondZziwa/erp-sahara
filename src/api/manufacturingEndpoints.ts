@@ -1,4 +1,25 @@
 export const MANUFACTURING_ENDPOINTS = {
+  PRODUCTION_STEPS: {
+    GET_ALL:(id: string) =>  `/manufacturing/production_orders/steps?production_order_id=${id}`,
+    GET_BY_ID: (id: string) => `/manufacturing/production_orders/steps/${id}`,
+    ADD: "/manufacturing/production_orders/steps/create",
+    UPDATE: "/manufacturing/production_orders/steps/update",
+    DELETE: (id: string) => `/manufacturing/production_steps/${id}/delete`,
+  },
+  PRODUCTION_ORDERS: {
+    GET_ALL: "/manufacturing/production_orders",
+    GET_BY_ID: (id: string) => `/manufacturing/production_orders/${id}`,
+    ADD: "/manufacturing/production_orders/create",
+    UPDATE: (id: string) => `/manufacturing/production_orders/${id}/update`,
+    DELETE: (id: string) => `/manufacturing/production_orders/${id}/delete`,
+  },
+  WORK_ORDERS: {
+    GET_ALL: "/manufacturing/workorders",
+    GET_BY_ID: (id: string) => `/manufacturing/workorders/${id}`,
+    ADD: "/manufacturing/workorders/create",
+    UPDATE: (id: string) => `/manufacturing/workorders/${id}/update`,
+    DELETE: (id: string) => `/manufacturing/workorders/${id}/delete`,
+  },
   WORK_CENTERS: {
     GET_ALL: "/manufacturing/workstations",
     GET_BY_ID: (id: string) => `/manufacturing/workstations/${id}`,
@@ -25,6 +46,7 @@ export const MANUFACTURING_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/manufacturing/machines/${id}`,
     ADD: "/manufacturing/machines/create",
     UPDATE: (id: string) => `/manufacturing/machines/${id}/update`,
+    UPDATE_STATUS: (id: string) => `/manufacturing/machines/${id}/updatestatus`,
     DELETE: (id: string) => `/manufacturing/machines/${id}/delete`,
   },
   EQUIPMENT_ASSIGNMENTS: {
@@ -48,25 +70,34 @@ export const MANUFACTURING_ENDPOINTS = {
     UPDATE: (id: string) => `/manufacturing/productionplans/${id}/update`,
     DELETE: (id: string) => `/manufacturing/productionplans/${id}/delete`,
   },
-  PRODUCTION_PLAN_SCHEDULES: {
-    GET_ALL: (productionPlanId: string) =>
-      `/manufacturing/productionplans/${productionPlanId}/schedules`,
+  PRODUCTION_SCHEDULES: {
+    GET_ALL: (id: string) =>
+      `/manufacturing/${id}/schedules`,
     GET_BY_ID: (id: string) => `/manufacturing/productionplans/${id}`,
     ADD: (id: string) => `/manufacturing/${id}/schedules/create`,
-    UPDATE: (id: string) =>
-      `/manufacturing/productionplans/schedules/${id}/update`,
+    UPDATE: (pId: string, id: string) =>
+      `/manufacturing/${pId}/schedules/${id}/update`,
     DELETE: (id: string) =>
       `/manufacturing/productionplans/schedules/${id}/delete`,
   },
-  PRODUCTION_PLAN_MATERIALS: {
-    GET_ALL: (productionPlanId: string) =>
-      `/manufacturing/productionplans/${productionPlanId}/materialplans`,
+  PRODUCTION_MATERIALS_REQUESTS: {
+    GET_ALL: (id: string) =>
+      `/manufacturing/${id}/material_requests`,
     GET_BY_ID: (id: string) =>
       `/manufacturing/productionplans/3/materialplans/${id}`,
-    ADD: "/manufacturing/productionplans/materialplans/create",
-    UPDATE: (id: string) =>
-      `/manufacturing/productionplans/materialplans/${id}/update`,
-    DELETE: (id: string) => `/manufacturing/productionplans/${id}/delete`,
+    ADD: (id: string) => `/manufacturing/${id}/material_requests/create`,
+    UPDATE: (pId: string, id: string) =>
+      `/manufacturing/${pId}/material_requests/${id}/update`,
+    DELETE: (pId: string, id: string) => `/manufacturing/${pId}/material_requests/${id}/delete`,
+    ISSUE: (id: string) => `/manufacturing/${id}/material_requests/issue`,
+  },
+
+  PRODUCTION_BATCHES: {
+    GET_ALL: "/manufacturing/batches",
+    GET_BY_ID: (id: string) => `/manufacturing/batches/${id}`,
+    ADD: "/manufacturing/batches/create",
+    UPDATE: (id: string) => `/manufacturing/batches/${id}/update`,
+    DELETE: (id: string) => `/manufacturing/batches/${id}/delete`,
   },
   PRODUCTION_LINES: {
     GET_ALL: "/manufacturing/productionlines",

@@ -40,6 +40,7 @@ interface AddOrModifyItemProps {
 interface AddLedger {
   transaction_date: Date;
   reference: string;
+  narrative: string;
   project_id?: number | null;
   segment_id?: number | null;
   budget_id?: number | null;
@@ -68,6 +69,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const [formState, setFormState] = useState<Partial<AddLedger>>({
     transaction_date: new Date(),
     reference: "",
+    narrative: "",
     project_id: null,
     segment_id: null,
     budget_id: null,
@@ -183,6 +185,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       transaction_date:
         formState.transaction_date?.toISOString().slice(0, 10) ?? "",
       reference: formState.reference ?? "",
+      narrative: formState.narrative ?? "",
       journal_type_id: formState.journal_type_id,
       description: formState.description ?? "",
       currency_id: formState.currency_id,
@@ -407,7 +410,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           className="p-inputtext-sm"
           id="narrative"
           name="narrative"
-          value={formState.description}
+          value={formState.narrative}
           onChange={handleInputChange}
           placeholder="Narrative"
         />

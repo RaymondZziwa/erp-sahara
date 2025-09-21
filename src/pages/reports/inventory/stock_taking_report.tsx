@@ -1,4 +1,4 @@
-//@ts-nocheck
+
 import axios from "axios";
 import { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
@@ -7,6 +7,7 @@ import { baseURL } from "../../../utils/api";
 import Header from "../../../components/custom/print_header";
 import { useReactToPrint } from "react-to-print";
 import { Icon } from "@iconify/react";
+import CustomReportHeader from "../../../components/custom/customReportHeader";
 //import { baseURL } from "../../../utils/api";
 
 const StockTakingReport = () => {
@@ -45,26 +46,18 @@ const StockTakingReport = () => {
 
   return (
     <div className="bg-white p-3">
-      <div className="flex justify-end items-center mb-4">
-        <button
-          className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-          onClick={() => reactToPrintFn()}
-        >
-          <Icon icon="solar:printer-bold" fontSize={20} />
-          Print
-        </button>
+      <CustomReportHeader />
+      <div className="flex flex-row justify-center items-center mt-20">
+        <Header title="Stock Taking Report" />
       </div>
       <div ref={contentRef} className="p-4">
-        <div className="flex flex-row justify-centeritems-center">
-          <Header title={"Stock Taking Report"} />
-        </div>
         <div className="overflow-x-auto">
           {data.length === 0 ? (
             <p className="text-gray-500">Loading....</p>
           ) : (
             <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-              <thead>
-                <tr className="bg-gray-200">
+              <thead className="text-white">
+                <tr className="bg-teal-500">
                   <th className="text-left py-2 px-4 border-b">Item Name</th>
                   <th className="text-left py-2 px-4 border-b">Variant</th>
                   <th className="text-left py-2 px-4 border-b">Warehouse</th>

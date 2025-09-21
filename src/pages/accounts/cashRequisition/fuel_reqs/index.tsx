@@ -46,7 +46,7 @@ const FuelRequisitions: React.FC = () => {
     
   
   const token = useSelector(
-    (state: RootState) => state.userAuth.token
+    (state: RootState) => state.userAuth.token.access_token
   );
 
   const printApprovedReq = async (id: string) => {

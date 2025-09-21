@@ -18,6 +18,7 @@ import { toast, ToastContainer } from "react-toastify";
 const ExpenseTransactions: React.FC = () => {
   const tableRef = useRef<any>(null);
   const [dt, setDt] = useState<any[]>([]);
+  const [limit, setLimit] = useState(100)
   const token = useSelector(
     (state: RootState) => state.userAuth.token.access_token
   );
@@ -44,12 +45,17 @@ const ExpenseTransactions: React.FC = () => {
 
   const fetchRecords = async () => {
     try {
-      const response = await axios.get(`${baseURL}/accounts/general-ledger/4`, {
+      const response = await axios.get(`${baseURL}/reports/accounting/general-ledger-transactions?journal_type=4&limit=${limit}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setDt(response.data.data);
+      // const response = await axios.get(`${baseURL}/reports/accounting/general-ledger-account/`, {
+      //   headers: {
+      //     Authorization: `Bearer ${token}`,
+      //   },
+      // });
+      setDt(response.data.data.accounts);
       //    if(response.success) {
       //     setDt(response.data.data)
       //    }

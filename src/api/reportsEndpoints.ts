@@ -1,6 +1,6 @@
 export const REPORTS_ENDPOINTS = {
   GENERAL_LEDGERS: {
-    GET_ALL:(start_date?: string, end_date?: string) => `/reports/accounting/general-ledger?start_date=${start_date}&end_date=${end_date}`,
+    GET_ALL:(accId: any, start_date?: string, end_date?: string) => `/reports/accounting/general-ledger?id=${accId}&start_date=${start_date}&end_date=${end_date}`,
   },
   TRIAL_BALANCES: {
     GET_ALL: "/reports/accounting/detail-trial-balance",
@@ -27,7 +27,7 @@ export const REPORTS_ENDPOINTS = {
     GET_ALL: "/reports/accounting/cash-flow-statement-indirect",
   },
   DETAILED_CASH_BOOK: {
-    GET_ALL: "/reports/accounting/cashbook/2024-01-01/2025-12-01",
+    GET_ALL: (start_date: string, end_date: string) => `/reports/accounting/cashbook/${start_date}/${end_date}`,
   },
   BUDGET_COMPARISON_REPORT: {
     GET_ALL: (start_date: string, end_date: string, budgetId: string) => `/reports/accounting/budget_comparison_report?budget_id=${budgetId}&start_date=${start_date}&end_date=${end_date}`

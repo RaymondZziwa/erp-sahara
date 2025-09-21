@@ -3,7 +3,7 @@ export const API_ENDPOINTS = {
     SET_PIN: "/users/setpin"
   },
   COUNTRIES: {
-    GET_ALL: "/people/countries"
+    GET_ALL: "/locations/countries"
   },
   USERS: {
     GET_ALL: "/api/users",

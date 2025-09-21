@@ -30,7 +30,6 @@ import OwnersEquityReport from "../pages/reports/accounting/owners_equity";
 import BudgetComparisonReport from "../pages/reports/accounting/BudgetComparisonReport";
 import OwnersEquityDetailedReport from "../pages/reports/accounting/detailedOwnerEquity";
 import AssetRegistryReport from "../pages/reports/assets/assetRegistryReport";
-import ProductionPlans from "../pages/manufacturing/productionPlans";
 import ProductionOutput from "../pages/manufacturing/productionOutput";
 import Reports from "../pages/reports";
 import JobOffersReport from "../pages/reports/recruitment/job-offers-report";
@@ -40,6 +39,13 @@ import ApplicationSourceReport from "../pages/reports/recruitment/application-so
 import RecruitmentSummaryDashboard from "../pages/reports/recruitment/recruitment-summary-dashboard-report";
 import RolePermissionsPage from "../pages/settings/permissions";
 import LoanRepayments from "../pages/supplierLoans/loanRepaymentRecords";
+import MaintainanceLogs from "../pages/manufacturing/setup/machines/details/maintainanceLog";
+import ProductionSteps from "../pages/manufacturing/productionOrders/details/productionSteps";
+import ProductionSchedules from "../pages/manufacturing/productionOrders/details/productionSchedules";
+import ProductionMaterialRequests from "../pages/manufacturing/productionOrders/details/materialRequests";
+import DailyProductionReport from "../pages/reports/manufacturing/daily-production-report";
+import Batches from "../pages/manufacturing/productionBatches";
+import Ledgers from "../pages/accounts/chartOfAccounts/ledgers";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -102,6 +108,10 @@ const AppRouter = () => {
             path="/"
             element={<Navigate to={token ? "/inventory" : "/login"} replace />}
           />
+          <Route
+            path="/accounts/accounts/subcategories/:id"
+            element={<Ledgers />}
+          />
           <Route path="/reports" element={<Reports />} />
           <Route
             path="/supplier-performance-report"
@@ -151,12 +161,8 @@ const AppRouter = () => {
             element={<OwnersEquityDetailedReport />}
           />
           <Route
-            path="/manufacturing/workcenters/workorders/:id"
-            element={<ProductionPlans />}
-          />
-          <Route
-            path="/manufacturing/workcenters/workorders/workschedule/:id"
-            element={<ProductionOutput />}
+            path="/manufacturing/workstations/machines/:id"
+            element={<MaintainanceLogs />}
           />
           <Route path="/cash-book" element={<CashBook />} />
           <Route
@@ -164,6 +170,7 @@ const AppRouter = () => {
             element={<GeneralLedgerReport />}
           />
           <Route path="/stock-taking-report" element={<StockTakingReport />} />
+          <Route path="/daily-production-report" element={<DailyProductionReport />} />
           <Route
             path="/balance-sheet-comparisons"
             element={<ComparisonBalanceSheet />}
@@ -189,6 +196,23 @@ const AppRouter = () => {
             element={<LoanRepayments />}
           />
           <Route path="/roles/:id/permissions" element={<RolePermissionsPage />} />
+          {/* manufacturing dynamic routes */}
+          <Route
+            path="/manufacturing/production_order/production_steps/:id"
+            element={<ProductionSteps />}
+          />
+          <Route
+            path="/manufacturing/production_order/production_schedules/:id"
+            element={<ProductionSchedules />}
+          />
+          <Route
+            path="/manufacturing/production_order/material_requests/:id"
+            element={<ProductionMaterialRequests />}
+          />
+          <Route
+            path="/manufacturing/production_order/batches/:id"
+            element={<Batches />}
+          />
         </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />

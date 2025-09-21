@@ -5,19 +5,21 @@ import { toast } from "react-toastify";
 import { ServerResponse } from "../redux/slices/types/ServerResponse";
 //export const baseURL = "https://erpapi.mosmiles.org/api"
 //export const baseURL = "https://tcjeapi.verifin.co.tz/api"
-export const baseURL = "https://latcuapidemo.efinanci.com/api"
+//export const baseURL = "https://latcuapidemo.efinanci.com/api"
+//export const baseURL = "https://api.saharaspicehub.com/api"
 //export const baseURL = "https://tcjeapi.verifin.co.tz/api"
 //export const baseURL = "https://latcuapi.efinanci.com/api";
-//export const baseURL = "https://saharaauth.efinanci.com/api";
-//export const baseURL = "https://shrecuapi.efinanci.com/api"
-//export const baseURL = "https://latcuapidemo.efinanci.com/api"
+//export const baseURL = "https://api.saharaspicehub.com/api";
+//export const baseURL = "https://shrecuapi.efinanci.co.tz/api"
+export const baseURL = "https://latcuapidemo.efinanci.com/api"
 //export const baseURL = "https://mosappapi.mosmiles.org/api"
 //export const imageURL = "https://mosappapi.mosmiles.org/storage"
-//export const imageURL = "https://saharaauth.efinanci.com/storage"
+//export const imageURL = "https://api.saharaspicehub.com/storage"
 //export const imageURL = "https://tcjeapi.verifin.co.tz/storage"
+//export const imageURL = "https://api.saharaspicehub.com/storage"
 export const imageURL = "https://latcuapidemo.efinanci.com/storage"
 //export const imageURL = "https://tcjeapi.verifin.co.tz/storage"
-//export const imageURL = "https://shrecuapi.efinanci.com/storage"
+//export const imageURL = "https://shrecuapi.efinanci.co.tz/storage"
 //export const imageURL = "https://latcuapi.efinanci.com/storage"
 //export const baseURL = "https://latcu-api.efinanci.co.tz/api";
 //export const baseURL = "https://merp.efinanci.co.tz/api";
@@ -31,7 +33,7 @@ export const mossAppbaseURL = "https://mosappapi.mosmiles.org/api/app";
 //   "https://mosappapi.mosmiles.org/mos/public/api/app";
 export const mossAppImageURL =
   "https://mosappapi.mosmiles.org/api/public/storage";
-export const org = 'latcu'
+export const org = 'sahara'
 export const apiRequest = async <T>(
   endpoint: string,
   method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
@@ -62,7 +64,7 @@ export const apiRequest = async <T>(
           toast.error(data.message);
         }
 
-       // window.location.href = "/login";
+       window.location.href = "/login";
       } else if (error.response?.status === 403) {
         //window.location.href = "/login";
       }

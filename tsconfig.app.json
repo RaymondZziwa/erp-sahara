@@ -23,5 +23,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "src/pages/manufacturing/workCenters/details/.tsx"]
+  "include": ["src", "src/pages/manufacturing/workStations/details/.tsx", "src/pages/accounts/cashRequisition/expense_reqs/.tsx"]
 }

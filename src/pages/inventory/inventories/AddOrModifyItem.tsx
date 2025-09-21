@@ -249,7 +249,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             options={[
               { label: "Select Supplier", value: null },
               ...suppliers.map((supplier) => ({
-                label: supplier.supplier_name,
+                label: supplier.name,
                 value: supplier.id,
               })),
             ]}

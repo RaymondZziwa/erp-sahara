@@ -102,7 +102,7 @@ const Inventories: React.FC = () => {
   const columnDefinitions: ColDef<any>[] = [
     {
       headerName: "Name",
-      field: "item.name",
+      field: "item_name",
       filter: true,
       cellClass: "cursor-pointer hover:underline",
       onCellClicked: (event) => {
@@ -120,12 +120,12 @@ const Inventories: React.FC = () => {
       suppressSizeToFit: true,
     },
     {
-      headerName: "Warehouse",
-      field: "warehouse.name",
+      headerName: "Store",
+      field: "warehouse_name",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
-      valueGetter: (params) => params.data.warehouse?.name || 'N/A',
+      valueGetter: (params) => params.data.warehouse_name || 'N/A',
     },
     {
       headerName: "Date",

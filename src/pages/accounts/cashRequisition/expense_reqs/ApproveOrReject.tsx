@@ -26,6 +26,7 @@ const ApproveOrReject: React.FC<ApproveOrRejectProps> = ({
   onCompleted,
 }) => {
   const [remarks, setRemarks] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false)
   const [approvedItems, setApprovedItems] = useState<Record<string, { 
     approved_unit_cost: number; 
     quantity: number;
@@ -62,6 +63,7 @@ const ApproveOrReject: React.FC<ApproveOrRejectProps> = ({
           comments: approvedItems[item.id]?.comments || "Approved as requested"
         }))
       };
+      setIsLoading(true)
 
       await apiRequest(
         ACCOUNTS_ENDPOINTS.CASH_REQUISITIONS.APPROVE(requisition.id),
@@ -71,6 +73,7 @@ const ApproveOrReject: React.FC<ApproveOrRejectProps> = ({
       );
 
       toast.success("Requisition approved successfully");
+      setIsLoading(false)
       
       onCompleted();
       onHide();
@@ -292,9 +295,11 @@ const ApproveOrReject: React.FC<ApproveOrRejectProps> = ({
             onClick={handleReject}
           />
           <Button
-            label="Approve"
+            label={isLoading ? "Approving" : "Approve"}
             icon="pi pi-check-circle"
             className="p-button-success"
+            loading={isLoading}
+            disabled={isLoading}
             onClick={handleApprove}
           />
         </div>
