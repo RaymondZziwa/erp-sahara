@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
+import { Calendar } from "primereact/calendar";
+import { InputNumber } from "primereact/inputnumber";
 import axios from "axios";
 import useAuth from "../../hooks/useAuth";
 import useAssetCategories from "../../hooks/assets/useAssetCategories";
 import useSuppliers from "../../hooks/inventory/useSuppliers";
-import { baseURL } from "../../utils/api";
+import { apiRequest, baseURL } from "../../utils/api";
 import { ASSETSENDPOINTS } from "../../api/assetEndpoints";
 import { Asset } from "../../redux/slices/types/mossApp/assets/asset";
 import useCurrencies from "../../hooks/procurement/useCurrencies";
@@ -29,6 +31,16 @@ interface AddOrModifyAssetProps {
   onSave: () => void;
 }
 
+// Field configuration interface
+interface FieldConfig {
+  key: keyof Asset;
+  label: string;
+  type: "text" | "number" | "date" | "dropdown";
+  options?: { value: any; name: string }[];
+  required?: boolean;
+  condition?: (formState: Partial<Asset>, selectedCategory: any) => boolean;
+}
+
 const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   visible,
   onClose,
@@ -40,23 +52,23 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
   const { data: assetCats } = useAssetCategories();
   const { data: currencies } = useCurrencies();
   const { data: branches } = useBranches();
-  const [currencyOptions, setCurrencyOptions] = useState<{
-    name: string;
-    value: string;
-  }>([]);
-
-  useEffect(() => {
-    const mapped = currencies.map((currency) => ({
-      name: currency.name,
-      value: currency.id,
-    }));
-    setCurrencyOptions(mapped);
-  }, [currencies]);
+  
+  const [currencyOptions, setCurrencyOptions] = useState<{ name: string; value: string }[]>([]);
+  const [supplierOptions, setSupplierOptions] = useState<{ value: number | string; name: string }[]>([]);
+  const [incomeAccounts, setIncomeAccounts] = useState<{ value: number; name: string }[]>([]);
+  const [expenseAccounts, setExpenseAccounts] = useState<{ value: number; name: string }[]>([]);
+  const [assetAccounts, setAssetAccounts] = useState<{ value: number; name: string }[]>([]);
+  const [branchOptions, setBranchOptions] = useState<{ value: number; name: string }[]>([]);
+  
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [formState, setFormState] = useState<Partial<Asset>>({
     name: "",
     supplier: "",
-    asset_type: "",
+    asset_type: "depreciating",
     asset_account_id: undefined,
     asset_category_id: undefined,
     identity_no: "",
@@ -64,7 +76,7 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
     date_put_to_use: "",
     purchase_cost: undefined,
     current_value: undefined,
-    currency_id: 0,
+    currency_id: undefined,
     depreciation_account_id: undefined,
     depreciation_loss_account_id: undefined,
     depreciation_gain_account_id: undefined,
@@ -79,45 +91,24 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
     salvage_value: undefined,
     useful_life: undefined,
     description: "",
-    // Vehicle fields
     make: "",
     model: "",
     year_of_manufacture: undefined,
     engine_number: "",
     chasis_number: "",
     body_type: "",
-    // Optional fields
     codification_number: "",
     condition: "",
     remarks: "",
     warranty_expiry_date: "",
     branch_id: undefined,
-    // Building/land fields
     building_cost: undefined,
     plot_number: "",
     usage: "",
     room_allocation: "",
-    // Land fields
     surveyed_status: "",
     titled_deed_number: "",
   });
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [supplierOptions, setSupplierOptions] = useState<
-    { value: number | string; name: string }[]
-  >([]);
-  const [incomeAccounts, setIncomeAccounts] = useState<
-    { value: number; name: string }[]
-  >([]);
-  const [expenseAccounts, setExpenseAccounts] = useState<
-    { value: number; name: string }[]
-  >([]);
-  const [assetAccounts, setAssetAccounts] = useState<
-    { value: number; name: string }[]
-  >([]);
-  const [selectedCategory, setSelectedCategory] = useState<any>(null);
 
   // Axios interceptors for token injection
   useEffect(() => {
@@ -147,220 +138,224 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
     };
   }, [token]);
 
-  // Fetch income accounts
-  const getIncomeAccounts = async () => {
-    try {
-      const response = await api.get("/accounts/get-income-accounts");
-      const incomeData = response.data?.data || [];
-      setIncomeAccounts(
-        incomeData.map((acc: any) => ({
-          value: acc.id,
-          name: acc.name,
-        }))
-      );
-    } catch (error) {
-      console.error("Error fetching income accounts:", error);
-      setError("Failed to load income accounts");
-    }
-  };
+  // Fetch accounts data
+  const fetchAccountsData = useCallback(async () => {
+    if (!token?.access_token) return;
 
-  // Fetch expense accounts
-  const getExpenseAccounts = async () => {
     try {
-      const response = await api.get("/accounts/get-expense-accounts");
-      const expenseData = response.data?.data || [];
-      setExpenseAccounts(
-        expenseData.map((acc: any) => ({
-          value: acc.id,
-          name: acc.name,
-        }))
-      );
-    } catch (error) {
-      console.error("Error fetching expense accounts:", error);
-      setError("Failed to load expense accounts");
-    }
-  };
+      const [incomeResponse, expenseResponse, assetResponse] = await Promise.all([
+        api.get("/accounts/get-income-accounts"),
+        api.get("/accounts/get-expense-accounts"),
+        api.get("/accounts/get-asset-accounts"),
+      ]);
 
-  // Fetch asset accounts
-  const getAssetAccounts = async () => {
-    try {
-      const response = await api.get("/accounts/get-asset-accounts");
-      const assetData = response.data?.data || [];
-      setAssetAccounts(
-        assetData.map((acc: any) => ({
-          value: acc.id,
-          name: acc.name,
-        }))
-      );
-    } catch (error) {
-      console.error("Error fetching asset accounts:", error);
-      setError("Failed to load asset accounts");
-    }
-  };
+      setIncomeAccounts((incomeResponse.data?.data || []).map((acc: any) => ({
+        value: acc.id,
+        name: acc.name,
+      })));
 
-  // Initialize data fetching
-  useEffect(() => {
-    if (token?.access_token) {
-      Promise.all([
-        getIncomeAccounts(),
-        getExpenseAccounts(),
-        getAssetAccounts(),
-      ])
-        .then(() => setLoading(false))
-        .catch((error) => {
-          console.error("Initialization error:", error);
-          setError("Failed to initialize component");
-          setLoading(false);
-        });
+      setExpenseAccounts((expenseResponse.data?.data || []).map((acc: any) => ({
+        value: acc.id,
+        name: acc.name,
+      })));
+
+      setAssetAccounts((assetResponse.data?.data || []).map((acc: any) => ({
+        value: acc.id,
+        name: acc.name,
+      })));
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching accounts:", error);
+      setError("Failed to load accounts data");
+      setLoading(false);
     }
   }, [token]);
 
-  // Update supplier options
+  // Initialize data
+  useEffect(() => {
+    if (visible && token?.access_token) {
+      fetchAccountsData();
+    }
+  }, [visible, token, fetchAccountsData]);
+
+  // Update options when data changes
+  useEffect(() => {
+    if (currencies) {
+      setCurrencyOptions(currencies.map(currency => ({
+        name: currency.name,
+        value: currency.id,
+      })));
+    }
+  }, [currencies]);
+
   useEffect(() => {
     if (suppliers) {
-      setSupplierOptions(
-        suppliers.map((supplier: any) => ({
-          value: supplier.id,
-          name: supplier.supplier_name,
-        }))
-      );
+      setSupplierOptions(suppliers.map(supplier => ({
+        value: supplier.id,
+        name: supplier.supplier_name,
+      })));
     }
   }, [suppliers]);
 
-  // Initialize form state when editing an asset
   useEffect(() => {
-    if (item) {
-      setFormState({ ...item });
-      // Find the selected category if editing
-      if (item.asset_category_id && assetCats) {
-        const category = assetCats.find(
-          (cat: any) => cat.id === item.asset_category_id
-        );
-        setSelectedCategory(category);
-      }
-    } else {
-      setFormState({
-        name: "",
-        supplier: "",
-        asset_type: "",
-        asset_account_id: undefined,
-        asset_category_id: undefined,
-        identity_no: "",
-        purchase_date: "",
-        date_put_to_use: "",
-        purchase_cost: undefined,
-        current_value: undefined,
-        currency_id: 0,
-        depreciation_account_id: undefined,
-        depreciation_loss_account_id: undefined,
-        depreciation_gain_account_id: undefined,
-        expense_account_id: undefined,
-        depreciation_method: "straight_line",
-        depreciation_rate: undefined,
-        income_account_id: undefined,
-        appreciation_account_id: undefined,
-        appreciation_loss_account_id: undefined,
-        appreciation_gain_account_id: undefined,
-        appreciation_rate: undefined,
-        salvage_value: undefined,
-        useful_life: undefined,
-        description: "",
-        // Vehicle fields
-        make: "",
-        model: "",
-        year_of_manufacture: undefined,
-        engine_number: "",
-        chasis_number: "",
-        body_type: "",
-        // Optional fields
-        codification_number: "",
-        condition: "",
-        remarks: "",
-        warranty_expiry_date: "",
-        branch_id: undefined,
-        // Building/land fields
-        building_cost: undefined,
-        plot_number: "",
-        usage: "",
-        room_allocation: "",
-        // Land fields
-        surveyed_status: "",
-        titled_deed_number: "",
-      });
-      setSelectedCategory(null);
+    if (branches) {
+      setBranchOptions(branches.map(branch => ({
+        value: branch.id,
+        name: branch.name,
+      })));
     }
-  }, [item, assetCats]);
+  }, [branches]);
 
-  // Handle input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
-    const parsedValue = type === "number" ? Number(value) : value;
-    setFormState((prev) => ({ ...prev, [name]: parsedValue }));
-  };
+  // Initialize form when item changes or dialog opens/closes
+  useEffect(() => {
+    if (visible) {
+      if (item) {
+        setFormState({ ...item });
+        if (item.asset_category_id && assetCats) {
+          const category = assetCats.find(cat => cat.id === item.asset_category_id);
+          setSelectedCategory(category);
+        }
+      } else {
+        // Reset form for new asset
+        setFormState(prev => ({
+          ...prev,
+          name: "",
+          supplier: "",
+          asset_type: "depreciating",
+          asset_account_id: undefined,
+          asset_category_id: undefined,
+          identity_no: "",
+          purchase_date: "",
+          date_put_to_use: "",
+          purchase_cost: undefined,
+          current_value: undefined,
+          currency_id: undefined,
+          description: "",
+          // Reset specific fields
+          make: "",
+          model: "",
+          year_of_manufacture: undefined,
+          engine_number: "",
+          chasis_number: "",
+          body_type: "",
+          codification_number: "",
+          condition: "",
+          remarks: "",
+          warranty_expiry_date: "",
+          branch_id: undefined,
+          building_cost: undefined,
+          plot_number: "",
+          usage: "",
+          room_allocation: "",
+          surveyed_status: "",
+          titled_deed_number: "",
+        }));
+        setSelectedCategory(null);
+      }
+    }
+  }, [item, assetCats, visible]);
 
-  // Handle dropdown changes
-  const handleDropdownChange = (name: string, value: any) => {
-    setFormState((prev) => ({ ...prev, [name]: value }));
-    
-    // When category changes, update the selected category
-    if (name === "asset_category_id" && assetCats) {
-      const category = assetCats.find((cat: any) => cat.id === value);
+  // Handle category change
+  const handleCategoryChange = (categoryId: number) => {
+    if (assetCats) {
+      const category = assetCats.find(cat => cat.id === categoryId);
       setSelectedCategory(category);
     }
   };
 
-  // Handle asset type change
-  const handleAssetTypeChange = (value: string) => {
-    setFormState((prev) => {
-      const newState = { ...prev, asset_type: value };
-
-      // Reset fields based on asset type
-      if (value === "appreciating") {
-        newState.depreciation_account_id = undefined;
-        newState.depreciation_loss_account_id = undefined;
-        newState.depreciation_gain_account_id = undefined;
-        newState.expense_account_id = undefined;
-        newState.depreciation_rate = undefined;
-        newState.depreciation_method = undefined;
-      } else if (value === "depreciating") {
-        newState.appreciation_account_id = undefined;
-        newState.appreciation_loss_account_id = undefined;
-        newState.appreciation_gain_account_id = undefined;
-        newState.appreciation_rate = undefined;
-      }
-
-      return newState;
-    });
+  // Handle input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
+    const parsedValue = type === "number" ? (value === "" ? undefined : Number(value)) : value;
+    setFormState(prev => ({ ...prev, [name]: parsedValue }));
   };
 
-  // Save or update asset
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  // Handle number input changes
+  const handleNumberChange = (name: string, value: number | null) => {
+    setFormState(prev => ({ ...prev, [name]: value === null ? undefined : value }));
+  };
 
-    // Validate form data
-    const requiredFields = [
+  // Handle date changes
+  const handleDateChange = (name: string, value: Date | null) => {
+    const dateString = value ? value.toISOString().split('T')[0] : "";
+    setFormState(prev => ({ ...prev, [name]: dateString }));
+  };
+
+  // Handle dropdown changes
+  const handleDropdownChange = (name: string, value: any) => {
+    setFormState(prev => ({ ...prev, [name]: value }));
+    
+    if (name === "asset_category_id") {
+      handleCategoryChange(value);
+    }
+    
+    if (name === "asset_type") {
+      // Reset related fields when asset type changes
+      setFormState(prev => {
+        const newState = { ...prev, asset_type: value };
+        
+        if (value === "appreciating") {
+          newState.depreciation_account_id = undefined;
+          newState.depreciation_loss_account_id = undefined;
+          newState.depreciation_gain_account_id = undefined;
+          newState.depreciation_rate = undefined;
+          newState.depreciation_method = undefined;
+        } else if (value === "depreciating") {
+          newState.appreciation_account_id = undefined;
+          newState.appreciation_loss_account_id = undefined;
+          newState.appreciation_gain_account_id = undefined;
+          newState.appreciation_rate = undefined;
+        }
+        
+        return newState;
+      });
+    }
+  };
+
+  // Validate form
+  const validateForm = (): boolean => {
+    const requiredFields: (keyof Asset)[] = [
       "name",
       "asset_account_id",
       "asset_category_id",
       "purchase_date",
       "purchase_cost",
-      "current_value",
       "date_put_to_use",
       "description",
     ];
 
-    // Add conditional required fields based on category
+    // Add conditional required fields
     if (selectedCategory?.order && [1, 2, 3, 6].includes(selectedCategory.order)) {
       requiredFields.push("salvage_value", "useful_life");
     }
 
     for (const field of requiredFields) {
-      if (!formState[field as keyof Asset]) {
-        setError(`Field ${field} is required.`);
-        setIsSubmitting(false);
-        return;
+      if (!formState[field] || formState[field] === "") {
+        setError(`Field "${field}" is required.`);
+        toast.error(`Field "${field}" is required.`);
+        return false;
       }
+    }
+
+    if (formState.asset_type === "depreciating" && !formState.depreciation_method) {
+      setError("Depreciation method is required for depreciating assets.");
+      toast.error("Depreciation method is required for depreciating assets.");
+      return false;
+    }
+
+    return true;
+  };
+
+  // Save or update asset
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
+    if (!validateForm()) {
+      setIsSubmitting(false);
+      return;
     }
 
     try {
@@ -368,76 +363,24 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
       const endpoint = item?.id
         ? ASSETSENDPOINTS.ASSETS.UPDATE(item.id.toString())
         : ASSETSENDPOINTS.ASSETS.ADD;
+      
+      await apiRequest(endpoint, method, token!.access_token, formState);
 
-      const response = await api.request({
-        method,
-        url: endpoint,
-        data: formState,
-      });
-
-      // Reset form
-      setFormState({
-        name: "",
-        supplier: "",
-        asset_type: "",
-        asset_account_id: undefined,
-        asset_category_id: undefined,
-        identity_no: "",
-        purchase_date: "",
-        date_put_to_use: "",
-        purchase_cost: undefined,
-        current_value: undefined,
-        currency_id: 0,
-        depreciation_account_id: undefined,
-        depreciation_loss_account_id: undefined,
-        depreciation_gain_account_id: undefined,
-        expense_account_id: undefined,
-        depreciation_method: "straight_line",
-        depreciation_rate: undefined,
-        income_account_id: undefined,
-        appreciation_account_id: undefined,
-        appreciation_loss_account_id: undefined,
-        appreciation_gain_account_id: undefined,
-        appreciation_rate: undefined,
-        salvage_value: undefined,
-        useful_life: undefined,
-        description: "",
-        // Vehicle fields
-        make: "",
-        model: "",
-        year_of_manufacture: undefined,
-        engine_number: "",
-        chasis_number: "",
-        body_type: "",
-        // Optional fields
-        codification_number: "",
-        condition: "",
-        remarks: "",
-        warranty_expiry_date: "",
-        branch_id: undefined,
-        // Building/land fields
-        building_cost: undefined,
-        plot_number: "",
-        usage: "",
-        room_allocation: "",
-        // Land fields
-        surveyed_status: "",
-        titled_deed_number: "",
-      });
-
+      toast.success(`Asset ${item?.id ? "updated" : "added"} successfully!`);
       onSave();
       onClose();
-      toast.success(`Asset ${item?.id ? "updated" : "added"} successfully!`);
     } catch (error) {
       console.error("Save error:", error);
       if (axios.isAxiosError(error)) {
         if (error.response?.data?.errors) {
           const errorMessages = Object.values(error.response.data.errors).flat();
-          setError(`Validation errors: ${errorMessages.join(", ")}`);
-          toast.error(`Validation errors: ${errorMessages.join(", ")}`);
+          const errorMessage = `Validation errors: ${errorMessages.join(", ")}`;
+          setError(errorMessage);
+          toast.error(errorMessage);
         } else {
-          setError("Failed to save asset. Please try again.");
-          toast.error("Failed to save asset. Please try again.");
+          const errorMessage = error.response?.data?.message || "Failed to save asset. Please try again.";
+          setError(errorMessage);
+          toast.error(errorMessage);
         }
       } else {
         setError("An unexpected error occurred.");
@@ -448,16 +391,9 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
     }
   };
 
-  // Map asset categories to dropdown options
-  const assetCatOptions = assetCats
-    ? assetCats.map((cat: any) => ({ value: cat.id, name: cat.name }))
-    : [];
-  
-    const branchOptions = branches
-    ? branches.map((cat: any) => ({ value: cat.id, name: cat.name }))
-    : [];
+  // Field configurations
+  const assetCatOptions = assetCats?.map(cat => ({ value: cat.id, name: cat.name })) || [];
 
-  // Condition options
   const conditionOptions = [
     { value: "Good", name: "Good" },
     { value: "Fair", name: "Fair" },
@@ -490,182 +426,156 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
     { value: "Other", name: "Other" },
   ];
 
-  // Always visible fields
-  const alwaysVisibleFields = [
-    {
-      key: "asset_category_id",
-      label: "Asset Category",
-      type: "dropdown",
-      options: assetCatOptions,
-    },
-    { key: "name", label: "Name", type: "text" },
-    {
-      key: "supplier",
-      label: "Supplier",
-      type: "dropdown",
-      options: supplierOptions,
-    },
-    {
-      key: "currency_id",
-      label: "Currency",
-      type: "dropdown",
-      options: currencyOptions,
-    },
-    { key: "purchase_cost", label: "Purchase Cost", type: "number" },
-    // { key: "current_value", label: "Current Value", type: "number" },
+  const depreciationMethodOptions = [
+    { value: "straight_line", name: "Straight Line" },
+    { value: "declining_balance", name: "Declining Balance" },
+  ];
+
+  const assetTypeOptions = [
+    { value: "depreciating", name: "Depreciating" },
+    { value: "appreciating", name: "Appreciating" },
+  ];
+
+  // Field configurations
+  const baseFields: FieldConfig[] = [
+    { key: "asset_category_id", label: "Asset Category", type: "dropdown", options: assetCatOptions, required: true },
+    { key: "name", label: "Name", type: "text", required: true },
+    { key: "supplier", label: "Supplier", type: "dropdown", options: supplierOptions },
+    { key: "currency_id", label: "Currency", type: "dropdown", options: currencyOptions, required: true },
+    { key: "purchase_cost", label: "Purchase Cost", type: "number", required: true },
     { key: "identity_no", label: "Identity No.", type: "text" },
-    { key: "purchase_date", label: "Purchase Date", type: "date" },
-    { key: "date_put_to_use", label: "Date Put To Use", type: "date" },
-    {
-      key: "asset_account_id",
-      label: "Asset Account",
-      type: "dropdown",
-      options: assetAccounts,
-    },
-    {
-      key: "expense_account_id",
-      label: "Expense Account",
-      type: "dropdown",
-      options: expenseAccounts,
-    },
-    {
-      key: "income_account_id",
-      label: "Income Account",
-      type: "dropdown",
-      options: incomeAccounts,
-    },
-    { key: "description", label: "Description", type: "text" },
+    { key: "purchase_date", label: "Purchase Date", type: "date", required: true },
+    { key: "date_put_to_use", label: "Date Put To Use", type: "date", required: true },
+    { key: "asset_account_id", label: "Asset Account", type: "dropdown", options: assetAccounts, required: true },
+    { key: "expense_account_id", label: "Expense Account", type: "dropdown", options: expenseAccounts },
+    { key: "income_account_id", label: "Income Account", type: "dropdown", options: incomeAccounts },
+    { key: "description", label: "Description", type: "text", required: true },
     { key: "codification_number", label: "Codification Number", type: "text" },
-    {
-      key: "condition",
-      label: "Condition",
-      type: "dropdown",
-      options: conditionOptions,
-    },
-    {
-      key: "remarks",
-      label: "Remarks",
-      type: "dropdown",
-      options: remarksOptions,
-    },
-    {
-      key: "warranty_expiry_date",
-      label: "Warranty Expiry Date",
-      type: "date",
-    },
-    {
-      key: "branch_id",
-      label: "Branch",
-      type: "dropdown",
-      options: branchOptions,
-    },
+    { key: "condition", label: "Condition", type: "dropdown", options: conditionOptions },
+    { key: "remarks", label: "Remarks", type: "dropdown", options: remarksOptions },
+    { key: "warranty_expiry_date", label: "Warranty Expiry Date", type: "date" },
+    { key: "branch_id", label: "Branch", type: "dropdown", options: branchOptions },
+    { key: "asset_type", label: "Asset Type", type: "dropdown", options: assetTypeOptions },
   ];
 
-  // Fields for depreciating assets
-  const depreciatingFields = [
-    {
-      key: "depreciation_method",
-      label: "Depreciation Method",
-      type: "dropdown",
-      options: [
-        { value: "straight_line", name: "Straight Line" },
-        { value: "declining_balance", name: "Declining Balance" },
-      ],
-    },
+  const depreciatingFields: FieldConfig[] = [
+    { key: "depreciation_method", label: "Depreciation Method", type: "dropdown", options: depreciationMethodOptions, required: true },
     { key: "depreciation_rate", label: "Depreciation Rate", type: "number" },
-    {
-      key: "depreciation_account_id",
-      label: "Depreciation Account",
-      type: "dropdown",
-      options: assetAccounts,
-    },
-    {
-      key: "depreciation_loss_account_id",
-      label: "Depreciation Loss Account",
-      type: "dropdown",
-      options: expenseAccounts,
-    },
-    {
-      key: "depreciation_gain_account_id",
-      label: "Depreciation Gain Account",
-      type: "dropdown",
-      options: incomeAccounts,
-    },
+    { key: "depreciation_account_id", label: "Depreciation Account", type: "dropdown", options: assetAccounts },
+    { key: "depreciation_loss_account_id", label: "Depreciation Loss Account", type: "dropdown", options: expenseAccounts },
+    { key: "depreciation_gain_account_id", label: "Depreciation Gain Account", type: "dropdown", options: incomeAccounts },
     { key: "salvage_value", label: "Salvage Value", type: "number" },
     { key: "useful_life", label: "Useful Life (years)", type: "number" },
   ];
 
-  // Fields for appreciating assets
-  const appreciatingFields = [
+  const appreciatingFields: FieldConfig[] = [
     { key: "appreciation_rate", label: "Appreciation Rate", type: "number" },
-    {
-      key: "appreciation_account_id",
-      label: "Appreciation Account",
-      type: "dropdown",
-      options: assetAccounts,
-    },
-    {
-      key: "appreciation_loss_account_id",
-      label: "Appreciation Loss Account",
-      type: "dropdown",
-      options: expenseAccounts,
-    },
-    {
-      key: "appreciation_gain_account_id",
-      label: "Appreciation Gain Account",
-      type: "dropdown",
-      options: incomeAccounts,
-    },
+    { key: "appreciation_account_id", label: "Appreciation Account", type: "dropdown", options: assetAccounts },
+    { key: "appreciation_loss_account_id", label: "Appreciation Loss Account", type: "dropdown", options: expenseAccounts },
+    { key: "appreciation_gain_account_id", label: "Appreciation Gain Account", type: "dropdown", options: incomeAccounts },
     { key: "salvage_value", label: "Salvage Value", type: "number" },
     { key: "useful_life", label: "Useful Life (years)", type: "number" },
   ];
 
-  // Vehicle specific fields
-  const vehicleFields = [
+  const vehicleFields: FieldConfig[] = [
     { key: "make", label: "Make", type: "text" },
     { key: "model", label: "Model", type: "text" },
     { key: "year_of_manufacture", label: "Year of Manufacture", type: "number" },
     { key: "engine_number", label: "Engine Number", type: "text" },
     { key: "chasis_number", label: "Chasis Number", type: "text" },
-    {
-      key: "body_type",
-      label: "Body Type",
-      type: "dropdown",
-      options: bodyTypeOptions,
-    },
+    { key: "body_type", label: "Body Type", type: "dropdown", options: bodyTypeOptions },
   ];
 
-  // Land specific fields
-  const landFields = [
+  const landFields: FieldConfig[] = [
     { key: "surveyed_status", label: "Surveyed Status", type: "text" },
     { key: "titled_deed_number", label: "Titled Deed Number", type: "text" },
     { key: "plot_number", label: "Plot Number", type: "text" },
-    {
-      key: "usage",
-      label: "Usage",
-      type: "dropdown",
-      options: usageOptions,
-    },
+    { key: "usage", label: "Usage", type: "dropdown", options: usageOptions },
   ];
 
-  // Building specific fields
-  const buildingFields = [
+  const buildingFields: FieldConfig[] = [
     { key: "building_cost", label: "Building Cost", type: "number" },
     { key: "plot_number", label: "Plot Number", type: "text" },
-    {
-      key: "usage",
-      label: "Usage",
-      type: "dropdown",
-      options: usageOptions,
-    },
+    { key: "usage", label: "Usage", type: "dropdown", options: usageOptions },
     { key: "room_allocation", label: "Room Allocation", type: "text" },
   ];
 
-  // Check if the selected category is a vehicle
+  // Determine which fields to show based on category and asset type
   const isVehicleCategory = selectedCategory?.name?.toLowerCase().includes("vehicle");
   const isLandCategory = selectedCategory?.name?.toLowerCase().includes("land");
   const isBuildingCategory = selectedCategory?.name?.toLowerCase().includes("building") || 
                            selectedCategory?.name?.toLowerCase().includes("property");
+
+  const allFields = [
+    ...baseFields,
+    ...(formState.asset_type === "depreciating" ? depreciatingFields : []),
+    ...(formState.asset_type === "appreciating" ? appreciatingFields : []),
+    ...(isVehicleCategory ? vehicleFields : []),
+    ...(isLandCategory ? landFields : []),
+    ...(isBuildingCategory ? buildingFields : []),
+  ];
+
+  // Render field based on type
+  const renderField = (field: FieldConfig) => {
+    const value = formState[field.key];
+    
+    switch (field.type) {
+      case "dropdown":
+        return (
+          <Dropdown
+            id={field.key}
+            name={field.key}
+            value={value || ""}
+            onChange={(e) => handleDropdownChange(field.key, e.value)}
+            options={field.options}
+            optionLabel="name"
+            optionValue="value"
+            placeholder={`Select ${field.label}`}
+            className="w-full p-inputtext-sm"
+            disabled={isSubmitting}
+          />
+        );
+      
+      case "number":
+        return (
+          <InputNumber
+            id={field.key}
+            name={field.key}
+            value={value as number || null}
+            onValueChange={(e) => handleNumberChange(field.key, e.value)}
+            className="w-full p-inputtext-sm"
+            disabled={isSubmitting}
+          />
+        );
+      
+      case "date":
+        return (
+          <Calendar
+            id={field.key}
+            name={field.key}
+            value={value ? new Date(value as string) : null}
+            onChange={(e) => handleDateChange(field.key, e.value)}
+            dateFormat="yy-mm-dd"
+            showIcon
+            className="w-full p-inputtext-sm"
+            disabled={isSubmitting}
+          />
+        );
+      
+      default:
+        return (
+          <InputText
+            id={field.key}
+            name={field.key}
+            type={field.type}
+            value={value?.toString() || ""}
+            onChange={handleInputChange}
+            className="w-full p-inputtext-sm"
+            disabled={isSubmitting}
+          />
+        );
+    }
+  };
 
   // Dialog footer
   const footer = (
@@ -674,234 +584,56 @@ const AddOrModifyAsset: React.FC<AddOrModifyAssetProps> = ({
         label="Cancel"
         icon="pi pi-times"
         onClick={onClose}
-        className="p-button-text !bg-red-500 hover:bg-red-400"
-        size="small"
+        className="p-button-text p-button-danger"
         disabled={isSubmitting}
       />
       <Button
-        loading={isSubmitting}
-        disabled={isSubmitting}
         label={item?.id ? "Update" : "Submit"}
         icon="pi pi-check"
         type="submit"
         form="asset-form"
-        size="small"
+        loading={isSubmitting}
       />
     </div>
   );
+
+  // if (loading) {
+  //   return (
+  //     <Dialog visible={visible} onHide={onClose}>
+  //       <div className="flex justify-center items-center p-4">
+  //         <i className="pi pi-spin pi-spinner mr-2"></i>
+  //         Loading...
+  //       </div>
+  //     </Dialog>
+  //   );
+  // }
 
   return (
     <Dialog
       header={item?.id ? "Edit Asset" : "Add Asset"}
       visible={visible}
-      style={{ width: "800px" }}
+      style={{ width: "800px", maxWidth: "90vw" }}
       footer={footer}
       onHide={onClose}
+      className="asset-dialog"
     >
-      <form id="asset-form" onSubmit={handleSave}>
-      <div className="p-fluid grid grid-cols-2 gap-2">  {/* Reduced gap from 4 to 2 */}
-  {/* Asset Type Dropdown
-  <div className="p-field col-span-2">
-    <label htmlFor="asset_type" className="text-sm"> 
-      Asset Type <span className="text-red-500">*</span>
-    </label>
-    <Dropdown
-      id="asset_type"
-      name="asset_type"
-      value={formState.asset_type || ""}
-      onChange={(e) => handleAssetTypeChange(e.value)}
-      options={[
-        { value: "appreciating", name: "Appreciating" },
-        { value: "depreciating", name: "Depreciating" },
-        { value: "none", name: "N/A" },
-      ]}
-      optionLabel="name"
-      optionValue="value"
-      placeholder="Select Asset Type"
-      className="w-full p-inputtext-sm" 
-    />
-  </div> */}
-
-  {/* Always visible fields */}
-  {alwaysVisibleFields.map((field) => (
-    <div className="p-field" key={field.key}>
-      <label htmlFor={field.key} className="text-sm"> 
-        {field.label}
-        {field.type !== "dropdown" && <span className="text-red-500">*</span>}
-      </label>
-      {field.type === "dropdown" ? (
-        <Dropdown
-          id={field.key}
-          name={field.key}
-          value={formState[field.key as keyof Asset] || ""}
-          onChange={(e) => handleDropdownChange(field.key, e.value)}
-          options={field.options}
-          optionLabel="name"
-          optionValue="value"
-          placeholder={`Select ${field.label}`}
-          className="w-full p-inputtext-sm"
-        />
-      ) : (
-        <InputText
-          id={field.key}
-          name={field.key}
-          type={field.type}
-          value={formState[field.key as keyof Asset]?.toString() || ""}
-          onChange={handleInputChange}
-          required={field.type !== "dropdown"}
-          className="w-full p-inputtext-sm"
-        />
+      {error && (
+        <div className="p-error-message mb-4 p-2 border-round border-1 border-red-500 bg-red-100">
+          {error}
+        </div>
       )}
-    </div>
-  ))}
-
-          {formState.asset_type === "appreciating" &&
-            appreciatingFields.map((field) => (
-              <div className="p-field" key={field.key}>
-                <label htmlFor={field.key} className="text-sm">{field.label}</label>
-                {field.type === "dropdown" ? (
-                  <Dropdown
-                    id={field.key}
-                    name={field.key}
-                    value={formState[field.key as keyof Asset] || ""}
-                    onChange={(e) => handleDropdownChange(field.key, e.value)}
-                    options={field.options}
-                    optionLabel="name"
-                    optionValue="value"
-                    placeholder={`Select ${field.label}`}
-                    className="w-full p-inputtext-sm"
-                  />
-                ) : (
-                  <InputText
-                    id={field.key}
-                    name={field.key}
-                    type={field.type}
-                    value={formState[field.key as keyof Asset]?.toString() || ""}
-                    onChange={handleInputChange}
-                    className="w-full p-inputtext-sm"
-                  />
-                )}
-              </div>
-            ))}
-          
-          {formState.asset_type === "depreciating" &&
-            depreciatingFields.map((field) => (
-              <div className="p-field" key={field.key}>
-                <label htmlFor={field.key} className="text-sm">{field.label}</label>
-                {field.type === "dropdown" ? (
-                  <Dropdown
-                    id={field.key}
-                    name={field.key}
-                    value={formState[field.key as keyof Asset] || ""}
-                    onChange={(e) => handleDropdownChange(field.key, e.value)}
-                    options={field.options}
-                    optionLabel="name"
-                    optionValue="value"
-                    placeholder={`Select ${field.label}`}
-                    className="w-full p-inputtext-sm"
-                  />
-                ) : (
-                  <InputText
-                    id={field.key}
-                    name={field.key}
-                    type={field.type}
-                    value={formState[field.key as keyof Asset]?.toString() || ""}
-                    onChange={handleInputChange}
-                    className="w-full p-inputtext-sm"
-                  />
-                )}
-              </div>
-            ))}
-
-          {/* Vehicle specific fields */}
-          {isVehicleCategory &&
-            vehicleFields.map((field) => (
-              <div className="p-field" key={field.key}>
-                <label htmlFor={field.key} className="text-sm">{field.label}</label>
-                {field.type === "dropdown" ? (
-                  <Dropdown
-                    id={field.key}
-                    name={field.key}
-                    value={formState[field.key as keyof Asset] || ""}
-                    onChange={(e) => handleDropdownChange(field.key, e.value)}
-                    options={field.options}
-                    optionLabel="name"
-                    optionValue="value"
-                    placeholder={`Select ${field.label}`}
-                    className="w-full p-inputtext-sm"
-                  />
-                ) : (
-                  <InputText
-                    id={field.key}
-                    name={field.key}
-                    type={field.type}
-                    value={formState[field.key as keyof Asset]?.toString() || ""}
-                    onChange={handleInputChange}
-                    className="w-full p-inputtext-sm"
-                  />
-                )}
-              </div>
-            ))}
-
-          {/* Land specific fields */}
-          {isLandCategory &&
-            landFields.map((field) => (
-              <div className="p-field" key={field.key}>
-                <label htmlFor={field.key} className="text-sm">{field.label}</label>
-                {field.type === "dropdown" ? (
-                  <Dropdown
-                    id={field.key}
-                    name={field.key}
-                    value={formState[field.key as keyof Asset] || ""}
-                    onChange={(e) => handleDropdownChange(field.key, e.value)}
-                    options={field.options}
-                    optionLabel="name"
-                    optionValue="value"
-                    placeholder={`Select ${field.label}`}
-                    className="w-full p-inputtext-sm"
-                  />
-                ) : (
-                  <InputText
-                    id={field.key}
-                    name={field.key}
-                    type={field.type}
-                    value={formState[field.key as keyof Asset]?.toString() || ""}
-                    onChange={handleInputChange}
-                    className="w-full p-inputtext-sm"
-                  />
-                )}
-              </div>
-            ))}
-
-          {/* Building specific fields */}
-          {isBuildingCategory &&
-            buildingFields.map((field) => (
-              <div className="p-field" key={field.key}>
-                <label htmlFor={field.key} className="text-sm">{field.label}</label>
-                {field.type === "dropdown" ? (
-                  <Dropdown
-                    id={field.key}
-                    name={field.key}
-                    value={formState[field.key as keyof Asset] || ""}
-                    onChange={(e) => handleDropdownChange(field.key, e.value)}
-                    options={field.options}
-                    optionLabel="name"
-                    optionValue="value"
-                    placeholder={`Select ${field.label}`}
-                    className="w-full p-inputtext-sm"
-                  />
-                ) : (
-                  <InputText
-                    id={field.key}
-                    name={field.key}
-                    type={field.type}
-                    value={formState[field.key as keyof Asset]?.toString() || ""}
-                    onChange={handleInputChange}
-                    className="w-full p-inputtext-sm"
-                  />
-                )}
-              </div>
-            ))}
+      
+      <form id="asset-form" onSubmit={handleSave}>
+        <div className="p-fluid grid grid-cols-2 gap-2">
+          {allFields.map((field) => (
+            <div className="p-field mb-3" key={field.key}>
+              <label htmlFor={field.key} className="text-sm font-medium block mb-1">
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              {renderField(field)}
+            </div>
+          ))}
         </div>
       </form>
     </Dialog>

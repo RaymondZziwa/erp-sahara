@@ -227,7 +227,7 @@ const BalanceSheetReport = () => {
             <div className="w-48 text-md">Current Year Profit/Loss</div>
             <div className="flex-1" />
             <div className="w-40 text-right text-md pr-4">
-             ({formatCurrency(current_profit_or_loss)})
+             ({formatCurrency(totals.current_profit_or_loss)})
             </div>
           </div>
 

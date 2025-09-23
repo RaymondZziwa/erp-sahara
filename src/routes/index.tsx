@@ -46,6 +46,7 @@ import ProductionMaterialRequests from "../pages/manufacturing/productionOrders/
 import DailyProductionReport from "../pages/reports/manufacturing/daily-production-report";
 import Batches from "../pages/manufacturing/productionBatches";
 import Ledgers from "../pages/accounts/chartOfAccounts/ledgers";
+import AssetDetails from "../pages/assets/assetDetails/assetDetails";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -204,6 +205,10 @@ const AppRouter = () => {
           <Route
             path="/manufacturing/production_order/production_schedules/:id"
             element={<ProductionSchedules />}
+          />
+           <Route
+            path="/asset-management/asset_details/:id"
+            element={<AssetDetails />}
           />
           <Route
             path="/manufacturing/production_order/material_requests/:id"

@@ -43,7 +43,7 @@ const BankingLedgers: React.FC = () => {
       const fetchRecords = async () => {
         try {
           const response = await axios.get(
-            `${baseURL}/accounts/general-ledger/20`,
+            `${baseURL}/reports/accounting/general-ledger-transactions?journal_type=20&limit=100`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -82,19 +82,19 @@ const BankingLedgers: React.FC = () => {
 const columnDefinitions: ColDef<any>[] = [
   {
     headerName: "Date",
-    field: "transaction_date",
+    field: "date",
     sortable: true,
     filter: true,
   },
   {
     headerName: "Debit A/C",
-    field: "debit_account.name",
+    field: "debit_account_name",
     sortable: true,
     filter: true,
   },
   {
     headerName: "Credit A/C",
-    field: "credit_account.name",
+    field: "credit_account_name",
     sortable: true,
     filter: true,
   },
@@ -106,7 +106,7 @@ const columnDefinitions: ColDef<any>[] = [
   },
   {
     headerName: "Description",
-    field: "journal_transaction.description",
+    field: "description",
     sortable: true,
     filter: true,
   },
@@ -241,7 +241,7 @@ const columnDefinitions: ColDef<any>[] = [
 
         <Table
           columnDefs={columnDefinitions}
-          data={[]}
+          data={dt ? dt : []}
           ref={tableRef}
         />
       </div>

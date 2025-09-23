@@ -105,7 +105,7 @@ function TrialBalanceReport() {
       ) : (
         <table className="w-full">
           <thead className="border-b border-gray-300">
-            <tr className="border border-gray-300 font-bold bg-blue-50">
+            <tr className="border border-gray-300 font-bold bg-teal-500 text-white">
               <th className="px-6 py-3 text-left  border-b border-gray-300">
                 Account Name
               </th>

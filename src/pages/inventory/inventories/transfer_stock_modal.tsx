@@ -47,7 +47,7 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
     item_id: "",
     quantity: 0,
     type: "",
-    movement_date: "",
+    movement_date: new Date().toISOString().slice(0, 10),
     warehouse_id: "",
     to_warehouse_id: 0,
     movement_reason:"",

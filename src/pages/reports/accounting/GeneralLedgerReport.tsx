@@ -65,7 +65,8 @@ const TransactionTable: React.FC = () => {
       )}?${queryParams.toString()}`;
 
       const response = await apiRequest<ServerResponse<LedgerDataType>>(
-        endpoint,
+        // endpoint,
+        "/reports/accounting/general-ledger",
         "GET",
         token.access_token
       );
@@ -143,9 +144,9 @@ const TransactionTable: React.FC = () => {
                               <th className="px-6 py-3 text-left font-medium border-b border-gray-300">
                                 Credit
                               </th>
-                              <th className="px-6 py-3 text-left font-medium border-b border-gray-300">
+                              {/* <th className="px-6 py-3 text-left font-medium border-b border-gray-300">
                                 Balance
-                              </th>
+                              </th> */}
                             </tr>
                             {account.transactions
                               .slice(0, entries) // limit to the number of entries
@@ -157,7 +158,7 @@ const TransactionTable: React.FC = () => {
                                   <td className="px-6 py-2">{transaction.description}</td>
                                   <td className="px-6 py-2">{transaction.debit.toLocaleString()}</td>
                                   <td className="px-6 py-2">{transaction.credit.toLocaleString()}</td>
-                                  <td className="px-6 py-2">{transaction.balance.toLocaleString()}</td>
+                                  {/* <td className="px-6 py-2">{transaction.balance.toLocaleString()}</td> */}
                                 </tr>
                               ))}
 

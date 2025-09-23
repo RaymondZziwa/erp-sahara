@@ -502,9 +502,9 @@ const handleTypeChange = (
               <table className="min-w-max table-auto w-full">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="border px-4 py-2 min-w-[150px]">
+                    {/* <th className="border px-4 py-2 min-w-[150px]">
                       Type<span className="text-red-700">*</span>
-                    </th>
+                    </th> */}
                     <th className="border px-4 py-2 min-w-[150px]">
                       Item/Service
                     </th>
@@ -533,7 +533,7 @@ const handleTypeChange = (
                 <tbody>
                   {formState.items.map((item, index) => (
                     <tr key={index} className="whitespace-nowrap">
-                      <td className="border px-4 py-2 min-w-[150px]">
+                      {/* <td className="border px-4 py-2 min-w-[150px]">
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center">
                             <Checkbox
@@ -575,7 +575,7 @@ const handleTypeChange = (
                             </label>
                           </div>
                         </div>
-                      </td>
+                      </td> */}
                       <td className="border px-4 py-2 min-w-[150px]">
                         {item.item_type === "None" ? (
                           <InputText

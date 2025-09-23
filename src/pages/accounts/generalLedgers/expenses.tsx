@@ -55,7 +55,7 @@ const ExpenseTransactions: React.FC = () => {
       //     Authorization: `Bearer ${token}`,
       //   },
       // });
-      setDt(response.data.data.accounts);
+      setDt(response.data.data);
       //    if(response.success) {
       //     setDt(response.data.data)
       //    }
@@ -89,19 +89,19 @@ const ExpenseTransactions: React.FC = () => {
   const columnDefinitions: ColDef<any>[] = [
     {
       headerName: "Date",
-      field: "transaction_date",
+      field: "date",
       sortable: true,
       filter: true,
     },
     {
       headerName: "Debit A/C",
-      field: "debit_account.name",
+      field: "debit_account_name",
       sortable: true,
       filter: true,
     },
     {
       headerName: "Credit A/C",
-      field: "credit_account.name",
+      field: "credit_account_name",
       sortable: true,
       filter: true,
     },
@@ -242,7 +242,7 @@ const ExpenseTransactions: React.FC = () => {
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={[]}
+          data={dt? dt : []}
           ref={tableRef}
         />
       </div>

@@ -25,7 +25,7 @@ const CashBook = () => {
   const print = async () => {
     try {
       const response = await axios.get(
-        `${baseURL}/reports/accounting/cashbook-download/2025-01-01/2025-12-28`,
+        `${baseURL}/reports/accounting/print_cashbook/2025-01-01/2025-07-28`,
         {
           headers: {
             Authorization: `Bearer ${token.access_token}`,
@@ -110,9 +110,9 @@ const CashBook = () => {
                 <th className="px-6 py-3 text-left font-medium border-b border-gray-300">
                 Payments
               </th>
-              <th className="px-6 py-3 text-left font-medium border-b border-gray-300">
+              {/* <th className="px-6 py-3 text-left font-medium border-b border-gray-300">
                 Balance
-              </th>
+              </th> */}
             </tr>
           </thead>
           <tbody>
@@ -128,7 +128,7 @@ const CashBook = () => {
                     <td className="px-5 py-2 ">{item.account || '-'}</td>
                     <td className="px-5 py-2 ">{item.receipts || '-'}</td>
                     <td className="px-5 py-2 ">{item.payments || '-'}</td>
-                    <td className="px-5 py-2 ">{item.balance}</td>
+                    {/* <td className="px-5 py-2 ">{item.balance}</td> */}
                   </tr>
                 );
               })}
@@ -142,24 +142,24 @@ const CashBook = () => {
               <td className="px-5 py-2 border-gray-300 border-b  font-bold">
                 {Array.isArray(cashBookData)
                   ? cashBookData
-                      .reduce((acc, item) => acc + item.debit, 0)
+                      .reduce((acc, item) => acc + item.receipts || 0, 0)
                       .toLocaleString()
                   : "0"}
               </td>
               <td className="px-5 py-2 border-gray-300 border-b  font-bold">
                 {Array.isArray(cashBookData)
                   ? cashBookData
-                      .reduce((acc, item) => acc + item.credit, 0)
+                      .reduce((acc, item) => acc + item.payments || 0, 0)
                       .toLocaleString()
                   : "0"}
               </td>
-              <td className="px-5 py-2 border-gray-300 border-b  font-bold">
+              {/* <td className="px-5 py-2 border-gray-300 border-b  font-bold">
                 {Array.isArray(cashBookData)
                   ? cashBookData
                       .reduce((acc, item) => acc + item.balance, 0)
                       .toLocaleString()
                   : "0"}
-              </td>
+              </td> */}
             </tr>
           </tbody>
         </table>

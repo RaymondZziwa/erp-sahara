@@ -22,39 +22,24 @@ const SalaryStructures: React.FC = () => {
   const columnDefinitions: ColDef<SalaryStructure>[] = [
     {
       headerName: "Name",
-      field: "structure_name",
+      field: "name",
       sortable: true,
       filter: true,
     },
     {
       headerName: "Comment",
-      field: "comment",
+      field: "notes",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
     },
     {
       headerName: "Basic Salary",
-      field: "basic_salary",
+      field: "basic_pay",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
     },
-    {
-      headerName: "Over Time Rate",
-      field: "overtime_rate",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Bonus Percentage",
-      field: "bonus_percentage",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-
     {
       headerName: "Created",
       field: "created_at",

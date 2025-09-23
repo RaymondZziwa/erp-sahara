@@ -51,110 +51,6 @@ const HUMAN_RESOURCE_ROUTES = [
     ),
   },
   {
-    name: "Payroll Setup",
-    icon: <Icon icon="mdi:calculator-variant-outline" fontSize={24} />,
-    path: "",
-    items: [
-      {
-        name: "Payroll Schedule",
-        icon: <Icon icon="mdi:calendar-clock" fontSize={20} />,
-        path: "/payrollperiods",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <PayrollPeriods />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Allowances",
-        icon: <Icon icon="mdi:plus-circle-outline" fontSize={20} />,
-        path: "/allowances",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Allowances />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Deductions",
-        icon: <Icon icon="mdi:minus-circle-outline" fontSize={20} />,
-        path: "/deductions",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <Deductions />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Salary Structures",
-        icon: <Icon icon="mdi:currency-usd" fontSize={20} />,
-        path: "/salarystructures",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <SalaryStructures />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Deduction Types",
-        icon: <Icon icon="mdi:chart-pie" fontSize={20} />,
-        path: "/deductiontypes",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <DeductionTypes />
-          </Suspense>
-        ),
-      },
-      {
-        name: "Allowance Types",
-        icon: <Icon icon="mdi:wallet-plus-outline" fontSize={20} />,
-        path: "/allowancetypes",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <AllowanceTypes />
-          </Suspense>
-        ),
-      },
-    ],
-  },
-  {
-    name: "Leave Management",
-    icon: <Icon icon="mdi:beach" fontSize={24} />,
-    path: "",
-    items: [
-      {
-        name: "Leave Applications",
-        icon: <Icon icon="mdi:note-edit-outline" fontSize={20} />,
-        path: "/leaveapplications",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <LeaveApplications />
-          </Suspense>
-        ),
-      },
-      // {
-      //   name: "Balances and Carry Forwards",
-      //   icon: <Icon icon="mdi:scale-balance" fontSize={20} />,
-      //   path: "/balancesandcarryforwards",
-      //   element: (
-      //     <Suspense fallback={<Loading />}>
-      //       <LeaveTypes />
-      //     </Suspense>
-      //   ),
-      // },
-      {
-        name: "Leave Types",
-        icon: <Icon icon="mdi:format-list-checks" fontSize={20} />,
-        path: "/leavetypes",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <LeaveTypes />
-          </Suspense>
-        ),
-      }      
-    ],
-  },
-  {
     name: "Attendance and Time Management",
     icon: <Icon icon="mdi:clock-outline" fontSize={24} />,
     path: "",
@@ -295,6 +191,110 @@ const HUMAN_RESOURCE_ROUTES = [
   //     },
   //   ],
   // },
+    {
+    name: "Leave Management",
+    icon: <Icon icon="mdi:beach" fontSize={24} />,
+    path: "",
+    items: [
+      {
+        name: "Leave Applications",
+        icon: <Icon icon="mdi:note-edit-outline" fontSize={20} />,
+        path: "/leaveapplications",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <LeaveApplications />
+          </Suspense>
+        ),
+      },
+      // {
+      //   name: "Balances and Carry Forwards",
+      //   icon: <Icon icon="mdi:scale-balance" fontSize={20} />,
+      //   path: "/balancesandcarryforwards",
+      //   element: (
+      //     <Suspense fallback={<Loading />}>
+      //       <LeaveTypes />
+      //     </Suspense>
+      //   ),
+      // },
+      {
+        name: "Leave Types",
+        icon: <Icon icon="mdi:format-list-checks" fontSize={20} />,
+        path: "/leavetypes",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <LeaveTypes />
+          </Suspense>
+        ),
+      }      
+    ],
+  },
+    {
+    name: "Payroll Setup",
+    icon: <Icon icon="mdi:calculator-variant-outline" fontSize={24} />,
+    path: "",
+    items: [
+      {
+        name: "Payroll Schedule",
+        icon: <Icon icon="mdi:calendar-clock" fontSize={20} />,
+        path: "/payrollperiods",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <PayrollPeriods />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Allowances",
+        icon: <Icon icon="mdi:plus-circle-outline" fontSize={20} />,
+        path: "/allowances",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Allowances />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Deductions",
+        icon: <Icon icon="mdi:minus-circle-outline" fontSize={20} />,
+        path: "/deductions",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Deductions />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Salary Structures",
+        icon: <Icon icon="mdi:currency-usd" fontSize={20} />,
+        path: "/salarystructures",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <SalaryStructures />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Deduction Types",
+        icon: <Icon icon="mdi:chart-pie" fontSize={20} />,
+        path: "/deductiontypes",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <DeductionTypes />
+          </Suspense>
+        ),
+      },
+      {
+        name: "Allowance Types",
+        icon: <Icon icon="mdi:wallet-plus-outline" fontSize={20} />,
+        path: "/allowancetypes",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <AllowanceTypes />
+          </Suspense>
+        ),
+      },
+    ],
+  },
   {
     name: "More",
     icon: <Icon icon="mdi:dots-horizontal" fontSize={24} />,
