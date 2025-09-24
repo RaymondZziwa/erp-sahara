@@ -32,7 +32,7 @@ const AddOrModifySalaryStructure: React.FC<AddOrModifySalaryStructureProps> = ({
     name: "",
     basic_pay: 0,
     notes: "",
-    additional_benefits: [] as AdditionalBenefit[],
+    //additional_benefits: [] as AdditionalBenefit[],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -42,14 +42,14 @@ const AddOrModifySalaryStructure: React.FC<AddOrModifySalaryStructureProps> = ({
         name: item.name || "",
         basic_pay: item.basic_pay || 0,
         notes: item.notes || "",
-        additional_benefits: item.additional_benefits || [],
+        //additional_benefits: item.additional_benefits || [],
       });
     } else {
       setFormState({
         name: "",
         basic_pay: 0,
         notes: "",
-        additional_benefits: [],
+        //additional_benefits: [],
       });
     }
   }, [item]);
@@ -62,24 +62,24 @@ const AddOrModifySalaryStructure: React.FC<AddOrModifySalaryStructureProps> = ({
     }));
   };
 
-  const handleBenefitChange = (index: number, field: "type" | "amount", value: string | number) => {
-    const updated = [...formState.additional_benefits];
-    updated[index][field] = field === "amount" ? Number(value) : value;
-    setFormState(prev => ({ ...prev, additional_benefits: updated }));
-  };
+  // const handleBenefitChange = (index: number, field: "type" | "amount", value: string | number) => {
+  //   const updated = [...formState.additional_benefits];
+  //   updated[index][field] = field === "amount" ? Number(value) : value;
+  //   setFormState(prev => ({ ...prev, additional_benefits: updated }));
+  // };
 
-  const addBenefit = () => {
-    setFormState(prev => ({
-      ...prev,
-      additional_benefits: [...prev.additional_benefits, { type: "", amount: 0 }],
-    }));
-  };
+  // const addBenefit = () => {
+  //   setFormState(prev => ({
+  //     ...prev,
+  //     additional_benefits: [...prev.additional_benefits, { type: "", amount: 0 }],
+  //   }));
+  // };
 
-  const removeBenefit = (index: number) => {
-    const updated = [...formState.additional_benefits];
-    updated.splice(index, 1);
-    setFormState(prev => ({ ...prev, additional_benefits: updated }));
-  };
+  // const removeBenefit = (index: number) => {
+  //   const updated = [...formState.additional_benefits];
+  //   updated.splice(index, 1);
+  //   setFormState(prev => ({ ...prev, additional_benefits: updated }));
+  // };
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -106,7 +106,7 @@ const AddOrModifySalaryStructure: React.FC<AddOrModifySalaryStructureProps> = ({
         name: "",
         basic_pay: 0,
         notes: "",
-        additional_benefits: [],
+        //additional_benefits: [],
       });
       onSave();
       onClose();
@@ -136,16 +136,35 @@ const AddOrModifySalaryStructure: React.FC<AddOrModifySalaryStructureProps> = ({
           </div>
 
           <div className="p-field">
-            <label>Basic Pay<span className="text-red-500">*</span></label>
-            <InputText name="basic_pay" type="number" value={formState.basic_pay} onChange={handleInputChange} required className="w-full" />
+            <label>
+              Basic Pay<span className="text-red-500">*</span>
+            </label>
+            <InputText
+              name="basic_pay"
+              value={
+                formState.basic_pay !== undefined && formState.basic_pay !== null
+                  ? Number(formState.basic_pay).toLocaleString()
+                  : ""
+              }
+              onChange={(e) => {
+                const rawValue = e.target.value.replace(/,/g, "");
+                setFormState((prev) => ({
+                  ...prev,
+                  basic_pay: rawValue === "" ? "" : Number(rawValue),
+                }));
+              }}
+              required
+              className="w-full"
+            />
           </div>
+
 
           <div className="p-field">
             <label>Notes</label>
             <InputTextarea name="notes" value={formState.notes} onChange={handleInputChange} className="w-full" />
           </div>
 
-          <div className="p-field">
+          {/* <div className="p-field">
             <label>Additional Benefits</label>
             {formState.additional_benefits.map((benefit, index) => (
               <div key={index} className="flex gap-2 mb-2">
@@ -165,7 +184,7 @@ const AddOrModifySalaryStructure: React.FC<AddOrModifySalaryStructureProps> = ({
               </div>
             ))}
             <Button type="button" label="Add Benefit" icon="pi pi-plus" className="p-button-success mt-2" onClick={addBenefit} />
-          </div>
+          </div> */}
         </form>
       </Dialog>
     </>

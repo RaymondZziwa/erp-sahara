@@ -104,9 +104,11 @@ import ProductionStepReducer from "./slices/manufacturing/workCenters/production
 import productionMaterialRequestReducer from "./slices/manufacturing/workCenters/productionMaterialRequestSlice";
 import productionBatchReducer from "./slices/manufacturing/workCenters/productionBatchSlice";
 import vehicleRepairReducer from "./slices/accounts/cash_requisitions/vehicleRepairSlice"
+import loanTypeReducer from "./slices/hr/loanTypeSlice";
 
 const store = configureStore({
   reducer: {
+    loanTypes: loanTypeReducer,
     vehicleRepair: vehicleRepairReducer,
     productionBatch: productionBatchReducer,
     productionMaterialRequests: productionMaterialRequestReducer,

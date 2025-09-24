@@ -1,6 +1,7 @@
 import { Icon } from "@iconify/react";
 import { lazy, Suspense } from "react";
 import PayrollPage from "../pages/hr/payroll";
+import LoanTypes from "../pages/hr/salary/loanTypes";
 
 // Dynamic imports for components
 const Departments = lazy(() => import("../pages/hr/departments"));
@@ -263,7 +264,15 @@ const HUMAN_RESOURCE_ROUTES = [
           </Suspense>
         ),
       },
-      {
+     
+    ],
+  },
+  {
+    name: "Configurations",
+    icon: <Icon icon="mdi:dots-horizontal" fontSize={24} />,
+    path: "",
+    items: [
+     {
         name: "Salary Structures",
         icon: <Icon icon="mdi:currency-usd" fontSize={20} />,
         path: "/salarystructures",
@@ -273,7 +282,17 @@ const HUMAN_RESOURCE_ROUTES = [
           </Suspense>
         ),
       },
-      {
+    {
+        name: "Loan Types",
+        icon: <Icon icon="mdi:chart-pie" fontSize={20} />,
+        path: "/loantypes",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <LoanTypes />
+          </Suspense>
+        ),
+      },
+       {
         name: "Deduction Types",
         icon: <Icon icon="mdi:chart-pie" fontSize={20} />,
         path: "/deductiontypes",
@@ -293,13 +312,6 @@ const HUMAN_RESOURCE_ROUTES = [
           </Suspense>
         ),
       },
-    ],
-  },
-  {
-    name: "More",
-    icon: <Icon icon="mdi:dots-horizontal" fontSize={24} />,
-    path: "",
-    items: [
       {
         name: "Departments",
         icon: <Icon icon="mdi:office-building-cog-outline" fontSize={20} />,

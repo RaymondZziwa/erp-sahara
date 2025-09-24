@@ -9,6 +9,7 @@ import Table from "../../../components/table";
 import useSalaryStructures from "../../../hooks/hr/useSalaryStructures";
 import { SalaryStructure } from "../../../redux/slices/types/hr/SalaryStructure";
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
+import { Link } from "react-router-dom";
 
 const SalaryStructures: React.FC = () => {
   const { data, refresh } = useSalaryStructures();
@@ -25,9 +26,20 @@ const SalaryStructures: React.FC = () => {
       field: "name",
       sortable: true,
       filter: true,
+      cellRenderer: (params: ICellRendererParams<SalaryStructure>) => {
+  return (
+    <Link
+      to={`/hr/salary_structure/${params.data?.id}`}
+      className="hover:underline hover:text-teal-500"
+    >
+      {params.data?.name}
+    </Link>
+  );
+}
+
     },
     {
-      headerName: "Comment",
+      headerName: "Notes",
       field: "notes",
       sortable: true,
       filter: true,

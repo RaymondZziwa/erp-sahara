@@ -47,6 +47,7 @@ import DailyProductionReport from "../pages/reports/manufacturing/daily-producti
 import Batches from "../pages/manufacturing/productionBatches";
 import Ledgers from "../pages/accounts/chartOfAccounts/ledgers";
 import AssetDetails from "../pages/assets/assetDetails/assetDetails";
+import ManageSalaryStructure from "../pages/hr/salaryStructures/manageStructure";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -217,6 +218,10 @@ const AppRouter = () => {
           <Route
             path="/manufacturing/production_order/batches/:id"
             element={<Batches />}
+          />
+          <Route
+            path="/hr/salary_structure/:id"
+            element={<ManageSalaryStructure />}
           />
         </Route>
         <Route path="/login" element={<LoginPage />} />

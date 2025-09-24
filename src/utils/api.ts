@@ -5,13 +5,13 @@ import { toast } from "react-toastify";
 import { ServerResponse } from "../redux/slices/types/ServerResponse";
 //export const baseURL = "https://erpapi.mosmiles.org/api"
 //export const baseURL = "https://tcjeapi.verifin.co.tz/api"
-//export const baseURL = "https://latcuapidemo.efinanci.com/api"
+export const baseURL = "https://latcuapidemo.efinanci.com/api"
 //export const baseURL = "https://api.saharaspicehub.com/api"
 //export const baseURL = "https://tcjeapi.verifin.co.tz/api"
 //export const baseURL = "https://latcuapi.efinanci.com/api";
 //export const baseURL = "https://api.saharaspicehub.com/api";
 //export const baseURL = "https://shrecuapi.efinanci.co.tz/api"
-export const baseURL = "https://latcuapidemo.efinanci.com/api"
+//export const baseURL = "https://latcuapidemo.efinanci.com/api"
 //export const baseURL = "https://mosappapi.mosmiles.org/api"
 //export const imageURL = "https://mosappapi.mosmiles.org/storage"
 //export const imageURL = "https://api.saharaspicehub.com/storage"

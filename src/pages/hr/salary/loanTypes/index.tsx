@@ -9,8 +9,8 @@ import BreadCrump from "../../../../components/layout/bread_crump";
 import Table from "../../../../components/table";
 
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../../api/hrEndpoints";
-import { LoanType } from "../../../../redux/slices/types/hr/salary/LoanType";
 import useLoanTypes from "../../../../hooks/hr/salary/useLoanTypes";
+import { LoanType } from "../../../../redux/slices/types/hr/loanType";
 
 const LoanTypes: React.FC = () => {
   const { data, refresh } = useLoanTypes();
@@ -21,16 +21,10 @@ const LoanTypes: React.FC = () => {
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
-
   const columnDefinitions: ColDef<LoanType>[] = [
     {
       headerName: "Name",
-      field: "loan_type_name",
+      field: "name",
       sortable: true,
       filter: true,
     },
@@ -100,7 +94,7 @@ const LoanTypes: React.FC = () => {
       />
       {dialogState.selectedItem && (
         <ConfirmDeleteDialog
-          apiPath={HUMAN_RESOURCE_ENDPOINTS.BONUS_TYPES.DELETE(
+          apiPath={HUMAN_RESOURCE_ENDPOINTS.LOAN_TYPES.DELETE(
             dialogState.selectedItem?.id.toString()
           )}
           onClose={() =>
@@ -131,13 +125,6 @@ const LoanTypes: React.FC = () => {
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add Loan Type
-            </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
             </button>
           </div>
         </div>

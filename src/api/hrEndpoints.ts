@@ -58,9 +58,9 @@ export const HUMAN_RESOURCE_ENDPOINTS = {
   LOAN_TYPES: {
     GET_ALL: "/hr/loantypes",
     GET_BY_ID: (id: string) => `/hr/loantypes/${id}`,
-    ADD: "/hr/loantypes/create",
-    UPDATE: (id: string) => `/hr/loantypes/${id}/update`,
-    DELETE: (id: string) => `/hr/loantypes/${id}/delete`,
+    ADD: "/hr/loantypes",
+    UPDATE: (id: string) => `/hr/loantypes/${id}`,
+    DELETE: (id: string) => `/hr/loantypes/${id}`,
   },
   DEDUCTION_TYPES: {
     GET_ALL: "/hr/deductiontypes",
@@ -104,4 +104,16 @@ export const HUMAN_RESOURCE_ENDPOINTS = {
     UPDATE: (id: string) => `/hr/payrollschedules/${id}/update`,
     DELETE: (id: string) => `/hr/payrollschedules/${id}/delete`,
   },
+  STRUCTURE_ALLOWANCES_AND_DEDUCTIONS: {
+    GET_ALL_ALLOWANCES: "/hr/payrollschedules",
+    GET_ALLOWANCE_BY_ID: (id: string) => `/hr/payrollschedules/${id}`,
+    ADD_ALLOWANCE:(id: string) =>  `/hr/${id}/salary-structures-allowances`,
+    UPDATE_ALLOWANCE: (structureId: string, id: string) => `hr/${structureId}/salary-structures-allowances/${id}`,
+    DELETE_ALLOWANCE: (id: string) => `/hr/payrollschedules/${id}/delete`,
+    GET_ALL_DEDUCTIONS: "/hr/payrollschedules",
+    GET_DEDUCTIONS_BY_ID: (id: string) => `/hr/payrollschedules/${id}`,
+    ADD_DEDUCTION:(id: string) => `/hr/${id}/salary-structures-deductions`,
+    UPDATE_DEDUCTION: (structureId: string, id: string) => `/hr/${structureId}/salary-structures-deductions/${id}`,
+    DELETE_DEDUCTION: (id: string) => `/hr/payrollschedules/${id}/delete`,
+  }
 };
