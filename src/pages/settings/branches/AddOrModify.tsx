@@ -164,7 +164,7 @@ const AddOrModifyBranch: React.FC<AddOrModifyBranchProps> = ({
       </div>
       <div>
         <label htmlFor="email" className="block mb-1 font-medium">
-          Email
+          Email <span className="text-red-500">*</span>
         </label>
         <InputText
           id="email"

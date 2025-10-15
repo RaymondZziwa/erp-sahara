@@ -139,7 +139,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             />
           </div>
 
-          <div className="p-field flex items-center space-x-2 mt-3">
+          {/* <div className="p-field flex items-center space-x-2 mt-3">
             <Checkbox
               inputId="is_final_product"
               checked={formState.is_final_product}
@@ -148,7 +148,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             <label htmlFor="is_final_product" className="text-sm cursor-pointer">
               Is Final Product?
             </label>
-          </div>
+          </div> */}
 
           <div className="p-field mt-3">
             <label htmlFor="description" className="text-sm">

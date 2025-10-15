@@ -45,14 +45,14 @@ const OtherTransactions: React.FC = () => {
     const fetchRecords = async () => {
       try {
         const response = await axios.get(
-          `${baseURL}/accounts/general-ledger/3`,
+          `${baseURL}/reports/accounting/journal-type-transactions?journal_type=3&limit=100`,
           {
             headers: {
               Authorization: `Bearer ${token.access_token}`,
             },
           }
         );
-        setDt(response.data.data);
+        setDt(response.data.data.data);
         //    if(response.success) {
         //     setDt(response.data.data)
         //    }
@@ -85,19 +85,25 @@ const OtherTransactions: React.FC = () => {
   const columnDefinitions: ColDef<any>[] = [
     {
       headerName: "Debit A/C",
-      field: "debit_account.name",
+      field: "debit_account_name",
       sortable: true,
       filter: true,
     },
     {
       headerName: "Credit A/C",
-      field: "credit_account.name",
+      field: "credit_account_name",
       sortable: true,
       filter: true,
     },
     {
       headerName: "Amount",
-      field: "amount",
+      field: "debit",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Running Balance",
+      field: "running_balance",
       sortable: true,
       filter: true,
     },
@@ -212,7 +218,7 @@ const OtherTransactions: React.FC = () => {
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={[]}
+          data={dt ? dt :[]}
           ref={tableRef}
         />
       </div>

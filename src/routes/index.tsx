@@ -48,6 +48,12 @@ import Batches from "../pages/manufacturing/productionBatches";
 import Ledgers from "../pages/accounts/chartOfAccounts/ledgers";
 import AssetDetails from "../pages/assets/assetDetails/assetDetails";
 import ManageSalaryStructure from "../pages/hr/salaryStructures/manageStructure";
+import ManageEmployee from "../pages/hr/employees/manageEmployee";
+import PayrollRuns from "../pages/hr/payrollPeriods/payrollRuns";
+import CashierSalesReport from "../pages/reports/sales/cashier_sales_report";
+import DailySalesSummaryReport from "../pages/reports/sales/daily_sales_summary";
+import TopProductSalesReport from "../pages/reports/sales/top_product_sales";
+import DailyProductSalesReport from "../pages/reports/sales/daily_product_sales";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -158,6 +164,10 @@ const AppRouter = () => {
             element={<AssetRegistryReport />}
           />
           <Route path="/owners-equity" element={<OwnersEquityReport />} />
+          <Route path="/cashier-sales-summary" element={<CashierSalesReport />} />
+          <Route path="/daily_sales_summary" element={<DailySalesSummaryReport />} />
+          <Route path="/top_product_sales" element={<TopProductSalesReport />} />
+          <Route path="/daily_product_sales" element={<DailyProductSalesReport/>} />
           <Route
             path="/detailed-owners-equity"
             element={<OwnersEquityDetailedReport />}
@@ -222,6 +232,14 @@ const AppRouter = () => {
           <Route
             path="/hr/salary_structure/:id"
             element={<ManageSalaryStructure />}
+          />
+          <Route
+            path="/hr/employee/:id"
+            element={<ManageEmployee />}
+          />
+          <Route
+            path="/hr/payroll/schedules/:id/runs"
+            element={<PayrollRuns />}
           />
         </Route>
         <Route path="/login" element={<LoginPage />} />

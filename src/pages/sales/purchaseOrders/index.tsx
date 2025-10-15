@@ -9,6 +9,8 @@ import { API_ENDPOINTS } from "../../../api/apiEndpoints";
 import { CustomerOrder } from "../../../redux/slices/types/sales/CustomerOrder";
 import useCustomerOrders from "../../../hooks/sales/useCustomerOrders";
 import { ToastContainer } from "react-toastify";
+import ReviewOrApproveOrder from "./ReviewOrApprovePurchaseRequest";
+import { SALES_ENDPOINTS } from "../../../api/salesEndpoints";
 
 const CustomerOrders: React.FC = () => {
   const { data, refresh } = useCustomerOrders();
@@ -54,7 +56,6 @@ const CustomerOrders: React.FC = () => {
       filter: true,
       suppressSizeToFit: true,
     },
-
     {
       headerName: "Status",
       field: "status",
@@ -83,7 +84,7 @@ const CustomerOrders: React.FC = () => {
       filter: false,
       cellRenderer: (params: ICellRendererParams<CustomerOrder>) => (
         <div className="flex items-center gap-2 h-10">
-          {params.data?.status == "pending" && (
+          {params.data?.status.toLowerCase() == "pending" && (
             <div title="Review">
               <Icon
                 onClick={() =>
@@ -99,7 +100,7 @@ const CustomerOrders: React.FC = () => {
               />
             </div>
           )}
-          {params.data?.status == "pending" ? (
+          {params.data?.status.toLowerCase() == "pending" ? (
             <button title="Edit">
               <Icon
                 onClick={() =>
@@ -132,13 +133,14 @@ const CustomerOrders: React.FC = () => {
             </button>
           ) : null}
           <Icon
-            onClick={() =>
+            onClick={() => {
+              console.log('vsdd', params.data)
               setDialogState({
                 ...dialogState,
                 currentAction: "delete",
                 selectedItem: params.data,
               })
-            }
+            }}
             icon="solar:trash-bin-trash-bold"
             className="text-red-500 cursor-pointer"
             fontSize={20}
@@ -151,22 +153,37 @@ const CustomerOrders: React.FC = () => {
   return (
     <div>
       <ToastContainer />
-      {dialogState.currentAction != "" && (
-        <AddOrModifyItem
-          onSave={refresh}
-          item={dialogState.selectedItem}
-          visible={
-            dialogState.currentAction == "add" ||
-            (dialogState.currentAction == "edit" &&
-              !!dialogState.selectedItem?.id)
-          }
-          onClose={() =>
-            setDialogState({ currentAction: "", selectedItem: undefined })
-          }
-        />
-      )}
+      
+      {/* Add/Edit Dialog */}
+      <AddOrModifyItem
+        onSave={refresh}
+        item={dialogState.selectedItem}
+        visible={
+          dialogState.currentAction == "add" ||
+          (dialogState.currentAction == "edit" && !!dialogState.selectedItem?.id)
+        }
+        onClose={() =>
+          setDialogState({ currentAction: "", selectedItem: undefined })
+        }
+      />
+
+      {/* Review/Approve Dialog */}
+      <ReviewOrApproveOrder
+        order={dialogState.selectedItem}
+        onClose={() =>
+          setDialogState({ currentAction: "", selectedItem: undefined })
+        }
+        onRefresh={refresh}
+        action={dialogState.currentAction as "review" | "approve"}
+        visible={
+          (dialogState.currentAction === "review" || 
+           dialogState.currentAction === "approve") && 
+          !!dialogState.selectedItem?.id
+        }
+      />
+
       <ConfirmDeleteDialog
-        apiPath={API_ENDPOINTS.PURCHASE_ORDERS.DELETE(
+        apiPath={SALES_ENDPOINTS.CUSTOMER_ORDERS.DELETE(
           dialogState?.selectedItem?.id.toString() ?? ""
         )}
         onClose={() =>

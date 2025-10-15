@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
+import { InputSwitch } from "primereact/inputswitch";
 
 import { createRequest } from "../../../../utils/api";
 import useAuth from "../../../../hooks/useAuth";
@@ -23,18 +24,25 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const [formState, setFormState] = useState<Partial<Currency>>({
     name: "",
     code: "",
+    is_base_currency: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { token } = useAuth();
+
   useEffect(() => {
     if (item) {
       setFormState({
         name: item.name || "",
         code: item.code || "",
+        is_base_currency: item.is_base_currency || false,
       });
     } else {
-      setFormState({ name: "", code: "" });
+      setFormState({
+        name: "",
+        code: "",
+        is_base_currency: false,
+      });
     }
   }, [item]);
 
@@ -46,26 +54,41 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     }));
   };
 
+  const handleSwitchChange = (value: boolean) => {
+    setFormState((prevState) => ({
+      ...prevState,
+      is_base_currency: value,
+    }));
+  };
+
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-    setIsSubmitting(true);
     e.preventDefault();
-    // Basic validation
+    setIsSubmitting(true);
+
     if (!formState.name) {
-      return; // You can handle validation error here
+      setIsSubmitting(false);
+      return;
     }
-    const data = { name: formState.name, code: formState.code };
+
+    const data = {
+      name: formState.name,
+      code: formState.code,
+      is_base_currency: formState.is_base_currency,
+    };
+
     const method = item?.id ? "PUT" : "POST";
     const endpoint = item?.id
       ? `/accounts/currencies/${item.id}/update`
       : "/accounts/currencies/create";
+
     await createRequest(endpoint, token.access_token, data, onSave, method);
     setIsSubmitting(false);
     onSave();
-    onClose(); // Close the modal after saving
+    onClose();
   };
 
   const footer = (
-    <div className="flex gap-2 justify-end ">
+    <div className="flex gap-2 justify-end">
       <Button
         size="small"
         disabled={isSubmitting}
@@ -95,7 +118,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
       onHide={onClose}
     >
       <form id="item-form" onSubmit={handleSave}>
-        <div className="p-fluid">
+        <div className="p-fluid space-y-3">
           <div className="p-field">
             <label htmlFor="name">Name</label>
             <InputText
@@ -106,13 +129,25 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
               required
             />
           </div>
+
           <div className="p-field">
-            <label htmlFor="description">Code</label>
+            <label htmlFor="code">Code</label>
             <InputText
               id="code"
               name="code"
               value={formState.code}
               onChange={handleInputChange}
+            />
+          </div>
+
+          <div className="p-field flex items-center justify-between">
+            <label htmlFor="is_base_currency" className="mb-0">
+              Is Base Currency
+            </label>
+            <InputSwitch
+              id="is_base_currency"
+              checked={formState.is_base_currency}
+              onChange={(e) => handleSwitchChange(e.value as boolean)}
             />
           </div>
         </div>

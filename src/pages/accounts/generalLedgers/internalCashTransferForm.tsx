@@ -69,6 +69,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   const [formState, setFormState] = useState<Partial<AddLedger>>({
     transaction_date: new Date(),
     reference: "",
+    narrative: "",
     project_id: null,
     segment_id: null,
     budget_id: null,
@@ -351,7 +352,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     <Dialog
       header={title}
       visible={visible}
-      className="max-w-full md:max-w-screen-lg px-2 w-[1024px]"
+      className="max-w-full md:max-w-screen-lg px-2 w-[700px]"
       footer={footer}
       onHide={onClose}
     >
@@ -407,7 +408,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           className="p-inputtext-sm"
           id="narrative"
           name="narrative"
-          value={formState.description}
+          value={formState.narrative}
           onChange={handleInputChange}
           placeholder="Narrative"
         />

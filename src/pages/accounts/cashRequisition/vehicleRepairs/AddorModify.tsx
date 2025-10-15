@@ -134,7 +134,7 @@ const AddorModify: React.FC<Props> = ({ dialogState, setDialogState }) => {
         </div>
 
         {/* Last Fuel Used */}
-        <div>
+        {/* <div>
           <label htmlFor="last_quantity_fuel_used">Last Fuel Used (L)<span className="text-red-500">*</span></label>
           <InputNumber
             id="last_quantity_fuel_used"
@@ -146,7 +146,7 @@ const AddorModify: React.FC<Props> = ({ dialogState, setDialogState }) => {
             min={0}
             mode="decimal"
           />
-        </div>
+        </div> */}
 
         {/* Last Mileage */}
         <div>

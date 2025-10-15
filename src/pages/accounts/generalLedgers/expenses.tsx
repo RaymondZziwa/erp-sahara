@@ -45,7 +45,7 @@ const ExpenseTransactions: React.FC = () => {
 
   const fetchRecords = async () => {
     try {
-      const response = await axios.get(`${baseURL}/reports/accounting/general-ledger-transactions?journal_type=4&limit=${limit}`, {
+      const response = await axios.get(`${baseURL}/reports/accounting/journal-type-transactions?journal_type=4&limit=${limit}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -55,7 +55,7 @@ const ExpenseTransactions: React.FC = () => {
       //     Authorization: `Bearer ${token}`,
       //   },
       // });
-      setDt(response.data.data);
+      setDt(response.data.data.data);
       //    if(response.success) {
       //     setDt(response.data.data)
       //    }
@@ -107,7 +107,13 @@ const ExpenseTransactions: React.FC = () => {
     },
     {
       headerName: "Amount",
-      field: "amount",
+      field: "debit",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Running Balance",
+      field: "running_balance",
       sortable: true,
       filter: true,
     },

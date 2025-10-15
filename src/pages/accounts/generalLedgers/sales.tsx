@@ -45,15 +45,14 @@ const SalesTransactions: React.FC = () => {
   const fetchRecords = async () => {
     try {
       const response = await axios.get(
-        `${baseURL}/reports/accounting/general-ledger-transactions?journal_type=5&limit=100`,
+        `${baseURL}/reports/accounting/journal-type-transactions?journal_type=5&limit=100`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      console.log(response.data.data)
-      setDt(response.data.data);
+      setDt(response.data.data.data);
       //    if(response.success) {
       //     setDt(response.data.data)
       //    }
@@ -105,7 +104,13 @@ const SalesTransactions: React.FC = () => {
     },
     {
       headerName: "Amount",
-      field: "amount",
+      field: "debit",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Running Balance",
+      field: "running_balance",
       sortable: true,
       filter: true,
     },

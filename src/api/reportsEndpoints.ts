@@ -1,4 +1,10 @@
 export const REPORTS_ENDPOINTS = {
+  POS_SALES: {
+    TOP_PRODUCT_SALES: '/inventories/top-product-sales/daily-summary',
+    CASHIER_SALES: '/inventories/cashier-sales/daily-summary',
+    DAILY_SALES: '/inventories/sales/daily-summary',
+    DAILY_PRODUCT_SUMMARY: '/inventories/product-sales/daily-summary',
+  },
   GENERAL_LEDGERS: {
     GET_ALL:(accId: any, start_date?: string, end_date?: string) => `/reports/accounting/general-ledger?id=${accId}&start_date=${start_date}&end_date=${end_date}`,
   },
@@ -12,7 +18,7 @@ export const REPORTS_ENDPOINTS = {
     GET_ALL: "/reports/accounting/comparison-income-statement",
   },
   DETAILED_INCOME_STATEMENT: {
-    GET_ALL: "/reports/accounting/detail-income-statement",
+    GET_ALL: "/reports/accounting/detail-income-statement-simple",
   },
   DETAILED_BALANCE_SHEET: {
     GET_ALL: "/reports/accounting/detail-balance-sheet",
@@ -27,7 +33,7 @@ export const REPORTS_ENDPOINTS = {
     GET_ALL: "/reports/accounting/cash-flow-statement-indirect",
   },
   DETAILED_CASH_BOOK: {
-    GET_ALL: (start_date: string, end_date: string) => `/reports/accounting/cashbook/${start_date}/${end_date}`,
+    GET_ALL: (id: any) => `/reports/accounting/cashbook/${id}`,
   },
   BUDGET_COMPARISON_REPORT: {
     GET_ALL: (start_date: string, end_date: string, budgetId: string) => `/reports/accounting/budget_comparison_report?budget_id=${budgetId}&start_date=${start_date}&end_date=${end_date}`

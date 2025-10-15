@@ -139,7 +139,7 @@ const AddOrModifySalaryStructure: React.FC<AddOrModifySalaryStructureProps> = ({
             <label>
               Basic Pay<span className="text-red-500">*</span>
             </label>
-            <InputText
+            <InputNumber
               name="basic_pay"
               value={
                 formState.basic_pay !== undefined && formState.basic_pay !== null

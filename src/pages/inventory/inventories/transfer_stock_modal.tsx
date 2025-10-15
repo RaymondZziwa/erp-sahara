@@ -69,7 +69,8 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
     {label: "Manufacturing", value: 'manufacturing'},
     {label: "Written-off", value: 'written-off'},
     {label: "milling", value: 'milling'},
-    {label: "Transfer", value: 'transfer'},
+    { label: "Transfer", value: 'transfer' },
+    {label: "Consumption", value: 'consumption'},
   ]
 
   useEffect(() => {
@@ -117,7 +118,19 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
       toast.success(response.data.message)
       onSave()
       onClose()
+      setStockOutForm({
+        item_id: "",
+        quantity: 0,
+        type: "",
+        movement_date: new Date().toISOString().slice(0, 10),
+        warehouse_id: "",
+        to_warehouse_id: 0,
+        movement_reason:"",
+        picked_by:"",
+        remarks:""
+      })
     } catch (error) {
+      toast.error(error?.response?.data?.message)
       console.error("Error saving item", error);
     } finally {
       setIsSubmitting(false);
@@ -274,7 +287,7 @@ const TransferStock: React.FC<AddOrModifyItemProps> = ({
         </div>
         <div className="p-field w-full">
           <label className="font-semibold text-sm" htmlFor="movement_reason">
-            Remarks<span className="text-red-600">*</span>
+            Remarks
           </label>
           <InputText
             id="movement_reason"

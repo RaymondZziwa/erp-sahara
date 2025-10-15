@@ -304,19 +304,19 @@ useEffect(() => {
               </div>
               {/* Reason */}
               <div className="col-span-2">
-  <label htmlFor="reason">Reason<span className="text-red-500">*</span></label>
-  <InputTextarea
-    id="reason"
-    value={formData.reason}
-    onChange={(e) =>
-      setFormData({ ...formData, reason: e.target.value })
-    }
-    placeholder="Fuel refill for delivery"
-    rows={3}    
-    autoResize         
-  />
-</div>
-</div>
+                <label htmlFor="reason">Reason<span className="text-red-500">*</span></label>
+                <InputTextarea
+                  id="reason"
+                  value={formData.reason}
+                  onChange={(e) =>
+                    setFormData({ ...formData, reason: e.target.value })
+                  }
+                  placeholder="Fuel refill for delivery"
+                  rows={3}    
+                  autoResize         
+                />
+              </div>
+            </div>
   
       {/* Footer Buttons */}
       <div className="flex justify-end gap-2 mt-4">

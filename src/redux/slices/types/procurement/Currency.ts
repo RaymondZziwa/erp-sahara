@@ -3,7 +3,7 @@ export interface Currency {
   organisation_id: number;
   name: string;
   code: string;
-  is_base_currency: number;
+  is_base_currency: boolean;
   created_at: string;
   updated_at: string;
 }

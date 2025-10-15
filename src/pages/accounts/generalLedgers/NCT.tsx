@@ -78,7 +78,7 @@ const journalTypes: {
     label: "General Transaction",
     value: 10,
     icon: "pi pi-times-circle",
-    endpoint: "/accounts/transactions/general-transaction",
+    endpoint: "/accounts/transactions/general-transactions",
     debitAccountsType: AccountType.ALL,
     creditAccountsType: AccountType.ALL,
     creditAccountHeader: "All",

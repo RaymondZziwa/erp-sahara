@@ -26,6 +26,7 @@ import SUPPLIER_LOANS_ROUTES from "./SUPPLIER_LOANS";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import ITEM_PURCHASES_ROUTES from "./ITEM_PURCHASES";
+import InventoryDashboard from "../pages/inventory/inventories/InventoryDashboard";
 
 const ROUTES: Route[] = [
   {
@@ -33,6 +34,7 @@ const ROUTES: Route[] = [
     icon: <Icon icon="mdi:view-dashboard-outline" fontSize={24} />,
     path: "/",
     element: <Dashboard />
+    //element: <InventoryDashboard />
     //sidebarItems: DASHBOARD_ROUTES,
   },
   {

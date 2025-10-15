@@ -516,7 +516,7 @@ const ProfilePage = () => {
                     )}
                   </div>
 
-                  <div>
+                  {/* <div>
                     <label
                       htmlFor="tin_no"
                       className="block text-sm font-medium text-gray-700"
@@ -537,7 +537,7 @@ const ProfilePage = () => {
                         {profile.tin_no}
                       </p>
                     )}
-                  </div>
+                  </div> */}
 
                   <div className="sm:col-span-2">
                     <div className="flex items-center">

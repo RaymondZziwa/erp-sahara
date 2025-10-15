@@ -8,6 +8,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import CustomReportHeader from "../../../components/custom/customReportHeader";
 import { PropagateLoader } from "react-spinners";
+import { Dropdown } from "primereact/dropdown";
+import useAssetsAccounts from "../../../hooks/accounts/useAssetsAccounts";
 
 type Transaction = {
   date: string;
@@ -20,12 +22,15 @@ type Transaction = {
 const CashBook = () => {
   const [cashBookData, setCashBookData] = useState<Transaction[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
   const { token, isFetchingLocalToken } = useAuth();
+  const { cashAccounts: accountsData, 
+ } = useAssetsAccounts()
 
   const print = async () => {
     try {
       const response = await axios.get(
-        `${baseURL}/reports/accounting/print_cashbook/2025-01-01/2025-07-28`,
+        `${baseURL}/reports/accounting/print_cashbook/${selectedAccountId}`,
         {
           headers: {
             Authorization: `Bearer ${token.access_token}`,
@@ -52,7 +57,7 @@ const CashBook = () => {
     setIsLoading(true);
     try {
       const response = await apiRequest<ServerResponse<Transaction[]>>(
-        REPORTS_ENDPOINTS.DETAILED_CASH_BOOK.GET_ALL("2025-01-01", "2025-12-28"),
+        REPORTS_ENDPOINTS.DETAILED_CASH_BOOK.GET_ALL(selectedAccountId),
         "GET",
         token.access_token
       );
@@ -66,7 +71,7 @@ const CashBook = () => {
 
   useEffect(() => {
     fetchDataFromApi();
-  }, [isFetchingLocalToken, token.access_token]);
+  }, [isFetchingLocalToken, token.access_token, selectedAccountId]);
 
 
   if (isLoading) {
@@ -84,6 +89,32 @@ const CashBook = () => {
       <div className="flex flex-row justify-center items-center mt-20">
       <Header title="Cashbook Report" />
       </div>
+
+            <div className="mb-6">
+              <label
+                htmlFor="accountSelect"
+                className="text-sm font-medium text-gray-700 mb-1"
+              >
+                Select Account
+              </label>
+      
+              <Dropdown
+                id="accountSelect"
+                value={selectedAccountId}
+                onChange={(e) => setSelectedAccountId(e.value)}
+                options={
+                  accountsData?.map((acc: { id: string; name: string }) => ({
+                    label: acc.name,
+                    value: acc.id,
+                  })) || []
+                }
+                placeholder={
+                  "Choose an account"
+                }
+                className="w-64 md:w-72"
+                showClear
+              />
+            </div>
 
       {/* Pass customHeader inside the Table component */}
       {isLoading && cashBookData == null ? (
@@ -110,9 +141,9 @@ const CashBook = () => {
                 <th className="px-6 py-3 text-left font-medium border-b border-gray-300">
                 Payments
               </th>
-              {/* <th className="px-6 py-3 text-left font-medium border-b border-gray-300">
+              <th className="px-6 py-3 text-left font-medium border-b border-gray-300">
                 Balance
-              </th> */}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -126,9 +157,9 @@ const CashBook = () => {
                     <td className="px-5 py-2 ">{item.reference}</td>
                     <td className="px-5 py-2 ">{item.description}</td>
                     <td className="px-5 py-2 ">{item.account || '-'}</td>
-                    <td className="px-5 py-2 ">{item.receipts || '-'}</td>
-                    <td className="px-5 py-2 ">{item.payments || '-'}</td>
-                    {/* <td className="px-5 py-2 ">{item.balance}</td> */}
+                    <td className="px-5 py-2 ">{item.receipt || '-'}</td>
+                    <td className="px-5 py-2 ">{item.payment || '-'}</td>
+                    <td className="px-5 py-2 ">{item.balance}</td>
                   </tr>
                 );
               })}
@@ -142,24 +173,24 @@ const CashBook = () => {
               <td className="px-5 py-2 border-gray-300 border-b  font-bold">
                 {Array.isArray(cashBookData)
                   ? cashBookData
-                      .reduce((acc, item) => acc + item.receipts || 0, 0)
+                      .reduce((acc, item) => acc + item.receipt || 0, 0)
                       .toLocaleString()
                   : "0"}
               </td>
               <td className="px-5 py-2 border-gray-300 border-b  font-bold">
                 {Array.isArray(cashBookData)
                   ? cashBookData
-                      .reduce((acc, item) => acc + item.payments || 0, 0)
+                      .reduce((acc, item) => acc + item.payment || 0, 0)
                       .toLocaleString()
                   : "0"}
               </td>
-              {/* <td className="px-5 py-2 border-gray-300 border-b  font-bold">
+              <td className="px-5 py-2 border-gray-300 border-b  font-bold">
                 {Array.isArray(cashBookData)
                   ? cashBookData
                       .reduce((acc, item) => acc + item.balance, 0)
                       .toLocaleString()
                   : "0"}
-              </td> */}
+              </td>
             </tr>
           </tbody>
         </table>

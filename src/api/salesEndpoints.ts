@@ -1,10 +1,10 @@
 export const SALES_ENDPOINTS = {
   QUOTES: {
-    GET_ALL: "/sales/quotations",
-    GET_BY_ID: (id: string) => `/sales/quotations/${id}`,
-    ADD: "/sales/quotations/create",
-    UPDATE: (id: string) => `/sales/quotations/${id}/update`,
-    DELETE: (id: string) => `/sales/quotations/${id}/delete`,
+    GET_ALL: "/sales/quotes",
+    GET_BY_ID: (id: string) => `/sales/quotes/${id}`,
+    ADD: "/sales/quotes",
+    UPDATE: (id: string) => `/sales/quotes/${id}`,
+    DELETE: (id: string) => `/sales/quotes/${id}`,
   },
   LEADS: {
     GET_ALL: "/sales/leads",
@@ -14,11 +14,12 @@ export const SALES_ENDPOINTS = {
     DELETE: (id: string) => `/sales/leads/${id}/delete`,
   },
   CUSTOMER_ORDERS: {
-    GET_ALL: "/sales/customer-orders",
-    GET_BY_ID: (id: string) => `/sales/customer_orders/${id}`,
-    ADD: "/sales/customer-orders/create",
-    UPDATE: (id: string) => `/sales/customer_orders/${id}/update`,
-    DELETE: (id: string) => `/sales/customer_orders/${id}/delete`,
+    GET_ALL: "/sales/orders",
+    GET_BY_ID: (id: string) => `/sales/orders/${id}`,
+    ADD: "/sales/orders",
+    UPDATE: (id: string) => `/sales/orders/${id}`,
+    DELETE: (id: string) => `/sales/orders/${id}`,
+    UPDATE_STATUS: (id: string) => `/sales/orders/update-status/${id}`,
   },
   DISTRIBUTION_ORDERS: {
     GET_ALL: "/sales/distribution_orders",
@@ -90,11 +91,12 @@ export const SALES_ENDPOINTS = {
     DELETE: (id: string) => `/people/drivers/${id}`,
   },
   DELIVERY_NOTES: {
-    GET_ALL: "/sales/delivery-notes",
-    GET_BY_ID: (id: string) => `/sales/delivery-notes/${id}`,
-    ADD: "/sales/delivery-notes/create",
-    UPDATE: (id: string) => `/sales/delivery-notes/${id}/update`,
-    DELETE: (id: string) => `/sales/delivery-notes/${id}/delete`,
+    GET_ALL: "/sales/deliveries",
+    GET_BY_ID: (id: string) => `/sales/deliveries/${id}`,
+    ADD: "/sales/deliveries",
+    UPDATE: (id: string) => `/sales/deliveries/${id}`,
+    UPDATE_STATUS: (id: string) => `/sales/deliveries/${id}/status`,
+    DELETE: (id: string) => `/sales/deliveries/${id}`,
     PRINT: (id: string) => `/sales/delivery-notes/${id}/print`,
   },
   GOODS_RECEIVED_NOTES: {

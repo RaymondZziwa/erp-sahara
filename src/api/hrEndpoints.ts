@@ -26,6 +26,12 @@ export const HUMAN_RESOURCE_ENDPOINTS = {
     ADD: "/hr/employees/create",
     UPDATE: (id: string) => `/hr/employees/${id}/update`,
     DELETE: (id: string) => `/hr/employees/${id}/delete`,
+    ADD_ALLOWANCE: (id: string) => `/hr/employees/${id}/allowances`,
+    ADD_DEDUCTION: (id: string) => `/hr/employees/${id}/deductions`,
+    UPDATE_ALLOWANCE: (employeeId: string, id: string) => `/hr/employees/${employeeId}/allowances/${id}`,
+    UPDATE_DEDUCTION: (employeeId: string, id: string) => `/hr/employees/${employeeId}/deductions/${id}`,
+    DELETE_ALLOWANCE: (employeeId: string, id: string) => `/hr/employees/${employeeId}/allowances/${id}`,
+    DELETE_DEDUCTION: (employeeId: string, id: string) => `/hr/employees/${employeeId}/deductions/${id}`
   },
   ATTENDENCIES: {
     GET_ALL: "/hr/attendance",
@@ -98,11 +104,12 @@ export const HUMAN_RESOURCE_ENDPOINTS = {
     DELETE: (id: string) => `/hr/payroll/${id}/delete`,
   },
   PAYROLL_PERIODS: {
-    GET_ALL: "/hr/payrollschedules",
-    GET_BY_ID: (id: string) => `/hr/payrollschedules/${id}`,
-    ADD: "/hr/payrollschedules/create",
-    UPDATE: (id: string) => `/hr/payrollschedules/${id}/update`,
-    DELETE: (id: string) => `/hr/payrollschedules/${id}/delete`,
+    GET_ALL: "/hr/schedules",
+    GET_BY_ID: (id: string) => `/hr/schedules/${id}`,
+    ADD: "/hr/schedules",
+    GENERATE_GROSS_RUN: (id: string) => `/payroll-runs/${id}/grosses/calculate`,
+    GENERATE_NET_PAYROLL: (id: string) => `/payroll-runs/${id}/net/calculate`,
+    PAYROLL_PAY: (id: string) => `/payroll-runs/${id}/pay`
   },
   STRUCTURE_ALLOWANCES_AND_DEDUCTIONS: {
     GET_ALL_ALLOWANCES: "/hr/payrollschedules",
@@ -115,5 +122,13 @@ export const HUMAN_RESOURCE_ENDPOINTS = {
     ADD_DEDUCTION:(id: string) => `/hr/${id}/salary-structures-deductions`,
     UPDATE_DEDUCTION: (structureId: string, id: string) => `/hr/${structureId}/salary-structures-deductions/${id}`,
     DELETE_DEDUCTION: (id: string) => `/hr/payrollschedules/${id}/delete`,
+  },
+  EMPLOYEE_LOANS: {
+    GET_ALL: "/hr/payrollschedules",
+    GET_BY_ID: (id: string) => `/hr/payrollschedules/${id}`,
+    ADD: (id: string) => `/hr/employees/${id}/loans`,
+    APPROVE: (employeeId: string, id: string) => `hr/employees/${employeeId}/loans/${id}/approve`,
+    UPDATE: (id: string) => `/hr/payrollschedules/${id}/update`,
+    DELETE: (id: string) => `/hr/payrollschedules/${id}/delete`,
   }
 };

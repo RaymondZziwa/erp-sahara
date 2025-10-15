@@ -23,14 +23,14 @@ interface Allowance {
   id: string;
   allowance_type_id: string;
   name: string;
-  amount: number;
+  value: number;
 }
 
 interface Deduction {
   id: string;
   deduction_type_id: string;
   name: string;
-  amount: number;
+  value: number;
 }
 
 interface SalaryStructure {
@@ -57,8 +57,7 @@ const ManageSalaryStructure: React.FC = () => {
 
   const [formData, setFormData] = useState({
     typeId: "",
-    name: "",
-    amount: 0,
+    value: 0,
   });
 
   const [editId, setEditId] = useState<string | null>(null); // null = add mode, else edit mode
@@ -70,7 +69,7 @@ const ManageSalaryStructure: React.FC = () => {
   }, [id, data]);
 
   const openDialogForAdd = () => {
-    setFormData({ typeId: "", name: "", amount: 0 });
+    setFormData({ typeId: "", name: "", value: 0 });
     setEditId(null);
     setDialogVisible(true);
   };
@@ -80,14 +79,14 @@ const ManageSalaryStructure: React.FC = () => {
     setFormData({
       typeId: activeIndex === 0 ? item.allowance_type_id : item.deduction_type_id,
       name: item.name,
-      amount: item.amount,
+      value: item.value,
     });
     setEditId(item.id);
     setDialogVisible(true);
   };
 
   const handleSave = async () => {
-    if (!formData.typeId || !formData.name || formData.amount <= 0) {
+    if (!formData.typeId || !formData.name || formData.value <= 0) {
       toast.warn("Fill in all required fields");
       return;
     }
@@ -101,7 +100,7 @@ const ManageSalaryStructure: React.FC = () => {
       const updated = editId
         ? structure.allowances.map((a) =>
             a.id === editId
-              ? { ...a, allowance_type_id: formData.typeId, name: formData.name, amount: formData.amount }
+              ? { ...a, allowance_type_id: formData.typeId, name: formData.name, value: formData.value }
               : a
           )
         : [
@@ -109,8 +108,7 @@ const ManageSalaryStructure: React.FC = () => {
             {
               id: Math.random().toString(),
               allowance_type_id: formData.typeId,
-              name: formData.name,
-              amount: formData.amount,
+              value: formData.value,
             },
           ];
 
@@ -121,7 +119,7 @@ const ManageSalaryStructure: React.FC = () => {
       const updated = editId
         ? structure.deductions.map((d) =>
             d.id === editId
-              ? { ...d, deduction_type_id: formData.typeId, name: formData.name, amount: formData.amount }
+              ? { ...d, deduction_type_id: formData.typeId, name: formData.name, value: formData.value }
               : d
           )
         : [
@@ -130,7 +128,7 @@ const ManageSalaryStructure: React.FC = () => {
               id: Math.random().toString(),
               deduction_type_id: formData.typeId,
               name: formData.name,
-              amount: formData.amount,
+              value: formData.value,
             },
           ];
 
@@ -155,7 +153,7 @@ const ManageSalaryStructure: React.FC = () => {
     setDialogVisible(false);
   };
 
-  const currencyTemplate = (rowData: { amount: number }) =>
+  const currencyTemplate = (rowData: { value: number }) =>
     rowData.value.toLocaleString();
 
   const actionTemplate = (rowData: Allowance | Deduction) => (
@@ -204,12 +202,11 @@ const ManageSalaryStructure: React.FC = () => {
             />
           </div>
           <DataTable value={structure.allowances} responsiveLayout="scroll">
-            <Column field="name" header="Name" />
+            <Column field="allowance_type.name" header="Name" />
             <Column
-              field="amount"
-              header="Amount"
+              field="value"
+              header="Value"
               body={currencyTemplate}
-              style={{ textAlign: "right" }}
             />
             <Column header="Actions" body={actionTemplate} style={{ width: "100px" }} />
           </DataTable>
@@ -227,10 +224,9 @@ const ManageSalaryStructure: React.FC = () => {
           <DataTable value={structure.deductions} responsiveLayout="scroll">
             <Column field="name" header="Name" />
             <Column
-              field="amount"
-              header="Amount"
+              field="value"
+              header="Value"
               body={currencyTemplate}
-              style={{ textAlign: "right" }}
             />
             <Column header="Actions" body={actionTemplate} style={{ width: "100px" }} />
           </DataTable>
@@ -251,7 +247,7 @@ const ManageSalaryStructure: React.FC = () => {
               label="Cancel"
               icon="pi pi-times"
               onClick={() => setDialogVisible(false)}
-              className="p-button-text"
+              className="p-button-text !bg-red-500"
               size="small"
             />
             <Button
@@ -294,29 +290,16 @@ const ManageSalaryStructure: React.FC = () => {
             />
           </div>
 
-          {/* Name Field */}
-          <div className="p-field">
-            <label htmlFor="name">
-              Name<span className="text-red-500">*</span>
-            </label>
-            <InputText
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full"
-            />
-          </div>
-
           {/* Amount Field */}
           <div className="p-field">
-            <label htmlFor="amount">
+            <label htmlFor="value">
               Amount<span className="text-red-500">*</span>
             </label>
             <InputNumber
-              id="amount"
-              value={formData.amount}
+              id="value"
+              value={formData.value}
               onValueChange={(e) =>
-                setFormData({ ...formData, amount: e.value ?? 0 })
+                setFormData({ ...formData, value: e.value ?? 0 })
               }
               locale="en-UG"
               className="w-full"

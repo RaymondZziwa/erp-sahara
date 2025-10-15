@@ -60,10 +60,10 @@ export const ACCOUNTS_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/accounts/fuel-requisitions/${id}`,
     ADD: "/requisitions/store-requisitions",
     UPDATE: (id: string) => `/requisitions/store-requisitions/${id}`,
-    PRINT: (id: string) => `/requisitions/store-requisitions/${id}/pdf`,
+    PRINT: (id: string) => `/requisitions/store-requisitions/${id}/print`,
     APPROVE: (id: string) => `/requisitions/store-requisitions/${id}/approve`, 
     REJECT: (id: string) => `/requisitions/store-requisitions/${id}/reject`,
-    DISBURSE: (id: string) => `/requisitions/store-requisitions/${id}/disburse`
+    DISBURSE: (id: string) => `/requisitions/store-requisitions/${id}/fulfil`
   },
   APPROVAL_LEVELS: {
     GET_ALL: "/accounts/requisitions-approval-level",

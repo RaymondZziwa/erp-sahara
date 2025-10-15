@@ -135,7 +135,8 @@ export default function BudgetTable({ budget, deleteBudgetItem }) {
             <thead>
               <tr className="bg-gray-100">
                 <th className="border border-gray-200 px-4 py-2">Item Name</th>
-                <th className="border border-gray-200 px-4 py-2">Amount</th>
+                  <th className="border border-gray-200 px-4 py-2">Amount</th>
+                  <th className="border border-gray-200 px-4 py-2">Account</th>
                 <th className="border border-gray-200 px-4 py-2">Type</th>
                 <th className="border border-gray-200 px-4 py-2">Action</th>
               </tr>
@@ -148,6 +149,9 @@ export default function BudgetTable({ budget, deleteBudgetItem }) {
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
                     {item.amount}
+                  </td>
+                  <td className="border border-gray-200 px-4 py-2">
+                    {item.chart_of_account.name}
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
                     {item.type}

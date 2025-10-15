@@ -47,6 +47,18 @@ const reportsData = [
     ],
   },
   {
+    category: "Sales",
+    reports: [
+      {
+        name: "Cashier Report",
+        link: "/cashier-sales-summary",
+      },
+      { name: "Daily Product Sales Summary", link: "/daily_product_sales" },
+      { name: "Top Product Sales", link: "/top_product_sales" },
+      { name: "Daily Sales Summary", link: "/daily_sales_summary" },
+    ],
+  },
+  {
     category: "Inventory",
     reports: [
       {

@@ -1,7 +1,7 @@
 import { Icon } from "@iconify/react";
 
 import Reports from "../pages/reports";
-import IncomeStatementReport from "../pages/reports/accounting/IncomeStatementReport";
+import IncomeStatementReport from "../pages/reports/accounting/IncomeStatementReport--cpy";
 import BalanceSheetReport from "../pages/reports/accounting/BSReport";
 
 const REPORTS_ROUTES = [

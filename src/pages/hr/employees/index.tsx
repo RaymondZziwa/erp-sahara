@@ -9,6 +9,8 @@ import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
 import useEmployees from "../../../hooks/hr/useEmployees";
 import { Employee } from "../../../redux/slices/types/hr/Employee";
 import SetPinModal from "./setPosPin";
+import { ToastContainer } from "react-toastify";
+import { Link } from "react-router-dom";
 
 const Employees: React.FC = () => {
   const { data, refresh } = useEmployees();
@@ -28,9 +30,17 @@ const Employees: React.FC = () => {
       headerName: "Full Name",
       sortable: true,
       filter: true,
-      valueGetter: (params) => `${params.data.first_name || ''} ${params.data.last_name || ''}`,
+      cellRenderer: (params: ICellRendererParams<Employee>) => {
+        return (
+          <Link
+            to={`/hr/employee/${params.data?.id}`}
+            className="hover:underline hover:text-teal-500"
+          >
+            {params.data.first_name || ''} {params.data.last_name || ''}
+          </Link>
+        );
+      },
     },
-    
     {
       headerName: "Department",
       field: "designation.department.name",
@@ -113,6 +123,7 @@ const Employees: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       {pinModal.visible && (
         <SetPinModal
           visible={pinModal.visible}

@@ -52,7 +52,7 @@ const SetPinModal: React.FC<Props> = ({ visible, onClose, employee }) => {
       setPin("");
       onClose();
     } catch (error) {
-      toast.error("Failed to set PIN");
+      toast.error(error?.response?.data?.message || "Failed to set PIN");
       console.error(error);
     }
   };

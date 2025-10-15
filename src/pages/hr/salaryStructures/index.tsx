@@ -38,6 +38,13 @@ const SalaryStructures: React.FC = () => {
 }
 
     },
+     {
+      headerName: "Basic Salary",
+      field: "basic_pay",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
     {
       headerName: "Notes",
       field: "notes",
@@ -45,13 +52,7 @@ const SalaryStructures: React.FC = () => {
       filter: true,
       suppressSizeToFit: true,
     },
-    {
-      headerName: "Basic Salary",
-      field: "basic_pay",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
+   
     {
       headerName: "Created",
       field: "created_at",

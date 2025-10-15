@@ -223,31 +223,31 @@ const getData = async () => {
     ],
   };
 
-  const arAgingData = {
-    labels: data.ar_ap.ar.aging_buckets.map(bucket => bucket.period || []),
-    datasets: [
-      {
-        label: 'Accounts Receivable Aging',
-        data: data.ar_ap.ar.aging_buckets.map(bucket => bucket.amount),
-        backgroundColor: 'rgba(75, 192, 192, 0.7)',
-        borderColor: 'rgb(75, 192, 192)',
-        borderWidth: 1,
-      },
-    ],
-  };
+  // const arAgingData = {
+  //   labels: data.ar_ap.ar.aging_buckets.map(bucket => bucket.period || []),
+  //   datasets: [
+  //     {
+  //       label: 'Accounts Receivable Aging',
+  //       data: data.ar_ap.ar.aging_buckets.map(bucket => bucket.amount),
+  //       backgroundColor: 'rgba(75, 192, 192, 0.7)',
+  //       borderColor: 'rgb(75, 192, 192)',
+  //       borderWidth: 1,
+  //     },
+  //   ],
+  // };
 
-  const apAgingData = {
-    labels: data.ar_ap.ap.aging_buckets.map(bucket => bucket.period || []),
-    datasets: [
-      {
-        label: 'Accounts Payable Aging',
-        data: data.ar_ap.ap.aging_buckets.map(bucket => bucket.amount),
-        backgroundColor: 'rgba(255, 99, 132, 0.7)',
-        borderColor: 'rgb(255, 99, 132)',
-        borderWidth: 1,
-      },
-    ],
-  };
+  // const apAgingData = {
+  //   labels: data.ar_ap.ap.aging_buckets.map(bucket => bucket.period || []),
+  //   datasets: [
+  //     {
+  //       label: 'Accounts Payable Aging',
+  //       data: data.ar_ap.ap.aging_buckets.map(bucket => bucket.amount),
+  //       backgroundColor: 'rgba(255, 99, 132, 0.7)',
+  //       borderColor: 'rgb(255, 99, 132)',
+  //       borderWidth: 1,
+  //     },
+  //   ],
+  // };
 
   const profitMarginData = {
     labels: ['Profit Margin'],
@@ -337,13 +337,13 @@ const getData = async () => {
             <Bar data={cashFlowChartData} options={barOptions} />
           </ChartCard>
 
-          <ChartCard title="AR Aging" icon={<FiCreditCard className="text-blue-600"/>}>
+          {/* <ChartCard title="AR Aging" icon={<FiCreditCard className="text-blue-600"/>}>
             <Bar data={arAgingData} options={barOptions} />
           </ChartCard>
 
           <ChartCard title="AP Aging" icon={<FiCreditCard className="text-red-600"/>}>
             <Bar data={apAgingData} options={barOptions} />
-          </ChartCard>
+          </ChartCard> */}
         </div>
 
         {/* Detailed Metrics */}

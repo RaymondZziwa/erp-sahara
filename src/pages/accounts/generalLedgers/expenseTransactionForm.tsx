@@ -354,7 +354,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     <Dialog
       header={title}
       visible={visible}
-      className="max-w-full md:max-w-screen-lg px-2 md:w-[600px]"
+      className="max-w-full md:max-w-screen-lg px-2 md:w-[700px]"
       footer={footer}
       onHide={onClose}
     >
@@ -469,14 +469,14 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   </div>
 </div>
 
-<div className="relative border border-gray-300 rounded-lg p-4 col-span-full mt-4">
+{/* <div className="relative border border-gray-300 rounded-lg p-4 col-span-full mt-4">
   {/* Floating Label */}
-  <div className="absolute -top-3 left-4 bg-white px-2 text-sm font-semibold text-gray-700">
+  {/* <div className="absolute -top-3 left-4 bg-white px-2 text-sm font-semibold text-gray-700">
     Optional Info
-  </div>
+  </div> */}
 
   {/* Content Grid */}
-  <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-2">
+  {/* <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-2">
     {(journalType.toLowerCase().includes("expense") ||
       journalType.toLowerCase().includes("sale")) && (
       <>
@@ -501,8 +501,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         </div>
       </>
     )}
-  </div>
-</div>
+  </div> *
+</div> */}
 
         <div className="relative border border-gray-300 rounded-lg p-4 mt-4">
   {/* Floating Label */}
@@ -514,7 +514,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
   <div>
     {/* CREDIT ACCOUNT SELECT */}
     <div className="mb-4">
-      <label className="text-sm font-semibold">Credit Account</label>
+      <label className="text-sm font-semibold">Cash Account</label>
       <Dropdown
         value={creditAccountId}
         options={getCreditAccountOptions().map((acc) => ({
@@ -522,7 +522,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           value: acc.id,
         }))}
         onChange={(e) => setCreditAccountId(e.value)}
-        placeholder="Select Credit Account"
+        placeholder="Select Cash Account"
         className="p-inputtext-sm w-full"
       />
     </div>

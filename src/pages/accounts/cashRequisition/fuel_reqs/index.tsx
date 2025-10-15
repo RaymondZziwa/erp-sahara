@@ -55,7 +55,7 @@ const FuelRequisitions: React.FC = () => {
         `${baseURL}/requisitions/fuel-requisitions/${id}/pdf`,
         {
           headers: {
-            Authorization: `Bearer ${token.access_token}`,
+            Authorization: `Bearer ${token}`,
           },
           responseType: 'blob',
         }
@@ -86,6 +86,7 @@ const FuelRequisitions: React.FC = () => {
   const statusBodyTemplate = (rowData: FuelRequisition) => {
     const statusColors: Record<string, any> = {
       Approved: { label: "Approved", color: "#28a745" },
+      Reviewed: { label: "Reviewed", color: "#0777ffff", text: "#ffffffff" },
       Pending: { label: "Pending", color: "#ffc107", text: "#212529" },
       Rejected: { label: "Rejected", color: "#dc3545" },
     };
@@ -116,7 +117,7 @@ const FuelRequisitions: React.FC = () => {
   
     let menuItems = [];
   
-    if (rowData.status === "Pending") {
+    if (rowData.status === "Pending" || rowData.status === "Reviewed") {
       menuItems = [
         { label: "Edit", icon: "pi pi-pencil", command: () => openModal("edit", rowData) },
         { label: "Delete", icon: "pi pi-trash", command: () => setDeleteDialog({ visible: true, item: rowData }) },
@@ -176,11 +177,11 @@ const FuelRequisitions: React.FC = () => {
 
         {/* ✅ Tab View Wrapper */}
         <TabView
-          activeIndex={["Pending", "Approved", "Rejected"].indexOf(
+          activeIndex={["Pending", "Reviewed", "Approved", "Rejected"].indexOf(
             selectedCategory
           )}
           onTabChange={(e) =>
-            setSelectedCategory(["Pending", "Approved", "Rejected"][e.index])
+            setSelectedCategory(["Pending", "Reviewed", "Approved", "Rejected"][e.index])
           }
         >
           <TabPanel header={`Pending`}>
@@ -188,6 +189,53 @@ const FuelRequisitions: React.FC = () => {
               scrollable
               scrollHeight="flex"
               value={requisitions.filter((req) => req.status === "Pending")}
+              ref={tableRef}
+              paginator
+              rows={10}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              className="p-datatable-sm w-full"
+              tableStyle={{ minWidth: "100%" }}
+            >
+              <Column
+                field="requisition_no"
+                header="Req No"
+                // body={(rowData: FuelRequisition) => (
+                //   <Link
+                //     className="text-teal-500 hover:underline"
+                //     to={`/cash-requisitions/req/${rowData.id}`}
+                //   >
+                //     {rowData.requisition_no}
+                //   </Link>
+                // )}
+              />
+              <Column field="department.name" header="Department" sortable />
+              <Column field="truck.license_plate" header="Truck" sortable />
+              <Column
+                field="total_round_kilometers"
+                header="Distance (km)"
+                sortable
+              />
+              <Column field="reason" header="Reason" sortable />
+              <Column
+                field="last_quantity_fuel_used"
+                header="Fuel Used"
+                sortable
+              />
+              <Column field="last_mileage" header="Mileage" sortable />
+              <Column field="amount" header="Amount" sortable />
+              <Column header="Status" body={statusBodyTemplate} sortable />
+              <Column
+                header="Actions"
+                body={(rowData: FuelRequisition) => actionBodyTemplate(rowData, openModal)}
+              />
+            </DataTable>
+          </TabPanel>
+
+          <TabPanel header={`Reviewed`}>
+            <DataTable
+              scrollable
+              scrollHeight="flex"
+              value={requisitions.filter((req) => req.status === "Reviewed")}
               ref={tableRef}
               paginator
               rows={10}

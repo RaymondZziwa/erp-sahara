@@ -68,11 +68,6 @@ const Inventories: React.FC = () => {
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
 
   const handleReverseTransaction = () => {
     setIsReverseModalOpen(true);
@@ -99,89 +94,94 @@ const Inventories: React.FC = () => {
     }
   };
 
+
+// Replace your ActionCellRenderer with this improved version
+const ActionCellRenderer = (props: any) => {
+  const { data } = props;
+
+  const handleConfirm = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log("Confirm clicked for:", data.warehouse_id);
+    setSelectedStore(data.warehouse_id);
+    setIsConfirmModalOpen(true);
+    setRecordId(data.id);
+  };
+
+  const handleUndo = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log("Undo clicked for:", data.unique_id);
+    setReversalId(data.unique_id);
+    handleReverseTransaction();
+  };
+
+  return (
+    <div className="flex gap-2">
+      {data.status === "pending" && (
+        <button
+          onClick={handleConfirm}
+          className="rounded-md text-white bg-orange-500 h-10 px-2"
+        >
+          Confirm
+        </button>
+      )}
+
+      {data.status !== "reversed" && (
+        <button
+          onClick={handleUndo}
+          className="rounded-md text-white bg-red-500 h-10 px-2"
+        >
+          Undo
+        </button>
+      )}
+    </div>
+  );
+};
+
+  
   const columnDefinitions: ColDef<any>[] = [
-    {
-      headerName: "Name",
-      field: "item_name",
-      filter: true,
-      cellClass: "cursor-pointer hover:underline",
-      onCellClicked: (event) => {
-        console.log('clicked')
-        navigate(
-          `/inventory/item/${event.data.item_id}/${event.data.item_name}`
-        );
-      },
+  {
+    headerName: "Name",
+    field: "item_name",
+    filter: true,
+    cellClass: "cursor-pointer hover:underline",
+    onCellClicked: (event) => {
+      console.log("clicked");
+      navigate(`/inventory/item/${event.data.item_id}/${event.data.item_name}`);
     },
-    {
-      headerName: "Quantity",
-      field: "quantity",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Store",
-      field: "warehouse_name",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-      valueGetter: (params) => params.data.warehouse_name || 'N/A',
-    },
-    {
-      headerName: "Date",
-      field: "movement_date",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Status",
-      field: "status",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Action",
-      cellClass: "flex justify-center space-x-2",
-      //@ts-expect-error --ignore
-      cellRenderer: (params) => {
-        const status = params.data.status;
-
-        return (
-          <div className="flex gap-2">
-            {/* Confirm Button - Only visible when status is 'pending' */}
-            {status === "pending" && (
-              <button
-                onClick={() => {
-                  setSelectedStore(params.data.warehouse_id);
-                  setIsConfirmModalOpen(true);
-                  setRecordId(params.data.id);
-                }}
-                className="rounded-md text-white bg-orange-500 h-10 px-1"
-              >
-                Confirm
-              </button>
-            )}
-
-            {/* Reverse Transaction Button - Always Visible */}
-            {status !== "reversed" && (
-              <button
-                onClick={() => {
-                  setReversalId(params.data.unique_id);
-                  handleReverseTransaction();
-                }}
-                className="rounded-md text-white bg-red-500 h-10 px-1"
-              >
-                Undo
-              </button>
-            )}
-          </div>
-        );
-      },
-    },
+  },
+  {
+    headerName: "Quantity",
+    field: "quantity",
+    sortable: true,
+    filter: true,
+    suppressSizeToFit: true,
+  },
+  {
+    headerName: "Store",
+    field: "warehouse_name",
+    sortable: true,
+    filter: true,
+    valueGetter: (params) => params.data.warehouse_name || "N/A",
+  },
+  {
+    headerName: "Date",
+    field: "movement_date",
+    sortable: true,
+    filter: true,
+  },
+  {
+    headerName: "Status",
+    field: "status",
+    sortable: true,
+    filter: true,
+  },
+  {
+    headerName: "Action",
+    cellRenderer: ActionCellRenderer, // ✅ proper React component
+    autoHeight: true,
+  },
   ];
-
+  
   const reverseModalFooter = (
     <div>
       <button

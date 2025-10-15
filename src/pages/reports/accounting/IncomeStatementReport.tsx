@@ -46,7 +46,13 @@ interface ApiResponse {
   comparison: ReportSection[];
 }
 
-const IncomeStatementReport = () => {
+interface IncomeStatementProps {
+  currency?: string;
+}
+
+const IncomeStatementReport: React.FC<IncomeStatementProps> = ({ 
+  currency = "TZS" 
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [reportData, setReportData] = useState<ReportSection[] | null>(null);
   const [ledgerModal, setLedgerModal] = useState<{
@@ -70,7 +76,7 @@ const IncomeStatementReport = () => {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `${baseURL}/reports/accounting/print-income-statement`,
+        `${baseURL}/reports/accounting/detail-income-statement-simple-print`,
         {
           responseType: "blob",
           headers: {
@@ -150,173 +156,279 @@ const IncomeStatementReport = () => {
     return new Intl.NumberFormat('en-US').format(amount);
   };
 
-  // Helper function to check if a section has data
-  const hasData = (section: ReportSection) => {
-    if (section.totals) return true;
-    
-    if (section.items) {
-      return section.items.some(item =>
-        item.subcategories.some(subcategory => 
-          // subcategory.total !== 0 || 
-          subcategory.accounts?.some(account => account.total_amount !== 0)
-        )
-      );
-    }
-    
-    return false;
+  // Extract sections for the new structure
+  const revenueAndCosts = reportData?.find((d) => d.section === "Revenue and Costs");
+  const incomeAndExpenses = reportData?.find((d) => d.section === "Income and Expenses");
+  const summary = reportData?.find((d) => d.section === "Summary");
+
+  // Calculate total incomes correctly
+  const totalIncomes = (summary?.totals?.["Total Sales Revenue"] || 0) + (summary?.totals?.["Other Income"] || 0);
+
+  // Calculate total expenses
+  const totalExpenses = (
+    (summary?.totals?.["Total Direct Costs"] || 0) +
+    (summary?.totals?.["Operating Expenses"] || 0) +
+    (summary?.totals?.["Interest Expenses"] || 0) +
+    (summary?.totals?.["Taxes"] || 0)
+  );
+
+  // Helper function to check if a subcategory should be displayed
+  const shouldDisplaySubcategory = (subcategory: FinancialItem) => {
+    return subcategory.total !== 0 || 
+           subcategory.accounts?.some(acc => acc.total_amount !== 0) ||
+           subcategory.children?.some(child => child.total !== 0);
   };
 
-  // Helper function to render a financial item
-  const renderFinancialItem = (item: FinancialItem, level: number = 0) => {
-    const hasAccounts = item.accounts && item.accounts.length > 0;
-    const hasNonZeroAccounts = item.accounts?.some(acc => acc.total_amount !== 0);
-    const hasChildren = item.children && item.children.length > 0;
+  // Helper function to render income items
+  const renderIncomeItems = () => {
+    const incomeItems = [];
 
-    return (
-      <React.Fragment key={item.id}>
-        {/* Main Item Row */}
-        {(item.total !== 0 || hasNonZeroAccounts) && (
-          <tr 
-            className={`hover:bg-gray-50 ${hasAccounts ? 'cursor-pointer' : ''}`}
-            onClick={hasAccounts ? () => handleCategoryClick(item.id, item.name) : undefined}
-          >
-            <td className={`py-2 ${level === 0 ? 'pl-4 font-semibold' : level === 1 ? 'pl-8' : 'pl-12'} ${level === 0 ? 'bg-gray-50' : ''}`}>
-              {item.name}
-            </td>
-            <td className="py-2 text-right pr-6 font-medium">
-              {formatCurrency(item.total)}
-            </td>
-          </tr>
-        )}
-
-        {/* Accounts */}
-        {hasNonZeroAccounts && item.accounts?.map((account) => (
-          account.total_amount !== 0 && (
-            <tr key={account.id} className="hover:bg-gray-50">
-              <td className="py-1 pl-12 text-sm text-gray-600">
-                {account.name}
-              </td>
-              <td className="py-1 text-right pr-6 text-sm">
-                {formatCurrency(account.total_amount)}
+    // Sales Revenue
+    const salesRevenue = revenueAndCosts?.items?.find(i => i.name === "Sales Revenue");
+    if (salesRevenue) {
+      salesRevenue.subcategories
+        .filter(shouldDisplaySubcategory)
+        .forEach(subcat => {
+          incomeItems.push(
+            <tr 
+              key={subcat.id}
+              className={subcat.accounts?.some(acc => acc.total_amount !== 0) ? "clickable-row" : ""}
+              onClick={subcat.accounts?.some(acc => acc.total_amount !== 0) ? () => handleCategoryClick(subcat.id, subcat.name) : undefined}
+            >
+              <td>{subcat.name}</td>
+              <td className="right-align">
+                {formatCurrency(subcat.total)}
               </td>
             </tr>
-          )
-        ))}
+          );
+        });
+    }
 
-        {/* Children */}
-        {hasChildren && item.children.map(child => 
-          renderFinancialItem(child, level + 1)
-        )}
-      </React.Fragment>
-    );
+    // Other Income
+    const otherIncome = incomeAndExpenses?.items?.find(i => i.name === "Other Income");
+    if (otherIncome) {
+      otherIncome.subcategories
+        .filter(shouldDisplaySubcategory)
+        .forEach(subcat => {
+          incomeItems.push(
+            <tr 
+              key={subcat.id}
+              className={subcat.accounts?.some(acc => acc.total_amount !== 0) ? "clickable-row" : ""}
+              onClick={subcat.accounts?.some(acc => acc.total_amount !== 0) ? () => handleCategoryClick(subcat.id, subcat.name) : undefined}
+            >
+              <td>{subcat.name}</td>
+              <td className="right-align">
+                {formatCurrency(subcat.total)}
+              </td>
+            </tr>
+          );
+        });
+    }
+
+    return incomeItems;
+  };
+
+  // Helper function to render expense items
+  const renderExpenseItems = () => {
+    const expenseItems = [];
+
+    // Direct Costs
+    const directCosts = revenueAndCosts?.items?.find(i => i.name === "Direct Costs");
+    if (directCosts) {
+      directCosts.subcategories
+        .filter(shouldDisplaySubcategory)
+        .forEach(subcat => {
+          expenseItems.push(
+            <tr 
+              key={subcat.id}
+              className={subcat.accounts?.some(acc => acc.total_amount !== 0) ? "clickable-row" : ""}
+              onClick={subcat.accounts?.some(acc => acc.total_amount !== 0) ? () => handleCategoryClick(subcat.id, subcat.name) : undefined}
+            >
+              <td>{subcat.name}</td>
+              <td className="right-align">
+                {formatCurrency(subcat.total)}
+              </td>
+            </tr>
+          );
+        });
+    }
+
+    // Operating Expenses, Interest Expenses, Taxes Expenses
+    const expenseCategories = ["Operating Expenses", "Interest Expenses", "Taxes Expenses"];
+    expenseCategories.forEach(categoryName => {
+      const category = incomeAndExpenses?.items?.find(i => i.name === categoryName);
+      if (category) {
+        category.subcategories
+          .filter(shouldDisplaySubcategory)
+          .forEach(subcat => {
+            expenseItems.push(
+              <tr 
+                key={subcat.id}
+                className={subcat.accounts?.some(acc => acc.total_amount !== 0) ? "clickable-row" : ""}
+                onClick={subcat.accounts?.some(acc => acc.total_amount !== 0) ? () => handleCategoryClick(subcat.id, subcat.name) : undefined}
+              >
+                <td>{subcat.name}</td>
+                <td className="right-align">
+                  {formatCurrency(subcat.total)}
+                </td>
+              </tr>
+            );
+          });
+      }
+    });
+
+    return expenseItems;
   };
 
   useEffect(() => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
+  // Debug: Log the data to see what's being rendered
+  useEffect(() => {
+    if (reportData) {
+      console.log("Report Data:", reportData);
+      console.log("Total Incomes:", totalIncomes);
+      console.log("Total Expenses:", totalExpenses);
+      console.log("Net Profit/Loss:", summary?.totals?.["Net Profit/Loss"]);
+    }
+  }, [reportData]);
+
   return (
     <div className="bg-white p-4 rounded-lg shadow">
       <CustomReportHeader printfn={print} loading={isLoading} />
 
-      <div className="flex flex-row justify-center items-center mt-16">
-        <Header title={"Income Statement"} />
-      </div>
-      
-      {(filters.start_date || filters.end_date) && (
-        <div className="text-center mb-4 text-sm text-gray-600">
-          Period: {new Date(filters.start_date).toLocaleDateString()} - {new Date(filters.end_date).toLocaleDateString()}
-        </div>
-      )}
-
       {isLoading ? (
-        <div className="flex justify-center items-center p-8">
+        <div className="flex justify-center items-center">
           <PropagateLoader color="#007f80" />
         </div>
       ) : reportData && reportData.length > 0 ? (
-        <div className="overflow-x-auto" ref={contentRef}>
-          <table className="min-w-full bg-white border border-gray-200">
-            <tbody className="divide-y divide-gray-200">
-              {reportData.map((section, sectionIndex) => (
-                hasData(section) && (
-                  <React.Fragment key={sectionIndex}>
-                    {/* Section Header */}
-                    <tr className="bg-teal-500 text-white">
-                      <td colSpan={2} className="py-3 px-4 font-bold text-lg">
-                        {section.section}
-                      </td>
-                    </tr>
+        <div className="container" ref={contentRef}>
+          {/* Header */}
+          <div className="header mt-14">
+            <Header title={"Income Statement Report"}/>
+            {(filters.start_date || filters.end_date) && (
+              <div className="text-center mb-4 text-sm text-gray-600">
+                Period: {new Date(filters.start_date).toLocaleDateString()} - {new Date(filters.end_date).toLocaleDateString()}
+              </div>
+            )}
+          </div>
 
-                    {/* Revenue and Costs Section */}
-                    {section.section === "Revenue and Costs" && section.items?.map((item, itemIndex) => (
-                      <React.Fragment key={itemIndex}>
-                        {/* Item Header */}
-                        <tr className="bg-gray-100">
-                          <td colSpan={2} className="py-2 px-4 font-semibold">
-                            {item.name}
-                          </td>
-                        </tr>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Particulars</th>
+                <th className="right-align">Amount ({currency})</th>
+              </tr>
+            </thead>
+            <tbody className="text-lg">
+              {/* Incomes */}
+              <tr className="section-header">
+                <td colSpan="2">Incomes</td>
+              </tr>
+              
+              {renderIncomeItems()}
+              
+              <tr className="section-total">
+                <td>Total Incomes</td>
+                <td className="right-align">
+                  {formatCurrency(totalIncomes)}
+                </td>
+              </tr>
 
-                        {/* Subcategories */}
-                        {item.subcategories.map((subcategory) => (
-                          renderFinancialItem(subcategory, 0)
-                        ))}
-                      </React.Fragment>
-                    ))}
+              {/* Expenses */}
+              <tr className="section-header">
+                <td colSpan="2">Expenses</td>
+              </tr>
+              
+              {renderExpenseItems()}
+              
+              <tr className="section-total">
+                <td>Total Expenses</td>
+                <td className="right-align">
+                  {formatCurrency(totalExpenses)}
+                </td>
+              </tr>
 
-                    {/* Income and Expenses Section */}
-                    {section.section === "Income and Expenses" && section.items?.map((item, itemIndex) => (
-                      <React.Fragment key={itemIndex}>
-                        {/* Item Header */}
-                        <tr className="bg-gray-100">
-                          <td colSpan={2} className="py-2 px-4 font-semibold">
-                            {item.name}
-                          </td>
-                        </tr>
-
-                        {/* Subcategories */}
-                        {item.subcategories.map((subcategory) => (
-                          renderFinancialItem(subcategory, 0)
-                        ))}
-                      </React.Fragment>
-                    ))}
-
-                    {/* Summary Section */}
-                    {section.section === "Summary" && section.totals && (
-                      <>
-                        {/* Summary Header */}
-                        <tr className="bg-gray-100">
-                          <td colSpan={2} className="py-2 px-4 font-semibold">
-                            {section.name || "Financial Summary"}
-                          </td>
-                        </tr>
-
-                        {/* Summary Totals */}
-                        {Object.entries(section.totals).map(([key, value]) => (
-                          <tr 
-                            key={key} 
-                            className={key === "Net Profit/Loss" ? "bg-yellow-50 font-bold border-t-2 border-gray-300" : ""}
-                          >
-                            <td className={`py-2 px-4 ${key === "Net Profit/Loss" ? "font-bold text-lg" : ""}`}>
-                              {key}
-                            </td>
-                            <td className={`py-2 text-right pr-6 ${key === "Net Profit/Loss" ? "font-bold text-lg" : "font-medium"}`}>
-                              {formatCurrency(value)}
-                            </td>
-                          </tr>
-                        ))}
-                      </>
-                    )}
-
-                    {/* Section Spacer */}
-                    <tr>
-                      <td colSpan={2} className="py-2"></td>
-                    </tr>
-                  </React.Fragment>
-                )
-              ))}
+              {/* Net Profit / Loss */}
+              <tr
+                className="section-total net-profit-loss"
+                style={{
+                  color: (summary?.totals?.["Net Profit/Loss"] || 0) < 0 ? "#dc2626" : "#059669",
+                }}
+              >
+                <td>Net Profit / Loss</td>
+                <td className="right-align">
+                  {formatCurrency(summary?.totals?.["Net Profit/Loss"] || 0)}
+                </td>
+              </tr>
             </tbody>
           </table>
+
+          {/* Footer */}
+          <div className="footer">
+            Generated on {new Date().toLocaleString()}
+          </div>
+
+          {/* Inline Styles */}
+          <style jsx>{`
+            .container {
+              max-width: full;
+              margin: auto;
+              font-family: Arial, sans-serif;
+              font-size: 14px;
+              color: #333;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 20px;
+            }
+            .data-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 10px;
+              font-size: 10pt;
+            }
+            .data-table th,
+            .data-table td {
+              border: 1px solid #ccc;
+              padding: 6px 8px;
+            }
+            .data-table th {
+              background-color: #eff9f8;
+              font-weight: bold;
+              text-align: left;
+            }
+            .right-align {
+              text-align: right;
+            }
+            .section-header {
+              font-weight: bold;
+              background-color: #e0e0e0;
+            }
+            .section-total {
+              font-weight: bold;
+              background-color: #f0f0f0;
+            }
+            .net-profit-loss {
+              font-size: 13pt;
+              font-weight: bold;
+            }
+            .clickable-row {
+              cursor: pointer;
+            }
+            .clickable-row:hover {
+              background-color: #f5f5f5;
+            }
+            .footer {
+              margin-top: 20px;
+              text-align: center;
+              font-size: 9pt;
+              color: #555;
+              border-top: 1px solid #ccc;
+              padding-top: 10px;
+            }
+          `}</style>
         </div>
       ) : (
         <div className="flex justify-center items-center p-8">

@@ -43,14 +43,14 @@ const BankingLedgers: React.FC = () => {
       const fetchRecords = async () => {
         try {
           const response = await axios.get(
-            `${baseURL}/reports/accounting/general-ledger-transactions?journal_type=20&limit=100`,
+            `${baseURL}/reports/accounting/journal-type-transactions?journal_type=20&limit=100`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
             }
           );
-          setDt(response.data.data);
+          setDt(response.data.data.data);
           //    if(response.success) {
           //     setDt(response.data.data)
           //    }
@@ -98,12 +98,18 @@ const columnDefinitions: ColDef<any>[] = [
     sortable: true,
     filter: true,
   },
-  {
-    headerName: "Amount",
-    field: "amount",
-    sortable: true,
-    filter: true,
-  },
+    {
+      headerName: "Amount",
+      field: "debit",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Running Balance",
+      field: "running_balance",
+      sortable: true,
+      filter: true,
+    },
   {
     headerName: "Description",
     field: "description",

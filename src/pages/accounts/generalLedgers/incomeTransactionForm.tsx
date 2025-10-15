@@ -330,7 +330,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     <Dialog
       header={title}
       visible={visible}
-      className="max-w-full md:max-w-screen-lg px-2 md:w-[1024px]"
+      className="max-w-full md:max-w-screen-lg px-2 md:w-[700px]"
       footer={footer}
       onHide={onClose}
     >
@@ -404,7 +404,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           {(journalType.toLowerCase().includes("expense") ||
             journalType.toLowerCase().includes("sale")) && (
             <>
-              <div className="">
+              {/* <div className="">
                 <label htmlFor="account type">Project (Optional)</label>
                 <Dropdown
                   className="p-inputtext-sm"
@@ -421,7 +421,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                   }
                   placeholder="Select Project"
                 />
-              </div>
+              </div> */}
               <div className="">
                 <label htmlFor="account type">Budget (Optional)</label>
                 <Dropdown
@@ -573,7 +573,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
                     formState.budget_id &&
                     journalType.toLowerCase().includes("expense")
                       ? budgetItems
-                          .filter((it) => it.type.toLowerCase() === "expense")
+                          .filter((it) => it.type.toLowerCase() === "revenue")
                           .map((item) => ({
                             value: item.chart_of_account_id,
                             label: `${item.name} (Budget: ${item.remaining_balance_amount})`,
