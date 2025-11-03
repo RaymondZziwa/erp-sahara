@@ -452,6 +452,7 @@ const AddOrModifyEmployee: React.FC<AddOrModifyEmployeeProps> = ({
 
     if (formState.password.length < 8) {
       toast.warn("Password must be atleast 8 characters.")
+      setIsSubmitting(false);
       return;
     }
 

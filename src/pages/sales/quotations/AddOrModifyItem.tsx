@@ -89,7 +89,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({ visible, onClose, ite
         expiry_date: item.expiry_date ?? "",
         notes: item.notes ?? "",
         status: item.status as QuotationPayload["status"] ?? "draft",
-        lines: item.quotation_items?.map((qi, idx) => ({
+        lines: item.quote_lines?.map((qi, idx) => ({
           item_id: qi.item_id,
           item_type: "item", // Default to item, adjust based on your data
           name: qi.name,

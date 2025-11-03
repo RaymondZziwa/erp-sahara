@@ -4,7 +4,7 @@ import {
   fetchDataStart,
   fetchDataSuccess,
   fetchDataFailure,
-} from "../../../redux/slices/manufacturing/workCenters/billOfMaterialSlice.ts"; // Import actions from your data reducer
+} from "../../../redux/slices/manufacturing/BOM/billOfMaterialSlice.ts"; // Import actions from your data reducer
 import useAuth from "../../useAuth.ts";
 import { apiRequest } from "../../../utils/api.ts";
 

@@ -105,9 +105,15 @@ import productionMaterialRequestReducer from "./slices/manufacturing/workCenters
 import productionBatchReducer from "./slices/manufacturing/workCenters/productionBatchSlice";
 import vehicleRepairReducer from "./slices/accounts/cash_requisitions/vehicleRepairSlice"
 import loanTypeReducer from "./slices/hr/loanTypeSlice";
+import StoreInventoryReducer from "./slices/inventory/storeInventorySlice";
+import BankAccountReducer from "./slices/accounts/bankReconciliation/bankAccountSlice";
+import BankReducer from "./slices/accounts/bankReconciliation/bankSlice";
 
 const store = configureStore({
   reducer: {
+    bank: BankReducer,
+    bankAccount: BankAccountReducer,
+    storeInventory: StoreInventoryReducer,
     loanTypes: loanTypeReducer,
     vehicleRepair: vehicleRepairReducer,
     productionBatch: productionBatchReducer,

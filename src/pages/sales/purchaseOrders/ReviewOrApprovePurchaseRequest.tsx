@@ -60,7 +60,7 @@ const ReviewOrApproveOrder: React.FC<ReviewOrApproveOrderProps> = ({
 
   const getActionButtonText = () => {
     if (action === "review") {
-      return "Mark as Reviewed";
+      return "Approve";
     } else {
       return "Approve Order";
     }

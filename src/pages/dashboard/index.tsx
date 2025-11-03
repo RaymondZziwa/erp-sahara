@@ -380,16 +380,16 @@ const getData = async () => {
               Receivables & Payables
             </h2>
             <div className="space-y-3">
-              <MetricItem 
+              {/* <MetricItem 
                 label="Accounts Receivable" 
                 value={`  ${data.ar_ap.ar.total.toLocaleString()}`} 
                 indicator="neutral"
-              />
+              /> 
               <MetricItem 
                 label="Accounts Payable" 
                 value={`  ${data.ar_ap.ap.total.toLocaleString()}`} 
                 indicator="neutral"
-              />
+              />*/}
               <MetricItem 
                 label="Net Working Capital" 
                 value={`$${(data.ar_ap.ar.total - data.ar_ap.ap.total).toLocaleString()}`} 

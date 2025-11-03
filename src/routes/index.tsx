@@ -54,6 +54,8 @@ import CashierSalesReport from "../pages/reports/sales/cashier_sales_report";
 import DailySalesSummaryReport from "../pages/reports/sales/daily_sales_summary";
 import TopProductSalesReport from "../pages/reports/sales/top_product_sales";
 import DailyProductSalesReport from "../pages/reports/sales/daily_product_sales";
+import CreditSales from "../pages/inventory/pos/creditSales";
+import RecentSales from "../pages/inventory/pos/recentSales";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -153,6 +155,8 @@ const AppRouter = () => {
             element={<DamagedStockReport />}
           />
           <Route path="/balance-sheet" element={<BalanceSheetReport />} />
+          <Route path="/credit-sales" element={<CreditSales />} />
+          <Route path="/recent-sales" element={<RecentSales />} />
           <Route
             path="/income-statement-report"
             element={<IncomeStatementReport />}

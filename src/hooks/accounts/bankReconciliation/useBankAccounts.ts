@@ -3,17 +3,16 @@ import {
   fetchDataStart,
   fetchDataSuccess,
   fetchDataFailure,
-} from "../../../redux/slices/accounts/bankReconciliation/bankSlice";
+} from "../../../redux/slices/accounts/bankReconciliation/bankAccountSlice";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import useAuth from "../../useAuth";
-import { Bank } from "../../../redux/slices/types/accounts/bankReconciliation/bank";
+import { BankAccount } from "../../../redux/slices/types/accounts/bankReconciliation/bank";
 import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 import { apiRequest } from "../../../utils/api";
 import { ACCOUNTS_ENDPOINTS } from "../../../api/accountsEndpoints";
 
-const useBanks = () => {
+const useBankAccounts = () => {
   const dispatch = useAppDispatch();
-
   const { token, isFetchingLocalToken } = useAuth();
 
   const fetchDataFromApi = async () => {
@@ -23,8 +22,8 @@ const useBanks = () => {
     }
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
-      const response = await apiRequest<ServerResponse<Bank[]>>(
-        ACCOUNTS_ENDPOINTS.BANKS.GET_ALL,
+      const response = await apiRequest<ServerResponse<BankAccount[]>>(
+        ACCOUNTS_ENDPOINTS.BANKACCOUNTS.GET_ALL,
         "GET",
         token.access_token
       );
@@ -42,13 +41,14 @@ const useBanks = () => {
       ); // Dispatch action with error message on failure
     }
   };
+
   useEffect(() => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-  const data = useAppSelector((state) => state.bank);
+  const data = useAppSelector((state) => state.bankAccount);
 
   return { ...data, refresh: fetchDataFromApi };
 };
 
-export default useBanks;
+export default useBankAccounts;

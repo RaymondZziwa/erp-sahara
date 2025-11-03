@@ -19,12 +19,6 @@ const Currencies: React.FC = () => {
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
-
   const columnDefinitions: ColDef<Currency>[] = [
     {
       headerName: "Name",
@@ -38,6 +32,14 @@ const Currencies: React.FC = () => {
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
+    },
+    {
+      headerName: "Is Base Currency",
+      field: "is_base_currency",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+      valueFormatter: (params) => (params.value === 1 ? "Yes" : "No"),
     },
     {
       headerName: "Created",

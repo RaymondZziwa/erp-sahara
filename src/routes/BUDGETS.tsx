@@ -22,16 +22,16 @@ const BUDGETS_ROUTES = [
       </Suspense>
     ),
   },
-  {
-    name: "Budget Categories",
-    icon: <Icon icon="mdi:finance" fontSize={20} />,
-    path: "/budgets/budget-categories",
-    element: (
-      <Suspense fallback={<Loading />}>
-        <BudgetCategories />
-      </Suspense>
-    ),
-  },
+  // {
+  //   name: "Budget Categories",
+  //   icon: <Icon icon="mdi:finance" fontSize={20} />,
+  //   path: "/budgets/budget-categories",
+  //   element: (
+  //     <Suspense fallback={<Loading />}>
+  //       <BudgetCategories />
+  //     </Suspense>
+  //   ),
+  // },
 ];
 
 export default BUDGETS_ROUTES;

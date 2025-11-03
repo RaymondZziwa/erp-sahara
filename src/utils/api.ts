@@ -69,9 +69,9 @@ export const apiRequest = async <T>(
           toast.error(data.message);
         }
 
-       window.location.href = "/login";
+       //window.location.href = "/login";
       } else if (error.response?.status === 403) {
-        window.location.href = "/login";
+        //window.location.href = "/login";
       }
       throw error; // Rethrow the error for further handling if needed
     }

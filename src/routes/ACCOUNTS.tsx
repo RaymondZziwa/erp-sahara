@@ -9,6 +9,8 @@ import SalesTransactions from "../pages/accounts/generalLedgers/sales";
 import ExpenseTransactions from "../pages/accounts/generalLedgers/expenses";
 import OtherTransactions from "../pages/accounts/generalLedgers/other_transaction";
 import { FaUniversity, FaWallet } from "react-icons/fa";
+import Banks from "../pages/accounts/bankReconciliation/banks";
+import BankAccounts from "../pages/accounts/bankReconciliation/bankAccounts";
 
 // Dynamic imports
 const Accounts = lazy(() => import("../pages/accounts/categories"));
@@ -124,20 +126,20 @@ const ACCOUNTS_ROUTES = [
       {
         name: "Banks",
         icon: <FaUniversity size={20} />,
-        path: "/accounts/payment_methods",
+        path: "/accounts/banks",
         element: (
           <Suspense fallback={<Loading />}>
-            <PaymentMethods />
+            <Banks />
           </Suspense>
         ),
       },
       {
         name: "Bank Accounts",
         icon: <FaWallet size={20} />,
-        path: "/accounts/payment_methods",
+        path: "/accounts/bank_accounts",
         element: (
           <Suspense fallback={<Loading />}>
-            <PaymentMethods />
+            <BankAccounts />
           </Suspense>
         ),
       },

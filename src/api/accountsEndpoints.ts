@@ -79,6 +79,27 @@ export const ACCOUNTS_ENDPOINTS = {
     SAVE_EXPENSE: "/accounts/transactions/save-expense",
     UPDATE: (id: string) => `/accounts/transactions/save-expense/${id}`,
   },
+  BANKS: {
+    GET_ALL: "/accounts/banks",
+    GET_BY_ID: (id: string) =>
+      `/accounts/banks/${id}`,
+    ADD: "/accounts/banks/create",
+    ADD_BRANCH:(bankId: string) => `accounts/banks/${bankId}/branch/create`,
+    UPDATE: (id: string) =>
+      `/accounts/banks/${id}/update`,
+    DELETE: (id: string) =>
+      `/accounts/banks/${id}/delete`,
+  },
+  BANKACCOUNTS: {
+    GET_ALL: "/accounts/bankaccounts",
+    GET_BY_ID: (id: string) =>
+      `/accounts/bankaccounts/${id}`,
+    ADD: "/accounts/bankaccounts/create",
+    UPDATE: (id: string) =>
+      `/accounts/bankaccounts/${id}/update`,
+    DELETE: (id: string) =>
+      `/accounts/bankaccounts/${id}/delete`,
+  },
   GET_EXPENSE_ACCOUNTS: "/accounts/get-expense-accounts",
   GET_INCOME_ACCOUNTS: "/accounts/get-income-accounts",
   GET_ASSET_ACCOUNTS: "/accounts/get-asset-accounts",

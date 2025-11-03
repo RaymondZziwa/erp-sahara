@@ -1,25 +1,28 @@
-import { ShoppingCart, Search, Warehouse, Coins, User, LogOut, Filter, Package, CreditCard } from "lucide-react";
-import { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { ShoppingCart, Search, CreditCard, Package, Filter } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import CartItem from './CartItem';
+import { PrintableContent } from './PrintableContent';
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
+import axios from "axios";
+import { CategoryNav } from "./categoryNav";
+import { ConfirmationModal } from "./confirmationModal";
+import { PosItemCard } from "./posItemCard";
+import { SelectionModal } from "./selectionModal";
+import { Header } from "./header";
 import { toast, ToastContainer } from "react-toastify";
 import useItems from "../../../hooks/inventory/useItems";
 import useWarehouses from "../../../hooks/inventory/useWarehouses";
-import useCurrencies from "../../../hooks/procurement/useCurrencies";
 import { RootState } from "../../../redux/store";
-import { apiRequest } from "../../../utils/api";
-import CartItem from "./cart_item";
-import { PosItemCard } from "./item_card";
-import CategoryNav from "./nav/category_filter";
-import { PaymentComponent } from "./payment_component";
-import { PrintableContent } from "./receipt";
-import SuspendedSalesModal from "./suspendedSalesModal";
+import { baseURL } from "../../../utils/api";
+import useStoreInventory from "../../../hooks/inventory/useStoreItems";
 
 interface CartItemType {
   id: number;
   item_id: number;
   name: string;
+  price: number;
   selling_price: string;
   actual_selling_price: number;
   quantity: number;
@@ -30,43 +33,19 @@ interface CartItemType {
   item_images: Array<{
     image_url: string;
   }>;
+  item: any;
 }
 
+const AUTO_LOGOUT_TIME = 5 * 60 * 1000; // 2 minutes in milliseconds
 
 const PosPage = () => {
   const navigate = useNavigate();
   const [showSelectionModal, setShowSelectionModal] = useState(false);
   const [warehouseError, setWarehouseError] = useState("");
-  const [currencyError, setCurrencyError] = useState("");
-  const [isSuspendedModalOpen, setIsSuspendedModalOpen] = useState(false);
-  const suspendedSales = JSON.parse(localStorage.getItem("suspendedSales")) || [];
+  const [isPrinting, setIsPrinting] = useState(false);
 
-  useEffect(() => {
-    const checkSelections = () => {
-      const hasWarehouse = localStorage.getItem("selectedWarehouse");
-      const hasCurrency = localStorage.getItem("selectedCurrency");
-      
-      if (!hasWarehouse || !hasCurrency) {
-        setShowSelectionModal(true);
-      }
-    };
-
-    checkSelections();
-  }, []);
-
-  const handleSelectSale = (sale) => {
-    console.log("Selected suspended sale:", sale);
-    setCart(sale.items);
-    setIsSuspendedModalOpen(false);
-  };
-  
-  const handleLogout = () => {
-    localStorage.removeItem('currency');
-    localStorage.removeItem('warehouse');
-    navigate('/');
-  };
-
-  const {data: items} = useItems()
+  // State
+  const { data: items } = useStoreInventory();
   const [selectedCategory, setSelectedCategory] = useState<number | string>(0);
   const [customer, setCustomer] = useState<string | number | null>(null);
   const [searchedItems, setSearchedItems] = useState<CartItemType[]>([]);
@@ -74,98 +53,97 @@ const PosPage = () => {
   const [total, setTotal] = useState(0);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [query, setQuery] = useState("");
-  const user = JSON.parse(localStorage.getItem('user') ?? '')
-  const businessName = user?.user?.organisation?.organisation_name;
-  const { data: warehouses } = useWarehouses()
-  const token = useSelector((state: RootState) => state.userAuth.token.access_token)
-  const {data: currencies} = useCurrencies()
-  const [warehouse, setWarehouse] = useState(() => localStorage.getItem("selectedWarehouse") || "");
-  const [currency, setCurrency] = useState(() => localStorage.getItem("selectedCurrency") || "");
   const [paymentMethod, setPaymentMethod] = useState<string | null>("");
-
-  const handleWarehouseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setWarehouse(value);
-    localStorage.setItem("selectedWarehouse", value);
-    if (value) setWarehouseError("");
-
-  };
-
-  const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setCurrency(value);
-    localStorage.setItem("selectedCurrency", value);
-    if (value) setCurrencyError("");
-  };
-
-  const validateSelections = () => {
-    let isValid = true;
-    
-    if (!warehouse) {
-      setWarehouseError("Please select a warehouse");
-      isValid = false;
-    }
-    
-    if (!currency) {
-      setCurrencyError("Please select a currency");
-      isValid = false;
-    }
-    
-    return isValid;
-  };
-
-  const confirmSelections = () => {
-    if (validateSelections()) {
-      setShowSelectionModal(false);
-    }
-  };
-
-
-  const isMobile = window.innerWidth < 768;
-
+  const [transactionId, setTransactionId] = useState<string | null>("");
+  const [amountPaid, setAmountPaid] = useState<string | null>("");
+  
+  // Refs
+  const searchRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
 
-  const suspendSale = () => {
-    const payload = {
-      cashier_id: user.user.id,
-      cashier_name: `${user.user.first_name} ${user.user.last_name}`,
-      customer_id: 0,
-      customer_name: customer || "",
-      warehouse_id: localStorage.getItem("selectedWarehouse"),
-      items: cart.map(item => ({
-        item_id: item.id.toString(),
-        name: item.name,
-        actual_selling_price: Math.floor(+item.selling_price),
-        quantity: item.quantity,
-        discount: item.discount
-      })),
-      payment_method_id: paymentMethod || "db1c6e65-ca5d-4637-9edb-1e56f189145c",
-      amount_paid: 0,
-      sale_date: new Date().toLocaleDateString("en-US"),
-      currency_id: localStorage.getItem("selectedCurrency"),
-      amount: totalAmount
-    };
+  // User data
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { data: warehouses } = useWarehouses();
+  const token = useSelector((state: RootState) => state.userAuth.token.access_token);
+  const [warehouse, setWarehouse] = useState(() => localStorage.getItem("selectedWarehouse") || "");
   
-    // --- Save to localStorage ---
-    const existingSuspended = JSON.parse(localStorage.getItem("suspendedSales")) || [];
-    existingSuspended.push(payload);
-    localStorage.setItem("suspendedSales", JSON.stringify(existingSuspended));
-  
-    toast.success("Sale suspended successfully!");
-    setShowConfirmationModal(false);
-    setCart([])
-  };
-  
+  const businessName = "Sahara Spice Hub";
+  const isMobile = window.innerWidth < 768;
 
+  // Effects
+  useEffect(() => {
+    const checkSelections = () => {
+      const hasWarehouse = localStorage.getItem("selectedWarehouse");
+      if (!hasWarehouse) {
+        setShowSelectionModal(true);
+      }
+    };
+    checkSelections();
+  }, []);
+
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem('user');
+    if (!isAuthenticated) {
+      navigate('/');
+      return;
+    }
+
+    let timeoutId: NodeJS.Timeout;
+    
+    const resetTimeout = () => {
+      clearTimeout(timeoutId);
+      localStorage.setItem('lastActivity', Date.now().toString());
+      timeoutId = setTimeout(() => {
+        handleLogout();
+      }, AUTO_LOGOUT_TIME);
+    };
+
+    const checkActivity = () => {
+      const lastActivity = localStorage.getItem('lastActivity');
+      if (lastActivity) {
+        const timeSinceLastActivity = Date.now() - parseInt(lastActivity);
+        if (timeSinceLastActivity > AUTO_LOGOUT_TIME) {
+          handleLogout();
+          return;
+        }
+      }
+      resetTimeout();
+    };
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    events.forEach(event => {
+      document.addEventListener(event, resetTimeout, true);
+    });
+
+    checkActivity();
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach(event => {
+        document.removeEventListener(event, resetTimeout, true);
+      });
+    };
+  }, [navigate]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        searchRef.current.blur();
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
+  // Filtering and pagination
   const filteredItems = useMemo(() => {
     let result = items;
     if (selectedCategory !== 0) {
-      result = result.filter(
-        (item) => item.
-        item_category_id
-         === selectedCategory
-      );
+      result = result.filter((item) => item.item_category_id === selectedCategory);
     }
     return result;
   }, [items, selectedCategory]);
@@ -173,7 +151,7 @@ const PosPage = () => {
   useEffect(() => {
     if (query.trim() !== "") {
       const result = items.filter((item) =>
-        item.name.toLowerCase().includes(query.toLowerCase())
+        item.item.name.toLowerCase().includes(query.toLowerCase())
       );
       setSearchedItems(result);
     } else {
@@ -189,12 +167,13 @@ const PosPage = () => {
     currentPage * itemsPerPage
   );
 
+  // Cart functions
   const addItemToCart = (item: CartItemType) => {
     setCart((prev) => {
-      const exists = prev.find((cartItem) => cartItem.id === item.id);
+      const exists = prev.find((cartItem) => cartItem.item_id === item.item_id);
       if (exists) {
         return prev.map((cartItem) =>
-          cartItem.id === item.id
+          cartItem.item_id === item.item_id
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem
         );
@@ -205,7 +184,8 @@ const PosPage = () => {
           ...item,
           quantity: 1,
           discount: 0,
-          actual_selling_price: Math.floor(+item.selling_price),
+          price: item.selling_price,
+          actual_selling_price: Math.floor(+item.item.selling_price),
         },
       ];
     });
@@ -249,6 +229,35 @@ const PosPage = () => {
     return result;
   }, [cart]);
 
+  // Handler functions
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/');
+  };
+
+  const handleWarehouseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setWarehouse(value);
+    localStorage.setItem("selectedWarehouse", value);
+    localStorage.setItem("selectedCurrency", user?.base_currency?.id || "");
+    if (value) setWarehouseError("");
+  };
+
+  const validateSelections = () => {
+    let isValid = true;
+    if (!warehouse) {
+      setWarehouseError("Please select a warehouse");
+      isValid = false;
+    }
+    return isValid;
+  };
+
+  const confirmSelections = () => {
+    if (validateSelections()) {
+      setShowSelectionModal(false);
+    }
+  };
+
   const handleCheckout = () => {
     if (cart.length === 0) {
       alert("Cart is empty. Please add items to checkout.");
@@ -258,237 +267,131 @@ const PosPage = () => {
   };
 
   const processCheckout = async (printReceipt: boolean) => {
-
+    if (!amountPaid) {
+      toast.error('Please enter amount paid');
+      return;
+    }
     const payload = {
-      cashier_id: user.user.id, // Assuming this is the correct path to user ID
-      cashier_name: `${user.user.first_name} ${user.user.last_name}`,
-      customer_id: 0, // Default value as shown in example
-      customer_name: customer || "", // Use entered customer name or empty string
-      warehouse_id: localStorage.getItem("selectedWarehouse"), // You may want to make this dynamic
+      cashier_id: user.user?.id,
+      cashier_name: `${user.user?.first_name || ''} ${user.user?.last_name || ''}`,
+      customer_id: '',
+      transaction_reference: transactionId,
+      customer_name: customer || "",
+      warehouse_id: localStorage.getItem("selectedWarehouse"),
       items: cart.map(item => ({
-        item_id: item.id.toString(),
+        item_id: item.item.id.toString(),
         quantity: item.quantity,
-        discount: item.discount
+        discount: item.discount,
+        price: item.actual_selling_price,
       })),
-      payment_method_id: paymentMethod || "db1c6e65-ca5d-4637-9edb-1e56f189145c", // Default or selected
-      amount_paid: 0, // You may want to calculate this if taking partial payments
-      sale_date: new Date().toLocaleDateString('en-US'), // Format as "6/24/2025"
-      currency_id: localStorage.getItem("selectedCurrency"), // You may want to make this dynamic
-      amount: totalAmount // The calculated total
+      payment_method_id: paymentMethod || "db1c6e65-ca5d-4637-9edb-1e56f189145c",
+      amount_paid: parseInt(amountPaid),
+      sale_date: `${new Date().getDate()}/${new Date().getMonth() + 1}/${new Date().getFullYear()}`,
+      currency_id: localStorage.getItem("selectedCurrency"),
+      amount: totalAmount,
+      is_print: printReceipt
     };
-  
+
     try {
-      // Your existing API call logic would go here
-      // await createRequest("/inventories/pointsofsale", token, requestData, () => {}, "POST");
-      await apiRequest(
-        "/inventories/pointsofsale",
-        "POST",
-        token,
-        payload,
-      );
-      // Show success message
-      toast.success("Order completed successfully!");
+      setIsPrinting(true);
       
-      // Handle printing after a short delay to ensure DOM is updated
-      if (printReceipt) {
+      const saleResponse = await axios.post(
+        `${baseURL}/inventories/pointsofsale`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          responseType: "blob",
+        }
+      );
+
+      if (saleResponse.headers["content-type"]?.includes("application/json")) {
+        const json = await saleResponse.data.text();
+        const parsed = JSON.parse(json);
+        toast.success(parsed.message);
+      }
+
+      if (saleResponse.data) {
+        const blob = new Blob([saleResponse.data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+
+        if (printReceipt) {
+          const receiptTab = window.open(url, "_blank");
+          if (receiptTab) {
+            setTimeout(() => {
+              receiptTab.close();
+            }, 30000);
+          }
+        }
+        
+        setTimeout(() => window.URL.revokeObjectURL(url), 5000);
+      } else {
         setTimeout(() => {
           if (contentRef.current) {
-            reactToPrintFn()
-                  // Clear the cart and close modal first
-            setCart([]);
-            setShowConfirmationModal(false);
-      
+            reactToPrintFn();
           }
-        }, 500);
+        }, 50000);
       }
-    } catch (error) {
-      console.error("Checkout failed:", error);
-      toast.error(error?.response?.data?.message);
+
+      setCart([]);
+      setShowConfirmationModal(false);
+      
+    } catch (error: any) {
+      console.error("Checkout failed:", error.response);
+      toast.error(error?.response?.data?.message || "Checkout failed. Please try again.");
+    } finally {
+      setIsPrinting(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-teal-50">
+      <SelectionModal
+        show={showSelectionModal}
+        warehouse={warehouse}
+        warehouseError={warehouseError}
+        onWarehouseChange={handleWarehouseChange}
+        onConfirm={confirmSelections}
+      />
 
-{showSelectionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-              Required Settings
-            </h2>
-            <p className="text-gray-600 mb-6 text-center">
-              Please select a warehouse and currency to continue using the POS system.
-            </p>
-
-            <div className="space-y-6">
-              {/* Warehouse Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Warehouse
-                </label>
-                <select
-                  value={warehouse}
-                  onChange={handleWarehouseChange}
-                  className={`w-full p-3 border rounded-md  ${
-                    warehouseError ? "border-red-500" : "border-gray-200"
-                  }`}
-                >
-                  <option value="">Select warehouse</option>
-                  {warehouses.map((w) => (
-                    <option key={w.id} value={w.id}>
-                      {w.name}
-                    </option>
-                  ))}
-                </select>
-                {warehouseError && (
-                  <p className="mt-1 text-sm text-red-600">{warehouseError}</p>
-                )}
-              </div>
-
-              {/* Currency Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Currency
-                </label>
-                <select
-                  value={currency}
-                  onChange={handleCurrencyChange}
-                  className={`w-full p-3 border rounded-md  ${
-                    currencyError ? "border-red-500" : "border-gray-200"
-                  }`}
-                >
-                  <option value="">Select currency</option>
-                  {currencies.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-                {currencyError && (
-                  <p className="mt-1 text-sm text-red-600">{currencyError}</p>
-                )}
-              </div>
-
-              <button
-                onClick={confirmSelections}
-                className="w-full py-3 px-4 bg-teal-500 hover:bg-teal-800 text-white rounded-xl font-medium transition-all transform hover:scale-105 mt-4"
-              >
-                Confirm Selections
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Header */}
       <ToastContainer />
-      <header className="bg-white shadow-sm border-b sticky top-0 z-40">
-      <div className="px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Left Section */}
-          <div className="flex items-center space-x-3">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">POS</h1>
-              {/* <p className="text-sm text-gray-500">{businessName}</p> */}
-            </div>
-          </div>
+      <Header
+        businessName={businessName}
+        warehouse={warehouse}
+        user={user}
+        onLogout={handleLogout}
+      />
 
-          {/* Search + Dropdowns */}
-          <div className="flex-1 max-w-2xl mx-8 flex items-center space-x-4">
-            {/* Search Bar */}
+      <div className={`flex ${isMobile ? "flex-col" : "flex-row"} h-[calc(100vh-80px)]`}>
+        
+        {/* Products Section */}
+        <div className={`${isMobile ? "w-full" : "w-3/5"} flex flex-col bg-white border-r border-gray-200`}>
+          <div className="p-6 border-b border-gray-100">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
+                ref={searchRef}
                 placeholder="Search products..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
-
-            {/* Warehouse Dropdown */}
-            <div className="flex items-center space-x-2">
-              <Warehouse className="w-5 h-5 text-gray-500" />
-              <select
-                value={warehouse}
-                onChange={handleWarehouseChange}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-teal-500 focus:border-teal-500"
-              >
-                <option value="" disabled>Select warehouse</option>
-                {warehouses.map((w) => (
-                  <option key={w.id} value={w.id}>{w.name}</option>
-                ))}
-              </select>
+            <div className="flex items-center justify-between mb-4 mt-8">
+              <h2 className="text-lg font-semibold text-gray-800">Products</h2>
+              <Filter className="w-5 h-5 text-gray-400" />
             </div>
-
-            {/* Currency Dropdown */}
-            <div className="flex items-center space-x-2">
-              <Coins className="w-5 h-5 text-gray-500" />
-              <select
-                value={currency}
-                onChange={handleCurrencyChange}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-teal-500 focus:border-teal-500"
-              >
-                <option value="" disabled>Select currency</option>
-                {currencies.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Right Section: Date, User, Logout */}
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-600">
-              {new Date().toLocaleDateString()}
-            </div>
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <User className="w-4 h-4" />
-              <span>{user.user.first_name} {user.user.last_name}</span>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-
-      <div className={`flex ${isMobile ? "flex-col" : "flex-row"} h-[calc(100vh-80px)]`}>
-        {/* Products Section */}
-        <div className={`${isMobile ? "w-full" : "w-3/5"} flex flex-col bg-white border-r border-gray-200`}>
-          {/* Category Filter */}
-          <div className="p-6 border-b border-gray-100">
-          <div className="mb-6">
-            {/* Suspended Sales (Clickable) */}
-            <button
-              onClick={() => setIsSuspendedModalOpen(true)}
-              className="text-md font-medium text-teal-600 hover:underline mb-1 block"
-            >
-              Suspended Sales (<span className="text-red-500">{suspendedSales.length}</span>)
-            </button>
-
-            {/* Products + Filter Row */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-800">Products</h2>
-              <button className="p-2 rounded-full hover:bg-gray-100">
-                <Filter className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-          </div>
             <CategoryNav
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
+              setQuery={setQuery}
               isMobile={isMobile}
             />
           </div>
 
-          {/* Products Grid */}
           <div className="flex-1 overflow-y-auto p-6">
             {paginatedItems.length > 0 ? (
               <div className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-3 lg:grid-cols-4"} gap-6`}>
@@ -496,9 +399,10 @@ const PosPage = () => {
                   <PosItemCard
                     key={item.item_id}
                     image=""
-                    name={item.name}
+                    name={item.item.name}
+                    quantity={item.quantity}
                     item={item}
-                    price={Math.floor(+item.selling_price)}
+                    price={Math.floor(+item.item.selling_price)}
                     addItem={() => addItemToCart(item)}
                     isMobile={isMobile}
                   />
@@ -513,7 +417,6 @@ const PosPage = () => {
             )}
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="p-6 border-t border-gray-100 bg-white">
               <div className="flex justify-center items-center space-x-2">
@@ -542,7 +445,6 @@ const PosPage = () => {
         {/* Cart Section */}
         <div className={`${isMobile ? "w-full" : "w-2/5"} flex flex-col bg-gradient-to-b from-gray-50 to-white`}>
           <div className="flex-1 flex flex-col">
-            {/* Cart Header */}
             <div className="p-6 border-b border-gray-100 bg-white">
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-xl font-bold text-gray-800">Order Summary</h2>
@@ -553,7 +455,6 @@ const PosPage = () => {
               <p className="text-sm text-gray-600">Review your order before checkout</p>
             </div>
 
-            {/* Cart Items */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {cart.length > 0 ? (
                 cart.map((item) => (
@@ -578,7 +479,6 @@ const PosPage = () => {
               )}
             </div>
 
-            {/* Cart Footer */}
             <div className="p-6 border-t border-gray-100 bg-white">
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-4 bg-gradient-to-r from-teal-50 to-purple-50 rounded-xl">
@@ -611,88 +511,43 @@ const PosPage = () => {
         </div>
       </div>
 
-      {/* Confirmation Modal */}
-      {showConfirmationModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
-            <div className="p-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Confirm Order</h2>
-
-              <PaymentComponent
-                setClientName={setCustomer}
-                paymentMethod={paymentMethod}
-                setPaymentMethod={setPaymentMethod}
-                isMobile={isMobile}
-              />
-
-              <div className="mt-6 pt-4 border-t border-gray-100">
-                <div className="space-y-2 mb-4">
-                  {cart.map((item) => (
-                    <div key={item.id} className="flex justify-between text-sm">
-                      <span>{item.name} x{item.quantity}</span>
-                      <span>UGX {((item.quantity * item.actual_selling_price) - (item.discount * item.quantity)).toFixed(2)}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-between items-center font-bold text-lg pt-2 border-t border-gray-100">
-                  <span>Total:</span>
-                  <span className="text-teal-600">UGX {totalAmount.toFixed(2)}</span>
-                </div>
-              </div>
-
-              <div className={`flex ${isMobile ? "flex-col space-y-3" : "space-x-3"} mt-8`}>
-                <button
-                  onClick={() => setShowConfirmationModal(false)}
-                  className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium mb-3 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => suspendSale()}
-                  className="flex-1 py-3 px-4 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-800 mb-3 transition-colors"
-                >
-                  Suspend
-                </button>
-                <button
-                  onClick={() => processCheckout(false)}
-                  className="flex-1 py-3 px-4 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-800 mb-3 transition-colors"
-                >
-                  Complete Order
-                </button>
-                <button
-                  onClick={() => processCheckout(true)}
-                  className="flex-1 py-3 px-4 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-800 mb-3 transition-colors"
-                >
-                  Complete & Print
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal
+        show={showConfirmationModal}
+        cart={cart}
+        totalAmount={totalAmount}
+        customer={customer}
+        paymentMethod={paymentMethod}
+        isPrinting={isPrinting}
+        isMobile={isMobile}
+        onClose={() => setShowConfirmationModal(false)}
+        onProcessCheckout={processCheckout}
+        setCustomer={setCustomer}
+        setPaymentMethod={setPaymentMethod}
+        setTransactionId={setTransactionId}
+        setAmountPaid={setAmountPaid}
+      />
 
       {/* Hidden Print Content */}
-        <div ref={contentRef} className="print-content"> {/* Add this wrapper */}
-          <PrintableContent
-            paymentMethod={paymentMethod}
-            servedBy={user.full_name}
-            total={totalAmount}
-            cart={cart}
-            businessName={businessName}
-            isMobile={isMobile}
+      <div ref={contentRef} className="print-content">
+        <PrintableContent
+          paymentMethod={paymentMethod}
+          servedBy={`${user.user?.first_name || ''} ${user.user?.last_name || ''}`}
+          total={totalAmount}
+          cart={cart}
+          businessName={businessName}
+          isMobile={isMobile}
         />
         <style>
           {`
-          @media print {
-            .print-content { display: block !important; }
-          }
-          .print-content { display: none; }
-        `}
+            @media print {
+              .print-content { display: block !important; }
+            }
+            .print-content { display: none; }
+          `}
         </style>
       </div>
-      <SuspendedSalesModal isOpen={isSuspendedModalOpen} onClose={() => setIsSuspendedModalOpen(false)} suspendedSales={suspendedSales} onSelectSale={handleSelectSale}/>
     </div>
   );
 };
 
-export default PosPage
+export default PosPage;

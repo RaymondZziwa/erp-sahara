@@ -43,13 +43,6 @@ const CustomerOrders: React.FC = () => {
       suppressSizeToFit: true,
     },
     {
-      headerName: "Tracking number",
-      field: "tracking_number",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
       headerName: "Quotation No",
       field: "so_number",
       sortable: true,

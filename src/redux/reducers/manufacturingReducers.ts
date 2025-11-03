@@ -5,7 +5,7 @@ import maintainanceLogSlice from "../slices/manufacturing/workCenters/maintainan
 import centerTasksSlice from "../slices/manufacturing/workCenters/centerTasksSlice";
 import capacityLogSlice from "../slices/manufacturing/workCenters/centerCapacityLog";
 import centerDownTimeLogSlice from "../slices/manufacturing/workCenters/centerDownTimeLog";
-import billOfMaterialSlice from "../slices/manufacturing/workCenters/billOfMaterialSlice";
+import billOfMaterialSlice from "../slices/manufacturing/BOM/billOfMaterialSlice";
 import productionLinesSlice from "../slices/manufacturing/workCenters/productionLinesSlice";
 import machineAssignmentsSlice from "../slices/manufacturing/workCenters/machineAssignmentsSlice";
 import productionPlansSlice from "../slices/manufacturing/workCenters/productionPlansSlice";

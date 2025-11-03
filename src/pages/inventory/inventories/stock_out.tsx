@@ -59,6 +59,13 @@ const StockOut: React.FC = () => {
   }, [storeId, data, refresh]);
 
   const columnDefinitions: ColDef<any>[] = [
+   {
+      headerName: "Type",
+      field: "type",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
     {
       headerName: "Name",
       field: "item_name",
@@ -80,6 +87,13 @@ const StockOut: React.FC = () => {
     {
       headerName: "Quantity",
       field: "quantity",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+     {
+      headerName: "Remaining Qty",
+      field: "remaining_stock",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
@@ -122,7 +136,14 @@ const StockOut: React.FC = () => {
     },
     {
       headerName: "Picked by",
-      field: "status",
+      field: "picked_by",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "Remarks",
+      field: "remarks",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,

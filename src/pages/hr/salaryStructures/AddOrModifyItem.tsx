@@ -140,22 +140,21 @@ const AddOrModifySalaryStructure: React.FC<AddOrModifySalaryStructureProps> = ({
               Basic Pay<span className="text-red-500">*</span>
             </label>
             <InputNumber
-              name="basic_pay"
-              value={
-                formState.basic_pay !== undefined && formState.basic_pay !== null
-                  ? Number(formState.basic_pay).toLocaleString()
-                  : ""
-              }
-              onChange={(e) => {
-                const rawValue = e.target.value.replace(/,/g, "");
-                setFormState((prev) => ({
-                  ...prev,
-                  basic_pay: rawValue === "" ? "" : Number(rawValue),
-                }));
-              }}
-              required
-              className="w-full"
-            />
+                name="basic_pay"
+                value={formState.basic_pay || 0}
+                onValueChange={(e) => {
+                  setFormState((prev) => ({
+                    ...prev,
+                    basic_pay: e.value || 0,
+                  }));
+                }}
+                mode="decimal"
+                useGrouping={true}
+                minFractionDigits={0}
+                maxFractionDigits={2}
+                required
+                className="w-full"
+              />
           </div>
 
 
