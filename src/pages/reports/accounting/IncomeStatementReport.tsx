@@ -1,53 +1,60 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
 import { apiRequest, baseURL } from "../../../utils/api";
-import { ServerResponse } from "../../../redux/slices/types/ServerResponse";
 import useAuth from "../../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
-import { useReactToPrint } from "react-to-print";
 import Header from "../../../components/custom/print_header";
 import axios from "axios";
-import { toast } from "react-toastify";
 import CustomReportHeader from "../../../components/custom/customReportHeader";
 import { PropagateLoader } from "react-spinners";
 
-interface FinancialItem {
-  subcategory: string;
+interface Account {
   id: number;
-  code: number;
-  total_credit: number;
-  total_debit: number;
+  code: string;
+  name: string;
+  subcategory_name: string;
+  subcategory_code: number;
+  total: number;
   total_amount: number;
+}
+
+interface FinancialItem {
+  id: number;
+  name: string;
+  code: number;
+  total: number;
+  accounts?: Account[];
   children: FinancialItem[];
-  ledgers?: {
-    ledger_name: string;
-    current_amount: number;
-  }[];
 }
 
-interface CategoryGroup {
-  [key: string]: FinancialItem[];
+interface ReportItem {
+  name: string;
+  subcategories: FinancialItem[];
 }
 
-interface ReportData {
-  "Revenue and Costs": CategoryGroup[];
-  "Income and Expenses": CategoryGroup[];
-  asOfDate: string;
+interface ReportSection {
+  section: string;
+  items?: ReportItem[];
+  name?: string;
+  totals?: {
+    [key: string]: number;
+  };
 }
 
-const IncomeStatementReport = () => {
+interface ApiResponse {
+  current_period: ReportSection[];
+  comparison: ReportSection[];
+}
+
+interface IncomeStatementProps {
+  currency?: string;
+}
+
+const IncomeStatementReport: React.FC<IncomeStatementProps> = ({ 
+  currency = "TZS" 
+}) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [reportData, setReportData] = useState<any>(null);
-  const [otherIncome, setOtherIncome] = useState(0);
-  const [totalExpenses, setTotalExpenses] = useState(0);
-  const today = new Date();
-  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    const [filters, setFilters] = useState({
-      start_date: startOfMonth.toISOString().split("T")[0],
-      end_date: endOfMonth.toISOString().split("T")[0],
-    });
-  
+  const [reportData, setReportData] = useState<ReportSection[] | null>(null);
   const [ledgerModal, setLedgerModal] = useState<{
     title: string;
     ledgers: { ledger_name: string; current_amount: number }[];
@@ -57,10 +64,19 @@ const IncomeStatementReport = () => {
   const { token, isFetchingLocalToken } = useAuth();
   const contentRef = useRef<HTMLDivElement>(null);
 
+  const today = new Date();
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const [filters] = useState({
+    start_date: startOfMonth.toISOString().split("T")[0],
+    end_date: endOfMonth.toISOString().split("T")[0],
+  });
+
   const print = async () => {
     try {
+      setIsLoading(true);
       const response = await axios.get(
-        `${baseURL}/reports/accounting/print-income-statement`,
+        `${baseURL}/reports/accounting/detail-income-statement-simple-print`,
         {
           responseType: "blob",
           headers: {
@@ -72,8 +88,10 @@ const IncomeStatementReport = () => {
       const file = new Blob([response.data], { type: "application/pdf" });
       const fileURL = URL.createObjectURL(file);
       window.open(fileURL, "_blank");
+      setIsLoading(false);
     } catch (error) {
       console.error("Error previewing the trial balance report:", error);
+      setIsLoading(false);
     }
   };
 
@@ -81,20 +99,20 @@ const IncomeStatementReport = () => {
     if (isFetchingLocalToken || !token.access_token) return;
     setIsLoading(true);
     try {
-      const response = await apiRequest<any>(
+      const response = await apiRequest<ApiResponse>(
         REPORTS_ENDPOINTS.DETAILED_INCOME_STATEMENT.GET_ALL,
         "GET",
         token.access_token
       );
-      // The response is an array, we need to combine the data
-      const combinedData = {
-        "Revenue and Costs": response.data[0]["Revenue and Costs"],
-        "Income and Expenses": response.data[1]["Income and Expenses"],
-        asOfDate: response.data[2].asOfDate,
-      };
-      setReportData(combinedData);
+      
+      if (response.data && response.data.current_period) {
+        setReportData(response.data.current_period);
+      } else {
+        setReportData(null);
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
+      setReportData(null);
     } finally {
       setIsLoading(false);
     }
@@ -122,155 +140,10 @@ const IncomeStatementReport = () => {
     } catch (error) {
       console.error("Error fetching ledger details:", error);
       setLedgerModal((prev) =>
-        prev
-          ? {
-              ...prev,
-              isLoading: false,
-              ledgers: [],
-            }
-          : null
+        prev ? { ...prev, isLoading: false, ledgers: [] } : null
       );
     }
   };
-
-  const calculateGrossProfit = () => {
-    if (!reportData) return 0;
-
-    let revenue = 0;
-    let costs = 0;
-
-    const revenueGroups = reportData["Revenue and Costs"];
-    if (Array.isArray(revenueGroups)) {
-      // Find Sales Revenue
-      const salesRevenueGroup = revenueGroups.find(
-        (group: any) => group["Sales Revenue"]
-      );
-      if (
-        salesRevenueGroup &&
-        typeof salesRevenueGroup["Sales Revenue"] === "object"
-      ) {
-        const salesItems: FinancialItem[] = Object.values(
-          salesRevenueGroup["Sales Revenue"]
-        );
-        revenue = salesItems.reduce((sum, item) => sum + item.total_amount, 0);
-      }
-
-      // Find Direct Costs
-      const directCostsGroup = revenueGroups.find(
-        (group: any) => group["Direct Costs"]
-      );
-      if (
-        directCostsGroup &&
-        typeof directCostsGroup["Direct Costs"] === "object"
-      ) {
-        const costItems: FinancialItem[] = Object.values(
-          directCostsGroup["Direct Costs"]
-        );
-        costs = costItems.reduce((sum, item) => sum + item.total_amount, 0);
-      }
-    }
-
-    return revenue - costs;
-  };
-
-  const calculateNetProfit = () => {
-    const grossProfit = calculateGrossProfit();
-    if (!reportData) return grossProfit;
-
-    let expenses = 0;
-    let otherIncomeTotal = 0;
-
-    const incomeGroups = reportData["Income and Expenses"];
-    if (Array.isArray(incomeGroups)) {
-      // Find Other Income
-      const otherIncomeGroup = incomeGroups.find(
-        (group: any) => group["Other Income"]
-      );
-      if (
-        otherIncomeGroup &&
-        typeof otherIncomeGroup["Other Income"] === "object"
-      ) {
-        const incomeItems: FinancialItem[] = Object.values(
-          otherIncomeGroup["Other Income"]
-        );
-        otherIncomeTotal = incomeItems.reduce(
-          (sum, item) => sum + item.total_amount,
-          0
-        );
-      }
-
-      // Find Operating Expenses
-      const expenseGroup = incomeGroups.find(
-        (group: any) => group["Operating Expenses"]
-      );
-      if (
-        expenseGroup &&
-        typeof expenseGroup["Operating Expenses"] === "object"
-      ) {
-        const expenseItems: FinancialItem[] = Object.values(
-          expenseGroup["Operating Expenses"]
-        );
-        expenses = expenseItems.reduce(
-          (sum, item) => sum + item.total_amount,
-          0
-        );
-      }
-    }
-
-    return grossProfit - expenses + otherIncomeTotal;
-  };
-
-
-  useEffect(() => {
-    if (reportData) {
-      let expensesTotal = 0;
-      let otherIncomeTotal = 0;
-
-      // Get income and expense groups
-      const incomeExpenseGroups = reportData["Income and Expenses"];
-
-      // Ensure it's an array and not null
-      if (Array.isArray(incomeExpenseGroups)) {
-        // ----- Other Income -----
-        const otherIncomeGroup = incomeExpenseGroups.find(
-          (group: any) => group["Other Income"]
-        );
-
-        if (otherIncomeGroup && otherIncomeGroup["Other Income"]) {
-          const incomeItemsObj = otherIncomeGroup["Other Income"];
-          const incomeItems: FinancialItem[] = Object.values(incomeItemsObj);
-
-          otherIncomeTotal = incomeItems.reduce(
-            (sum: number, item: FinancialItem) => sum + item.total_amount,
-            0
-          );
-        }
-
-        // ----- Operating Expenses -----
-        const operatingExpensesGroup = incomeExpenseGroups.find(
-          (group: any) => group["Operating Expenses"]
-        );
-
-        if (
-          operatingExpensesGroup &&
-          operatingExpensesGroup["Operating Expenses"]
-        ) {
-          const expenseItemsObj = operatingExpensesGroup["Operating Expenses"];
-          const expenseItems: FinancialItem[] = Object.values(expenseItemsObj);
-
-          expensesTotal = expenseItems.reduce(
-            (sum: number, item: FinancialItem) => sum + item.total_amount,
-            0
-          );
-        }
-
-        // Update state
-        setOtherIncome(otherIncomeTotal);
-        setTotalExpenses(expensesTotal);
-      }
-    }
-  }, [reportData]);
-
 
   const handleCategoryClick = (categoryId: number, title: string) => {
     fetchLedgerDetails(categoryId, title);
@@ -278,169 +151,292 @@ const IncomeStatementReport = () => {
 
   const closeModal = () => setLedgerModal(null);
 
+  // Helper function to format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US').format(amount);
+  };
+
+  // Extract sections for the new structure
+  const revenueAndCosts = reportData?.find((d) => d.section === "Revenue and Costs");
+  const incomeAndExpenses = reportData?.find((d) => d.section === "Income and Expenses");
+  const summary = reportData?.find((d) => d.section === "Summary");
+
+  // Calculate total incomes correctly
+  const totalIncomes = (summary?.totals?.["Total Sales Revenue"] || 0) + (summary?.totals?.["Other Income"] || 0);
+
+  // Calculate total expenses
+  const totalExpenses = (
+    (summary?.totals?.["Total Direct Costs"] || 0) +
+    (summary?.totals?.["Operating Expenses"] || 0) +
+    (summary?.totals?.["Interest Expenses"] || 0) +
+    (summary?.totals?.["Taxes"] || 0)
+  );
+
+  // Helper function to check if a subcategory should be displayed
+  const shouldDisplaySubcategory = (subcategory: FinancialItem) => {
+    return subcategory.total !== 0 || 
+           subcategory.accounts?.some(acc => acc.total_amount !== 0) ||
+           subcategory.children?.some(child => child.total !== 0);
+  };
+
+  // Helper function to render income items
+  const renderIncomeItems = () => {
+    const incomeItems = [];
+
+    // Sales Revenue
+    const salesRevenue = revenueAndCosts?.items?.find(i => i.name === "Sales Revenue");
+    if (salesRevenue) {
+      salesRevenue.subcategories
+        .filter(shouldDisplaySubcategory)
+        .forEach(subcat => {
+          incomeItems.push(
+            <tr 
+              key={subcat.id}
+              className={subcat.accounts?.some(acc => acc.total_amount !== 0) ? "clickable-row" : ""}
+              onClick={subcat.accounts?.some(acc => acc.total_amount !== 0) ? () => handleCategoryClick(subcat.id, subcat.name) : undefined}
+            >
+              <td>{subcat.name}</td>
+              <td className="right-align">
+                {formatCurrency(subcat.total)}
+              </td>
+            </tr>
+          );
+        });
+    }
+
+    // Other Income
+    const otherIncome = incomeAndExpenses?.items?.find(i => i.name === "Other Income");
+    if (otherIncome) {
+      otherIncome.subcategories
+        .filter(shouldDisplaySubcategory)
+        .forEach(subcat => {
+          incomeItems.push(
+            <tr 
+              key={subcat.id}
+              className={subcat.accounts?.some(acc => acc.total_amount !== 0) ? "clickable-row" : ""}
+              onClick={subcat.accounts?.some(acc => acc.total_amount !== 0) ? () => handleCategoryClick(subcat.id, subcat.name) : undefined}
+            >
+              <td>{subcat.name}</td>
+              <td className="right-align">
+                {formatCurrency(subcat.total)}
+              </td>
+            </tr>
+          );
+        });
+    }
+
+    return incomeItems;
+  };
+
+  // Helper function to render expense items
+  const renderExpenseItems = () => {
+    const expenseItems = [];
+
+    // Direct Costs
+    const directCosts = revenueAndCosts?.items?.find(i => i.name === "Direct Costs");
+    if (directCosts) {
+      directCosts.subcategories
+        .filter(shouldDisplaySubcategory)
+        .forEach(subcat => {
+          expenseItems.push(
+            <tr 
+              key={subcat.id}
+              className={subcat.accounts?.some(acc => acc.total_amount !== 0) ? "clickable-row" : ""}
+              onClick={subcat.accounts?.some(acc => acc.total_amount !== 0) ? () => handleCategoryClick(subcat.id, subcat.name) : undefined}
+            >
+              <td>{subcat.name}</td>
+              <td className="right-align">
+                {formatCurrency(subcat.total)}
+              </td>
+            </tr>
+          );
+        });
+    }
+
+    // Operating Expenses, Interest Expenses, Taxes Expenses
+    const expenseCategories = ["Operating Expenses", "Interest Expenses", "Taxes Expenses"];
+    expenseCategories.forEach(categoryName => {
+      const category = incomeAndExpenses?.items?.find(i => i.name === categoryName);
+      if (category) {
+        category.subcategories
+          .filter(shouldDisplaySubcategory)
+          .forEach(subcat => {
+            expenseItems.push(
+              <tr 
+                key={subcat.id}
+                className={subcat.accounts?.some(acc => acc.total_amount !== 0) ? "clickable-row" : ""}
+                onClick={subcat.accounts?.some(acc => acc.total_amount !== 0) ? () => handleCategoryClick(subcat.id, subcat.name) : undefined}
+              >
+                <td>{subcat.name}</td>
+                <td className="right-align">
+                  {formatCurrency(subcat.total)}
+                </td>
+              </tr>
+            );
+          });
+      }
+    });
+
+    return expenseItems;
+  };
+
   useEffect(() => {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-const renderFinancialItem = (
-  item: FinancialItem,
-  depth = 0,
-  parentName = ""
-) => {
-  const hasChildren = item.children?.length > 0;
-  const isClickable = depth === 0 || (depth === 1 && parentName !== "");
-
-  // Padding increases by 25px per depth level, starting from 8px
-  const paddingLeft = `${depth * 25 + 25}px`;
-
-  return (
-    <React.Fragment key={`${item.id}-${depth}`}>
-      <tr
-        className={`${depth === 0 ? "bg-gray-50" : ""} hover:bg-gray-100 ${
-          isClickable ? "cursor-pointer" : ""
-        }`}
-        onClick={() =>
-          isClickable && handleCategoryClick(item.id, item.subcategory)
-        }
-      >
-        <td
-          className={`py-3 ${depth === 0 ? "font-semibold" : ""}`}
-          style={{ paddingLeft }}
-        >
-          {item.subcategory}
-        </td>
-        <td className="py-3 text-right pr-6">
-          {item.total_amount.toLocaleString()}
-        </td>
-      </tr>
-
-      {hasChildren &&
-        item.children.map((child) =>
-          renderFinancialItem(child, depth + 1, item.subcategory)
-        )}
-
-      {/* {hasChildren && (
-        <tr className="border-t border-gray-200">
-          <td className="py-2 font-bold" style={{ paddingLeft }}>
-            Total {item.subcategory}
-          </td>
-          <td className="py-2 text-right pr-6 font-medium border-t-2 border-black">
-            {item.total_amount.toLocaleString()}
-          </td>
-        </tr>
-      )} */}
-    </React.Fragment>
-  );
-};
-
-
-
-
-const renderCategoryGroup = (group: any) => {
-  if (!group || typeof group !== "object") return null;
-
-  const categoryName = Object.keys(group)[0];
-  const items = group[categoryName];
-
-  if (!items || typeof items !== "object") return null;
-
-  const itemArray: FinancialItem[] = Object.values(items);
-
-  return (
-    <React.Fragment key={categoryName}>
-      <tr className="bg-gray-100">
-        <td colSpan={2} className="py-2 font-bold">
-          {categoryName}
-        </td>
-      </tr>
-
-      {itemArray.map((item: FinancialItem) =>
-        renderFinancialItem(item, 0, categoryName)
-      )}
-
-      <tr className="border-t border-gray-200">
-        <td className="py-2 font-bold">Total {categoryName}</td>
-        <td className="py-2 text-right pr-6 font-medium border-t-2 border-black">
-          {itemArray
-            .reduce((sum, item) => sum + item.total_amount, 0)
-            .toLocaleString()}
-        </td>
-      </tr>
-    </React.Fragment>
-  );
-};
-
+  // Debug: Log the data to see what's being rendered
+  useEffect(() => {
+    if (reportData) {
+      console.log("Report Data:", reportData);
+      console.log("Total Incomes:", totalIncomes);
+      console.log("Total Expenses:", totalExpenses);
+      console.log("Net Profit/Loss:", summary?.totals?.["Net Profit/Loss"]);
+    }
+  }, [reportData]);
 
   return (
     <div className="bg-white p-4 rounded-lg shadow">
-      <CustomReportHeader />
-
-       <div className="flex flex-row justify-center items-center mt-20">
-              <Header title={"Income Statement"} />
-      </div>
-      {(filters.start_date || filters.end_date) && (
-                <div className="text-center mb-4 text-sm text-gray-600">
-                  Showing data from {filters.start_date || "the beginning"} to{" "}
-                  {filters.end_date || "now"}
-                </div>
-              )}
+      <CustomReportHeader printfn={print} loading={isLoading} />
 
       {isLoading ? (
-        <div className="flex justify-center items-center p-8">
-          <PropagateLoader color="#007f80"/>
+        <div className="flex justify-center items-center">
+          <PropagateLoader color="#007f80" />
         </div>
-      ) : reportData ? (
-        <div className="bg-red-500">
-          {/* Revenue and Costs Section */}
-          <div className="overflow-x-auto" ref={contentRef}>
-            
-             
-            <table className="min-w-full bg-white border border-gray-200 p-4">
-              <tbody className="divide-y divide-gray-200">
-                  <React.Fragment>
-                      <p className="p-2 font-bold">INCOME</p>
-                  </React.Fragment>
-                  
-                <tr className="bg-gray-50">
-                  <td className="font-bold">Gross Profit/Loss</td>
-                  <td className="px-6 py-3 text-right font-semibold border-t-2 border-black">
-                    {calculateGrossProfit().toLocaleString()}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+      ) : reportData && reportData.length > 0 ? (
+        <div className="container" ref={contentRef}>
+          {/* Header */}
+          <div className="header mt-14">
+            <Header title={"Income Statement Report"}/>
+            {(filters.start_date || filters.end_date) && (
+              <div className="text-center mb-4 text-sm text-gray-600">
+                Period: {new Date(filters.start_date).toLocaleDateString()} - {new Date(filters.end_date).toLocaleDateString()}
+              </div>
+            )}
           </div>
 
-          {/* Income and Expenses Section */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-200 p-4">
-              <tbody className="divide-y divide-gray-200 pl-10">
-                {reportData["Income and Expenses"]?.map(
-                  (group: any, index: number) => (
-                    <React.Fragment key={`income-${index}`}>
-                      {renderCategoryGroup(group)}
-                    </React.Fragment>
-                  )
-                )}
-                <tr className="bg-gray-50">
-                  <td className="font-bold">Net Other Income/Expenses</td>
-                  <td className="px-6 py-3 text-right font-semibold border-t-2 border-black">
-                    {(otherIncome - totalExpenses).toLocaleString()}
-                  </td>
-                </tr>
-                <tr className="bg-gray-50">
-                  <td className="font-bold">Net Profit/Loss</td>
-                  <td className="px-6 py-3 text-right font-semibold border-t-2 border-black">
-                    {calculateNetProfit().toLocaleString()}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Particulars</th>
+                <th className="right-align">Amount ({currency})</th>
+              </tr>
+            </thead>
+            <tbody className="text-lg">
+              {/* Incomes */}
+              <tr className="section-header">
+                <td colSpan="2">Incomes</td>
+              </tr>
+              
+              {renderIncomeItems()}
+              
+              <tr className="section-total">
+                <td>Total Incomes</td>
+                <td className="right-align">
+                  {formatCurrency(totalIncomes)}
+                </td>
+              </tr>
+
+              {/* Expenses */}
+              <tr className="section-header">
+                <td colSpan="2">Expenses</td>
+              </tr>
+              
+              {renderExpenseItems()}
+              
+              <tr className="section-total">
+                <td>Total Expenses</td>
+                <td className="right-align">
+                  {formatCurrency(totalExpenses)}
+                </td>
+              </tr>
+
+              {/* Net Profit / Loss */}
+              <tr
+                className="section-total net-profit-loss"
+                style={{
+                  color: (summary?.totals?.["Net Profit/Loss"] || 0) < 0 ? "#dc2626" : "#059669",
+                }}
+              >
+                <td>Net Profit / Loss</td>
+                <td className="right-align">
+                  {formatCurrency(summary?.totals?.["Net Profit/Loss"] || 0)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* Footer */}
+          <div className="footer">
+            Generated on {new Date().toLocaleString()}
           </div>
+
+          {/* Inline Styles */}
+          <style jsx>{`
+            .container {
+              max-width: full;
+              margin: auto;
+              font-family: Arial, sans-serif;
+              font-size: 14px;
+              color: #333;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 20px;
+            }
+            .data-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 10px;
+              font-size: 10pt;
+            }
+            .data-table th,
+            .data-table td {
+              border: 1px solid #ccc;
+              padding: 6px 8px;
+            }
+            .data-table th {
+              background-color: #eff9f8;
+              font-weight: bold;
+              text-align: left;
+            }
+            .right-align {
+              text-align: right;
+            }
+            .section-header {
+              font-weight: bold;
+              background-color: #e0e0e0;
+            }
+            .section-total {
+              font-weight: bold;
+              background-color: #f0f0f0;
+            }
+            .net-profit-loss {
+              font-size: 13pt;
+              font-weight: bold;
+            }
+            .clickable-row {
+              cursor: pointer;
+            }
+            .clickable-row:hover {
+              background-color: #f5f5f5;
+            }
+            .footer {
+              margin-top: 20px;
+              text-align: center;
+              font-size: 9pt;
+              color: #555;
+              border-top: 1px solid #ccc;
+              padding-top: 10px;
+            }
+          `}</style>
         </div>
       ) : (
         <div className="flex justify-center items-center p-8">
-          <p>No data available</p>
+          <div className="text-center">
+            <Icon icon="solar:chart-bold" className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 text-lg">No financial data available</p>
+            <p className="text-gray-400 text-sm">No income statement data found for the current period</p>
+          </div>
         </div>
       )}
 
@@ -463,7 +459,7 @@ const renderCategoryGroup = (group: any) => {
             <div className="overflow-y-auto flex-1">
               {ledgerModal.isLoading ? (
                 <div className="flex justify-center items-center p-8">
-                  <p>Loading ledger details...</p>
+                  <PropagateLoader color="#007f80" size={10} />
                 </div>
               ) : ledgerModal.ledgers.length > 0 ? (
                 <table className="min-w-full divide-y divide-gray-200">
@@ -483,8 +479,8 @@ const renderCategoryGroup = (group: any) => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           {ledger.ledger_name}
                         </td>
-                        <td className="px-6 py-4 text-right">
-                          {ledger.net_amount?.toLocaleString()}
+                        <td className="px-6 py-4 text-right font-medium">
+                          {formatCurrency(ledger.current_amount || 0)}
                         </td>
                       </tr>
                     ))}
@@ -492,7 +488,7 @@ const renderCategoryGroup = (group: any) => {
                 </table>
               ) : (
                 <div className="flex justify-center items-center p-8">
-                  <p>No ledger details available</p>
+                  <p className="text-gray-500">No ledger details available</p>
                 </div>
               )}
             </div>
@@ -500,7 +496,7 @@ const renderCategoryGroup = (group: any) => {
             <div className="p-4 border-t flex justify-end">
               <button
                 onClick={closeModal}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md"
+                className="px-4 py-2 bg-teal-500 text-white hover:bg-teal-600 rounded-md transition-colors"
               >
                 Close
               </button>

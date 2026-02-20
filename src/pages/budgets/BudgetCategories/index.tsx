@@ -23,11 +23,6 @@ const BudgetCategories: React.FC = () => {
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
 
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
 
   const columnDefinitions: ColDef<BudgetCategory>[] = [
     {

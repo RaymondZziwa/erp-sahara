@@ -5,6 +5,7 @@ import useAuth from "../../hooks/useAuth";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { baseURL } from "../../utils/api";
+import { toast } from "react-toastify";
 
 interface EmployeeProfile {
   // Fields that can be edited by the employee
@@ -132,6 +133,7 @@ const UserProfile = () => {
       );
       setEmployee({ ...tempEmployee });
       setIsEditing(false);
+      toast.success("Profile updated successfully!");
     } catch (err) {
       setError(err?.response?.data.message);
       console.error("Update error:", err);
@@ -166,7 +168,7 @@ const UserProfile = () => {
               <button
                 onClick={handleSave}
                 disabled={isLoading}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white text-sm font-medium rounded-md hover:bg-teal-700 transition disabled:opacity-50"
               >
                 {isLoading ? (
                   "Saving..."
@@ -405,10 +407,10 @@ const UserProfile = () => {
                   onChange={handleChange}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500"
                 >
-                  <option value="Single">Single</option>
-                  <option value="Married">Married</option>
-                  <option value="Divorced">Divorced</option>
-                  <option value="Widowed">Widowed</option>
+                  <option value="single">Single</option>
+                  <option value="married">Married</option>
+                  <option value="divorced">Divorced</option>
+                  <option value="widowed">Widowed</option>
                 </select>
               ) : (
                 <p className="mt-1 text-gray-800">{employee.marital_status}</p>

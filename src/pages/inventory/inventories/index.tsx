@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ColDef } from "ag-grid-community";
+import { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Icon } from "@iconify/react";
 import ConfirmDeleteDialog from "../../../components/dialog/ConfirmDeleteDialog";
 import Table from "../../../components/table";
@@ -26,9 +26,10 @@ const Inventories: React.FC = () => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isReverseModalOpen, setIsReverseModalOpen] = useState(false);
   const [reversalReason, setReversalReason] = useState("");
+  const [record, setRecord] = useState()
 
   const token = useSelector((state: RootState) => state.userAuth.token);
-  const [storeId, setStoreId] = useState<number | 'all'>('all'); // Changed to include 'all' option
+  const [storeId, setStoreId] = useState<number | 'all'>('all');
   const [storeData, setStoreData] = useState<any[]>([]);
   const [selectedStore, setSelectedStore] = useState(0);
   const [recordId, setRecordId] = useState(0);
@@ -45,34 +46,65 @@ const Inventories: React.FC = () => {
     })) || [])
   ];
 
+  // Fix date formatting function
+  const formatDateForDisplay = (dateString: string) => {
+    if (!dateString) return "N/A";
+    
+    try {
+      // Handle different date formats that might come from API
+      const date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.warn("Invalid date:", dateString);
+        return "Invalid Date";
+      }
+      
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error("Error formatting date:", dateString, error);
+      return "Invalid Date";
+    }
+  };
+
+  // Fix the infinite loop by adding proper dependencies
   useEffect(() => {
     if (!data) {
       refresh();
     } else {
+      let processedData;
       if (storeId === 'all') {
         // Combine all stock in transactions from all warehouses
-        const allTransactions = data.flatMap(store => 
+        processedData = data.flatMap(store => 
           store.stock_movements?.stock_in.transactions || []
         );
-        setStoreData(allTransactions);
       } else {
         // Filter for specific warehouse
         const warehouseData = data.find(store => store.warehouse_id === storeId);
-        setStoreData(warehouseData?.stock_movements?.stock_in.transactions || []);
+        processedData = warehouseData?.stock_movements?.stock_in.transactions || [];
       }
+
+      // Process dates before setting state to avoid warnings
+      const processedDataWithFormattedDates = processedData.map(item => ({
+        ...item,
+        // Create a display date field to avoid AG-Grid date parsing issues
+        display_date: formatDateForDisplay(item.movement_date),
+        // Ensure the original field is in correct format if needed for sorting/filtering
+        movement_date: item.movement_date ? new Date(item.movement_date).toISOString().split('T')[0] : item.movement_date
+      }));
+
+      setStoreData(processedDataWithFormattedDates);
     }
-  }, [storeId, data, refresh]);
+  }, [storeId, data]); // Removed refresh from dependencies to prevent infinite loops
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: Inventory | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
-
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
 
   const handleReverseTransaction = () => {
     setIsReverseModalOpen(true);
@@ -99,17 +131,38 @@ const Inventories: React.FC = () => {
     }
   };
 
+  const handleConfirm = (e: React.MouseEvent, data: any) => {
+    e.stopPropagation();
+    setRecord(data);
+    console.log('fd', data)
+    setSelectedStore(data.warehouse_id);
+    setIsConfirmModalOpen(true);
+    setRecordId(data.id);
+  };
+
+  const handleUndo = (e: React.MouseEvent, data: any) => {
+    e.stopPropagation();
+    setRecord(data);
+    setReversalId(data.unique_id);
+    handleReverseTransaction();
+  };
+
   const columnDefinitions: ColDef<any>[] = [
+   {
+      headerName: "Type",
+      field: "type",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
     {
       headerName: "Name",
-      field: "item.name",
+      field: "item_name",
       filter: true,
       cellClass: "cursor-pointer hover:underline",
       onCellClicked: (event) => {
-        console.log('clicked')
-        navigate(
-          `/inventory/item/${event.data.item_id}/${event.data.item_name}`
-        );
+        console.log("clicked");
+        navigate(`/inventory/item/${event.data.item_id}/${event.data.item_name}`);
       },
     },
     {
@@ -119,17 +172,35 @@ const Inventories: React.FC = () => {
       filter: true,
       suppressSizeToFit: true,
     },
-    {
-      headerName: "Warehouse",
-      field: "warehouse.name",
+     {
+      headerName: "Remaining Qty",
+      field: "remaining_stock",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
-      valueGetter: (params) => params.data.warehouse?.name || 'N/A',
+    },
+    {
+      headerName: "Store",
+      field: "warehouse_name",
+      sortable: true,
+      filter: true,
+      valueGetter: (params) => params.data.warehouse_name || "N/A",
     },
     {
       headerName: "Date",
-      field: "movement_date",
+      field: "display_date", // Use the formatted date field instead of movement_date
+      sortable: true,
+      filter: true,
+      comparator: (valueA, valueB, nodeA, nodeB, isInverted) => {
+        // Use the original movement_date for sorting
+        const dateA = new Date(nodeA.data.movement_date).getTime();
+        const dateB = new Date(nodeB.data.movement_date).getTime();
+        return dateA - dateB;
+      },
+    },
+     {
+      headerName: "Remarks",
+      field: "remarks",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
@@ -139,46 +210,53 @@ const Inventories: React.FC = () => {
       field: "status",
       sortable: true,
       filter: true,
-      suppressSizeToFit: true,
+      cellRenderer: (params: ICellRendererParams<any>) => {
+        const status = params.value;
+        const getStatusStyle = (status: string) => {
+          switch (status?.toLowerCase()) {
+            case 'pending':
+              return 'bg-yellow-100 text-yellow-800';
+            case 'confirmed':
+            case 'completed':
+              return 'bg-green-100 text-green-800';
+            case 'reversed':
+              return 'bg-red-100 text-red-800';
+            default:
+              return 'bg-gray-100 text-gray-800';
+          }
+        };
+        
+        return (
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusStyle(status)}`}>
+            {status || 'N/A'}
+          </span>
+        );
+      },
     },
     {
       headerName: "Action",
-      cellClass: "flex justify-center space-x-2",
-      //@ts-expect-error --ignore
-      cellRenderer: (params) => {
-        const status = params.data.status;
+      autoHeight: true,
+      cellRenderer: (params: ICellRendererParams<any>) => (
+        <div className="flex items-center gap-2">
+          {params.data.status === "pending" && (
+            <button
+              onClick={(e: React.MouseEvent) => handleConfirm(e, params.data)}
+              className="rounded-md text-white bg-orange-500 h-10 px-2 hover:bg-orange-600 transition-colors"
+            >
+              Confirm
+            </button>
+          )}
 
-        return (
-          <div className="flex gap-2">
-            {/* Confirm Button - Only visible when status is 'pending' */}
-            {status === "pending" && (
-              <button
-                onClick={() => {
-                  setSelectedStore(params.data.warehouse_id);
-                  setIsConfirmModalOpen(true);
-                  setRecordId(params.data.id);
-                }}
-                className="rounded-md text-white bg-orange-500 h-10 px-1"
-              >
-                Confirm
-              </button>
-            )}
-
-            {/* Reverse Transaction Button - Always Visible */}
-            {status !== "reversed" && (
-              <button
-                onClick={() => {
-                  setReversalId(params.data.unique_id);
-                  handleReverseTransaction();
-                }}
-                className="rounded-md text-white bg-red-500 h-10 px-1"
-              >
-                Undo
-              </button>
-            )}
-          </div>
-        );
-      },
+          {params.data.status !== "reversed" && (
+            <button
+              onClick={(e: React.MouseEvent) => handleUndo(e, params.data)}
+              className="rounded-md text-white bg-red-500 h-10 px-2 hover:bg-red-600 transition-colors"
+            >
+              Undo
+            </button>
+          )}
+        </div>
+      ),
     },
   ];
 
@@ -189,13 +267,13 @@ const Inventories: React.FC = () => {
           setIsReverseModalOpen(false);
           setReversalReason("");
         }}
-        className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-2"
+        className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded mr-2 transition-colors"
       >
         Cancel
       </button>
       <button
         onClick={reverseTransaction}
-        className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+        className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
         disabled={!reversalReason.trim()}
       >
         Confirm Reversal
@@ -219,7 +297,9 @@ const Inventories: React.FC = () => {
       >
         <div className="p-fluid">
           <div className="p-field">
-            <label htmlFor="reason">Reason for Reversal</label>
+            <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-2">
+              Reason for Reversal
+            </label>
             <InputText
               id="reason"
               value={reversalReason}
@@ -238,7 +318,9 @@ const Inventories: React.FC = () => {
         visible={isConfirmModalOpen}
         onSave={refresh}
         refresh={refresh}
+        record={record}
       />
+      
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedItem}
@@ -250,6 +332,7 @@ const Inventories: React.FC = () => {
           setDialogState({ currentAction: "", selectedItem: undefined })
         }
       />
+      
       <ConfirmDeleteDialog
         apiPath={`/procurement/items/${dialogState.selectedItem?.id}/delete`}
         onClose={() =>
@@ -261,13 +344,16 @@ const Inventories: React.FC = () => {
         }
         onConfirm={refresh}
       />
+      
       <BreadCrump name="Inventory" pageName="Stock In" />
-      <div className="bg-white px-8 rounded-lg">
-        <div className="flex justify-between items-center">
-          <div className="py-2">
-            <h1 className="text-xl font-bold">Stock In Transactions</h1>
+      
+      <div className="bg-white px-8 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex justify-between items-center py-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Stock In Transactions</h1>
+            <p className="text-gray-600 mt-1">Manage inventory stock movements</p>
           </div>
-          <div className="flex gap-2 h-[50px] mb-10 mt-4">
+          <div className="flex gap-3 items-center">
             <div className="p-field">
               <Dropdown
                 required
@@ -278,7 +364,7 @@ const Inventories: React.FC = () => {
                 optionLabel="label"
                 placeholder="Select warehouse"
                 filter
-                className="w-full md:w-14rem"
+                className="w-full md:w-64"
               />
             </div>
             <button
@@ -288,28 +374,24 @@ const Inventories: React.FC = () => {
                   currentAction: "add",
                 })
               }
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
+              className="bg-teal-600 px-4 py-2 rounded text-white flex gap-2 items-center hover:bg-teal-700 transition-colors"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               New Stock
             </button>
-            {/* <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={handleExportPDF}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button> */}
           </div>
         </div>
-        <Table
-          columnDefs={columnDefinitions}
-          data={storeData}
-          ref={tableRef}
-        />
+        
+        <div className="pb-6">
+          <Table
+            columnDefs={columnDefinitions}
+            data={storeData}
+            ref={tableRef}
+          />
+        </div>
       </div>
     </div>
   );
 };
 
-export default Inventories
+export default Inventories;

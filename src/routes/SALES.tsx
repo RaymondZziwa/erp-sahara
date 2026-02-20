@@ -58,16 +58,16 @@ const SALES_ROUTES = [
   //     </Suspense>
   //   ),
   // },
-  {
-    name: "Good Received Note",
-    icon: <Icon icon="mdi:truck-outline" fontSize={24} />,
-    path: "/goodsreceivednotes",
-    element: (
-      <Suspense fallback={<Loading />}>
-        <GoodsReceivedNotes />
-      </Suspense>
-    ),
-  },
+  // {
+  //   name: "Good Received Note",
+  //   icon: <Icon icon="mdi:truck-outline" fontSize={24} />,
+  //   path: "/goodsreceivednotes",
+  //   element: (
+  //     <Suspense fallback={<Loading />}>
+  //       <GoodsReceivedNotes />
+  //     </Suspense>
+  //   ),
+  // },
   {
     name: "Invoices",
     icon: <Icon icon="mdi:truck-outline" fontSize={24} />,

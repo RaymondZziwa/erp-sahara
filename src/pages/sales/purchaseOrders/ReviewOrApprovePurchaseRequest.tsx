@@ -2,117 +2,165 @@ import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { DataTable } from "primereact/datatable";
 import { InputTextarea } from "primereact/inputtextarea";
-import { useState } from "react";
-import { PurchaseRequest } from "../../../redux/slices/types/procurement/PurchaseRequests";
+import { Column } from "primereact/column";
+import { useEffect, useState } from "react";
+import { CustomerOrder } from "../../../redux/slices/types/sales/CustomerOrder";
 import { createRequest } from "../../../utils/api";
 import useAuth from "../../../hooks/useAuth";
-import { Column } from "primereact/column";
+import { SALES_ENDPOINTS } from "../../../api/salesEndpoints";
 
-const ReviewOrApprovePurchaseRequest = ({
-  purchaseRequest,
-  onClose,
-  onRefresh,
-  action,
-}: {
-  purchaseRequest?: PurchaseRequest;
+interface ReviewOrApproveOrderProps {
+  order?: CustomerOrder;
   onClose: () => void;
   onRefresh: () => void;
   action: "approve" | "review";
+  visible: boolean;
+}
+
+const ReviewOrApproveOrder: React.FC<ReviewOrApproveOrderProps> = ({
+  order,
+  onClose,
+  onRefresh,
+  action,
+  visible,
 }) => {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
 
-  const handleAction = async (status: "reviewed" | "rejected") => {
+  const handleAction = async (status: "Approved" | "Rejected") => {
+    if (!order?.id) return;
+
     setLoading(true);
 
-    const endpoint =
-      action === "approve"
-        ? "/procurement/purchase_requests/approve"
-        : "/procurement/purchase_requests/review";
+    try {
+      const endpoint = SALES_ENDPOINTS.CUSTOMER_ORDERS.UPDATE_STATUS(order.id)
 
-    const data =
-      action === "approve" && status !== "rejected"
-        ? {
-            purchase_request_id: purchaseRequest?.id,
-            status: "approved",
-            approval_comment: comment,
-            items: purchaseRequest?.purchase_request_items?.map((item) => ({
-              item_id: item.id,
-              approved_quantity: item.quantity,
-              unit_price_estimate: item.unit_price_estimate,
-              currency_id: item.currency_id,
-              notes: item.notes,
-            })),
-          }
-        : {
-            purchase_request_id: purchaseRequest?.id,
-            status,
-            review_comment: comment,
-            rejected_comment: status === "rejected" ? comment : undefined,
-          };
+      const data = {
+        status: status,
+        comment: comment,
+      };
 
-    await createRequest(endpoint, token.access_token, data, onRefresh, "POST");
+      await createRequest(endpoint, token.access_token, data, onRefresh, "PUT");
+      onClose();
+    } catch (error) {
+      console.error(`Error ${action}ing order:`, error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    setComment("");
-    setLoading(false);
+  const getHeaderText = () => {
+    if (action === "review") {
+      return "Review Customer Order";
+    } else {
+      return "Approve Customer Order";
+    }
+  };
+
+  const getActionButtonText = () => {
+    if (action === "review") {
+      return "Approve";
+    } else {
+      return "Approve Order";
+    }
   };
 
   return (
     <Dialog
-      header={`${action === "review" ? "Review" : "Approve"} Purchase Request`}
-      visible={!!purchaseRequest?.id}
+      header={getHeaderText()}
+      visible={visible}
       onHide={onClose}
       className="w-full md:w-2/3 lg:w-1/2"
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button
+            label="Cancel"
+            icon="pi pi-times"
+            onClick={onClose}
+            className="p-button-text !bg-red-500"
+            disabled={loading}
+          />
+          <Button
+            label="Reject"
+            className="p-button-danger"
+            icon="pi pi-times"
+            onClick={() => handleAction("Rejected")}
+            loading={loading}
+          />
+          <Button
+            label={getActionButtonText()}
+            className="p-button-success"
+            icon="pi pi-check"
+            onClick={() => handleAction("Approved")}
+            loading={loading}
+          />
+        </div>
+      }
     >
-      {purchaseRequest ? (
-        <div className="p-4">
-          <h2 className="text-lg font-semibold mb-4">{purchaseRequest.name}</h2>
-          <div className="mb-4 space-y-2">
+      {order ? (
+        <div className="p-4 space-y-4">
+          <h2 className="text-lg font-semibold">Order #{order.so_number}</h2>
+          
+          <div className="space-y-2">
             <div className="flex border-b py-2">
-              <span className="font-semibold w-1/3">Request Date</span>
-              <span>{purchaseRequest.request_date}</span>
+              <span className="font-semibold w-1/3">Customer</span>
+              <span>
+                {order.customer?.organization_name || 
+                 `${order.customer?.first_name} ${order.customer?.last_name}`}
+              </span>
+            </div>
+            <div className="flex border-b py-2">
+              <span className="font-semibold w-1/3">Order Type</span>
+              <span>{order.order_type}</span>
             </div>
             <div className="flex border-b py-2">
               <span className="font-semibold w-1/3">Status</span>
-              <span>{purchaseRequest.status}</span>
+              <span className={`font-medium ${
+                order.status === 'pending' ? 'text-yellow-600' :
+                order.status === 'reviewed' ? 'text-blue-600' :
+                order.status === 'approved' ? 'text-green-600' :
+                'text-gray-600'
+              }`}>
+                {order.status}
+              </span>
             </div>
             <div className="flex border-b py-2">
-              <span className="font-semibold w-1/3">Requested By</span>
-              <span>{purchaseRequest.requested_by}</span>
+              <span className="font-semibold w-1/3">Order Date</span>
+              <span>{order.order_date}</span>
             </div>
             <div className="flex border-b py-2">
-              <span className="font-semibold w-1/3">Request Comment</span>
-              <span>{purchaseRequest.request_comment || "N/A"}</span>
+              <span className="font-semibold w-1/3">Expected Delivery</span>
+              <span>{order.expected_delivery_date}</span>
             </div>
-            {purchaseRequest.reviewer_comment && (
-              <div className="flex border-b py-2">
-                <span className="font-semibold w-1/3">Review Comment</span>
-                <span>{purchaseRequest.reviewer_comment || "N/A"}</span>
-              </div>
-            )}
+            <div className="flex border-b py-2">
+              <span className="font-semibold w-1/3">Total Amount</span>
+              <span>{order.total_amount}</span>
+            </div>
           </div>
 
-          <DataTable
-            value={purchaseRequest.purchase_request_items}
-            className="mb-4"
-          >
-            <Column field="item.name" header="Item" className="text-sm" />
-            <Column field="quantity" header="Quantity" className="text-sm" />
-            <Column
-              field="unit_price_estimate"
-              header="Unit Price"
-              className="text-sm"
-            />
-            <Column
-              field="total_price_estimate"
-              header="Total Price"
-              className="text-sm"
-            />
-          </DataTable>
+          {order.order_lines && order.order_lines.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-2">Order Items</h3>
+              <DataTable value={order.order_lines} className="p-datatable-sm">
+                <Column field="name" header="Item Name" />
+                <Column field="qty_ordered" header="Quantity" />
+                <Column 
+                  field="unit_price" 
+                  header="Unit Price" 
+                  body={(rowData) => `${rowData.unit_price}`}
+                />
+                <Column 
+                  field="tax_amount" 
+                  header="Tax" 
+                  body={(rowData) => `${rowData.tax_pct}`}
+                />
+              </DataTable>
+            </div>
+          )}
 
-          <div className="mb-4">
-            <label htmlFor="comment" className="font-semibold">
+          <div className="mt-4">
+            <label htmlFor="comment" className="font-semibold block mb-2">
               {action === "approve" ? "Approval" : "Review"} Comment:
             </label>
             <InputTextarea
@@ -120,33 +168,16 @@ const ReviewOrApprovePurchaseRequest = ({
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={4}
-              className="w-full mt-2"
-              placeholder="Add your comment here..."
-            />
-          </div>
-
-          <div className="flex justify-end space-x-4">
-            <Button
-              label="Reject"
-              className="p-button-danger"
-              icon="pi pi-times"
-              onClick={() => handleAction("rejected")}
-              loading={loading}
-            />
-            <Button
-              label="Approve"
-              className="p-button-success"
-              icon="pi pi-check"
-              onClick={() => handleAction("reviewed")}
-              loading={loading}
+              className="w-full"
+              placeholder={`Add your ${action} comment here...`}
             />
           </div>
         </div>
       ) : (
-        <p className="p-4">No purchase request selected.</p>
+        <p className="p-4">No order selected.</p>
       )}
     </Dialog>
   );
 };
 
-export default ReviewOrApprovePurchaseRequest;
+export default ReviewOrApproveOrder;

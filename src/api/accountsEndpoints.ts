@@ -35,6 +35,7 @@ export const ACCOUNTS_ENDPOINTS = {
     APPROVE: (id: string) => `/accounts/cash-requisitions/${id}/approve`,
     REJECT: (id: string) => `/accounts/cash-requisitions/${id}/reject`,
     DISBURSE: (id: string) => `/accounts/cash-requisitions/${id}/disburse`,
+    UPLOAD_ITEM_TEMPLATE: "/accounts/cash-requisitions/uploaditemtemplate"
   },
   FUEL_REQUISITIONS: {
     GET_ALL: "/requisitions/fuel-requisitions",
@@ -45,15 +46,24 @@ export const ACCOUNTS_ENDPOINTS = {
     APPROVE: (id: string) => `/requisitions/fuel-requisitions/${id}/approve`,
     REJECT: (id: string) => `/requisitions/fuel-requisitions/${id}/reject`
   },
+    VEHICLE_REPAIR_REQUISITIONS: {
+    GET_ALL: "/requisitions/repair-requisitions",
+    GET_BY_ID: (id: string) => `/accounts/repair-requisitions/${id}`,
+    ADD: "/requisitions/repair-requisitions/create",
+    UPDATE: (id: string) => `/requisitions/repair-requisitions/${id}`,
+    PRINT: (id: string) => `/requisitions/repair-requisitions/${id}/pdf`,
+    APPROVE: (id: string) => `/requisitions/repair-requisitions/${id}/approve`,
+    REJECT: (id: string) => `/requisitions/repair-requisitions/${id}/reject`
+  },
   STORE_REQUISITIONS: {
     GET_ALL: "/requisitions/store-requisitions",
     GET_BY_ID: (id: string) => `/accounts/fuel-requisitions/${id}`,
     ADD: "/requisitions/store-requisitions",
     UPDATE: (id: string) => `/requisitions/store-requisitions/${id}`,
-    PRINT: (id: string) => `/requisitions/store-requisitions/${id}/pdf`,
+    PRINT: (id: string) => `/requisitions/store-requisitions/${id}/print`,
     APPROVE: (id: string) => `/requisitions/store-requisitions/${id}/approve`, 
     REJECT: (id: string) => `/requisitions/store-requisitions/${id}/reject`,
-    DISBURSE: (id: string) => `/requisitions/store-requisitions/${id}/disburse`
+    DISBURSE: (id: string) => `/requisitions/store-requisitions/${id}/fulfil`
   },
   APPROVAL_LEVELS: {
     GET_ALL: "/accounts/requisitions-approval-level",
@@ -68,6 +78,27 @@ export const ACCOUNTS_ENDPOINTS = {
   TRANSACTIONS: {
     SAVE_EXPENSE: "/accounts/transactions/save-expense",
     UPDATE: (id: string) => `/accounts/transactions/save-expense/${id}`,
+  },
+  BANKS: {
+    GET_ALL: "/accounts/banks",
+    GET_BY_ID: (id: string) =>
+      `/accounts/banks/${id}`,
+    ADD: "/accounts/banks/create",
+    ADD_BRANCH:(bankId: string) => `accounts/banks/${bankId}/branch/create`,
+    UPDATE: (id: string) =>
+      `/accounts/banks/${id}/update`,
+    DELETE: (id: string) =>
+      `/accounts/banks/${id}/delete`,
+  },
+  BANKACCOUNTS: {
+    GET_ALL: "/accounts/bankaccounts",
+    GET_BY_ID: (id: string) =>
+      `/accounts/bankaccounts/${id}`,
+    ADD: "/accounts/bankaccounts/create",
+    UPDATE: (id: string) =>
+      `/accounts/bankaccounts/${id}/update`,
+    DELETE: (id: string) =>
+      `/accounts/bankaccounts/${id}/delete`,
   },
   GET_EXPENSE_ACCOUNTS: "/accounts/get-expense-accounts",
   GET_INCOME_ACCOUNTS: "/accounts/get-income-accounts",

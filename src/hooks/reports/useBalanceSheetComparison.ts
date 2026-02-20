@@ -18,25 +18,26 @@ const useBalanceSheetComparison = () => {
 
   const fetchDataFromApi = async () => {
     if (isFetchingLocalToken) {
+      console.log("fails here 1")
       return;
     }
     if (!token.access_token) {
+      console.log("fails here 2")
       return;
     }
 
     dispatch(fetchDataStart());
 
     try {
-      console.log('aapppiiii')
+      console.log("fails here 3")
       const response = await apiRequest<ServerResponse<balanceSheetType>>(
         REPORTS_ENDPOINTS.COMPARISON_BALANCE_SHEET.GET_ALL,
         "GET",
         token.access_token
       );
-
-      console.log("API response:", response.data);
       dispatch(fetchDataSuccess(response.data));
     } catch (error) {
+      console.log("fails here 4")
       console.error("API error:", error);
       dispatch(
         fetchDataFailure(
@@ -45,13 +46,19 @@ const useBalanceSheetComparison = () => {
       );
     }
   };
-
+  
   useEffect(() => {
-    console.log("useEffect triggered");
-    console.log("isFetchingLocalToken:", isFetchingLocalToken);
-    console.log("token.access_token:", token.access_token);
-    fetchDataFromApi();
-  }, []);
+    console.log("Hook effect running", { isFetchingLocalToken, accessToken: token.access_token });
+    if (isFetchingLocalToken === false && token.access_token) {
+      console.log("Conditions met, fetching data...");
+      fetchDataFromApi();
+    } else {
+      console.log("Conditions not met:", {
+        isFetching: isFetchingLocalToken,
+        hasToken: !!token.access_token
+      });
+    }
+  }, [isFetchingLocalToken, token.access_token]);
 
   const data = useAppSelector((state) => state.balanceSheetComparison);
 

@@ -148,7 +148,7 @@ const BudgetItemsModal: React.FC<Props> = ({
               <Dropdown
                 filter
                 value={item.chart_of_account_id} // Changed from formState to item
-                options={(item.type === "revenue" // Changed from formState to item
+                options={(item.type.toLowerCase() === "revenue" // Changed from formState to item
                   ? incomeAccounts
                   : expenseAccounts || []
                 ).map((acc) => ({ label: acc.name, value: acc.id }))}

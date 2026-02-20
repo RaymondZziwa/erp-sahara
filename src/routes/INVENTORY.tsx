@@ -24,16 +24,16 @@ const Drivers = lazy(() => import("../pages/inventory/drivers"));
 const Loading = () => <div>Loading...</div>;
 
 const INVENTORY_ROUTES = [
-  {
-    name: "Summary",
-    icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
-    path: "/inventory",
-    element: (
-      <Suspense fallback={<Loading />}>
-        <InventoryDashboard />
-      </Suspense>
-    ),
-  },
+  // {
+  //   name: "Summary",
+  //   icon: <Icon icon="solar:layers-line-duotone" fontSize={20} />,
+  //   path: "/inventory",
+  //   element: (
+  //     <Suspense fallback={<Loading />}>
+  //       <InventoryDashboard />
+  //     </Suspense>
+  //   ),
+  // },
   {
     name: "Point Of Sale",
     icon: <Icon icon="ph:house-simple-duotone" fontSize={20} />,

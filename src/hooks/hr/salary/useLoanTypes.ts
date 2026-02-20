@@ -4,7 +4,7 @@ import {
   fetchDataStart,
   fetchDataSuccess,
   fetchDataFailure,
-} from "../../../redux/slices/hr/salary/loanTypesSlice.ts"; // Import actions from your data reducer
+} from "../../../redux/slices/hr/loanTypeSlice.ts"; // Import actions from your data reducer
 import useAuth from "../../useAuth.ts";
 import { apiRequest } from "../../../utils/api.ts";
 
@@ -13,7 +13,7 @@ import { useAppDispatch, useAppSelector } from "../../../redux/hooks.ts";
 
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints.ts";
 
-import { LoanType } from "../../../redux/slices/types/hr/salary/LoanType.ts";
+import { LoanType } from "../../../redux/slices/types/hr/loanType.ts";
 
 const useLoanTypes = () => {
   const dispatch = useAppDispatch();

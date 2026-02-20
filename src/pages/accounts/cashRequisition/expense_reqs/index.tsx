@@ -5,7 +5,6 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Chip } from "primereact/chip";
 import { Menu } from "primereact/menu";
-import { Toast } from "primereact/toast";
 import { TabView, TabPanel } from "primereact/tabview";
 import { confirmDialog } from "primereact/confirmdialog";
 import BreadCrump from "../../../../components/layout/bread_crump";
@@ -20,8 +19,10 @@ import axios from "axios";
 import AddOrModifyRequisition from "./AddOrModifyItem";
 import ConfirmDeleteDialog from "../../../../components/dialog/ConfirmDeleteDialog";
 import ApproveOrReject from "./ApproveOrReject";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import DisburseModal from "./disburse";
+import DownloadTemplateModal from "./downloadTemplate";
+import RetireModal from "./retire";
 
 
 
@@ -38,6 +39,14 @@ const CashRequisitions: React.FC = () => {
   });
 
     const [disburseModal, setDisburseModal] = useState({
+      visible: false,
+      requisition: null,
+    });
+      const [retireModal, setRetireModal] = useState({
+      visible: false,
+      requisition: null,
+    });
+    const [downloadTemplateModal, setDownloadTemplateModal] = useState({
       visible: false,
       requisition: null,
     });
@@ -156,40 +165,6 @@ const CashRequisitions: React.FC = () => {
     return <Chip {...chipProps} />;
   };
 
-  const print = async () => {
-    try {
-      const response = await axios.get(
-        '/accounts/cash-requisitions/downloadtemplate',
-        {
-          headers: {
-            Authorization: `Bearer ${token?.access_token}`,
-          },
-          params: {
-            budget_id: '7b4637b8-54c4-4157-804c-cc716f7c3591',
-            currency_id: '4d4e46ae-9b3d-49c9-bef7-f00d2d2d7d2d',
-          },
-          responseType: 'blob',
-        }
-      );
-
-      // Create a blob from the response
-      const blob = new Blob([response.data]);
-      const url = window.URL.createObjectURL(blob);
-
-      // Create a link and click it to start download
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'cash-requisition-template.xlsx');
-      document.body.appendChild(link);
-      link.click();
-
-      // Cleanup
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error(error);
-    }
-  };
   // Open details modal
   const openDetailsModal = (requisition: CashRequisition) => {
     setSelectedRequisition(requisition);
@@ -320,7 +295,16 @@ const CashRequisitions: React.FC = () => {
             command: () => setDisburseModal({ visible: true, requisition: rowData })
           }        
         ];
-      } // rejected -> empty menu
+      } else if (rowData.status === "Disbursed") {
+         menuItems = [
+          { label: "Print", icon: "pi pi-print", command: () => printApprovedReq(rowData.id) },
+          {
+            label: "Retire",
+            icon: "pi pi-check-circle",
+            command: () => setRetireModal({ visible: true, requisition: rowData })
+          }  
+        ];
+      }
     
       return menuItems.length > 0 ? (
         <div className="relative">
@@ -336,8 +320,6 @@ const CashRequisitions: React.FC = () => {
 
   return (
     <div className="p-4">
-      <ToastContainer />
-
       <ConfirmDeleteDialog
         apiPath={`/accounts/cash-requisitions/${deleteDialog?.item?.id}/delete`}
         onClose={() => setDeleteDialog({ visible: false })}
@@ -374,7 +356,10 @@ const CashRequisitions: React.FC = () => {
             />
             <button
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={print}
+              onClick={() => setDownloadTemplateModal({
+                visible: true,
+                selectedItem: null
+              })}
             >
               <Icon icon="solar:arrow-down" fontSize={20} />
               Download Template
@@ -445,8 +430,10 @@ const CashRequisitions: React.FC = () => {
         </TabView>
       </div>
       <AddOrModifyRequisition visible={dialogState.visible} onHide={() => setDialogState({ currentAction: "", visible: false, selectedItem: undefined })} item={dialogState.selectedItem} onSubmit={refresh} />
-      <ApproveOrReject requisition={approvalModal?.requisition} visible={approvalModal.visible} onHide={() => setApprovalModal({ visible: false })} onCompleted={refresh} />
-      <DisburseModal visible={disburseModal.visible} onHide={()=> setDisburseModal({visible: false})} requisition={disburseModal.requisition} onCompleted={refresh} />
+      <ApproveOrReject requisition={approvalModal?.requisition} visible={approvalModal.visible} onHide={() => setApprovalModal({ visible: false, requisition: undefined })} onCompleted={refresh} />
+      <DisburseModal visible={disburseModal.visible} onHide={() => setDisburseModal({ visible: false })} requisition={disburseModal.requisition} onCompleted={refresh} />
+      <RetireModal visible={retireModal.visible} requisition={retireModal.requisition} onHide={() => setRetireModal({visible: false, requisition: null})} />
+      <DownloadTemplateModal visible={downloadTemplateModal.visible} onClose={() => setDownloadTemplateModal({ visible: false })} />
     </div>
   );
 };

@@ -3,14 +3,25 @@ import { Suspense } from "react";
 import QaSettings from "../pages/procurement/itemPurchases/qaSettings";
 import SettlementTable from "../pages/accounts/itemDeliveryPayment";
 import ItemPurchases from "../pages/procurement/itemPurchases/itemPurchases";
+import ItemPurchaseDashboard from "../pages/procurement/itemPurchases/itemPurchases/dashboard";
 
 // Loader fallback component
 const Loading = () => <div>Loading...</div>;
 
 const ITEM_PURCHASES_ROUTES = [
   {
+    name: "Dashboard",
+    icon: <Icon icon="mdi:view-dashboard-outline" fontSize={20} />,
+    path: "/itempurchasesdashboard",
+    element: (
+      <Suspense fallback={<Loading />}>
+        <ItemPurchaseDashboard />
+      </Suspense>
+    ),
+  },
+  {
     name: "Item Deliveries",
-    icon: <Icon icon="mdi:truck-delivery-outline" fontSize={20} />, // Better icon for deliveries
+    icon: <Icon icon="mdi:truck-delivery-outline" fontSize={20} />, 
     path: "/itempurchases",
     element: (
       <Suspense fallback={<Loading />}>

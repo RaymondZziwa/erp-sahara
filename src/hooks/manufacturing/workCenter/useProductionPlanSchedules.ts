@@ -15,7 +15,7 @@ import { MANUFACTURING_ENDPOINTS } from "../../../api/manufacturingEndpoints.ts"
 import { ProductionPlanSchedule } from "../../../redux/slices/types/manufacturing/ProductionPlanSchedule.ts";
 
 const useProductionPlanSchedule = ({
-  productionPlanId,
+  id,
 }: {
   productionPlanId: string;
 }) => {
@@ -33,8 +33,8 @@ const useProductionPlanSchedule = ({
       const response = await apiRequest<
         ServerResponse<ProductionPlanSchedule[]>
       >(
-        MANUFACTURING_ENDPOINTS.PRODUCTION_PLAN_SCHEDULES.GET_ALL(
-          productionPlanId
+        MANUFACTURING_ENDPOINTS.PRODUCTION_SCHEDULES.GET_ALL(
+          id
         ),
         "GET",
         token.access_token

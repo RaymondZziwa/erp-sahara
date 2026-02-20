@@ -1,21 +1,18 @@
 export interface BillOfMaterial {
   id: number;
-  organisation_id: number;
-  branch_id: null;
-  item_id: number;
+  item_id: string;
   version: string;
   created_at: string;
   updated_at: string;
   item: Item;
-  bo_items: Boitem[];
+  bom_items: Boitem[];
 }
 
 interface Boitem {
-  id: number;
-  bill_of_material_id: number;
-  raw_material_id: number;
+  item_id: number;
   quantity: string;
-  unit_of_measurement: string;
+  uom_id: string;
+  notes: string;
   created_at: string;
   updated_at: string;
   item: Item;

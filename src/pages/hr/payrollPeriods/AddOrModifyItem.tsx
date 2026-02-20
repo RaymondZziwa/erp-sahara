@@ -9,6 +9,7 @@ import { PayRollPeriod } from "../../../redux/slices/types/hr/salary/PayRollPeri
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
 import useAuth from "../../../hooks/useAuth";
 import { createRequest } from "../../../utils/api";
+import usePayrollPeriods from "../../../hooks/hr/usePayRollPeriods";
 
 interface PayRollPeriodFormProps {
   visible: boolean;
@@ -17,8 +18,17 @@ interface PayRollPeriodFormProps {
   item?: Partial<PayRollPeriod>;
 }
 
-const payFrequencies = ["Monthly", "Weekly", "Bi-Weekly", "Hourly"];
-const payTimes = ["Day", "End"];
+const frequencyOptions = [
+  { label: "One-Time", value: "one_time" },
+  { label: "Monthly", value: "monthly" },
+  { label: "Yearly", value: "yearly" }
+];
+
+const payTimeOptions = [
+  { label: "Specific Day", value: "specific_day" },
+  { label: "End of Period", value: "end_of_period" }
+];
+
 const AddOrModifyItem: React.FC<PayRollPeriodFormProps> = ({
   visible,
   onClose,
@@ -26,30 +36,39 @@ const AddOrModifyItem: React.FC<PayRollPeriodFormProps> = ({
   onSave,
 }) => {
   const { token } = useAuth();
+  const {refresh} = usePayrollPeriods()
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formState, setFormState] = useState<Partial<PayRollPeriod>>({
-    start_date: null,
-    end_date: null,
+  const [formState, setFormState] = useState({
+    period_start: null as Date | null,
+    period_end: null as Date | null,
+    scheduled_date: null as Date | null,
+    paytime: "specific_day",
+    frequency: "monthly",
+    pay_day: 25,
     is_repetitive: false,
-    payment_every_after: "Monthly",
-    paytime: "Day",
-    pay_day: 1,
   });
 
   useEffect(() => {
     if (item) {
       setFormState({
-        ...item,
+        period_start: item.period_start ? new Date(item.period_start) : null,
+        period_end: item.period_end ? new Date(item.period_end) : null,
+        scheduled_date: item.scheduled_date ? new Date(item.scheduled_date) : null,
+        paytime: item.paytime || "specific_day",
+        frequency: item.frequency || "monthly",
+        pay_day: item.pay_day || 25,
+        is_repetitive: item.is_repetitive || false,
       });
     } else {
       setFormState({
-        start_date: null,
-        end_date: null,
+        period_start: null,
+        period_end: null,
+        scheduled_date: null,
+        paytime: "specific_day",
+        frequency: "monthly",
+        pay_day: 25,
         is_repetitive: false,
-        payment_every_after: "Monthly",
-        paytime: "Day",
-        pay_day: 1,
       });
     }
   }, [item]);
@@ -63,13 +82,21 @@ const AddOrModifyItem: React.FC<PayRollPeriodFormProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Validate required fields
+    if (!formState.period_start || !formState.period_end) {
+      alert("Please fill in all required fields");
+      setIsSubmitting(false);
+      return;
+    }
+
     const payload = {
-      start_date: formState.start_date,
-      end_date: formState.end_date,
-      is_repetitive: formState.is_repetitive ?? false,
-      payment_every_after: formState.payment_every_after ?? "Monthly",
-      paytime: formState.paytime ?? "Day",
-      pay_day: Number(formState.pay_day ?? 1),
+      period_start: formState.period_start ? formState.period_start.toISOString().split("T")[0] : null,
+      period_end: formState.period_end ? formState.period_end.toISOString().split("T")[0] : null,
+      scheduled_date: formState.scheduled_date ? formState.scheduled_date.toISOString().split("T")[0] : null,
+      paytime: formState.paytime,
+      frequency: formState.frequency,
+      pay_day: Number(formState.pay_day),
+      is_repetitive: formState.is_repetitive,
     };
 
     const method = item?.id ? "PUT" : "POST";
@@ -77,10 +104,15 @@ const AddOrModifyItem: React.FC<PayRollPeriodFormProps> = ({
       ? HUMAN_RESOURCE_ENDPOINTS.PAYROLL_PERIODS.UPDATE(item.id.toString())
       : HUMAN_RESOURCE_ENDPOINTS.PAYROLL_PERIODS.ADD;
 
-    await createRequest(endpoint, token.access_token, payload, onSave, method);
-    setIsSubmitting(false);
-    onSave();
-    onClose();
+    try {
+      await createRequest(endpoint, token.access_token, payload, onSave, method);
+      refresh();
+      onClose();
+    } catch (error) {
+      console.error("Error saving payroll period:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const footer = (
@@ -118,81 +150,107 @@ const AddOrModifyItem: React.FC<PayRollPeriodFormProps> = ({
         className="grid gap-4"
       >
         <div className="p-field">
-          <label htmlFor="start_date">Start Date</label>
+          <label htmlFor="period_start">Period Start Date *</label>
           <Calendar
-            id="start_date"
-            value={formState.start_date ? new Date(formState.start_date) : null}
+            id="period_start"
+            value={formState.period_start}
             onChange={(e) =>
               setFormState((prev) => ({
                 ...prev,
-                start_date: e.value?.toISOString().split("T")[0] || null,
+                period_start: e.value as Date,
               }))
             }
             dateFormat="yy-mm-dd"
+            showIcon
             className="w-full"
+            required
           />
         </div>
 
         <div className="p-field">
-          <label htmlFor="end_date">End Date</label>
+          <label htmlFor="period_end">Period End Date *</label>
           <Calendar
-            id="end_date"
-            value={formState.end_date ? new Date(formState.end_date) : null}
+            id="period_end"
+            value={formState.period_end}
             onChange={(e) =>
               setFormState((prev) => ({
                 ...prev,
-                end_date: e.value?.toISOString().split("T")[0] || null,
+                period_end: e.value as Date,
               }))
             }
             dateFormat="yy-mm-dd"
+            showIcon
             className="w-full"
+            required
           />
         </div>
 
         <div className="p-field">
-          <label htmlFor="payment_every_after">Payment Frequency</label>
+          <label htmlFor="frequency">Frequency *</label>
           <Dropdown
-            id="payment_every_after"
-            name="payment_every_after"
-            value={formState.payment_every_after}
-            options={payFrequencies}
+            id="frequency"
+            name="frequency"
+            value={formState.frequency}
+            options={frequencyOptions}
             onChange={handleInputChange}
             placeholder="Select Frequency"
             className="w-full"
+            required
           />
         </div>
 
         <div className="p-field">
-          <label htmlFor="paytime">Pay Time</label>
+          <label htmlFor="paytime">Pay Time *</label>
           <Dropdown
             id="paytime"
             name="paytime"
             value={formState.paytime}
-            options={payTimes}
+            options={payTimeOptions}
             onChange={handleInputChange}
             placeholder="Select Pay Time"
             className="w-full"
+            required
           />
         </div>
 
-        <div className="p-field">
-          <label htmlFor="pay_day">Pay Day (1–30)</label>
-          <InputNumber
-            id="pay_day"
-            name="pay_day"
-            value={formState.pay_day}
-            onValueChange={(e) =>
-              setFormState((prev) => ({
-                ...prev,
-                pay_day: e.value ?? 1,
-              }))
-            }
-            showButtons
-            min={1}
-            max={30}
-            className="w-full"
-          />
-        </div>
+        {formState.paytime === "specific_day" && (
+          <>
+           <div className="p-field">
+              <label htmlFor="scheduled_date">Scheduled Date</label>
+              <Calendar
+                id="scheduled_date"
+                value={formState.scheduled_date}
+                onChange={(e) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    scheduled_date: e.value as Date,
+                  }))
+                }
+                dateFormat="yy-mm-dd"
+                showIcon
+                className="w-full"
+              />
+            </div>
+          <div className="p-field">
+            <label htmlFor="pay_day">Pay Day (1-31) *</label>
+            <InputNumber
+              id="pay_day"
+              name="pay_day"
+              value={formState.pay_day}
+              onValueChange={(e) =>
+                setFormState((prev) => ({
+                  ...prev,
+                  pay_day: e.value ?? 25,
+                }))
+              }
+              showButtons
+              min={1}
+              max={31}
+              className="w-full"
+            />
+            </div>
+          </>
+        )}
 
         <div className="flex items-center gap-2">
           <Checkbox
@@ -205,7 +263,9 @@ const AddOrModifyItem: React.FC<PayRollPeriodFormProps> = ({
               }))
             }
           />
-          <label htmlFor="is_repetitive">Is Repetitive</label>
+          <label htmlFor="is_repetitive" className="cursor-pointer">
+            Is Repetitive
+          </label>
         </div>
       </form>
     </Dialog>

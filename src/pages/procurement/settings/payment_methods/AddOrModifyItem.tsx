@@ -37,6 +37,8 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     if (item) {
       setFormState({
         name: item.name || "",
+        chart_of_account_id: item.chart_of_account_id || 0,
+        description: item.description || ""
       });
     } else {
       setFormState({ name: "", chart_of_account_id: 0, description: "" });

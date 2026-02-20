@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Icon } from "@iconify/react";
 import { TrialBalance } from "../../../redux/slices/types/reports/TrialBalance";
 import useAuth from "../../../hooks/useAuth";
 import { REPORTS_ENDPOINTS } from "../../../api/reportsEndpoints";
@@ -23,9 +22,15 @@ function TrialBalanceReport() {
           start_date: startOfMonth.toISOString().split("T")[0],
           end_date: endOfMonth.toISOString().split("T")[0],
         });
+  
+  const exportPdf = async () => { }
+  const exportExcel = async () => {}
 
   const print = async () => {
     try {
+      setIsLoading(true);
+      //export to excel /reports/accounting/detail-trial-balance/export-to-excel
+      //export to pdf /reports/accounting/detail-trial-balance/export-print-tb
       const response = await axios.get(
         `${baseURL}/reports/accounting/print-tb`,
         {
@@ -42,6 +47,7 @@ function TrialBalanceReport() {
 
       // Open the file in a new browser tab
       window.open(fileURL, "_blank");
+      setIsLoading(false);
     } catch (error) {
       console.error("Error previewing the trial balance report:", error);
     }
@@ -70,18 +76,18 @@ function TrialBalanceReport() {
     fetchDataFromApi();
   }, [isFetchingLocalToken, token.access_token]);
 
-    if (isLoading) {
-      return (
-        <div className="flex justify-center items-center h-screen">
-         <PropagateLoader color="#007f80"/>
-        </div>
-      );
-    }
+    // if (isLoading) {
+    //   return (
+    //     <div className="flex justify-center items-center h-screen">
+    //      <PropagateLoader color="#007f80"/>
+    //     </div>
+    //   );
+    // }
 
 
   return (
     <div className="bg-white p-3">
-      <CustomReportHeader />
+      <CustomReportHeader printfn={print} searchfn={() => { }} loading={isLoading} />
       <div className="flex flex-row justify-center items-center mt-20">
       <Header title="Trial Balance" />
       </div>
@@ -95,7 +101,7 @@ function TrialBalanceReport() {
 
       {/* Pass customHeader inside the Table component */}
       {isLoading && trialBalanceData == null ? (
-        "Loading..."
+        <PropagateLoader color="#007f80"/>
       ) : (
         <table className="w-full">
           <thead className="border-b border-gray-300">

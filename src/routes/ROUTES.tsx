@@ -26,6 +26,7 @@ import SUPPLIER_LOANS_ROUTES from "./SUPPLIER_LOANS";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import ITEM_PURCHASES_ROUTES from "./ITEM_PURCHASES";
+import InventoryDashboard from "../pages/inventory/inventories/InventoryDashboard";
 
 const ROUTES: Route[] = [
   {
@@ -33,6 +34,7 @@ const ROUTES: Route[] = [
     icon: <Icon icon="mdi:view-dashboard-outline" fontSize={24} />,
     path: "/",
     element: <Dashboard />
+    //element: <InventoryDashboard />
     //sidebarItems: DASHBOARD_ROUTES,
   },
   {
@@ -136,10 +138,10 @@ const ROUTES: Route[] = [
   {
     name: "MOSS APP",
     serviceName: "MOSAPP",
-      icon: <Icon icon="mdi:tractor" fontSize={24} />, // Example: Tractor icon for a farm-related look
-      path: "/mossapp",
+    icon: <Icon icon="mdi:tractor" fontSize={24} />,
+    path: "/mossapp",
     sidebarItems: MOSS_APP_ROUTES,
-    //requiredPermission: "access_mosapp_module",
+    requiredPermission: "access_mosapp_module",
   },
   {
     name: "Manufacturing",

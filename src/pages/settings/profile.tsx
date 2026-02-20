@@ -4,7 +4,7 @@ import axios, { AxiosError } from "axios";
 import Logo from "../../assets/images/sahara.jpeg";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
-import { baseURL, imageURL } from "../../utils/api";
+import { baseURL, imageURL, org } from "../../utils/api";
 import { toast, ToastContainer } from "react-toastify";
 
 interface OrganizationProfile {
@@ -363,7 +363,34 @@ const ProfilePage = () => {
                       </p>
                     )}
                   </div>
-                  <div>
+
+                  <div className="sm:col-span-2">
+                    <label
+                      htmlFor="description"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Description
+                    </label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="description"
+                        id="description"
+                        value={tempProfile.description}
+                        onChange={handleInputChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      />
+                    ) : (
+                      <p className="mt-1 text-sm text-gray-900">
+                        {profile.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {
+                    org === 'latcu' && (
+                      <>
+                      <div>
                     <label
                       htmlFor="organisation_type"
                       className="block text-sm font-medium text-gray-700"
@@ -390,54 +417,29 @@ const ProfilePage = () => {
                       </p>
                     )}
                   </div>
-
-                  <div className="sm:col-span-2">
-                    <label
-                      htmlFor="description"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Description
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="description"
-                        id="description"
-                        value={tempProfile.description}
-                        onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      />
-                    ) : (
-                      <p className="mt-1 text-sm text-gray-900">
-                        {profile.description}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="printer_ip"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Printer IP
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="printer_ip"
-                        id="printer_ip"
-                        value={tempProfile.printer_ip}
-                        onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      />
-                    ) : (
-                      <p className="mt-1 text-sm text-gray-900">
-                        {profile.printer_ip}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
+                      <div>
+                          <label
+                            htmlFor="printer_ip"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Printer IP
+                          </label>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              name="printer_ip"
+                              id="printer_ip"
+                              value={tempProfile.printer_ip}
+                              onChange={handleInputChange}
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
+                          ) : (
+                            <p className="mt-1 text-sm text-gray-900">
+                              {profile.printer_ip}
+                            </p>
+                          )}
+                        </div>
+                        <div>
                     <label
                       htmlFor="print_header_text"
                       className="block text-sm font-medium text-gray-700"
@@ -459,6 +461,9 @@ const ProfilePage = () => {
                       </p>
                     )}
                   </div>
+                      </>
+                    )
+                  }
 
                   <div className="sm:col-span-2">
                     <label
@@ -511,7 +516,7 @@ const ProfilePage = () => {
                     )}
                   </div>
 
-                  <div>
+                  {/* <div>
                     <label
                       htmlFor="tin_no"
                       className="block text-sm font-medium text-gray-700"
@@ -532,7 +537,7 @@ const ProfilePage = () => {
                         {profile.tin_no}
                       </p>
                     )}
-                  </div>
+                  </div> */}
 
                   <div className="sm:col-span-2">
                     <div className="flex items-center">

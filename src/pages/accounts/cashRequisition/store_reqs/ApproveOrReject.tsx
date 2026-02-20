@@ -190,7 +190,7 @@ const ApproveOrReject = ({
                   handleApprovalItemChange(index, "ticked", e.checked)
                 }
               />
-              <span className="font-semibold">{originalItem?.item_name}</span>
+              <span className="font-semibold">{originalItem?.item.name}</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

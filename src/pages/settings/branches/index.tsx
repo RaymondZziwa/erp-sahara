@@ -8,6 +8,7 @@ import useBranches from "../../../hooks/Branches/useBranches";
 import { Branch } from "../../../redux/slices/types/Branches/type";
 import AddOrModifyBranch from "./AddOrModify";
 import { API_ENDPOINTS } from "../../../api/apiEndpoints";
+import { ToastContainer } from "react-toastify";
 
 const Branches: React.FC = () => {
   const { data: branches, refresh } = useBranches();
@@ -17,12 +18,6 @@ const Branches: React.FC = () => {
     selectedBranch: Branch | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedBranch: undefined, currentAction: "" });
-
-  const handleExportPDF = () => {
-    if (tableRef.current) {
-      tableRef.current.exportPDF();
-    }
-  };
 
   const columnDefinitions: ColDef<Branch>[] = [
     {
@@ -105,6 +100,7 @@ const Branches: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       <AddOrModifyBranch
         onSave={refresh}
         branch={dialogState.selectedBranch}

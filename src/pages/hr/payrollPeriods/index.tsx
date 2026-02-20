@@ -10,26 +10,32 @@ import Table from "../../../components/table";
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
 import usePayrollPeriods from "../../../hooks/hr/usePayRollPeriods";
 import { PayRollPeriod } from "../../../redux/slices/types/hr/salary/PayRollPeriod";
+import GenerateGrossPayrollModal from "./generateGrossPayroll";
+import { ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const PayrollPeriods: React.FC = () => {
+  const navigate = useNavigate()
   const { data, refresh } = usePayrollPeriods();
   const tableRef = useRef<any>(null);
+  const [displayModal, setDisplayModal] = useState(false)
 
   const [dialogState, setDialogState] = useState<{
     selectedItem: PayRollPeriod | undefined;
     currentAction: "delete" | "edit" | "add" | "";
   }>({ selectedItem: undefined, currentAction: "" });
+  const [schedule, setSelectedSchedule] = useState()
 
   const columnDefinitions: ColDef<PayRollPeriod>[] = [
     {
       headerName: "Start Date",
-      field: "start_date",
+      field: "period_start",
       sortable: true,
       filter: true,
     },
     {
       headerName: "End Date",
-      field: "end_date",
+      field: "period_end",
       sortable: true,
       filter: true,
     },
@@ -51,9 +57,36 @@ const PayrollPeriods: React.FC = () => {
       field: "id",
       sortable: false,
       filter: false,
+      width: "400px",
       cellRenderer: (params: ICellRendererParams<PayRollPeriod>) => (
         <div className="flex items-center gap-2">
-          <button
+          {
+            params.data.status === 'generated' && (
+               <button
+                  className="bg-shade px-2 py-1 rounded text-white"
+                  onClick={(e) => {
+                    e.stopPropagation(); // prevent triggering row click
+                    navigate(`/hr/payroll/schedules/${params.data.id}/runs`);
+                  }}
+                >
+                  See Run
+                </button>
+            )
+          }
+          {
+            params.data.status === 'pending' && (
+              <button
+                className="bg-shade px-2 py-1 rounded text-white"
+                onClick={() => {
+                  setDisplayModal(true);
+                  setSelectedSchedule(params.data);
+                }}
+              >
+                Generate Payroll
+              </button>
+            )
+          }
+          {/* <button
             className="bg-shade px-2 py-1 rounded text-white"
             onClick={() =>
               setDialogState({
@@ -64,7 +97,7 @@ const PayrollPeriods: React.FC = () => {
             }
           >
             Edit
-          </button>
+          </button> */}
           <Icon
             onClick={() =>
               setDialogState({
@@ -84,6 +117,7 @@ const PayrollPeriods: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       <AddOrModifyItem
         onSave={refresh}
         item={dialogState.selectedItem}
@@ -111,11 +145,11 @@ const PayrollPeriods: React.FC = () => {
           onConfirm={refresh}
         />
       )}
-      <BreadCrump name="Payroll periods" pageName="All" />
+      <BreadCrump name="Payroll schedule" pageName="All" />
       <div className="bg-white px-8 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="py-2">
-            <h1 className="text-xl font-bold">Payroll periods</h1>
+            <h1 className="text-xl font-bold">Payroll schedule</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -128,12 +162,13 @@ const PayrollPeriods: React.FC = () => {
               className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
             >
               <Icon icon="solar:add-circle-bold" fontSize={20} />
-              Add Period
+              Add Schedule
             </button>
           </div>
         </div>
         <Table columnDefs={columnDefinitions} data={data} ref={tableRef} />
       </div>
+      {displayModal && <GenerateGrossPayrollModal visible={displayModal} onClose={() => setDisplayModal(false)} schedule={schedule} />}
     </div>
   );
 };

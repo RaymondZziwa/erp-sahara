@@ -7,7 +7,7 @@ import useAuth from "../../hooks/useAuth";
 import { useAppDispatch } from "../../redux/hooks";
 //import { useTranslation } from "react-i18next";
 import saharaLogo from '../../assets/images/sahara.jpeg';
-import latcuLogo from '../../assets/images/logos/moss.jpeg'
+import latcuLogo from '../../assets/images/logos/shrecu.jpeg'
 import { org } from "../../utils/api";
 import axios from "axios";
 import { baseURL } from "../../utils/api";
@@ -84,7 +84,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               src={org === "latcu" ? latcuLogo : saharaLogo}
               alt=""
               className=" w-58 h-48"
-            /> */}
+            />  */}
             {org === "sahara" && (
               <p className="font-bold text-6xl -mt-8 mb-4">SPICE HUB</p>
             )}
@@ -173,7 +173,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 loading={isLoading}
                 disabled={isLoading}
               type="submit"
-              className="w-full bg-teal-500 hover:bg-teal-600 text-center"
+              className="w-full bg-teal-500 hover:bg-teal-600 text-center cursor-pointer"
             >
                 <h4 className="flex w-full justify-center">{isLoading ? "LOGGING IN" : " LOG IN"}</h4>
             </Button>

@@ -18,6 +18,7 @@ import { toast, ToastContainer } from "react-toastify";
 const ExpenseTransactions: React.FC = () => {
   const tableRef = useRef<any>(null);
   const [dt, setDt] = useState<any[]>([]);
+  const [limit, setLimit] = useState(100)
   const token = useSelector(
     (state: RootState) => state.userAuth.token.access_token
   );
@@ -44,12 +45,17 @@ const ExpenseTransactions: React.FC = () => {
 
   const fetchRecords = async () => {
     try {
-      const response = await axios.get(`${baseURL}/accounts/general-ledger/4`, {
+      const response = await axios.get(`${baseURL}/reports/accounting/journal-type-transactions?journal_type=4&limit=${limit}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setDt(response.data.data);
+      // const response = await axios.get(`${baseURL}/reports/accounting/general-ledger-account/`, {
+      //   headers: {
+      //     Authorization: `Bearer ${token}`,
+      //   },
+      // });
+      setDt(response.data.data.data);
       //    if(response.success) {
       //     setDt(response.data.data)
       //    }
@@ -83,25 +89,31 @@ const ExpenseTransactions: React.FC = () => {
   const columnDefinitions: ColDef<any>[] = [
     {
       headerName: "Date",
-      field: "transaction_date",
+      field: "date",
       sortable: true,
       filter: true,
     },
     {
       headerName: "Debit A/C",
-      field: "debit_account.name",
+      field: "debit_account_name",
       sortable: true,
       filter: true,
     },
     {
       headerName: "Credit A/C",
-      field: "credit_account.name",
+      field: "credit_account_name",
       sortable: true,
       filter: true,
     },
     {
       headerName: "Amount",
-      field: "amount",
+      field: "debit",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Running Balance",
+      field: "running_balance",
       sortable: true,
       filter: true,
     },
@@ -236,7 +248,7 @@ const ExpenseTransactions: React.FC = () => {
         </div>
         <Table
           columnDefs={columnDefinitions}
-          data={[]}
+          data={dt? dt : []}
           ref={tableRef}
         />
       </div>

@@ -59,9 +59,16 @@ const StockOut: React.FC = () => {
   }, [storeId, data, refresh]);
 
   const columnDefinitions: ColDef<any>[] = [
+   {
+      headerName: "Type",
+      field: "type",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
     {
       headerName: "Name",
-      field: "item.name",
+      field: "item_name",
       sortable: true,
       filter: true,
       cellClass: 'cursor-pointer hover:underline',
@@ -70,16 +77,23 @@ const StockOut: React.FC = () => {
         navigate(`/inventory/item/${event.data.item_id}/${event.data.item_name}`);
       },
     },
+    // {
+    //   headerName: "Transaction type",
+    //   field: "transaction_type",
+    //   sortable: true,
+    //   filter: true,
+    //   suppressSizeToFit: true,
+    // },
     {
-      headerName: "Transaction type",
-      field: "transaction_type",
+      headerName: "Quantity",
+      field: "quantity",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
     },
-    {
-      headerName: "Quantity",
-      field: "quantity",
+     {
+      headerName: "Remaining Qty",
+      field: "remaining_stock",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
@@ -97,7 +111,7 @@ const StockOut: React.FC = () => {
       sortable: true,
       filter: true,
       suppressSizeToFit: true,
-      valueGetter: (params) => params.data.warehouse?.name || 'N/A',
+      valueGetter: (params) => params.data.warehouse_name || 'N/A',
     },
     {
       headerName: "Date",
@@ -122,7 +136,14 @@ const StockOut: React.FC = () => {
     },
     {
       headerName: "Picked by",
-      field: "status",
+      field: "picked_by",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "Remarks",
+      field: "remarks",
       sortable: true,
       filter: true,
       suppressSizeToFit: true,

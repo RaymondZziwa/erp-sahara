@@ -43,14 +43,14 @@ const BankingLedgers: React.FC = () => {
       const fetchRecords = async () => {
         try {
           const response = await axios.get(
-            `${baseURL}/accounts/general-ledger/20`,
+            `${baseURL}/reports/accounting/journal-type-transactions?journal_type=20&limit=100`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
             }
           );
-          setDt(response.data.data);
+          setDt(response.data.data.data);
           //    if(response.success) {
           //     setDt(response.data.data)
           //    }
@@ -82,31 +82,37 @@ const BankingLedgers: React.FC = () => {
 const columnDefinitions: ColDef<any>[] = [
   {
     headerName: "Date",
-    field: "transaction_date",
+    field: "date",
     sortable: true,
     filter: true,
   },
   {
     headerName: "Debit A/C",
-    field: "debit_account.name",
+    field: "debit_account_name",
     sortable: true,
     filter: true,
   },
   {
     headerName: "Credit A/C",
-    field: "credit_account.name",
+    field: "credit_account_name",
     sortable: true,
     filter: true,
   },
-  {
-    headerName: "Amount",
-    field: "amount",
-    sortable: true,
-    filter: true,
-  },
+    {
+      headerName: "Amount",
+      field: "debit",
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: "Running Balance",
+      field: "running_balance",
+      sortable: true,
+      filter: true,
+    },
   {
     headerName: "Description",
-    field: "journal_transaction.description",
+    field: "description",
     sortable: true,
     filter: true,
   },
@@ -241,7 +247,7 @@ const columnDefinitions: ColDef<any>[] = [
 
         <Table
           columnDefs={columnDefinitions}
-          data={[]}
+          data={dt ? dt : []}
           ref={tableRef}
         />
       </div>

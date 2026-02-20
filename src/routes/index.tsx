@@ -30,7 +30,6 @@ import OwnersEquityReport from "../pages/reports/accounting/owners_equity";
 import BudgetComparisonReport from "../pages/reports/accounting/BudgetComparisonReport";
 import OwnersEquityDetailedReport from "../pages/reports/accounting/detailedOwnerEquity";
 import AssetRegistryReport from "../pages/reports/assets/assetRegistryReport";
-import ProductionPlans from "../pages/manufacturing/productionPlans";
 import ProductionOutput from "../pages/manufacturing/productionOutput";
 import Reports from "../pages/reports";
 import JobOffersReport from "../pages/reports/recruitment/job-offers-report";
@@ -40,6 +39,23 @@ import ApplicationSourceReport from "../pages/reports/recruitment/application-so
 import RecruitmentSummaryDashboard from "../pages/reports/recruitment/recruitment-summary-dashboard-report";
 import RolePermissionsPage from "../pages/settings/permissions";
 import LoanRepayments from "../pages/supplierLoans/loanRepaymentRecords";
+import MaintainanceLogs from "../pages/manufacturing/setup/machines/details/maintainanceLog";
+import ProductionSteps from "../pages/manufacturing/productionOrders/details/productionSteps";
+import ProductionSchedules from "../pages/manufacturing/productionOrders/details/productionSchedules";
+import ProductionMaterialRequests from "../pages/manufacturing/productionOrders/details/materialRequests";
+import DailyProductionReport from "../pages/reports/manufacturing/daily-production-report";
+import Batches from "../pages/manufacturing/productionBatches";
+import Ledgers from "../pages/accounts/chartOfAccounts/ledgers";
+import AssetDetails from "../pages/assets/assetDetails/assetDetails";
+import ManageSalaryStructure from "../pages/hr/salaryStructures/manageStructure";
+import ManageEmployee from "../pages/hr/employees/manageEmployee";
+import PayrollRuns from "../pages/hr/payrollPeriods/payrollRuns";
+import CashierSalesReport from "../pages/reports/sales/cashier_sales_report";
+import DailySalesSummaryReport from "../pages/reports/sales/daily_sales_summary";
+import TopProductSalesReport from "../pages/reports/sales/top_product_sales";
+import DailyProductSalesReport from "../pages/reports/sales/daily_product_sales";
+import CreditSales from "../pages/inventory/pos/creditSales";
+import RecentSales from "../pages/inventory/pos/recentSales";
 
 const AppRouter = () => {
   const token = useSelector(
@@ -102,6 +118,10 @@ const AppRouter = () => {
             path="/"
             element={<Navigate to={token ? "/inventory" : "/login"} replace />}
           />
+          <Route
+            path="/accounts/accounts/subcategories/:id"
+            element={<Ledgers />}
+          />
           <Route path="/reports" element={<Reports />} />
           <Route
             path="/supplier-performance-report"
@@ -135,6 +155,8 @@ const AppRouter = () => {
             element={<DamagedStockReport />}
           />
           <Route path="/balance-sheet" element={<BalanceSheetReport />} />
+          <Route path="/credit-sales" element={<CreditSales />} />
+          <Route path="/recent-sales" element={<RecentSales />} />
           <Route
             path="/income-statement-report"
             element={<IncomeStatementReport />}
@@ -146,17 +168,17 @@ const AppRouter = () => {
             element={<AssetRegistryReport />}
           />
           <Route path="/owners-equity" element={<OwnersEquityReport />} />
+          <Route path="/cashier-sales-summary" element={<CashierSalesReport />} />
+          <Route path="/daily_sales_summary" element={<DailySalesSummaryReport />} />
+          <Route path="/top_product_sales" element={<TopProductSalesReport />} />
+          <Route path="/daily_product_sales" element={<DailyProductSalesReport/>} />
           <Route
             path="/detailed-owners-equity"
             element={<OwnersEquityDetailedReport />}
           />
           <Route
-            path="/manufacturing/workcenters/workorders/:id"
-            element={<ProductionPlans />}
-          />
-          <Route
-            path="/manufacturing/workcenters/workorders/workschedule/:id"
-            element={<ProductionOutput />}
+            path="/manufacturing/workstations/machines/:id"
+            element={<MaintainanceLogs />}
           />
           <Route path="/cash-book" element={<CashBook />} />
           <Route
@@ -164,6 +186,7 @@ const AppRouter = () => {
             element={<GeneralLedgerReport />}
           />
           <Route path="/stock-taking-report" element={<StockTakingReport />} />
+          <Route path="/daily-production-report" element={<DailyProductionReport />} />
           <Route
             path="/balance-sheet-comparisons"
             element={<ComparisonBalanceSheet />}
@@ -189,6 +212,39 @@ const AppRouter = () => {
             element={<LoanRepayments />}
           />
           <Route path="/roles/:id/permissions" element={<RolePermissionsPage />} />
+          {/* manufacturing dynamic routes */}
+          <Route
+            path="/manufacturing/production_order/production_steps/:id"
+            element={<ProductionSteps />}
+          />
+          <Route
+            path="/manufacturing/production_order/production_schedules/:id"
+            element={<ProductionSchedules />}
+          />
+           <Route
+            path="/asset-management/asset_details/:id"
+            element={<AssetDetails />}
+          />
+          <Route
+            path="/manufacturing/production_order/material_requests/:id"
+            element={<ProductionMaterialRequests />}
+          />
+          <Route
+            path="/manufacturing/production_order/batches/:id"
+            element={<Batches />}
+          />
+          <Route
+            path="/hr/salary_structure/:id"
+            element={<ManageSalaryStructure />}
+          />
+          <Route
+            path="/hr/employee/:id"
+            element={<ManageEmployee />}
+          />
+          <Route
+            path="/hr/payroll/schedules/:id/runs"
+            element={<PayrollRuns />}
+          />
         </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />

@@ -397,7 +397,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
           <MultiSelect
             value={formState.suppliers.map((s) => s.supplier_id)}
             options={suppliers.map((supplier) => ({
-              label: supplier.supplier_name,
+              label: supplier.name,
               value: supplier.id,
             }))}
             onChange={handleSupplierChange}

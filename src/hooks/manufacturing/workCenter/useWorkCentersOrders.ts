@@ -27,7 +27,7 @@ const useWorkCenterOrders = () => {
     dispatch(fetchDataStart()); // Dispatch action to indicate data fetching has started
     try {
       const response = await apiRequest<ServerResponse<WorkOrder[]>>(
-        MANUFACTURING_ENDPOINTS.WORK_CENTER_ORDERS.GET_ALL,
+        MANUFACTURING_ENDPOINTS.WORK_ORDERS.GET_ALL,
         "GET",
         token.access_token
       );

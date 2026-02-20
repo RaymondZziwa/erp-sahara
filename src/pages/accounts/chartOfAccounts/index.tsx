@@ -72,6 +72,7 @@ const ChartOfAccounts: React.FC = () => {
         <div className="flex items-center gap-2">
           <Link
             to={"/accounts/accounts/subcategories/" + params.data?.id}
+            state={{ data: params.data }}
             className="text-shade hover:underline"
           >
             {params.data?.name}

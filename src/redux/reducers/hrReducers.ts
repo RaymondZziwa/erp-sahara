@@ -10,7 +10,6 @@ import allowanceTypeSlice from "../slices/hr/salary/allowanceTypeSlice";
 import bonusTypesSlice from "../slices/hr/salary/bonusTypesSlice";
 import deductionsSlice from "../slices/hr/salary/deductionsSlice";
 import deductionTypesSlice from "../slices/hr/salary/deductionTypesSlice";
-import loanTypesSlice from "../slices/hr/salary/loanTypesSlice";
 import salaryStructureSlice from "../slices/hr/salaryStructureSlice";
 
 export const HR_REDUCERS = {
@@ -22,7 +21,6 @@ export const HR_REDUCERS = {
   leaveTypes: leavesSlice,
   leaveApplications: leaveApplicationSlice,
   bonusTypes: bonusTypesSlice,
-  loanTypes: loanTypesSlice,
   deductionTypes: deductionTypesSlice,
   allowanceType: allowanceTypeSlice,
   payrollPeriods: payrollPeriodSlice,

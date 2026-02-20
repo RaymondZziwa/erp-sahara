@@ -107,7 +107,7 @@ const RoleManagement = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-800">{role.name}</h3>
-                        <p className="text-sm text-gray-500">{role.permissions.length} permissions</p>
+                        <p className="text-sm text-gray-500">{role.permissions.length} permission(s)</p>
                       </div>
                     </div>
                     <div className="flex gap-2">

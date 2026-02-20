@@ -151,7 +151,7 @@ const BalanceSheetReport = () => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
-      <CustomReportHeader />
+      <CustomReportHeader printfn={printPdf}/>
       <div className="flex flex-row justify-center items-center mt-20">
       <Header title="Balance Sheet Report" />
       </div>
@@ -227,7 +227,7 @@ const BalanceSheetReport = () => {
             <div className="w-48 text-md">Current Year Profit/Loss</div>
             <div className="flex-1" />
             <div className="w-40 text-right text-md pr-4">
-             ({formatCurrency(current_profit_or_loss)})
+             ({formatCurrency(totals.current_profit_or_loss)})
             </div>
           </div>
 

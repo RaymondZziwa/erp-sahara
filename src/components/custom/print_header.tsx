@@ -18,7 +18,7 @@ const Header: React.FC<HeaderProps> = (props) => {
           <img
             src={`${imageURL}/${currentProfile?.logo}`}
             alt="Company Logo"
-            className="w-24 h-auto"
+            className="w-32 h-auto"
           />
         </div>
 

@@ -14,6 +14,7 @@ import SettlementDetailsModal from "./assess";
 import { apiRequest } from "../../../utils/api";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
+import SettlementModal from "./settlementsModal";
 
 const statusTabs = [
   { id: 'all', label: 'All Settlements' },
@@ -29,6 +30,7 @@ const SettlementTable: React.FC = () => {
   const tableRef = useRef<any>(null);
   const [selectedSettlement, setSelectedSettlement] = useState<Settlement | null>(null);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [isRecordsOpen, setIsRecordsOpen] = useState(false);
   const token = useSelector((state: RootState) => state.userAuth.token.access_token)
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   // Filter settlements by search term (client-side)
@@ -68,10 +70,25 @@ const SettlementTable: React.FC = () => {
   const columnDefinitions: ColDef<Settlement>[] = [
     {
       headerName: "Supplier",
-      valueGetter: (params) => params.data.delivery?.supplier?.name || '',
+      field: "delivery.supplier.name",
       sortable: true,
       filter: true,
-    },
+      cellRenderer: (params: ICellRendererParams) => {
+        const settlement = params.data;
+    
+        return (
+          <span
+            className="text-blue-600 cursor-pointer hover:underline"
+            onClick={() => {
+              setSelectedSettlement(settlement);
+              setIsRecordsOpen(true);   
+            }}
+          >
+            {settlement.delivery?.supplier?.name || "N/A"}
+          </span>
+        );
+      },
+    },    
     {
       headerName: "Item",
       valueGetter: (params) => params.data.delivery?.item?.name || '',
@@ -236,6 +253,7 @@ const SettlementTable: React.FC = () => {
         onApprove={approve}
         onReject={reject}
       />
+      <SettlementModal visible={isRecordsOpen} onClose={()=> setIsRecordsOpen(false)} settlement={selectedSettlement} />
     </div>
   );
 };

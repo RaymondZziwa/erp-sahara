@@ -326,7 +326,7 @@ const ViewAssessmentModal: React.FC<ViewAssessmentModalProps> = ({
       }}
     />
     {
-                (formData.moisture_percentage < 16) && (
+                (formData.moisture_percentage <= 16) && (
                   <Button
       label="Approve"
       icon="pi pi-check-circle"

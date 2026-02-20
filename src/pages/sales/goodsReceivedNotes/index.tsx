@@ -154,13 +154,6 @@ const GoodsReceivedNotes: React.FC = () => {
               <Icon icon="solar:add-circle-bold" fontSize={20} />
               Add GRN
             </button>
-            <button
-              className="bg-shade px-2 py-1 rounded text-white flex gap-2 items-center"
-              onClick={() => console.log("TODO: Export PDF")}
-            >
-              <Icon icon="solar:printer-bold" fontSize={20} />
-              Print
-            </button>
           </div>
         </div>
         <Table columnDefs={columnDefinitions} data={notes} ref={tableRef} />

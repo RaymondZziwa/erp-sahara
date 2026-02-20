@@ -35,6 +35,7 @@ const StoreRequisitions: React.FC = () => {
   const statusBodyTemplate = (rowData: StoreRequisition) => {
     const statusMap: Record<string, { label: string; bg: string; text?: string }> = {
       Pending: { label: "Pending", bg: "#ffc107", text: "#212529" },
+      Reviewed: { label: "Reviewed", bg: "#274beaff" },
       Approved: { label: "Approved", bg: "#28a745" },
       Rejected: { label: "Rejected", bg: "#dc3545" },
     };
@@ -65,7 +66,8 @@ const StoreRequisitions: React.FC = () => {
 
   const handlePrintRequisition = async (id: string) => {
     try {
-      const response = await axios.get(`${baseURL}/requisitions/store-requisitions/${id}/pdf`, {
+      //requisitions/store-requisitions/cd1816ae-8501-4786-af85-bab5c21d55ce/print
+      const response = await axios.get(`${baseURL}/requisitions/store-requisitions/${id}/print`, {
         responseType: "blob",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -92,7 +94,7 @@ const StoreRequisitions: React.FC = () => {
   
     let menuItems = [];
   
-    if (rowData.status === "Pending") {
+    if (rowData.status === "Pending" || rowData.status === "Reviewed") {
       menuItems = [
         { label: "Edit", icon: "pi pi-pencil", command: () => openModal("edit", rowData) },
         { label: "Delete", icon: "pi pi-trash", command: () => setDeleteDialog({ visible: true, item: rowData }) },
@@ -119,7 +121,7 @@ const StoreRequisitions: React.FC = () => {
       menuItems = [
         { label: "Print", icon: "pi pi-print", command: () => handlePrintRequisition(rowData.id) },
         {
-          label: "Disburse",
+          label: "Fulfill",
           icon: "pi pi-wallet",
           command: () => setDisburseModal({ visible: true, requisition: rowData })
         }        
@@ -154,8 +156,8 @@ const StoreRequisitions: React.FC = () => {
           } />
         </div>
 
-        <TabView activeIndex={["Pending", "Approved", "Rejected", "Disbursed"].indexOf(selectedCategory)} onTabChange={(e) => setSelectedCategory(["Pending", "Approved", "Rejected", "Disbursed"][e.index] as any)}>
-          {["Pending", "Approved", "Rejected", "Disbursed"].map((status) => (
+        <TabView activeIndex={["Pending", "Reviewed", "Approved", "Rejected", "Disbursed"].indexOf(selectedCategory)} onTabChange={(e) => setSelectedCategory(["Pending", "Reviewed", "Approved", "Rejected", "Disbursed"][e.index] as any)}>
+          {["Pending", "Reviewed", "Approved", "Rejected", "Disbursed"].map((status) => (
             <TabPanel header={status} key={status}>
               <DataTable
                 value={filteredRequisitions(status)}
@@ -187,7 +189,6 @@ const StoreRequisitions: React.FC = () => {
           ))}
         </TabView>
       </div>
-
       {/* Delete Confirmation Dialog */}
       <ConfirmDeleteDialog
         apiPath={`/requisitions/store-requisitions/${deleteDialog?.item?.id}`}
@@ -216,8 +217,6 @@ const StoreRequisitions: React.FC = () => {
         onHide={() => setDisburseModal({ visible: false, requisition: null })}
         onSubmit={refresh}
       />
-
-
     </div>
   );
 };

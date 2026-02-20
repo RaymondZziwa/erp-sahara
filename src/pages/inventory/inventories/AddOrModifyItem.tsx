@@ -92,9 +92,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
     // Basic validation
     if (!formState.item_id || !formState.quantity) {
       setIsSubmitting(false);
-      console.log("missin");
-
-      return; // Handle validation error here
+      return;
     }
 
     try {
@@ -111,6 +109,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
         onSave,
         method
       );
+      setFormState(initialItem);
       refresh()
       setIsSubmitting(false);
 
@@ -249,7 +248,7 @@ const AddOrModifyItem: React.FC<AddOrModifyItemProps> = ({
             options={[
               { label: "Select Supplier", value: null },
               ...suppliers.map((supplier) => ({
-                label: supplier.supplier_name,
+                label: supplier.name,
                 value: supplier.id,
               })),
             ]}

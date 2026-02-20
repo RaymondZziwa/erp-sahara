@@ -9,6 +9,7 @@ import Table from "../../../components/table";
 import useSalaryStructures from "../../../hooks/hr/useSalaryStructures";
 import { SalaryStructure } from "../../../redux/slices/types/hr/SalaryStructure";
 import { HUMAN_RESOURCE_ENDPOINTS } from "../../../api/hrEndpoints";
+import { Link } from "react-router-dom";
 
 const SalaryStructures: React.FC = () => {
   const { data, refresh } = useSalaryStructures();
@@ -22,39 +23,36 @@ const SalaryStructures: React.FC = () => {
   const columnDefinitions: ColDef<SalaryStructure>[] = [
     {
       headerName: "Name",
-      field: "structure_name",
+      field: "name",
       sortable: true,
       filter: true,
-    },
-    {
-      headerName: "Comment",
-      field: "comment",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Basic Salary",
-      field: "basic_salary",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Over Time Rate",
-      field: "overtime_rate",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
-    {
-      headerName: "Bonus Percentage",
-      field: "bonus_percentage",
-      sortable: true,
-      filter: true,
-      suppressSizeToFit: true,
-    },
+      cellRenderer: (params: ICellRendererParams<SalaryStructure>) => {
+  return (
+    <Link
+      to={`/hr/salary_structure/${params.data?.id}`}
+      className="hover:underline hover:text-teal-500"
+    >
+      {params.data?.name}
+    </Link>
+  );
+}
 
+    },
+     {
+      headerName: "Basic Salary",
+      field: "basic_pay",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "Notes",
+      field: "notes",
+      sortable: true,
+      filter: true,
+      suppressSizeToFit: true,
+    },
+   
     {
       headerName: "Created",
       field: "created_at",

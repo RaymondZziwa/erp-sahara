@@ -21,7 +21,7 @@ const QaSettings: React.FC = () => {
     try {
       // Send updated QA values to API
       const response = await createRequest(`/purchases/qasettings/update`, token.access_token, JSON.stringify(updatedValues), ()=> {}, 'PUT')
-     
+     refresh()
       if (!response.success) {
         throw new Error('Failed to save QA settings');
       } else {
@@ -68,7 +68,18 @@ const [qaValues, setQaValues] = useState(initialState);
   }>({ selectedItem: undefined, currentAction: "" });
 
   const columnDefinitions: ColDef<QaSetting>[] = [
-    { headerName: "Key", field: "name", sortable: true, filter: true },
+    {
+      headerName: "Key",
+      field: "name",
+      sortable: true,
+      filter: true,
+      width: 350,
+      valueFormatter: (params) => {
+        if (!params.value) return "";
+        const formatted = params.value.replace(/_/g, " ");
+        return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+      },
+    },
     { headerName: "Value", field: "value", sortable: true, filter: true },
   ];
 
